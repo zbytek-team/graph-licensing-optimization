@@ -1,0 +1,14 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115.5",
+    "ipython>=8.29.0",
+    "matplotlib>=3.9.2",
+    "networkx>=3.4.2",
+    "pulp>=2.9.0",
+    "scipy>=1.14.1",
+]
