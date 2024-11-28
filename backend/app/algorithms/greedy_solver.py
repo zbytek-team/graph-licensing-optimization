@@ -1,9 +1,12 @@
 import networkx as nx
+import math
 
 from config.config import LicenseType
 
 
-def greedy_license_distribution(graph: nx.Graph, max_group_size: int = 6):
+def greedy_license_distribution(
+    graph: nx.Graph, prices: tuple[float, float], max_group_size
+):
     def key(n: int):
         if isinstance(graph.degree, nx.classes.reportviews.DegreeView):
             return graph.degree[n]
@@ -32,7 +35,7 @@ def greedy_license_distribution(graph: nx.Graph, max_group_size: int = 6):
             : max_group_size - 1
         ]
 
-        if len(uncovered_neighbors_sorted) < 3:
+        if len(uncovered_neighbors_sorted) < math.ceil(prices[1] / prices[0]):
             licenses[LicenseType.INDIVIDUAL].append(node)
             covered_nodes.add(node)
 

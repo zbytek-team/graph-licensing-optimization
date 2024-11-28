@@ -1,13 +1,13 @@
 "use client";
 
-import { Background, Controls, Edge, Node, OnEdgesChange, OnNodesChange, ReactFlow, addEdge } from "@xyflow/react";
+import { Background, Edge, Node, OnEdgesChange, ReactFlow, addEdge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback } from "react";
 
 interface NetworkVisualizationProps {
   nodes: Node[]
   edges: Edge[]
-  onNodesChange: OnNodesChange
+  onNodesChange: any // TODO: Fix type
   onEdgesChange: OnEdgesChange
   setEdges: (edges: any) => void // TODO: Fix type
 }
@@ -31,7 +31,6 @@ function NetworkVisualization({ nodes, edges, onNodesChange, onEdgesChange, setE
         fitView
         className="bg-background text-foreground"
       >
-        <Controls className="bg-background text-foreground" />
         <Background color="#374151" />
       </ReactFlow>
     </div>
