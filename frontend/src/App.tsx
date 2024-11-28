@@ -13,7 +13,7 @@ const nodeStyle = {
   height: 50,
   borderRadius: 50,
   fontSize: 18,
-  backgroundColor: "#333",
+  backgroundColor: "#333333",
 };
 
 const initNodes = [
@@ -29,18 +29,23 @@ const initEdges = [
   { id: "e3-4", source: "3", target: "4" },
 ];
 
-const networks = ["Facebook", "Twitter", "LinkedIn", "Custom"];
-const algorithms = ["Greedy", "ILP", "Genetic"];
+interface SimulationResult {
+  individual: string[]
+  group_owner: string[]
+  group_member: string[]
+}
 
 function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initEdges);
 
-  const [selectedNetwork, setSelectedNetwork] = useState(networks[0]);
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState(algorithms[0]);
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
   const [maxGroupSize, setMaxGroupSize] = useState(6);
   const [groupLicensePrice, setGroupLicensePrice] = useState(349.99);
   const [individualLicensePrice, setIndividualLicensePrice] = useState(167.99);
+
+  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+
 
   const handleAddNode = () => {
     const nodeNumber = (nodes.length + 1).toString();
@@ -55,17 +60,20 @@ function App() {
   };
 
   const handleRunSimulation = () => {
-    fetch("http://localhost:8000/run-simulation", {
+    fetch("http://localhost:8000/run-simulation?max_group_size=" + maxGroupSize + "&selected_algorithm=" + selectedAlgorithm, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        nodes: nodes,
-        edges: edges,
-      }),
+        graph: {
+          nodes: nodes,
+          edges: edges,
+        },
+        prices: [individualLicensePrice, groupLicensePrice],
+      },),
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Simulation result:", data);
+        setSimulationResult(data);
 
         setNodes((currentNodes) =>
           currentNodes.map((node) => {
@@ -85,7 +93,10 @@ function App() {
                 style: { ...node.style, backgroundColor: "#18314a" },
               };
             }
-            return node;
+            return {
+              ...node,
+              style: { ...node.style, backgroundColor: "#333333" },
+            };
           })
         );
       })
@@ -99,22 +110,21 @@ function App() {
         <NetworkVisualization
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange} // TODO: Fix type
+          onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           setEdges={setEdges}
         />
       </div>
       <Sidebar
-        selectedNetwork={selectedNetwork}
         selectedAlgorithm={selectedAlgorithm}
         maxGroupSize={maxGroupSize}
         groupLicensePrice={groupLicensePrice}
         individualLicensePrice={individualLicensePrice}
-        setSelectedNetwork={setSelectedNetwork}
         setSelectedAlgorithm={setSelectedAlgorithm}
         setMaxGroupSize={setMaxGroupSize}
         setGroupLicensePrice={setGroupLicensePrice}
         setIndividualLicensePrice={setIndividualLicensePrice}
+        simulationResult={simulationResult}
       />
     </div>
   );
