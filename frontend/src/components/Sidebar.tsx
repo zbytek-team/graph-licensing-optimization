@@ -3,11 +3,10 @@ import { Label } from "./ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 
 import { Slider } from "./ui/slider"
+import { useState, useEffect } from "react"
 
 interface SidebarProps {
-  selectedNetwork: string
-  setSelectedNetwork: (network: string) => void
-  selectedAlgorithm: string
+  selectedAlgorithm: string | null
   setSelectedAlgorithm: (algorithm: string) => void
   maxGroupSize: number
   setMaxGroupSize: (size: number) => void
@@ -15,35 +14,32 @@ interface SidebarProps {
   setGroupLicensePrice: (price: number) => void
   individualLicensePrice: number
   setIndividualLicensePrice: (price: number) => void
+  simulationResult: {
+    individual: string[]
+    group_owner: string[]
+    group_member: string[]
+  } | null
 }
 
-const networks = ['Facebook', 'Twitter', 'LinkedIn', 'Custom']
-const algorithms = ['Greedy', 'ILP', 'Genetic']
+function Sidebar({ selectedAlgorithm, setSelectedAlgorithm, maxGroupSize, setMaxGroupSize, groupLicensePrice, setGroupLicensePrice, individualLicensePrice, setIndividualLicensePrice, simulationResult }: SidebarProps) {
+  const [algorithms, setAlgorithms] = useState<string[]>([])
 
+  useEffect(() => {
+    fetch("http://localhost:8000/algorithms")
+      .then((response) => response.json())
+      .then((data) => {
+        setAlgorithms(data)
+      })
+  }, [])
 
-function Sidebar({ selectedNetwork, setSelectedNetwork, selectedAlgorithm, setSelectedAlgorithm, maxGroupSize, setMaxGroupSize, groupLicensePrice, setGroupLicensePrice, individualLicensePrice, setIndividualLicensePrice }: SidebarProps) {
   return (
     <div className="w-64 bg-background p-4 shadow-lg border-l border-border">
       <h2 className="mb-4 text-lg font-semibold">Parameters</h2>
 
       <div className="space-y-4">
         <div>
-          <Label htmlFor="network-select">Select Network</Label>
-          <Select value={selectedNetwork} onValueChange={setSelectedNetwork}>
-            <SelectTrigger id="network-select">
-              <SelectValue>{selectedNetwork}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {networks.map((network) => (
-                <SelectItem key={network} value={network}>{network}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
           <Label htmlFor="algorithm-select">Select Algorithm</Label>
-          <Select value={selectedAlgorithm} onValueChange={setSelectedAlgorithm}>
+          <Select onValueChange={setSelectedAlgorithm}>
             <SelectTrigger id="algorithm-select">
               <SelectValue>{selectedAlgorithm}</SelectValue>
             </SelectTrigger>
@@ -89,6 +85,51 @@ function Sidebar({ selectedNetwork, setSelectedNetwork, selectedAlgorithm, setSe
             onChange={(e) => setIndividualLicensePrice(Number(e.target.value))}
           />
         </div>
+
+        {
+          simulationResult && (
+            <>
+              <div className="shadow-lg border-t border-border pt-4">
+                <Label htmlFor="simulation-result">Overall Cost</Label>
+                <Input
+                  id="simulation-cost"
+                  type="text"
+                  value={individualLicensePrice * simulationResult.individual.length + groupLicensePrice * simulationResult.group_owner.length + " PLN"}
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="simulation-result">Number of Individual Licenses</Label>
+                <Input
+                  id="simulation-individual-number"
+                  type="text"
+                  value={simulationResult.individual.length}
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="simulation-result">Number of Group Owners</Label>
+                <Input
+                  id="simulation-group-owner-number"
+                  type="text"
+                  value={simulationResult.group_owner.length}
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="simulation-result">Number of Group Members</Label>
+                <Input
+                  id="simulation-group-member-number"
+                  type="text"
+                  value={simulationResult.group_member.length}
+                  readOnly
+                />
+              </div>
+            </>
+          )}
       </div>
     </div>
   )
