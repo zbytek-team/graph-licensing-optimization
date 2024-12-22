@@ -1,7 +1,7 @@
-from enum import Enum, auto
+from enum import Enum
 
 
 class LicenseType(Enum):
-    INDIVIDUAL = auto()
-    GROUP_OWNER = auto()
-    GROUP_MEMBER = auto()
+    INDIVIDUAL = "individual"
+    GROUP_OWNER = "group_owner"
+    GROUP_MEMBER = "group_member"

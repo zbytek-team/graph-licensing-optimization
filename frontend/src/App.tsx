@@ -5,8 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 
 import { useEdgesState, useNodesState } from "@xyflow/react";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const nodeStyle = {
   width: 50,
@@ -16,36 +15,44 @@ const nodeStyle = {
   backgroundColor: "#333333",
 };
 
-const initNodes = [
-  { id: "1", data: { label: "1" }, position: { x: 0, y: 0 }, style: { ...nodeStyle } },
-  { id: "2", data: { label: "2" }, position: { x: -100, y: 100 }, style: { ...nodeStyle } },
-  { id: "3", data: { label: "3" }, position: { x: 100, y: 100 }, style: { ...nodeStyle } },
-  { id: "4", data: { label: "4" }, position: { x: 100, y: 200 }, style: { ...nodeStyle } },
-];
-
-const initEdges = [
-  { id: "e1-2", source: "1", target: "2" },
-  { id: "e1-3", source: "1", target: "3" },
-  { id: "e3-4", source: "3", target: "4" },
-];
-
 interface SimulationResult {
-  individual: string[]
-  group_owner: string[]
-  group_member: string[]
+  individual: string[];
+  group_owner: string[];
+  group_member: string[];
 }
 
 function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<any>([]);
 
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState<string>("Greedy");
+  const [selectedNetwork, setSelectedNetwork] = useState<string>("Basic Graph");
   const [maxGroupSize, setMaxGroupSize] = useState(6);
   const [groupLicensePrice, setGroupLicensePrice] = useState(349.99);
   const [individualLicensePrice, setIndividualLicensePrice] = useState(167.99);
 
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
 
+  const fetchNetwork = (network: string) => {
+    const endpointMap: { [key: string]: string } = {
+      "Basic Graph": "basic-graph",
+      "Star Graph": "star-graph",
+      "Florentine Families Graph": "florentine-families-graph",
+      "Les Miserables Graph": "les-miserables",
+    };
+
+    fetch(`http://localhost:8000/networks/${endpointMap[network]}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setNodes(data.nodes);
+        setEdges(data.edges);
+      })
+      .catch((error) => console.error("Error loading graph:", error));
+  };
+
+  useEffect(() => {
+    fetchNetwork(selectedNetwork);
+  }, [selectedNetwork]);
 
   const handleAddNode = () => {
     const nodeNumber = (nodes.length + 1).toString();
@@ -69,7 +76,7 @@ function App() {
           edges: edges,
         },
         prices: [individualLicensePrice, groupLicensePrice],
-      },),
+      }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -106,7 +113,7 @@ function App() {
   return (
     <div className="flex h-screen w-screen">
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar onAddNode={handleAddNode} onRunSimulation={handleRunSimulation} />
+        <Topbar selectedAlgorithm={selectedAlgorithm} onAddNode={handleAddNode} onRunSimulation={handleRunSimulation} />
         <NetworkVisualization
           nodes={nodes}
           edges={edges}
@@ -117,10 +124,12 @@ function App() {
       </div>
       <Sidebar
         selectedAlgorithm={selectedAlgorithm}
+        selectedNetwork={selectedNetwork}
         maxGroupSize={maxGroupSize}
         groupLicensePrice={groupLicensePrice}
         individualLicensePrice={individualLicensePrice}
         setSelectedAlgorithm={setSelectedAlgorithm}
+        setSelectedNetwork={setSelectedNetwork}
         setMaxGroupSize={setMaxGroupSize}
         setGroupLicensePrice={setGroupLicensePrice}
         setIndividualLicensePrice={setIndividualLicensePrice}
