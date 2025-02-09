@@ -1,13 +1,25 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
-import path from 'path'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "node:path";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    port: 3000,
+  },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": "/src",
     },
   },
-})
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: "modern-compiler",
+        additionalData: `@use "${path
+          .join(process.cwd(), "src/_mantine")
+          .replace(/\\/g, "/")}" as mantine;`,
+      },
+    },
+  },
+});
