@@ -1,141 +1,93 @@
-"use client";
+// App.tsx
+import { Box } from "@mantine/core";
+import { useState } from "react";
+import styles from "./App.module.scss";
+import TopBar from "./components/TopBar";
+import SimParams from "./components/SimParams";
+import SimResults from "./components/SimResults";
+import View from "./components/View";
 
-import NetworkVisualization from "@/components/NetworkVisualization";
-import Sidebar from "@/components/Sidebar";
-import Topbar from "@/components/Topbar";
-
-import { useEdgesState, useNodesState } from "@xyflow/react";
-import { useState, useEffect } from "react";
-
-const nodeStyle = {
-  width: 50,
-  height: 50,
-  borderRadius: 50,
-  fontSize: 18,
-  backgroundColor: "#333333",
-};
-
-interface SimulationResult {
-  individual: string[];
-  group_owner: string[];
-  group_member: string[];
+// Interfejsy wyników symulacji – zgodnie z response z API
+export interface LicenseAssignmentItem {
+  owner: number;
+  users: number[];
 }
 
+export interface LicenseAssignment {
+  license_type: string;
+  item: LicenseAssignmentItem[];
+}
+
+// Wynik symulacji to tablica obiektów LicenseAssignment
+export type SimulationResponse = LicenseAssignment[];
+
 function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<any>([]);
+  // Stan wyniku symulacji
+  const [simulationResult, setSimulationResult] =
+    useState<SimulationResponse | null>(null);
 
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState<string>("Greedy");
-  const [selectedNetwork, setSelectedNetwork] = useState<string>("Basic Graph");
-  const [maxGroupSize, setMaxGroupSize] = useState(6);
-  const [groupLicensePrice, setGroupLicensePrice] = useState(349.99);
-  const [individualLicensePrice, setIndividualLicensePrice] = useState(167.99);
+  // Stan grafu – przechowujemy listę węzłów (liczby) oraz krawędzi (tablice dwóch liczb)
+  const [graphNodes, setGraphNodes] = useState<number[]>([0, 1, 2, 3, 4]);
+  const [graphEdges, setGraphEdges] = useState<number[][]>([
+    [0, 1],
+    [0, 2],
+    [0, 3],
+    [1, 3],
+    [1, 4],
+  ]);
 
-  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
-
-  const fetchNetwork = (network: string) => {
-    const endpointMap: { [key: string]: string } = {
-      "Basic Graph": "basic-graph",
-      "Star Graph": "star-graph",
-      "Florentine Families Graph": "florentine-families-graph",
-      "Les Miserables Graph": "les-miserables",
+  // Funkcja wywołująca API symulacji – używa aktualnego stanu grafu
+  const runSimulation = async (simulationRequest?: any) => {
+    const req = simulationRequest || {
+      algorithm: "greedy",
+      license_types: [
+        { name: "individual", cost: 10, limit: 1 },
+        { name: "group", cost: 25, limit: 6 },
+        { name: "mega", cost: 40, limit: 10 },
+      ],
+      graph: {
+        nodes: graphNodes,
+        edges: graphEdges,
+      },
     };
 
-    fetch(`http://localhost:8000/networks/${endpointMap[network]}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setNodes(data.nodes);
-        setEdges(data.edges);
-      })
-      .catch((error) => console.error("Error loading graph:", error));
-  };
-
-  useEffect(() => {
-    fetchNetwork(selectedNetwork);
-  }, [selectedNetwork]);
-
-  const handleAddNode = () => {
-    const nodeNumber = (nodes.length + 1).toString();
-    const newNode = {
-      id: nodeNumber,
-      data: { label: nodeNumber },
-      position: { x: 0, y: 0 },
-      style: { ...nodeStyle },
-    };
-
-    setNodes((nds) => nds.concat(newNode));
-  };
-
-  const handleRunSimulation = () => {
-    fetch("http://localhost:8000/run-simulation?max_group_size=" + maxGroupSize + "&selected_algorithm=" + selectedAlgorithm, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        graph: {
-          nodes: nodes,
-          edges: edges,
-        },
-        prices: [individualLicensePrice, groupLicensePrice],
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setSimulationResult(data);
-
-        setNodes((currentNodes) =>
-          currentNodes.map((node) => {
-            if (data.individual.includes(node.id)) {
-              return {
-                ...node,
-                style: { ...node.style, backgroundColor: "#184a2e" },
-              };
-            } else if (data.group_owner.includes(node.id)) {
-              return {
-                ...node,
-                style: { ...node.style, backgroundColor: "#251742" },
-              };
-            } else if (data.group_member.includes(node.id)) {
-              return {
-                ...node,
-                style: { ...node.style, backgroundColor: "#18314a" },
-              };
-            }
-            return {
-              ...node,
-              style: { ...node.style, backgroundColor: "#333333" },
-            };
-          })
-        );
-      })
-      .catch((error) => console.error("Error during simulation:", error));
+    try {
+      const response = await fetch("http://localhost:8000/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req),
+      });
+      if (!response.ok) {
+        throw new Error("Simulation error");
+      }
+      const data: SimulationResponse = await response.json();
+      setSimulationResult(data);
+    } catch (error) {
+      console.error("Error during simulation:", error);
+    }
   };
 
   return (
-    <div className="flex h-screen w-screen">
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar selectedAlgorithm={selectedAlgorithm} onAddNode={handleAddNode} onRunSimulation={handleRunSimulation} />
-        <NetworkVisualization
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          setEdges={setEdges}
+    <Box className={styles.container}>
+      <Box className={styles.left}>
+        {/* TopBar – przycisk "Run Simulation" wywołuje funkcję z aktualnym stanem grafu */}
+        <TopBar onRunSimulation={() => runSimulation()} />
+        {/* View – interaktywny widok grafu; otrzymuje aktualny stan grafu oraz funkcje do jego modyfikacji */}
+        <View
+          simulationResult={simulationResult}
+          nodes={graphNodes}
+          links={graphEdges}
+          setNodes={setGraphNodes}
+          setLinks={setGraphEdges}
         />
-      </div>
-      <Sidebar
-        selectedAlgorithm={selectedAlgorithm}
-        selectedNetwork={selectedNetwork}
-        maxGroupSize={maxGroupSize}
-        groupLicensePrice={groupLicensePrice}
-        individualLicensePrice={individualLicensePrice}
-        setSelectedAlgorithm={setSelectedAlgorithm}
-        setSelectedNetwork={setSelectedNetwork}
-        setMaxGroupSize={setMaxGroupSize}
-        setGroupLicensePrice={setGroupLicensePrice}
-        setIndividualLicensePrice={setIndividualLicensePrice}
-        simulationResult={simulationResult}
-      />
-    </div>
+      </Box>
+      <Box className={styles.right}>
+        {/* SimParams – umożliwia zmianę parametrów symulacji */}
+        <SimParams />
+        {/* SimResults – wyświetla wyniki symulacji */}
+        <SimResults simulationResult={simulationResult} />
+      </Box>
+    </Box>
   );
 }
 
