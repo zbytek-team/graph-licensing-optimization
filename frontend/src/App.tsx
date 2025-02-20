@@ -1,35 +1,35 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import TopPanel from "@/components/TopPanel";
+import GraphView from "@/components/GraphView";
+import GraphTypePanel from "./components/GraphTypePanel";
+import LicensesPanel from "./components/LicensesPanel";
+import ResultsPanel from "@/components/ResultsPanel";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const onSolveRun = (solver: string) => {
+    console.log("Solver:", solver);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="flex h-screen bg-background text-foreground p-4 gap-4">
+      <div className="flex flex-col flex-grow gap-4">
+        <div className="h-16 flex-shrink-0">
+          <TopPanel onSolveRun={onSolveRun} />
+        </div>
+        <div className="flex-grow">
+          <GraphView />
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      <div className="w-96 flex flex-col gap-4">
+        <div className="flex-16">
+          <GraphTypePanel />
+        </div>
+        <div className="h-grow">
+          <LicensesPanel />
+        </div>
+        <div className="h-16">
+          <ResultsPanel />
+        </div>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
-
-export default App
