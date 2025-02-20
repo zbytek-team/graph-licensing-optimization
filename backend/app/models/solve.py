@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 class SolverType(str, Enum):
     GREEDY = "greedy"
-
+    ANT = "ant"
 
 class License(BaseModel):
     name: str
