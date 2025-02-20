@@ -8,6 +8,13 @@ class SolverType(str, Enum):
     GREEDY = "greedy"
     ANT = "ant"
 
+
+class AntSolverType(str, Enum):
+    PATH = "path"
+    LICENCES = "licences"
+    PATH_AND_LICENCES = "path_and_licences"
+
+
 class License(BaseModel):
     name: str
     cost: float
