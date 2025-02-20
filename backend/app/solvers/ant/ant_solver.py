@@ -56,7 +56,7 @@ class Ant:
         available_nodes = set(self.graph.nodes)
 
         while available_nodes:
-            node = self.choose_node(available_nodes)  # Wybór węzła na podstawie feromonów
+            node = self.choose_node(available_nodes)
             license, covered_nodes = self.select_license(node)
 
             if license and covered_nodes:
