@@ -1,67 +1,46 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, X } from "lucide-react";
-import { useState } from "react";
-
-type License = {
-  id: number;
-  name: string;
-  cost: number;
-  limit: number;
-};
+import { useAppStore } from "@/store/useAppStore";
+import { License } from "@/types/license";
 
 const defaultLicenses: License[] = [
-  { id: 1, name: "Individual", cost: 1.2, limit: 1 },
-  { id: 2, name: "Family", cost: 1.8, limit: 6 },
+  { name: "Individual", cost: 1.2, limit: 1 },
+  { name: "Family", cost: 1.8, limit: 6 },
 ];
 
-export default function SidePanel() {
-  const [licenses, setLicenses] = useState<License[]>(defaultLicenses);
-  const [nextId, setNextId] = useState(3);
+export default function LicensesPanel() {
+  const [licenses, setLocalLicenses] = useState<License[]>(defaultLicenses);
+  const setLicenses = useAppStore((state) => state.setLicenses);
+
+  useEffect(() => {
+    setLicenses(licenses);
+  }, [licenses, setLicenses]);
 
   const addLicense = () => {
-    const newLicense: License = {
-      id: nextId,
-      name: "",
-      cost: 0,
-      limit: 1,
-    };
-    setLicenses([...licenses, newLicense]);
-    setNextId(nextId + 1);
+    const newLicense: License = { name: "", cost: 0, limit: 1 };
+    setLocalLicenses([...licenses, newLicense]);
   };
 
   const updateLicense = (
-    id: number,
+    index: number,
     field: keyof License,
     value: string | number
   ) => {
-    setLicenses(
-      licenses.map((license) =>
-        license.id === id
-          ? {
-              ...license,
-              [field]:
-                field === "cost" ? Number.parseFloat(value as string) : value,
-            }
-          : license
-      )
+    const updatedLicenses = licenses.map((license, i) =>
+      i === index
+        ? { ...license, [field]: field === "cost" ? Number(value) : value }
+        : license
     );
+    setLocalLicenses(updatedLicenses);
   };
 
-  const deleteLicense = (id: number) => {
-    setLicenses(licenses.filter((license) => license.id !== id));
+  const deleteLicense = (index: number) => {
+    setLocalLicenses(licenses.filter((_, i) => i !== index));
   };
 
   return (
@@ -69,36 +48,26 @@ export default function SidePanel() {
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <Select>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select graph type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bipartite">Bipartite</SelectItem>
-                <SelectItem value="star">Star</SelectItem>
-                <SelectItem value="complete">Complete</SelectItem>
-              </SelectContent>
-            </Select>
             <Button onClick={addLicense}>
               <Plus className="mr-2 h-4 w-4" /> Add License
             </Button>
           </div>
-          <ScrollArea className="h-[calc(100vh-300px)]">
-            {licenses.map((license) => (
-              <div key={license.id} className="mb-4 p-4 border rounded-md">
+          <ScrollArea className="h-[500px]">
+            {licenses.map((license, index) => (
+              <div key={index} className="mb-4 p-4 border rounded-md">
                 <div className="flex justify-between items-center mb-2">
                   <Input
                     placeholder="License name"
                     value={license.name}
                     onChange={(e) =>
-                      updateLicense(license.id, "name", e.target.value)
+                      updateLicense(index, "name", e.target.value)
                     }
                     className="w-3/4"
                   />
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => deleteLicense(license.id)}
+                    onClick={() => deleteLicense(index)}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -112,7 +81,7 @@ export default function SidePanel() {
                       step={0.01}
                       value={license.cost}
                       onChange={(e) =>
-                        updateLicense(license.id, "cost", e.target.value)
+                        updateLicense(index, "cost", e.target.value)
                       }
                       className="mt-1"
                     />
@@ -127,7 +96,7 @@ export default function SidePanel() {
                       step={1}
                       value={[license.limit]}
                       onValueChange={(value) =>
-                        updateLicense(license.id, "limit", value[0])
+                        updateLicense(index, "limit", value[0])
                       }
                     />
                   </div>
