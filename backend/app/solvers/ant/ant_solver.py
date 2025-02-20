@@ -27,7 +27,6 @@ class Ant:
         heuristic_values = np.array([len(self.graph.get_neighbors(n)) for n in nodes])
 
         probabilities = (pheromone_values ** self.alpha) * (heuristic_values ** self.beta)
-        print(probabilities)
         probabilities /= probabilities.sum()
 
         return np.random.choice(nodes, p=probabilities)
