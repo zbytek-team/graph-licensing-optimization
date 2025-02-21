@@ -1,7 +1,7 @@
 import numpy as np
 from app.models.solve import License, Assignments, AntSolverType
 from app.models.graph import Graph
-from app.solvers.ant.ant import Ant, check_ant_solver_arguments
+from app.solvers.ant.ant import Ant, ant_solvers_args_validator
 
 def ant_solver(
     graph: Graph,
@@ -16,7 +16,7 @@ def ant_solver(
 ) -> Assignments:
     """Algorytm mrówkowy z wieloprocesowością."""
 
-    check_ant_solver_arguments(graph, licenses, ants, iterations, alpha, beta, evaporation, stagnation_limit, solution_type)
+    ant_solvers_args_validator(graph, licenses, ants, iterations, alpha, beta, evaporation, stagnation_limit, solution_type)
 
     pheromones = {node: np.ones(len(licenses)) for node in graph.nodes}
     best_solution = None
