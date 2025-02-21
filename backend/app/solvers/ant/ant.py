@@ -24,7 +24,6 @@ class Ant:
         self.solution_type = solution_type
 
     def choose_node(self, available_nodes: set[Node]) -> Node:
-        """Losowy wybór węzła"""
         return random.choice(list(available_nodes))
 
     def choose_node_pheromones(self, available_nodes: set[Node]) -> Node:
@@ -40,7 +39,7 @@ class Ant:
 
     def select_license(self, node: Node) -> tuple[License, list[Node]]:
         """Wybiera licencję, biorąc pod uwagę pokrycie"""
-        best_license = None
+        best_license = random.choice(self.licenses)
         best_score = -1
         best_covered_nodes = []
 
@@ -87,7 +86,7 @@ class Ant:
 
         return chosen_license, covered_nodes
 
-    def construct_solution(self) -> None:
+    def construct_solution(self):
         """Tworzenie rozwiązania poprzez wybór węzłów i licencji"""
         available_nodes = set(self.graph.nodes)
 
@@ -118,5 +117,3 @@ class Ant:
                 self.cost += license.cost
 
             available_nodes -= self.covered_nodes
-        
-        return None
