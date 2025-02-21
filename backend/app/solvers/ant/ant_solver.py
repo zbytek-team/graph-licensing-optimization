@@ -14,7 +14,21 @@ def ant_solver(
     stagnation_limit: int = 30,
     solution_type: AntSolverType = AntSolverType.PATH,
 ) -> Assignments:
-    """Algorytm mrówkowy z wieloprocesowością."""
+    '''
+    Podstawowa implementacja algorytmu mrówkowego dla problemu przypisania licencji.
+
+    :param graph: Graf
+    :param licenses: Lista licencji
+    :param ants: Liczba mrówek
+    :param iterations: Maksymalna liczba iteracji
+    :param alpha: Waga feromonów
+    :param beta: Waga heurystyki
+    :param evaporation: Współczynnik parowania feromonów
+    :param stagnation_limit: Limit stagnacji
+    :param solution_type: Typ rozwiązania
+
+    :return: Przypisanie licenc
+    '''
 
     ant_solvers_args_validator(graph, licenses, ants, iterations, alpha, beta, evaporation, stagnation_limit, solution_type)
 
