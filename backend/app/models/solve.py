@@ -6,7 +6,8 @@ from pydantic import BaseModel
 
 class SolverType(str, Enum):
     GREEDY = "greedy"
-    ANT = "ant"
+    ANTS = "ants"
+    ANTS_MULTIPROCESSING = "ants_multiprocessing"
 
 
 class AntSolverType(str, Enum):

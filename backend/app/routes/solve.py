@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from app.models.solve import SolveRequest, SolveResponse, SolverType
 from app.solvers.greedy.greedy_solver import greedy_solver
 from app.solvers.ant.ant_solver import ant_solver
+from app.solvers.ant.ant_solver_multiprocessing import ant_solver_multiprocessing
 
 router = APIRouter()
 
@@ -15,8 +16,16 @@ async def solve(request: SolveRequest) -> SolveResponse:
     match solver:
         case SolverType.GREEDY:
             assignments = greedy_solver(graph, licenses)
-        case SolverType.ANT:
+        case SolverType.ANTS:
             assignments = ant_solver(
+                graph,
+                licenses,
+                ants=8,
+                iterations=64,
+                solution_type="path_and_licences",
+            )
+        case SolverType.ANTS_MULTIPROCESSING:
+            assignments = ant_solver_multiprocessing(
                 graph,
                 licenses,
                 ants=16,
