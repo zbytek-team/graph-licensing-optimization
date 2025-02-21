@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.models.solve import SolveRequest, SolveResponse, SolverType
+from app.models.solve import SolveRequest, SolveResponse, SolverType, AntSolverType
 from app.solvers.greedy.greedy_solver import greedy_solver
 from app.solvers.ant.ant_solver import ant_solver
 from app.solvers.ant.ant_solver_multiprocessing import ant_solver_multiprocessing
@@ -21,16 +21,14 @@ async def solve(request: SolveRequest) -> SolveResponse:
                 graph,
                 licenses,
                 ants=8,
-                iterations=64,
-                solution_type="path_and_licences",
+                solution_type=AntSolverType.PATH_AND_LICENCES,
             )
         case SolverType.ANTS_MULTIPROCESSING:
             assignments = ant_solver_multiprocessing(
                 graph,
                 licenses,
                 ants=16,
-                iterations=128,
-                solution_type="path_and_licences",
+                solution_type=AntSolverType.PATH_AND_LICENCES,
             )
         case _:
             raise HTTPException(status_code=400, detail="Invalid solver")
