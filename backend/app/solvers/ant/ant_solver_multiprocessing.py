@@ -1,14 +1,15 @@
 import numpy as np
 from app.models.solve import License, Assignments, AntSolverType
 from app.models.graph import Graph
-from app.solvers.ant.ant import Ant, ant_solvers_args_validator
+from app.solvers.ant.ant import Ant
 import concurrent.futures
 
+
 def ant_worker(graph, licenses, pheromones, alpha, beta, solution_type):
-    """Funckja pomocnicza dla algorytmu mrówkowego reprezentująca proces"""
     ant = Ant(graph, licenses, pheromones, alpha, beta, solution_type)
     ant.construct_solution()
     return ant.solution, ant.cost
+
 
 def ant_solver_multiprocessing(
     graph: Graph,
@@ -22,22 +23,20 @@ def ant_solver_multiprocessing(
     solution_type: AntSolverType = AntSolverType.PATH,
 ) -> Assignments:
     """
-    Algorytm mrówkowy wykorzystujący multiprocessing dla problemu przypisania licencji.
+    Ant colony algorithm using multiprocessing for the license assignment problem.
 
-    :param graph: Graf
-    :param licenses: Lista licencji
-    :param ants: Liczba mrówek
-    :param iterations: Maksymalna liczba iteracji
-    :param alpha: Waga feromonów
-    :param beta: Waga heurystyki
-    :param evaporation: Współczynnik parowania feromonów
-    :param stagnation_limit: Limit stagnacji
-    :param solution_type: Typ rozwiązania
-    
-    :return: Przypisanie licencji
+    :param graph: Graph
+    :param licenses: List of licenses
+    :param ants: Number of ants
+    :param iterations: Maximum number of iterations
+    :param alpha: Pheromone weight
+    :param beta: Heuristic weight
+    :param evaporation: Pheromone evaporation rate
+    :param stagnation_limit: Stagnation limit
+    :param solution_type: Solution type
+
+    :return: License assignments
     """
-
-    ant_solvers_args_validator(graph, licenses, ants, iterations, alpha, beta, evaporation, stagnation_limit, solution_type)
 
     pheromones = {node: np.ones(len(licenses)) for node in graph.nodes}
     best_solution = None
@@ -48,11 +47,15 @@ def ant_solver_multiprocessing(
     with concurrent.futures.ProcessPoolExecutor(max_workers=ants) as executor:
         while iterations == 0 or iteration < iterations:
             futures = [
-                executor.submit(ant_worker, graph, licenses, pheromones, alpha, beta, solution_type)
+                executor.submit(
+                    ant_worker, graph, licenses, pheromones, alpha, beta, solution_type
+                )
                 for _ in range(ants)
             ]
 
-            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+            results = [
+                future.result() for future in concurrent.futures.as_completed(futures)
+            ]
             results.sort(key=lambda x: x[1])
 
             best_ant_solution, best_ant_cost = results[0]
