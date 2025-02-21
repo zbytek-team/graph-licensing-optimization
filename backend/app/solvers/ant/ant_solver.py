@@ -1,7 +1,8 @@
 import numpy as np
 from app.models.solve import License, Assignments, AntSolverType
 from app.models.graph import Graph
-from app.solvers.ant.ant import Ant, ant_solvers_args_validator
+from app.solvers.ant.ant import Ant
+
 
 def ant_solver(
     graph: Graph,
@@ -14,23 +15,21 @@ def ant_solver(
     stagnation_limit: int = 30,
     solution_type: AntSolverType = AntSolverType.PATH,
 ) -> Assignments:
-    '''
-    Podstawowa implementacja algorytmu mrówkowego dla problemu przypisania licencji.
+    """
+    Basic implementation of the ant colony algorithm for the license assignment problem.
 
-    :param graph: Graf
-    :param licenses: Lista licencji
-    :param ants: Liczba mrówek
-    :param iterations: Maksymalna liczba iteracji
-    :param alpha: Waga feromonów
-    :param beta: Waga heurystyki
-    :param evaporation: Współczynnik parowania feromonów
-    :param stagnation_limit: Limit stagnacji
-    :param solution_type: Typ rozwiązania
+    :param graph: Graph
+    :param licenses: List of licenses
+    :param ants: Number of ants
+    :param iterations: Maximum number of iterations
+    :param alpha: Pheromone weight
+    :param beta: Heuristic weight
+    :param evaporation: Pheromone evaporation rate
+    :param stagnation_limit: Stagnation limit
+    :param solution_type: Solution type
 
-    :return: Przypisanie licenc
-    '''
-
-    ant_solvers_args_validator(graph, licenses, ants, iterations, alpha, beta, evaporation, stagnation_limit, solution_type)
+    :return: License assignments
+    """
 
     pheromones = {node: np.ones(len(licenses)) for node in graph.nodes}
     best_solution = None
@@ -39,7 +38,7 @@ def ant_solver(
     iteration = 0
 
     while iterations == 0 or iteration < iterations:
-        results= [
+        results = [
             Ant(graph, licenses, pheromones, alpha, beta, solution_type)
             for _ in range(ants)
         ]
@@ -48,7 +47,7 @@ def ant_solver(
             ant.construct_solution()
 
         results = [(ant.solution, ant.cost) for ant in results]
-        
+
         results.sort(key=lambda x: x[1])
 
         best_ant_solution, best_ant_cost = results[0]
