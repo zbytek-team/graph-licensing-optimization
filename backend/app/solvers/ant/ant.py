@@ -117,3 +117,35 @@ class Ant:
                 self.cost += license.cost
 
             available_nodes -= self.covered_nodes
+
+def ant_solvers_args_validator(graph: Graph,
+    licenses: list[License],
+    ants: int,
+    iterations: int,
+    alpha: float,
+    beta: float,
+    evaporation: float,
+    stagnation_limit: int,
+    solution_type: AntSolverType
+):
+    """Sprawdzenie poprawności argumentów dla algorytmów mrówkowych"""
+    if not isinstance(graph, Graph):
+        raise ValueError("Invalid graph")
+    if not isinstance(licenses, list):
+        raise ValueError("Invalid licenses")
+    if not all(isinstance(license, License) for license in licenses):
+        raise ValueError("Invalid licenses")
+    if not isinstance(ants, int) or ants < 1:
+        raise ValueError("Invalid ants")
+    if not isinstance(iterations, int) or iterations < 0:
+        raise ValueError("Invalid iterations")
+    if not isinstance(alpha, (int, float)) or alpha < 0:
+        raise ValueError("Invalid alpha")
+    if not isinstance(beta, (int, float)) or beta < 0:
+        raise ValueError("Invalid beta")
+    if not isinstance(evaporation, (int, float)) or 1 < evaporation < 0:
+        raise ValueError("Invalid evaporation")
+    if not isinstance(stagnation_limit, int) or stagnation_limit < 0:
+        raise ValueError("Invalid stagnation_limit")
+    if solution_type not in AntSolverType:
+        raise ValueError("Invalid solution_type")
