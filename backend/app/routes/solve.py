@@ -19,8 +19,8 @@ async def solve(request: SolveRequest) -> SolveResponse:
             assignments = ant_solver(
                 graph,
                 licenses,
-                ants=10,
-                iterations=0,
+                ants=16,
+                iterations=128,
                 solution_type="path_and_licences",
             )
         case _:
