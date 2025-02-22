@@ -1,78 +1,109 @@
 import CytoscapeComponent from "react-cytoscapejs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAppStore } from "@/store/useAppStore";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Core } from "cytoscape";
-
-const LICENSE_COLORS = {
-  Individual: "#23529e",
-  Family: "#9e4e23",
-};
-
-const LICENSE_HOLDER_COLORS = {
-  Individual: "#23529e",
-  Family: "#542106",
-};
+import { adjustColor } from "@/lib/colorUtils";
+import { processAssignments, LicenseAssignment } from "@/lib/licenseUtils";
 
 export default function GraphView() {
   const graphData = useAppStore((state) => state.graphData);
   const assignments = useAppStore((state) => state.assignments);
   const cyRef = useRef<Core | null>(null);
+  const [legendData, setLegendData] = useState<{ type: string; color: string }[]>([]);
+
+  const elements = useMemo(() => {
+    if (!graphData) return [];
+    return [
+      ...graphData.nodes.map((node) => ({
+        data: {
+          id: String(node),
+          label: String(node),
+          backgroundColor: "blue",
+        },
+      })),
+      ...graphData.edges.map(([source, target]) => ({
+        data: {
+          id: `${source}-${target}`,
+          source: String(source),
+          target: String(target),
+        },
+      })),
+    ];
+  }, [graphData]);
 
   useEffect(() => {
-    if (cyRef.current) {
-      cyRef.current.layout({ name: "cose" }).run();
-
-      cyRef.current.elements().forEach((element) => {
-        element.style("background-color", "blue");
+    if (cyRef.current && graphData) {
+      const cy = cyRef.current;
+      cy.layout({ name: "cose" }).run();
+      cy.elements().forEach((element) => {
+        element.style({
+          "background-color": "blue",
+          "border-width": 0,
+          "border-color": "transparent",
+          "border-opacity": 0,
+        });
       });
     }
   }, [graphData]);
 
   useEffect(() => {
-    if (!assignments) return;
+    if (!assignments || !cyRef.current) return;
+    const cy = cyRef.current;
 
-    let licenseAssignments: {node: number, license_holder: number, license_type: string}[] = [];
+    cy.elements().forEach((element) => {
+      element.style({
+        "border-width": 0,
+        "border-color": "transparent",
+        "border-opacity": 0,
+      });
+    });
 
-    for (const [key, value] of Object.entries(assignments)) {
-      for (const assignment of value) {
-        for (const node of assignment.covered_nodes) {
-          licenseAssignments.push({
-            node: node,
-            license_holder: assignment.license_holder,
-            license_type: key,
+    const { licenseAssignments, licenseToColor } = processAssignments(assignments);
+
+    setLegendData(
+      Object.entries(licenseToColor).map(([type, color]) => ({ type, color }))
+    );
+
+    const licenseHolderColor: Record<number, string> = {};
+    licenseAssignments.forEach((assignment: LicenseAssignment) => {
+      if (!licenseHolderColor[assignment.license_holder]) {
+        licenseHolderColor[assignment.license_holder] = adjustColor(
+          licenseToColor[assignment.license_type]
+        );
+      }
+    });
+
+    cy.elements().forEach((element) => {
+      const elementId = parseInt(element.data("id"));
+      const assignment = licenseAssignments.find((item) => item.node === elementId);
+      if (assignment) {
+        element.style("background-color", licenseHolderColor[assignment.license_holder]);
+        if (assignment.node === assignment.license_holder) {
+          element.style({
+            "border-width": 2,
+            "border-color": "#ffffff",
+            "border-opacity": 0.3,
           });
         }
       }
-    }
+    });
 
-    if (cyRef.current) {
-      console.log(cyRef.current.elements());
-      cyRef.current.elements().forEach((element) => {
-        const node = licenseAssignments.find((n) => n.node === parseInt(element.data("id")));
-        if (node) {
-          if (node.license_holder === node.node) { 
-            element.style("background-color", LICENSE_HOLDER_COLORS[node.license_type as keyof typeof LICENSE_HOLDER_COLORS]);
-          } else {
-            element.style("background-color", LICENSE_COLORS[node.license_type as keyof typeof LICENSE_COLORS]);
-          }
-        }
-      });
-      cyRef.current.edges().forEach((edge) => {
-        const source = edge.data("source");
-        const target = edge.data("target");
-        const sourceNode = licenseAssignments.find((n) => n.node === parseInt(source));
-        const targetNode = licenseAssignments.find((n) => n.node === parseInt(target));
-        if (sourceNode && targetNode) {
-          if (sourceNode.license_holder === targetNode.license_holder) {
-            edge.style("line-color", LICENSE_HOLDER_COLORS[sourceNode.license_type as keyof typeof LICENSE_HOLDER_COLORS]);
-          } else {
-            edge.style("line-color", "#999");
-          }
-        }
-      });
-      
-    }
+    cy.edges().forEach((edge) => {
+      const sourceId = parseInt(edge.data("source"));
+      const targetId = parseInt(edge.data("target"));
+      const sourceAssignment = licenseAssignments.find((item) => item.node === sourceId);
+      const targetAssignment = licenseAssignments.find((item) => item.node === targetId);
+
+      if (sourceAssignment && targetAssignment) {
+        edge.style(
+          "line-color",
+          sourceAssignment.license_holder === targetAssignment.license_holder
+            ? licenseHolderColor[sourceAssignment.license_holder]
+            : "#999"
+        );
+      }
+    });
   }, [assignments]);
 
   if (!graphData) {
@@ -85,28 +116,20 @@ export default function GraphView() {
     );
   }
 
-
-
-  const elements = [
-    ...graphData.nodes.map((node) => ({
-      data: {
-        id: String(node),
-        label: String(node),
-        backgroundColor: "blue"
-      },
-    })),
-    ...graphData.edges.map(([source, target]) => ({
-      data: {
-        id: `${source}-${target}`,
-        source: String(source),
-        target: String(target),
-      },
-    })),
-  ];
-
   return (
     <Card className="h-full">
-      <CardContent className="p-4 h-full">
+      <CardContent className="p-4 h-full relative">
+        {legendData.length > 0 && (
+          <div className="absolute top-4 left-4 bg-background p-3 rounded-lg shadow-md z-10 flex flex-col gap-1">
+            <h3 className="text-sm font-semibold mb-2">License Types</h3>
+            {legendData.map((item, index) => (
+              <div key={index} className="flex items-center gap-2 mb-1">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-xs">{item.type}</span>
+              </div>
+            ))}
+          </div>
+        )}
         <CytoscapeComponent
           cy={(cy) => {
             cyRef.current = cy;
@@ -134,6 +157,7 @@ export default function GraphView() {
                 width: 2,
                 "line-color": "#999",
                 "curve-style": "bezier",
+                opacity: 0.8,
               },
             },
           ]}
