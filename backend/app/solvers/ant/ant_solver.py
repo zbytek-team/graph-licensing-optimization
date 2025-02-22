@@ -43,10 +43,7 @@ def ant_solver(
             for _ in range(ants)
         ]
 
-        for ant in results:
-            ant.construct_solution()
-
-        results = [(ant.solution, ant.cost) for ant in results]
+        results = [ant.run() for ant in results]
 
         results.sort(key=lambda x: x[1])
 
