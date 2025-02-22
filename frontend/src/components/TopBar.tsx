@@ -29,6 +29,9 @@ export default function TopBar({ onSolveRun }: TopPanelProps) {
             <SelectContent>
               <SelectItem value="greedy">Greedy</SelectItem>
               <SelectItem value="ants">Ants</SelectItem>
+              <SelectItem value="ants_multiprocessing">
+                Ants Multiprocessing
+              </SelectItem>
             </SelectContent>
           </Select>
           <Button

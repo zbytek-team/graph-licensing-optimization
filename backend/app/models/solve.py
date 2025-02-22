@@ -6,6 +6,14 @@ from pydantic import BaseModel
 
 class SolverType(str, Enum):
     GREEDY = "greedy"
+    ANTS = "ants"
+    ANTS_MULTIPROCESSING = "ants_multiprocessing"
+
+
+class AntSolverType(str, Enum):
+    PATH = "path"
+    LICENSES = "licenses"
+    PATH_AND_LICENSES = "path_and_licenses"
 
 
 class License(BaseModel):
