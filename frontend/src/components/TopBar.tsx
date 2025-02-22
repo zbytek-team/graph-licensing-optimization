@@ -9,13 +9,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { useState } from "react";
+import { useSolve } from "@/api/solveApi";
 
-interface TopPanelProps {
-  onSolveRun: (solver: string) => void;
-}
-
-export default function TopBar({ onSolveRun }: TopPanelProps) {
+export default function TopBar() {
   const [selectedSolver, setSelectedSolver] = useState<string>("");
+  const solve = useSolve();
 
   return (
     <Card className="h-full">
@@ -36,7 +34,7 @@ export default function TopBar({ onSolveRun }: TopPanelProps) {
           </Select>
           <Button
             size="icon"
-            onClick={() => onSolveRun(selectedSolver)}
+            onClick={() => solve(selectedSolver)}
             disabled={!selectedSolver}
           >
             <Play className="h-4 w-4" />
