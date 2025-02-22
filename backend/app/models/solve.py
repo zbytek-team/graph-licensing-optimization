@@ -12,8 +12,8 @@ class SolverType(str, Enum):
 
 class AntSolverType(str, Enum):
     PATH = "path"
-    LICENCES = "licences"
-    PATH_AND_LICENCES = "path_and_licences"
+    LICENSES = "licenses"
+    PATH_AND_LICENSES = "path_and_licenses"
 
 
 class License(BaseModel):
