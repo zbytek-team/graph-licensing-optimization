@@ -16,6 +16,7 @@ export default function GraphPanel() {
   const [graphType, setGraphType] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const setGraphData = useAppStore((state) => state.setGraphData);
+  const setAssignments = useAppStore((state) => state.setAssignments);
 
   const handleSendRequest = async () => {
     if (!graphType) {
@@ -26,6 +27,7 @@ export default function GraphPanel() {
     try {
       const graph: Graph = await fetchGraph(graphType);
       setGraphData(graph);
+      setAssignments({});
     } catch (error) {
       console.error(error);
     } finally {
