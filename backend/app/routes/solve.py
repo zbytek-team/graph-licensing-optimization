@@ -21,14 +21,14 @@ async def solve(request: SolveRequest) -> SolveResponse:
                 graph,
                 licenses,
                 ants=8,
-                solution_type=AntSolverType.PATH_AND_LICENCES,
+                solution_type=AntSolverType.PATH_AND_LICENSES,
             )
         case SolverType.ANTS_MULTIPROCESSING:
             assignments = ant_solver_multiprocessing(
                 graph,
                 licenses,
                 ants=16,
-                solution_type=AntSolverType.PATH_AND_LICENCES,
+                solution_type=AntSolverType.PATH_AND_LICENSES,
             )
         case _:
             raise HTTPException(status_code=400, detail="Invalid solver")
