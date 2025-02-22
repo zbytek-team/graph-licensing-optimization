@@ -3,9 +3,18 @@ from enum import Enum
 
 
 class GraphType(str, Enum):
-    WATTS_STROGATZ = "watts_strogatz"
-    BARABASI_ALBERT = "barabasi_albert"
-    ERDOS_RENYI = "erdos_renyi"
+    SMALL_WORLD = "small_world"
+    SCALE_FREE = "scale_free"
+    RANDOM = "random"
+    SOCIAL_CIRCLE = "social_circle"
+    COMMUNITY = "community"
+    SPARSE_COMMUNITY = "sparse_community"
+    BIPARTITE = "bipartite"
+    COMPLETE = "complete"
+    TREE = "tree"
+    GRID = "grid"
+    LATTICE = "lattice"
+
 
 
 Node = int
