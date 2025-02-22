@@ -16,6 +16,7 @@ export default function GraphPanel() {
   const [graphType, setGraphType] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const setGraphData = useAppStore((state) => state.setGraphData);
+  const setAssignments = useAppStore((state) => state.setAssignments);
 
   const handleSendRequest = async () => {
     if (!graphType) {
@@ -26,6 +27,7 @@ export default function GraphPanel() {
     try {
       const graph: Graph = await fetchGraph(graphType);
       setGraphData(graph);
+      setAssignments({});
     } catch (error) {
       console.error(error);
     } finally {
@@ -42,9 +44,15 @@ export default function GraphPanel() {
               <SelectValue placeholder="Choose graph type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="watts_strogatz">Watts Strogatz</SelectItem>
-              <SelectItem value="barabasi_albert">Barabasi Albert</SelectItem>
-              <SelectItem value="erdos_renyi">Erdos Renyi</SelectItem>
+              <SelectItem value="sparse_community">Sparse Community</SelectItem>
+              <SelectItem value="social_circle">Social Circle</SelectItem>
+              <SelectItem value="small_world">Small World</SelectItem>
+              <SelectItem value="scale_free">Scale Free</SelectItem>
+              <SelectItem value="community">Community</SelectItem>
+              <SelectItem value="bipartite">Bipartite</SelectItem>
+              <SelectItem value="complete">Complete</SelectItem>
+              <SelectItem value="random">Random</SelectItem>
+              <SelectItem value="tree">Tree</SelectItem>
             </SelectContent>
           </Select>
         </div>
