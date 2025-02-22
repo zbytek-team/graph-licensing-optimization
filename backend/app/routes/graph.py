@@ -5,9 +5,7 @@ import random
 
 router = APIRouter()
 
-
-def generate_social_network(
-    N=300, m=1, K=4, p_ws=0.02, extra_links=3, num_subgroups=15
+def generate_sparse_community_graph(N=300, p_ws=0.02, extra_links=3, num_subgroups=15
 ):
     G = nx.Graph()
 
@@ -29,18 +27,32 @@ def generate_social_network(
 
 @router.post("/")
 async def graph(request: GraphRequest) -> GraphResponse:
-    graph_type = request.graph_type
-
-    match graph_type:
-        case GraphType.WATTS_STROGATZ:
-            graph = generate_social_network()
-        case GraphType.BARABASI_ALBERT:
-            graph = nx.barabasi_albert_graph(100, 4)
-        case GraphType.ERDOS_RENYI:
-            graph = nx.gnp_random_graph(100, 0.1)
+    match request.graph_type:
+        case GraphType.SMALL_WORLD:
+            G = nx.watts_strogatz_graph(100, k=6, p=0.1)
+        case GraphType.SCALE_FREE:
+            G = nx.barabasi_albert_graph(100, m=3)
+        case GraphType.RANDOM:
+            G = nx.erdos_renyi_graph(100, p=0.05)
+        case GraphType.SOCIAL_CIRCLE:
+            G = nx.relaxed_caveman_graph(10, 10, p=0.3)
+        case GraphType.COMMUNITY:
+            G = nx.connected_caveman_graph(5, 20)
+        case GraphType.SPARSE_COMMUNITY:
+            G = generate_sparse_community_graph(N=300, p_ws=0.02, extra_links=3, num_subgroups=15)
+        case GraphType.BIPARTITE:
+            G = nx.bipartite.random_graph(50, 50, p=0.1)
+        case GraphType.COMPLETE:
+            G = nx.complete_graph(20)
+        case GraphType.TREE:
+            G = nx.balanced_tree(2, 5)
+        case GraphType.GRID:
+            G = nx.grid_2d_graph(10, 10)
+        case GraphType.LATTICE:
+            G = nx.hexagonal_lattice_graph(5, 5)
         case _:
             raise HTTPException(status_code=400, detail="Invalid graph")
 
-    graph = Graph(nodes=list(graph.nodes), edges=list(graph.edges))
+    graph = Graph(nodes=list(G.nodes), edges=list(G.edges))
 
     return GraphResponse(graph=graph)
