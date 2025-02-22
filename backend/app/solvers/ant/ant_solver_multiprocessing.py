@@ -7,8 +7,7 @@ import concurrent.futures
 
 def ant_worker(graph, licenses, pheromones, alpha, beta, solution_type):
     ant = Ant(graph, licenses, pheromones, alpha, beta, solution_type)
-    ant.construct_solution()
-    return ant.solution, ant.cost
+    return ant.run()
 
 
 def ant_solver_multiprocessing(
