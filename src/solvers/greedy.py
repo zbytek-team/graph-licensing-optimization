@@ -1,23 +1,24 @@
-from src.solvers.base import BaseSolver, SolverResult
+from src.solvers.base import Solver, SolverResult
+import networkx as nx
 
 
-class GreedySolver(BaseSolver):
-    def run(self) -> SolverResult:
+class GreedySolver(Solver):
+    def _solve(self, graph: nx.Graph) -> SolverResult:
         covered = set()
         result: SolverResult = {"individual": set(), "group": {}}
 
-        sorted_nodes = sorted(self.graph.nodes, key=lambda x: len(list(self.graph.neighbors(x))), reverse=True)
+        sorted_nodes = sorted(graph.nodes, key=lambda x: len(list(graph.neighbors(x))), reverse=True)
 
         for node in sorted_nodes:
             if node in covered:
                 continue
 
-            potential_group_members = set(self.graph.neighbors(node)) - covered
+            potential_group_members = set(graph.neighbors(node)) - covered
             selected_members = {node}
 
             if len(potential_group_members) > self.group_size - 1:
                 sorted_neighbors = sorted(
-                    potential_group_members, key=lambda x: len(list(self.graph.neighbors(x))), reverse=True
+                    potential_group_members, key=lambda x: len(list(graph.neighbors(x))), reverse=True
                 )
                 selected_members.update(sorted_neighbors[: self.group_size - 1])
             else:
