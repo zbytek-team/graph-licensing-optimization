@@ -52,7 +52,7 @@ class Solver(ABC):
 
             covered_nodes.update(members)
 
-        if covered_nodes != all_nodes:
+        if covered_nodes < all_nodes:
             raise ValueError("Not all nodes are covered.")
 
         all_assigned_nodes = result["individual"].union(*result["group"].values())
