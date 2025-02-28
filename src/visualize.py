@@ -3,7 +3,7 @@ import networkx as nx
 import random
 from src.solvers.base import SolverResult
 
-colors = {"individual": "#58c8f2", "group": "#eda4b2"}
+colors = {"individual": "#c3102f", "group": "#003667"}
 
 
 def vary_color(hex_color: str, variation: int = 30) -> str:
@@ -38,7 +38,7 @@ def visualize_graph(graph: nx.Graph, result: SolverResult) -> None:
 
     for holder, members in result["group"].items():
         group_color = vary_color(colors["group"])
-        nx.draw_networkx_nodes(graph, pos, nodelist=[holder], node_color=colors["individual"], node_size=160)
+        nx.draw_networkx_nodes(graph, pos, nodelist=[holder], node_color=group_color, node_size=200)
         nx.draw_networkx_nodes(graph, pos, nodelist=members, node_color=group_color, node_size=100)
 
         for member in members:
