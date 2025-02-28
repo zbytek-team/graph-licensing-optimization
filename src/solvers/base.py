@@ -1,6 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import TypedDict, final
+
 import networkx as nx
-from typing import TypedDict
+
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class SolverResult(TypedDict):
@@ -8,34 +13,34 @@ class SolverResult(TypedDict):
     group: dict[int, set[int]]
 
 
-class BaseSolver(ABC):
-    graph: nx.Graph
-    individual_cost: float
-    group_cost: float
-    group_size: int
-    result: SolverResult
-
-    def __new__(cls, graph: nx.Graph, individual_cost: float, group_cost: float, group_size: int):
-        instance = super().__new__(cls)
-        instance.graph = graph
-        instance.individual_cost = individual_cost
-        instance.group_cost = group_cost
-        instance.group_size = group_size
-
-        instance.result = instance.run()
-        instance.verify()
-
-        return instance.result
+class Solver(ABC):
+    def __init__(self, individual_cost: float, group_cost: float, group_size: int):
+        logger.info(
+            f"Initializing solver {self.__class__.__name__} with: individual_cost={individual_cost}, group_cost={group_cost}, group_size={group_size}."
+        )
+        self.individual_cost = individual_cost
+        self.group_cost = group_cost
+        self.group_size = group_size
 
     @abstractmethod
-    def run(self) -> SolverResult:
+    def _solve(self, graph: nx.Graph) -> SolverResult:
         pass
 
-    def verify(self):
-        all_nodes = set(self.graph.nodes)
-        covered_nodes = self.result["individual"].copy()
+    @final
+    def run(self, graph: nx.Graph) -> SolverResult:
+        logger.info(f"Running solver {self.__class__.__name__}...")
+        result = self._solve(graph)
+        logger.info("Running result verification...")
+        self.verify(graph, result)
+        logger.info("Verification complete! All clear.")
+        return result
 
-        for holder, members in self.result["group"].items():
+    @final
+    def verify(self, graph: nx.Graph, result: SolverResult) -> None:
+        all_nodes = set(graph.nodes)
+        covered_nodes = result["individual"].copy()
+
+        for holder, members in result["group"].items():
             if len(members) < 2 or len(members) > self.group_size:
                 raise ValueError(
                     f"Group led by {holder} has {len(members)} members, expected between 2 and {self.group_size}."
@@ -48,7 +53,7 @@ class BaseSolver(ABC):
         if covered_nodes != all_nodes:
             raise ValueError("Not all nodes are covered.")
 
-        all_assigned_nodes = self.result["individual"].union(*self.result["group"].values())
+        all_assigned_nodes = result["individual"].union(*result["group"].values())
 
         if len(all_assigned_nodes) != len(covered_nodes):
             raise ValueError("Duplicate nodes detected in individual and group assignments.")
