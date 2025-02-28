@@ -1,14 +1,14 @@
 from src.solvers.greedy import GreedySolver
-import networkx as nx
+from src.graphs.generators import generate_clustered_graph
 
 
 def main():
-    graph = nx.erdos_renyi_graph(100, 0.05)
-    individual_cost = 1.0
-    group_cost = 1.2
-    group_size = 6
-    coverage = GreedySolver(graph, individual_cost, group_cost, group_size)
-    print(coverage)
+    graph = generate_clustered_graph(N=300, p_ws=0.02, extra_links=3, num_subgroups=15)
+    greedy_solver = GreedySolver(individual_cost=1, group_cost=1, group_size=6)
+
+    result = greedy_solver.run(graph)
+
+    print(result)
 
 
 if __name__ == "__main__":
