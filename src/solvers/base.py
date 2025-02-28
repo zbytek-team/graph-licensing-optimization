@@ -27,13 +27,15 @@ class Solver(ABC):
         pass
 
     @final
-    def run(self, graph: nx.Graph) -> SolverResult:
+    def run(self, graph: nx.Graph) -> tuple[SolverResult, float]:
         logger.info(f"Running solver {self.__class__.__name__}...")
         result = self._solve(graph)
         logger.info("Running result verification...")
         self.verify(graph, result)
-        logger.info("Verification complete! All clear.")
-        return result
+        logger.info("Calculating total cost...")
+        total_cost = self.calculate_total_cost(result)
+
+        return (result, total_cost)
 
     @final
     def verify(self, graph: nx.Graph, result: SolverResult) -> None:
@@ -57,3 +59,9 @@ class Solver(ABC):
 
         if len(all_assigned_nodes) != len(covered_nodes):
             raise ValueError("Duplicate nodes detected in individual and group assignments.")
+
+    def calculate_total_cost(self, result: SolverResult) -> float:
+        total_cost = 0.0
+        total_cost += len(result["individual"]) * self.individual_cost
+        total_cost += len(result["group"]) * self.group_cost
+        return total_cost
