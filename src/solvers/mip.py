@@ -1,10 +1,11 @@
 import networkx as nx
 from ortools.linear_solver import pywraplp
-from src.solvers.base import Solver, SolverResult
+from .base import StaticSolver, AssignmentResult
 
-class MIPSolver(Solver):
-    def _solve(self, graph: nx.Graph) -> SolverResult:
-        solver = pywraplp.Solver.CreateSolver('SCIP')
+
+class MIPSolver(StaticSolver):
+    def _solve(self, graph: nx.Graph) -> AssignmentResult:
+        solver = pywraplp.Solver.CreateSolver("SCIP")
         if not solver:
             raise RuntimeError("Failed to initialize OR-Tools solver.")
 
@@ -12,13 +13,12 @@ class MIPSolver(Solver):
         n = len(nodes)
         neighbors = {node: list(graph.neighbors(node)) for node in nodes}
 
-        x = [solver.BoolVar(f'x_{i}') for i in range(n)]
-        y = [solver.BoolVar(f'y_{i}') for i in range(n)]
-        z = [[solver.BoolVar(f'z_{i}_{j}') for j in range(n)] for i in range(n)]
+        x = [solver.BoolVar(f"x_{i}") for i in range(n)]
+        y = [solver.BoolVar(f"y_{i}") for i in range(n)]
+        z = [[solver.BoolVar(f"z_{i}_{j}") for j in range(n)] for i in range(n)]
 
         solver.Minimize(
-            sum(x[i] * self.individual_cost for i in range(n)) +
-            sum(y[i] * self.group_cost for i in range(n))
+            sum(x[i] * self.individual_cost for i in range(n)) + sum(y[i] * self.group_cost for i in range(n))
         )
 
         for i in range(n):
@@ -44,7 +44,7 @@ class MIPSolver(Solver):
         if status != pywraplp.Solver.OPTIMAL and status != pywraplp.Solver.FEASIBLE:
             raise RuntimeError(f"OR-Tools MIP solver failed with status: {status}")
 
-        result: SolverResult = {"individual": set(), "group": {}}
+        result: AssignmentResult = {"individual": set(), "group": {}}
         for i in range(n):
             if x[i].solution_value() >= 0.99:
                 result["individual"].add(nodes[i])
