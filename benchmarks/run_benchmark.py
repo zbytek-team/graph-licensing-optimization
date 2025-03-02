@@ -4,6 +4,7 @@ from src.solvers.base import StaticSolver
 from src.solvers.static import AntColonySolver, GreedySolver, MIPSolver, TabuSolver
 from src.generators import ScaleFreeGenerator
 from src.utils.logger import get_logger
+import matplotlib.pyplot as plt
 
 logger = get_logger(__name__)
 
@@ -17,7 +18,7 @@ INDIVIDUAL_COST = 5.0
 GROUP_COST = 8.0
 GROUP_SIZE = 6
 
-os.makedirs("images", exist_ok=True)
+os.makedirs("benchmarks/plots", exist_ok=True)
 
 
 def main():
@@ -52,6 +53,23 @@ def main():
 
     for solver_name, size, cost, time_taken in results:
         print(f"{solver_name:<10} {size:<10} {cost:<15.2f} {time_taken:<15.4f}")
+
+    plt.figure(figsize=(8, 5))
+    for solver_name, _ in SOLVERS:
+        solver_results = [r for r in results if r[0] == solver_name]
+        sizes = [r[1] for r in solver_results]
+        times = [r[3] for r in solver_results]
+
+        plt.plot(sizes, times, label=solver_name)
+
+    plt.xlabel("Number of Nodes")
+    plt.ylabel("Time Taken (s)")
+    plt.title("Solver Performance Benchmark")
+    plt.legend()
+    plt.grid()
+
+    plt.savefig("benchmarks/plots/solver_performance.png")
+    plt.show()
 
 
 if __name__ == "__main__":
