@@ -55,7 +55,9 @@ class Solver(ABC):
         if covered_nodes < all_nodes:
             raise ValueError("Not all nodes are covered.")
 
-        all_assigned_nodes = [node for nodes in result["group"].values() for node in nodes]
+        all_assigned_nodes = [
+            node for nodes in result["group"].values() for node in nodes
+        ]
         all_assigned_nodes.extend(result["individual"])
 
         if len(all_assigned_nodes) != len(covered_nodes):
