@@ -1,67 +1,32 @@
+import networkx as nx
 from src.solvers.greedy import GreedySolver
 from src.solvers.mip import MIPSolver
-from src.solvers.tabu import TabuSolver
-from src.solvers.ant_colony import AntColonySolver
-from src.graphs.generators import generate_clustered_graph
-from src.visualize import visualize_graph
 
+SOLVERS = [
+    ("Greedy", GreedySolver),
+    ("MIP", MIPSolver)
+]
+
+INDIVIDUAL_COST = 5.0
+GROUP_COST = 8.0
+GROUP_SIZE = 6
 
 def main():
-    graph = generate_clustered_graph(
-        N=10_000,
-        p_ws=0.1,
-        extra_links=10,
-        num_subgroups=20,
-        min_subgroup_size=2,
-        max_subgroup_size=14,
-        inter_cluster_prob=0.1,
-    )
+    print("\n=== OPTIMAL LICENSE DISTRIBUTION SOLVER ===\n")
 
-    greedy_solver = GreedySolver(individual_cost=1, group_cost=1.2, group_size=6)
-    mip_solver = MIPSolver(individual_cost=1, group_cost=1.2, group_size=6)
-    tabu_solver = TabuSolver(
-        individual_cost=1, group_cost=1.2, group_size=6, tabu_size=256, iterations=1024
-    )
-    ant_colony_solver = AntColonySolver(
-        individual_cost=1,
-        group_cost=1.2,
-        group_size=6,
-        ant_count=64,
-        alpha=4,
-        beta=1,
-        evaporation_rate=0.15,
-        iterations=512,
-    )
+    graph = nx.erdos_renyi_graph(20, 0.2, seed=42)
 
-    costs = {}
+    for solver_name, solver_class in SOLVERS:
+        print(f"\n--- Running {solver_name} Solver ---\n")
 
-    result, total_cost = greedy_solver.run(graph)
+        solver = solver_class(INDIVIDUAL_COST, GROUP_COST, GROUP_SIZE)
+        solution, cost = solver.run(graph)
 
-    costs["greedy"] = total_cost
-    print(result)
+        print("Solution:")
+        for node, license_type in solution.items():
+            print(f"Node {node}: {license_type}")
 
-    visualize_graph(graph, result, "images/greedy.png")
-
-    result, total_cost = mip_solver.run(graph)
-    costs["mip"] = total_cost
-    print(result)
-
-    visualize_graph(graph, result, "images/mip.png")
-
-    result, total_cost = ant_colony_solver.run(graph)
-    costs["ant_colony"] = total_cost
-    print(result)
-
-    visualize_graph(graph, result, "images/ant_colony.png")
-
-    result, total_cost = tabu_solver.run(graph)
-    costs["tabu"] = total_cost
-    print(result)
-
-    visualize_graph(graph, result, "images/tabu.png")
-
-    print(costs)
-
+        print(f"\nTotal cost: {cost}\n")
 
 if __name__ == "__main__":
     main()
