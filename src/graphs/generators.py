@@ -36,9 +36,7 @@ def generate_clustered_graph(
         nodes = [available_nodes.pop() for _ in range(subgroup_size)]
         cluster_nodes.append(nodes)
 
-        subgraph = nx.watts_strogatz_graph(
-            subgroup_size, max(2, subgroup_size // 3), p_ws
-        )
+        subgraph = nx.watts_strogatz_graph(subgroup_size, max(2, subgroup_size // 3), p_ws)
         mapping = {i: nodes[i] for i in range(subgroup_size)}
         H = nx.relabel_nodes(subgraph, mapping)
         G = nx.compose(G, H)

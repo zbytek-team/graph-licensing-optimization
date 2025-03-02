@@ -58,9 +58,7 @@ class Solver(ABC):
         all_assigned_nodes = result["individual"].union(*result["group"].values())
 
         if len(all_assigned_nodes) != len(covered_nodes):
-            raise ValueError(
-                "Duplicate nodes detected in individual and group assignments."
-            )
+            raise ValueError("Duplicate nodes detected in individual and group assignments.")
 
     def calculate_total_cost(self, result: SolverResult) -> float:
         total_cost = 0.0

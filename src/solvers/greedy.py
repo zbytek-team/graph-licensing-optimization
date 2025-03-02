@@ -7,9 +7,7 @@ class GreedySolver(Solver):
         covered = set()
         result: SolverResult = {"individual": set(), "group": {}}
 
-        sorted_nodes = sorted(
-            graph.nodes, key=lambda x: len(list(graph.neighbors(x))), reverse=True
-        )
+        sorted_nodes = sorted(graph.nodes, key=lambda x: len(list(graph.neighbors(x))), reverse=True)
 
         for node in sorted_nodes:
             if node in covered:
