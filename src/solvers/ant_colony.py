@@ -53,23 +53,32 @@ class AntColonySolver(Solver):
             }
 
             total = sum(probabilities.values())
-            probabilities = {k: v / total for k, v in probabilities.items()} if total > 0 else {"individual": 1}
+            probabilities = (
+                {k: v / total for k, v in probabilities.items()}
+                if total > 0
+                else {"individual": 1}
+            )
 
-            choice = random.choices(list(probabilities.keys()), weights=probabilities.values())[0]
+            choice = random.choices(
+                list(probabilities.keys()), weights=probabilities.values()
+            )[0]
 
             if choice == "individual":
                 solution["individual"].add(node)
                 assigned_nodes.add(node)
             elif choice == "group":
                 neighbors = [
-                    neighbor for neighbor in graph.neighbors(node) if neighbor not in assigned_nodes
+                    neighbor
+                    for neighbor in graph.neighbors(node)
+                    if neighbor not in assigned_nodes
                 ]
                 random.shuffle(neighbors)
                 group_members = {node}
 
                 if neighbors:
                     probabilities_O = [
-                        (self.pheromone_deposit[node]["O"][neighbor] ** self.alpha) * (1 / self.group_cost) ** self.beta
+                        (self.pheromone_deposit[node]["O"][neighbor] ** self.alpha)
+                        * (1 / self.group_cost) ** self.beta
                         for neighbor in neighbors
                     ]
                     total_O = sum(probabilities_O)
@@ -92,13 +101,14 @@ class AntColonySolver(Solver):
 
         return solution
 
-
     def _update_pheromones(self, solutions: list[SolverResult, float], graph: nx.Graph):
         for node in graph.nodes:
             for node_type in ["O", "individual", "group"]:
                 if node_type == "O":
                     for neighbor in graph.neighbors(node):
-                        self.pheromone_deposit[node][node_type][neighbor] *= 1 - self.evaporation_rate
+                        self.pheromone_deposit[node][node_type][neighbor] *= (
+                            1 - self.evaporation_rate
+                        )
                 else:
                     self.pheromone_deposit[node][node_type] *= 1 - self.evaporation_rate
 
@@ -125,7 +135,7 @@ class AntColonySolver(Solver):
                     self.pheromone_deposit[node][node_type] = {}
                     for neighbor in graph.neighbors(node):
                         self.pheromone_deposit[node][node_type][neighbor] = 1
-                else:                        
+                else:
                     self.pheromone_deposit[node][node_type] = 1
 
         for _ in range(self.iterations):
