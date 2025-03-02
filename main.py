@@ -27,10 +27,10 @@ def main():
         group_cost=1.2,
         group_size=6,
         ant_count=64,
-        alpha=8,
+        alpha=4,
         beta=1,
         evaporation_rate=0.15,
-        iterations=1024,
+        iterations=512,
     )
 
     costs = {}
