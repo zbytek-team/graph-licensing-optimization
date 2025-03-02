@@ -8,9 +8,14 @@ from src.logger import get_logger
 logger = get_logger(__name__)
 
 
-class SolverResult(TypedDict):
+class AssignmentResult(TypedDict):
     individual: set[int]
     group: dict[int, set[int]]
+
+
+class SolverOutput(TypedDict):
+    assignment: AssignmentResult
+    total_cost: float
 
 
 class Solver(ABC):
@@ -24,20 +29,15 @@ class Solver(ABC):
         self.group_size = group_size
 
     @abstractmethod
-    def _solve(self, graph: nx.Graph) -> SolverResult:
+    def _solve(self, graph: nx.Graph) -> AssignmentResult:
+        pass
+
+    @abstractmethod
+    def run(self, graph: nx.Graph) -> SolverOutput:
         pass
 
     @final
-    def run(self, graph: nx.Graph) -> tuple[SolverResult, float]:
-        logger.info(f"Running solver {self.__class__.__name__}...")
-        result = self._solve(graph)
-        logger.info("Running result verification...")
-        self._verify(graph, result)
-        logger.info("Calculating total cost...")
-        total_cost = self._calculate_total_cost(result)
-        return result, total_cost
-
-    def _verify(self, graph: nx.Graph, result: SolverResult) -> None:
+    def _verify(self, graph: nx.Graph, result: AssignmentResult) -> None:
         all_nodes = set(graph.nodes)
         assigned_nodes = set()
         covered_nodes = set(result["individual"])
@@ -64,5 +64,6 @@ class Solver(ABC):
             missing = all_nodes - covered_nodes
             raise ValueError(f"Not all nodes are covered: {missing}")
 
-    def _calculate_total_cost(self, result: SolverResult) -> float:
+    @final
+    def calculate_total_cost(self, result: AssignmentResult) -> float:
         return len(result["individual"]) * self.individual_cost + len(result["group"]) * self.group_cost

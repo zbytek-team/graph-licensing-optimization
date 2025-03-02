@@ -1,11 +1,11 @@
-from src.solvers.base import Solver, SolverResult
+from .base import StaticSolver, AssignmentResult
 import networkx as nx
 
 
-class GreedySolver(Solver):
-    def _solve(self, graph: nx.Graph) -> SolverResult:
+class GreedySolver(StaticSolver):
+    def _solve(self, graph: nx.Graph) -> AssignmentResult:
         covered = set()
-        result: SolverResult = {"individual": set(), "group": {}}
+        result: AssignmentResult = {"individual": set(), "group": {}}
 
         sorted_nodes = sorted(graph.nodes, key=lambda x: len(list(graph.neighbors(x))), reverse=True)
 
