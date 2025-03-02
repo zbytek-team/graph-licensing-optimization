@@ -1,7 +1,7 @@
 [project]
 name = "optimal-license-distribution"
 version = "0.1.0"
-description = "Add your description here"
+description = "Optimal License Distribution"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -9,4 +9,8 @@ dependencies = [
     "mip>=1.15.0",
     "networkx>=3.4.2",
     "pyqt6>=6.8.1",
+    "ruff>=0.9.9",
 ]
+
+[tool.ruff]
+line-length = 120
