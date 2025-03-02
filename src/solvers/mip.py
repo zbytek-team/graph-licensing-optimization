@@ -21,8 +21,7 @@ class MIPSolver(Solver):
 
         # Set the objective function to minimize the total cost.
         m.objective = minimize(
-            xsum(x[i] * self.individual_cost for i in range(n))
-            + xsum(y[i] * self.group_cost for i in range(n))  # type: ignore
+            xsum(x[i] * self.individual_cost for i in range(n)) + xsum(y[i] * self.group_cost for i in range(n))  # type: ignore
         )
 
         # Constraint 1: Each node is either individual or in a group.
@@ -50,10 +49,7 @@ class MIPSolver(Solver):
                     m += z[i][j] == 0
 
         status = m.optimize()
-        if (
-            status != OptimizationStatus.OPTIMAL
-            and status != OptimizationStatus.FEASIBLE
-        ):
+        if status != OptimizationStatus.OPTIMAL and status != OptimizationStatus.FEASIBLE:
             raise RuntimeError(f"MIP solver failed with status: {status}")
 
         result: SolverResult = {"individual": set(), "group": {}}
