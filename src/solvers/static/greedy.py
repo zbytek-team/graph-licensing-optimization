@@ -1,5 +1,6 @@
-from .base import StaticSolver, AssignmentResult
 import networkx as nx
+
+from ..base import AssignmentResult, StaticSolver
 
 
 class GreedySolver(StaticSolver):

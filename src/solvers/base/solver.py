@@ -3,7 +3,7 @@ from typing import TypedDict, final
 
 import networkx as nx
 
-from src.logger import get_logger
+from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -16,6 +16,7 @@ class AssignmentResult(TypedDict):
 class SolverOutput(TypedDict):
     assignment: AssignmentResult
     total_cost: float
+    time_taken: float
 
 
 class Solver(ABC):
@@ -45,24 +46,24 @@ class Solver(ABC):
         for holder, members in result["group"].items():
             if len(members) < 2 or len(members) > self.group_size:
                 raise ValueError(
-                    f"Group led by {holder} has {len(members)} members, expected between 2 and {self.group_size}."
+                    f"{result}\n\nGroup led by {holder} has {len(members)} members, expected between 2 and {self.group_size}."
                 )
             if holder not in members:
-                raise ValueError(f"License holder {holder} is not in its own group.")
+                raise ValueError(f"{result}\n\nLicense holder {holder} is not in its own group.")
 
             for member in members:
                 if member in assigned_nodes:
-                    raise ValueError(f"Node {member} appears in multiple groups.")
+                    raise ValueError(f"{result}\n\nNode {member} appears in multiple groups.")
                 assigned_nodes.add(member)
 
                 if member != holder and member not in graph.neighbors(holder):
-                    raise ValueError(f"Node {member} is in group of {holder} but is not connected.")
+                    raise ValueError(f"{result}\n\nNode {member} is in group of {holder} but is not connected.")
 
             covered_nodes.update(members)
 
         if covered_nodes != all_nodes:
             missing = all_nodes - covered_nodes
-            raise ValueError(f"Not all nodes are covered: {missing}")
+            raise ValueError(f"{result}\n\nNot all nodes are covered: {missing}")
 
     @final
     def calculate_total_cost(self, result: AssignmentResult) -> float:

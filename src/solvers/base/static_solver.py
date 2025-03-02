@@ -1,6 +1,8 @@
+import time
+
 import networkx as nx
 
-from src.logger import get_logger
+from src.utils.logger import get_logger
 
 from .solver import Solver, SolverOutput
 
@@ -14,7 +16,9 @@ class StaticSolver(Solver):
     def run(self, graph: nx.Graph) -> SolverOutput:
         logger.info(f"Running solver {self.__class__.__name__}...")
 
+        time_taken = time.time()
         result = self._solve(graph)
+        time_taken = time.time() - time_taken
 
         logger.info("Running result verification...")
         self._verify(graph, result)
@@ -22,4 +26,4 @@ class StaticSolver(Solver):
         logger.info("Calculating total cost...")
         total_cost = self.calculate_total_cost(result)
 
-        return {"assignment": result, "total_cost": total_cost}
+        return {"assignment": result, "total_cost": total_cost, "time_taken": time_taken}

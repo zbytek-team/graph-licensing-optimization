@@ -1,6 +1,7 @@
 import networkx as nx
 from ortools.linear_solver import pywraplp
-from .base import StaticSolver, AssignmentResult
+
+from ..base import AssignmentResult, StaticSolver
 
 
 class MIPSolver(StaticSolver):

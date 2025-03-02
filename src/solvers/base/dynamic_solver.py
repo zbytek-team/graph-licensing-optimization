@@ -1,6 +1,8 @@
+import time
+
 import networkx as nx
 
-from src.logger import get_logger
+from src.utils.logger import get_logger
 
 from .solver import Solver, SolverOutput
 
@@ -17,6 +19,8 @@ class DynamicSolver(Solver):
         total_cost = None
         result = None
 
+        time_taken = time.time()
+
         for iteration in range(iterations_num):
             logger.info(f"Running iteration {iteration + 1}/{iterations_num}...")
             result = self._solve(graph)
@@ -25,10 +29,12 @@ class DynamicSolver(Solver):
             logger.info("Calculating total cost...")
             total_cost = self.calculate_total_cost(result)
 
+        time_taken = time.time() - time_taken
+
         if total_cost is None:
             raise ValueError("Total cost is None.")
 
         if result is None:
             raise ValueError("Result is None.")
 
-        return {"assignment": result, "total_cost": total_cost}
+        return {"assignment": result, "total_cost": total_cost, "time_taken": time_taken}

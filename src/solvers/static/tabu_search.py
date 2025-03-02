@@ -1,8 +1,11 @@
-import random
 import copy
+import random
+
 import networkx as nx
-from .base import StaticSolver, AssignmentResult
-from src.logger import get_logger
+
+from src.utils.logger import get_logger
+
+from ..base import AssignmentResult, StaticSolver
 
 logger = get_logger(__name__)
 
@@ -13,8 +16,8 @@ class TabuSolver(StaticSolver):
         individual_cost: float,
         group_cost: float,
         group_size: int,
-        tabu_size: int = 10,
-        iterations: int = 1000,
+        tabu_size: int = 256,
+        iterations: int = 1024,
     ):
         super().__init__(individual_cost, group_cost, group_size)
         self.tabu_size = tabu_size

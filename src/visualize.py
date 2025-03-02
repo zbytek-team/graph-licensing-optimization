@@ -1,6 +1,8 @@
+import random
+
 import matplotlib.pyplot as plt
 import networkx as nx
-import random
+
 from .solvers.base import AssignmentResult
 
 colors = {"individual": "#c3102f", "group": "#003667"}

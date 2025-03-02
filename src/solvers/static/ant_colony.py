@@ -1,8 +1,10 @@
 import random
-from .base import StaticSolver, AssignmentResult
+
 import networkx as nx
 
-from src.logger import get_logger
+from src.utils.logger import get_logger
+
+from ..base import AssignmentResult, StaticSolver
 
 logger = get_logger(__name__)
 
@@ -13,11 +15,11 @@ class AntColonySolver(StaticSolver):
         individual_cost: float,
         group_cost: float,
         group_size: int,
-        ant_count: int = 10,
-        alpha: float = 10,
-        beta: float = 10,
-        evaporation_rate: float = 10,
-        iterations: int = 10,
+        ant_count: int = 64,
+        alpha: float = 4,
+        beta: float = 1,
+        evaporation_rate: float = 0.15,
+        iterations: int = 512,
     ):
         super().__init__(individual_cost, group_cost, group_size)
         self.ant_count = ant_count
