@@ -16,7 +16,8 @@ class SolverResult(TypedDict):
 class Solver(ABC):
     def __init__(self, individual_cost: float, group_cost: float, group_size: int):
         logger.info(
-            f"Initializing solver {self.__class__.__name__} with: individual_cost={individual_cost}, group_cost={group_cost}, group_size={group_size}."
+            f"Initializing solver {self.__class__.__name__} with: "
+            f"individual_cost={individual_cost}, group_cost={group_cost}, group_size={group_size}."
         )
         self.individual_cost = individual_cost
         self.group_cost = group_cost
@@ -31,16 +32,15 @@ class Solver(ABC):
         logger.info(f"Running solver {self.__class__.__name__}...")
         result = self._solve(graph)
         logger.info("Running result verification...")
-        self.verify(graph, result)
+        self._verify(graph, result)
         logger.info("Calculating total cost...")
-        total_cost = self.calculate_total_cost(result)
+        total_cost = self._calculate_total_cost(result)
+        return result, total_cost
 
-        return (result, total_cost)
-
-    @final
-    def verify(self, graph: nx.Graph, result: SolverResult) -> None:
+    def _verify(self, graph: nx.Graph, result: SolverResult) -> None:
         all_nodes = set(graph.nodes)
-        covered_nodes = result["individual"].copy()
+        assigned_nodes = set()
+        covered_nodes = set(result["individual"])
 
         for holder, members in result["group"].items():
             if len(members) < 2 or len(members) > self.group_size:
@@ -50,21 +50,19 @@ class Solver(ABC):
             if holder not in members:
                 raise ValueError(f"License holder {holder} is not in its own group.")
 
+            for member in members:
+                if member in assigned_nodes:
+                    raise ValueError(f"Node {member} appears in multiple groups.")
+                assigned_nodes.add(member)
+
+                if member != holder and member not in graph.neighbors(holder):
+                    raise ValueError(f"Node {member} is in group of {holder} but is not connected.")
+
             covered_nodes.update(members)
 
-        if covered_nodes < all_nodes:
-            raise ValueError("Not all nodes are covered.")
+        if covered_nodes != all_nodes:
+            missing = all_nodes - covered_nodes
+            raise ValueError(f"Not all nodes are covered: {missing}")
 
-        all_assigned_nodes = [
-            node for nodes in result["group"].values() for node in nodes
-        ]
-        all_assigned_nodes.extend(result["individual"])
-
-        if len(all_assigned_nodes) != len(covered_nodes):
-            raise ValueError("Duplicate nodes detected in individual and group assignments.")
-
-    def calculate_total_cost(self, result: SolverResult) -> float:
-        total_cost = 0.0
-        total_cost += len(result["individual"]) * self.individual_cost
-        total_cost += len(result["group"]) * self.group_cost
-        return total_cost
+    def _calculate_total_cost(self, result: SolverResult) -> float:
+        return len(result["individual"]) * self.individual_cost + len(result["group"]) * self.group_cost
