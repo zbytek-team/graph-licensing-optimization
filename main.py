@@ -20,17 +20,17 @@ def main():
     greedy_solver = GreedySolver(individual_cost=1, group_cost=1.2, group_size=6)
     mip_solver = MIPSolver(individual_cost=1, group_cost=1.2, group_size=6)
     tabu_solver = TabuSolver(
-        individual_cost=1, group_cost=1.2, group_size=6, tabu_size=50, iterations=100
+        individual_cost=1, group_cost=1.2, group_size=6, tabu_size=256, iterations=1024
     )
     ant_colony_solver = AntColonySolver(
         individual_cost=1,
         group_cost=1.2,
         group_size=6,
-        ant_count=50,
-        alpha=5,
+        ant_count=64,
+        alpha=8,
         beta=1,
-        evaporation_rate=0.1,
-        iterations=500,
+        evaporation_rate=0.15,
+        iterations=1024,
     )
 
     costs = {}
