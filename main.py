@@ -1,32 +1,52 @@
 import networkx as nx
-from src.solvers.greedy import GreedySolver
-from src.solvers.mip import MIPSolver
+from src.solvers import TabuSolver, GreedySolver, MIPSolver, AntColonySolver
+from src.solvers.base import Solver
+from src.visualize import visualize_graph
 
-SOLVERS = [
+SOLVERS: list[tuple[str, type[Solver]]] = [
     ("Greedy", GreedySolver),
-    ("MIP", MIPSolver)
+    ("MIP", MIPSolver),
+    ("Tabu", TabuSolver),
+    ("Ant Colony", AntColonySolver),
 ]
 
 INDIVIDUAL_COST = 5.0
 GROUP_COST = 8.0
 GROUP_SIZE = 6
 
+
 def main():
     print("\n=== OPTIMAL LICENSE DISTRIBUTION SOLVER ===\n")
 
-    graph = nx.erdos_renyi_graph(20, 0.2, seed=42)
+    graph = nx.erdos_renyi_graph(100, 0.05, seed=42)
+    results: list[tuple[str, float]] = []
 
     for solver_name, solver_class in SOLVERS:
         print(f"\n--- Running {solver_name} Solver ---\n")
 
         solver = solver_class(INDIVIDUAL_COST, GROUP_COST, GROUP_SIZE)
-        solution, cost = solver.run(graph)
+        result = solver.run(graph)
+
+        assignment = result["assignment"]
+        total_cost = result["total_cost"]
+        results.append((solver_name, total_cost))
+
+        visualize_graph(graph, assignment, f"images/{solver_name}.png")
 
         print("Solution:")
-        for node, license_type in solution.items():
-            print(f"Node {node}: {license_type}")
+        for node in assignment["individual"]:
+            print(f"Node {node}: Individual")
+        for holder, members in assignment["group"].items():
+            print(f"Group led by {holder}: {members}")
 
-        print(f"\nTotal cost: {cost}\n")
+        print(f"\nTotal cost: §{total_cost}\n")
+
+    sorted_results = sorted(results, key=lambda x: x[1])
+
+    print("\n=== SOLVER RANKINGS ===")
+    for rank, (solver_name, cost) in enumerate(sorted_results, start=1):
+        print(f"{rank}. {solver_name} - Total Cost: §{cost}")
+
 
 if __name__ == "__main__":
     main()
