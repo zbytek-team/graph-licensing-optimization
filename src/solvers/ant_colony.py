@@ -1,5 +1,5 @@
 import random
-from src.solvers.base import Solver, SolverResult
+from .base import StaticSolver, AssignmentResult
 import networkx as nx
 
 from src.logger import get_logger
@@ -7,29 +7,29 @@ from src.logger import get_logger
 logger = get_logger(__name__)
 
 
-class AntColonySolver(Solver):
+class AntColonySolver(StaticSolver):
     def __init__(
         self,
         individual_cost: float,
         group_cost: float,
         group_size: int,
-        ant_count: int,
-        alpha: float,
-        beta: float,
-        evaporation_rate: float,
-        iterations: int,
+        ant_count: int = 10,
+        alpha: float = 10,
+        beta: float = 10,
+        evaporation_rate: float = 10,
+        iterations: int = 10,
     ):
         super().__init__(individual_cost, group_cost, group_size)
         self.ant_count = ant_count
-        self.alpha = alpha  # alpha is the weight of the pheromone
-        self.beta = beta  # beta is the weight of the heuristic information
+        self.alpha = alpha
+        self.beta = beta
         self.evaporation_rate = evaporation_rate
         self.pheromone_deposit = {}
         self.iterations = iterations
 
-    def _make_solution(self, graph: nx.Graph) -> SolverResult:
-        solution = {"individual": set(), "group": {}}
-        assigned_nodes = set()  # Zbiór trzymający przypisane węzły
+    def _make_solution(self, graph: nx.Graph) -> AssignmentResult:
+        solution: AssignmentResult = {"individual": set(), "group": {}}
+        assigned_nodes = set()
 
         unvisited_nodes = list(graph.nodes)
         random.shuffle(unvisited_nodes)
@@ -51,32 +51,21 @@ class AntColonySolver(Solver):
             }
 
             total = sum(probabilities.values())
-            probabilities = (
-                {k: v / total for k, v in probabilities.items()}
-                if total > 0
-                else {"individual": 1}
-            )
+            probabilities = {k: v / total for k, v in probabilities.items()} if total > 0 else {"individual": 1}
 
-            choice = random.choices(
-                list(probabilities.keys()), weights=probabilities.values()
-            )[0]
+            choice = random.choices(list(probabilities.keys()), weights=list(probabilities.values()))[0]
 
             if choice == "individual":
                 solution["individual"].add(node)
                 assigned_nodes.add(node)
             elif choice == "group":
-                neighbors = [
-                    neighbor
-                    for neighbor in graph.neighbors(node)
-                    if neighbor not in assigned_nodes
-                ]
+                neighbors = [neighbor for neighbor in graph.neighbors(node) if neighbor not in assigned_nodes]
                 random.shuffle(neighbors)
                 group_members = {node}
 
                 if neighbors:
                     probabilities_O = [
-                        (self.pheromone_deposit[node]["O"][neighbor] ** self.alpha)
-                        * (1 / self.group_cost) ** self.beta
+                        (self.pheromone_deposit[node]["O"][neighbor] ** self.alpha) * (1 / self.group_cost) ** self.beta
                         for neighbor in neighbors
                     ]
                     total_O = sum(probabilities_O)
@@ -99,14 +88,12 @@ class AntColonySolver(Solver):
 
         return solution
 
-    def _update_pheromones(self, solutions: list[SolverResult, float], graph: nx.Graph):
+    def _update_pheromones(self, solutions: list[tuple[AssignmentResult, float]], graph: nx.Graph):
         for node in graph.nodes:
             for node_type in ["O", "individual", "group"]:
                 if node_type == "O":
                     for neighbor in graph.neighbors(node):
-                        self.pheromone_deposit[node][node_type][neighbor] *= (
-                            1 - self.evaporation_rate
-                        )
+                        self.pheromone_deposit[node][node_type][neighbor] *= 1 - self.evaporation_rate
                 else:
                     self.pheromone_deposit[node][node_type] *= 1 - self.evaporation_rate
 
@@ -122,7 +109,7 @@ class AntColonySolver(Solver):
                     for neighbor in graph.neighbors(node):
                         self.pheromone_deposit[node]["O"][neighbor] += 1 / cost
 
-    def _solve(self, graph: nx.Graph) -> SolverResult:
+    def _solve(self, graph: nx.Graph) -> AssignmentResult:
         best_solution = None
         best_cost = float("inf")
         node_types = ["O", "individual", "group"]
@@ -145,5 +132,8 @@ class AntColonySolver(Solver):
                 if cost < best_cost:
                     best_solution = solution
                     best_cost = cost
+
+        if best_solution is None:
+            raise ValueError("No valid solution found.")
 
         return best_solution

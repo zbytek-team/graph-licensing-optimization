@@ -1,28 +1,27 @@
 import random
 import copy
 import networkx as nx
-from src.solvers.base import Solver, SolverResult
+from .base import StaticSolver, AssignmentResult
 from src.logger import get_logger
-from src.solvers.greedy import GreedySolver
 
 logger = get_logger(__name__)
 
 
-class TabuSolver(Solver):
+class TabuSolver(StaticSolver):
     def __init__(
         self,
         individual_cost: float,
         group_cost: float,
         group_size: int,
-        tabu_size: int,
-        iterations: int,
+        tabu_size: int = 10,
+        iterations: int = 1000,
     ):
         super().__init__(individual_cost, group_cost, group_size)
         self.tabu_size = tabu_size
         self.iterations = iterations
 
-    def _generate_initial_solution(self, graph: nx.Graph) -> SolverResult:
-        solution = {"individual": set(), "group": {}}
+    def _generate_initial_solution(self, graph: nx.Graph) -> AssignmentResult:
+        solution: AssignmentResult = {"individual": set(), "group": {}}
         nodes = list(graph.nodes)
         random.shuffle(nodes)
 
@@ -30,7 +29,7 @@ class TabuSolver(Solver):
 
         return solution
 
-    def _get_neighbors(self, solution: SolverResult, graph: nx.Graph) -> list:
+    def _get_neighbors(self, solution: AssignmentResult, graph: nx.Graph) -> list:
         neighbors = []
         nodes = list(graph.nodes)
 
@@ -59,26 +58,18 @@ class TabuSolver(Solver):
                         neighbor_solution["group"][group].add(individual)
                     else:
                         group_members_candidates = [
-                            node
-                            for node in node_neighbors
-                            if node in neighbor_solution["individual"]
+                            node for node in node_neighbors if node in neighbor_solution["individual"]
                         ]
                         if len(group_members_candidates) == 0:
                             continue
                         if group_members_candidates:
                             neighbor_solution["individual"].remove(individual)
-                            neighbor_solution["group"][individual] = {individual} | set(
-                                group_members_candidates
-                            )
+                            neighbor_solution["group"][individual] = {individual} | set(group_members_candidates)
                 case "group_to_individual":
                     if not neighbor_solution["group"]:
                         continue
 
-                    group_nodes = {
-                        node
-                        for group in neighbor_solution["group"].values()
-                        for node in group
-                    }
+                    group_nodes = {node for group in neighbor_solution["group"].values() for node in group}
 
                     node = random.choice(list(group_nodes))
 
@@ -101,7 +92,7 @@ class TabuSolver(Solver):
 
         return neighbors
 
-    def _solve(self, graph: nx.Graph) -> SolverResult:
+    def _solve(self, graph: nx.Graph) -> AssignmentResult:
         best_solution = self._generate_initial_solution(graph)
         best_cost = self.calculate_total_cost(best_solution)
 
