@@ -1,10 +1,11 @@
 import os
 
-from src.solvers.base import StaticSolver
-from src.solvers.static import AntColonySolver, GreedySolver, MIPSolver, TabuSolver
-from src.generators import ScaleFreeGenerator
-from src.utils.logger import get_logger
 import matplotlib.pyplot as plt
+
+from src.generators import ScaleFreeGenerator
+from src.solvers.base import StaticSolver
+from src.solvers.static import AntColonySolver, GreedySolver, MIPSolver
+from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

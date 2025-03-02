@@ -1,11 +1,10 @@
 import os
 
-import networkx as nx
 
+from src.generators import ScaleFreeGenerator
 from src.solvers.base import StaticSolver
 from src.solvers.static import AntColonySolver, GreedySolver, MIPSolver, TabuSolver
 from src.utils.visualization import visualize_graph
-from src.generators import ScaleFreeGenerator
 
 SOLVERS: list[tuple[str, type[StaticSolver]]] = [
     ("Greedy", GreedySolver),
