@@ -1,5 +1,6 @@
 from src.solvers.greedy import GreedySolver
 from src.solvers.mip import MIPSolver
+from src.solvers.tabu import TabuSolver
 from src.solvers.ant_colony import AntColonySolver
 from src.graphs.generators import generate_clustered_graph
 from src.visualize import visualize_graph
@@ -18,15 +19,18 @@ def main():
 
     greedy_solver = GreedySolver(individual_cost=1, group_cost=1.2, group_size=6)
     mip_solver = MIPSolver(individual_cost=1, group_cost=1.2, group_size=6)
+    tabu_solver = TabuSolver(
+        individual_cost=1, group_cost=1.2, group_size=6, tabu_size=256, iterations=1024
+    )
     ant_colony_solver = AntColonySolver(
         individual_cost=1,
         group_cost=1.2,
         group_size=6,
-        ant_count=50,
-        alpha=5,
+        ant_count=64,
+        alpha=4,
         beta=1,
-        evaporation_rate=0.1,
-        iterations=500,
+        evaporation_rate=0.15,
+        iterations=512,
     )
 
     costs = {}
@@ -49,6 +53,12 @@ def main():
     print(result)
 
     visualize_graph(graph, result, "images/ant_colony.png")
+
+    result, total_cost = tabu_solver.run(graph)
+    costs["tabu"] = total_cost
+    print(result)
+
+    visualize_graph(graph, result, "images/tabu.png")
 
     print(costs)
 
