@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 import random
-from src.solvers.base import SolverResult
+from .solvers.base import AssignmentResult
 
 colors = {"individual": "#c3102f", "group": "#003667"}
 
@@ -21,7 +21,7 @@ def vary_color(hex_color: str, variation: int = 30) -> str:
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def visualize_graph(graph: nx.Graph, result: SolverResult, output_path: str | None = None) -> None:
+def visualize_graph(graph: nx.Graph, result: AssignmentResult, output_path: str | None = None) -> None:
     plt.figure(figsize=(10, 8))
     pos = nx.spring_layout(graph)
 
