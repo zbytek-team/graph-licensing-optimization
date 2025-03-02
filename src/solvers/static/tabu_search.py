@@ -17,7 +17,7 @@ class TabuSolver(StaticSolver):
         group_cost: float,
         group_size: int,
         tabu_size: int = 256,
-        iterations: int = 1024,
+        iterations: int = 2048,
     ):
         super().__init__(individual_cost, group_cost, group_size)
         self.tabu_size = tabu_size
@@ -66,13 +66,17 @@ class TabuSolver(StaticSolver):
                         if len(group_members_candidates) == 0:
                             continue
                         if group_members_candidates:
+                            population_len = min(self.group_size - 1, len(group_members_candidates))
+                            group_members_candidates = random.sample(group_members_candidates, population_len)
                             neighbor_solution["individual"].remove(individual)
+                            for member in group_members_candidates:
+                                neighbor_solution["individual"].remove(member)
                             neighbor_solution["group"][individual] = {individual} | set(group_members_candidates)
                 case "group_to_individual":
                     if not neighbor_solution["group"]:
                         continue
 
-                    group_nodes = {node for group in neighbor_solution["group"].values() for node in group}
+                    group_nodes = {node for nodes in neighbor_solution["group"].values() for node in nodes}
 
                     node = random.choice(list(group_nodes))
 
@@ -84,9 +88,9 @@ class TabuSolver(StaticSolver):
                         for group, members in neighbor_solution["group"].items():
                             if node in members:
                                 neighbor_solution["individual"].add(node)
-                                members.remove(node)
-                                if len(members) == 1:
-                                    remaining_node = members.pop()
+                                neighbor_solution["group"][group].remove(node)
+                                if len(neighbor_solution["group"][group]) == 1:
+                                    remaining_node = neighbor_solution["group"][group].pop()
                                     neighbor_solution["individual"].add(remaining_node)
                                     del neighbor_solution["group"][group]
                                 break
