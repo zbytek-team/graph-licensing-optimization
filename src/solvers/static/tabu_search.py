@@ -18,10 +18,12 @@ class TabuSolver(StaticSolver):
         group_size: int,
         tabu_size: int = 256,
         iterations: int = 2048,
+        max_neighbor_solutions: int = 128,
     ):
         super().__init__(individual_cost, group_cost, group_size)
         self.tabu_size = tabu_size
         self.iterations = iterations
+        self.max_neighbor_solutions = max_neighbor_solutions
 
     def _generate_initial_solution(self, graph: nx.Graph) -> AssignmentResult:
         solution: AssignmentResult = {"individual": set(), "group": {}}
@@ -38,7 +40,7 @@ class TabuSolver(StaticSolver):
 
         possible_moves = ["individual_to_group", "group_to_individual"]
 
-        for _ in range(len(nodes)):
+        for _ in range(self.max_neighbor_solutions):
             move = random.choice(possible_moves)
             neighbor_solution = copy.deepcopy(solution)
 
