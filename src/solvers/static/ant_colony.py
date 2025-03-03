@@ -1,9 +1,6 @@
 import random
-
 import networkx as nx
-
 from src.utils.logger import get_logger
-
 from ..base import AssignmentResult, StaticSolver
 
 logger = get_logger(__name__)
@@ -28,6 +25,7 @@ class AntColonySolver(StaticSolver):
         self.evaporation_rate = evaporation_rate
         self.pheromone_deposit = {}
         self.iterations = iterations
+        self.neighbors_cache = {}
 
     def _make_solution(self, graph: nx.Graph) -> AssignmentResult:
         solution: AssignmentResult = {"individual": set(), "group": {}}
@@ -41,10 +39,12 @@ class AntColonySolver(StaticSolver):
                 continue
 
             pheromones = self.pheromone_deposit[node]
+            node_neighbors = self.neighbors_cache[node]
+            heuristic_neighbors_value = len(node_neighbors)
 
             heuristic = {
-                "individual": 1 / (1 + self.individual_cost),
-                "group": 1 / self.group_cost if self.group_cost > 0 else 1,
+                "individual": self.beta / (heuristic_neighbors_value + 1e-10),
+                "group": heuristic_neighbors_value
             }
 
             probabilities = {
@@ -61,13 +61,14 @@ class AntColonySolver(StaticSolver):
                 solution["individual"].add(node)
                 assigned_nodes.add(node)
             elif choice == "group":
-                neighbors = [neighbor for neighbor in graph.neighbors(node) if neighbor not in assigned_nodes]
+                neighbors = [neighbor for neighbor in self.neighbors_cache[node] if neighbor not in assigned_nodes]
                 random.shuffle(neighbors)
                 group_members = {node}
 
                 if neighbors:
                     probabilities_O = [
-                        (self.pheromone_deposit[node]["O"][neighbor] ** self.alpha) * (1 / self.group_cost) ** self.beta
+                        (self.pheromone_deposit[node]["O"][neighbor] ** self.alpha) *
+                        (1 / (len(self.neighbors_cache[neighbor]) + 1e-10)) ** self.beta
                         for neighbor in neighbors
                     ]
                     total_O = sum(probabilities_O)
@@ -91,40 +92,45 @@ class AntColonySolver(StaticSolver):
         return solution
 
     def _update_pheromones(self, solutions: list[tuple[AssignmentResult, float]], graph: nx.Graph):
+        evap_rate = 1 - self.evaporation_rate
         for node in graph.nodes:
             for node_type in ["O", "individual", "group"]:
                 if node_type == "O":
-                    for neighbor in graph.neighbors(node):
-                        self.pheromone_deposit[node][node_type][neighbor] *= 1 - self.evaporation_rate
+                    for neighbor in self.neighbors_cache[node]:
+                        self.pheromone_deposit[node][node_type][neighbor] *= evap_rate
                 else:
-                    self.pheromone_deposit[node][node_type] *= 1 - self.evaporation_rate
+                    self.pheromone_deposit[node][node_type] *= evap_rate
 
         for solution, cost in solutions:
+            increment = 1 / cost
             for node in solution["individual"]:
-                self.pheromone_deposit[node]["individual"] += 1 / cost
+                self.pheromone_deposit[node]["individual"] += increment
 
             for node in solution["group"].keys():
-                self.pheromone_deposit[node]["group"] += 1 / cost
+                self.pheromone_deposit[node]["group"] += increment
 
             for group in solution["group"].values():
                 for node in group:
-                    for neighbor in graph.neighbors(node):
-                        self.pheromone_deposit[node]["O"][neighbor] += 1 / cost
+                    for neighbor in self.neighbors_cache[node]:
+                        self.pheromone_deposit[node]["O"][neighbor] += increment
 
     def _solve(self, graph: nx.Graph) -> AssignmentResult:
         best_solution = None
         best_cost = float("inf")
         node_types = ["O", "individual", "group"]
+
+        self.neighbors_cache = {node: list(graph.adj[node]) for node in graph.nodes()}
+
         for node in graph.nodes:
             self.pheromone_deposit[node] = {}
             for node_type in node_types:
                 if node_type == "O":
                     self.pheromone_deposit[node][node_type] = {}
-                    for neighbor in graph.neighbors(node):
+                    for neighbor in self.neighbors_cache[node]:
                         self.pheromone_deposit[node][node_type][neighbor] = 1
                 else:
                     self.pheromone_deposit[node][node_type] = 1
-
+        
         for _ in range(self.iterations):
             solutions = [self._make_solution(graph) for _ in range(self.ant_count)]
             results = [(solution, self.calculate_total_cost(solution)) for solution in solutions]

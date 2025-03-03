@@ -3,7 +3,7 @@ import os
 
 from src.generators import ScaleFreeGenerator
 from src.solvers.base import StaticSolver
-from src.solvers.static import AntColonySolver, GreedySolver, MIPSolver, TabuSolver
+from src.solvers.static import AntColonySolver, GreedySolver, MIPSolver, TabuSolver, AntColonySolverWithPathing
 from src.utils.visualization import visualize_graph
 
 SOLVERS: list[tuple[str, type[StaticSolver]]] = [
@@ -11,6 +11,7 @@ SOLVERS: list[tuple[str, type[StaticSolver]]] = [
     ("MIP", MIPSolver),
     ("Tabu", TabuSolver),
     ("Ant Colony", AntColonySolver),
+    ("Ant Colony With Pathing", AntColonySolverWithPathing),
 ]
 
 INDIVIDUAL_COST = 5.0
