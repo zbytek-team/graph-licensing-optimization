@@ -1,13 +1,13 @@
 import networkx as nx
 
-from src.solvers.base import AssignmentResult, BaseStaticSolver
+from src.solvers.base import Assignment, BaseStaticSolver
 from src.utils.graph import get_degree
 
 
 class GreedySolver(BaseStaticSolver):
-    def _solve(self, graph: nx.Graph) -> AssignmentResult:
+    def _solve(self, graph: nx.Graph) -> Assignment:
         covered: set[int] = set()
-        result: AssignmentResult = {"individual": set(), "group": {}}
+        result: Assignment = {"individual": set(), "group": {}}
 
         sorted_nodes = sorted(graph.nodes, key=lambda x: get_degree(graph, x), reverse=True)
 

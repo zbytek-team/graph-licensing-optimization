@@ -1,3 +1,3 @@
-from .base_generator import Generator
+from .base_generator import BaseGenerator
 
-__all__ = ["Generator"]
+__all__ = ["BaseGenerator"]

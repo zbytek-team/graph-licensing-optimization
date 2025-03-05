@@ -19,7 +19,7 @@ class BaseDynamicSolver(BaseSolver):
         total_cost = None
         result = None
 
-        time_taken = time.time()
+        execution_time = time.time()
 
         for iteration in range(iterations_num):
             logger.info(f"Running iteration {iteration + 1}/{iterations_num}...")
@@ -29,7 +29,7 @@ class BaseDynamicSolver(BaseSolver):
             logger.info("Calculating total cost...")
             total_cost = self.calculate_total_cost(result)
 
-        time_taken = time.time() - time_taken
+        execution_time = time.time() - execution_time
 
         if total_cost is None:
             raise ValueError("Total cost is None.")
@@ -37,4 +37,4 @@ class BaseDynamicSolver(BaseSolver):
         if result is None:
             raise ValueError("Result is None.")
 
-        return {"assignment": result, "total_cost": total_cost, "time_taken": time_taken}
+        return {"assignment": result, "total_cost": total_cost, "execution_time": execution_time}

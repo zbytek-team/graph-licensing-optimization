@@ -1,15 +1,17 @@
-from .bipartite_generator import BipartiteGenerator
+from .barabasi_albert_generator import BarabasiAlbertGenerator
+from .bipartite_graph_generator import BipartiteGraphGenerator
 from .complete_graph_generator import CompleteGraphGenerator
-from .plannar_graph_generator import PlannarGraphGenerator
-from .random_graph_generator import RandomGraphGenerator
-from .scale_free_generator import ScaleFreeGenerator
-from .small_world_generator import SmallWorldGenerator
+from .erdos_renyi_generator import ErdosRenyiGenerator
+from .random_regular_generator import RandomRegularGenerator
+from .tree_generator import TreeGenerator
+from .watts_strogatz_generator import WattsStrogatzGenerator
 
 __all__ = [
-    "BipartiteGenerator",
+    "ErdosRenyiGenerator",
+    "BarabasiAlbertGenerator",
+    "WattsStrogatzGenerator",
     "CompleteGraphGenerator",
-    "PlannarGraphGenerator",
-    "RandomGraphGenerator",
-    "ScaleFreeGenerator",
-    "SmallWorldGenerator",
+    "BipartiteGraphGenerator",
+    "TreeGenerator",
+    "RandomRegularGenerator",
 ]

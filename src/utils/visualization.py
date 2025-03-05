@@ -3,7 +3,7 @@ import random
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from src.solvers.base import AssignmentResult
+from src.solvers.base import Assignment
 
 colors = {"individual": "#c3102f", "group": "#003667"}
 
@@ -24,20 +24,20 @@ def vary_color(hex_color: str, variation: int = 30) -> str:
 
 
 def create_layout(graph: nx.Graph):
-    return nx.spring_layout(graph, iterations=50, seed=42)
+    return nx.spring_layout(graph, iterations=50)
 
 
-def visualize_graph(graph: nx.Graph, result: AssignmentResult, output_path: str | None = None, pos=None) -> None:
+def visualize_graph(graph: nx.Graph, result: Assignment, output_path: str | None = None, layout=None) -> None:
     plt.figure(figsize=(10, 8))
-    if pos is None:
-        pos = nx.spring_layout(graph)
+    if layout is None:
+        layout = nx.spring_layout(graph)
 
-    nx.draw(graph, pos, node_size=10, edge_color="gray", alpha=0.5, width=0.5)
+    nx.draw(graph, layout, node_size=10, edge_color="gray", alpha=0.5, width=0.5)
 
     for node in result["individual"]:
         nx.draw_networkx_nodes(
             graph,
-            pos,
+            layout,
             nodelist=[node],
             node_color=vary_color(colors["individual"]),
             node_size=10,
@@ -45,16 +45,14 @@ def visualize_graph(graph: nx.Graph, result: AssignmentResult, output_path: str 
 
     for holder, members in result["group"].items():
         group_color = vary_color(colors["group"])
-        nx.draw_networkx_nodes(graph, pos, nodelist=[holder], node_color=group_color, node_size=20)
-        nx.draw_networkx_nodes(graph, pos, nodelist=members, node_color=group_color, node_size=10)
+        nx.draw_networkx_nodes(graph, layout, nodelist=[holder], node_color=group_color, node_size=20)
+        nx.draw_networkx_nodes(graph, layout, nodelist=members, node_color=group_color, node_size=10)
 
         for member in members:
             if member == holder:
                 continue
 
-            nx.draw_networkx_edges(graph, pos, edgelist=[(holder, member)], edge_color=group_color, width=2)
-
-    plt.title("Colored Graph Visualization")
+            nx.draw_networkx_edges(graph, layout, edgelist=[(holder, member)], edge_color=group_color, width=2)
 
     if output_path:
         plt.savefig(output_path)

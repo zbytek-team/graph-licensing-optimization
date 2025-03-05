@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import networkx as nx
 
 
-class Generator(ABC):
+class BaseGenerator(ABC):
     @abstractmethod
-    def generate(self, num_nodes: int, **kwargs) -> nx.Graph:
+    def generate(self, num_nodes: int) -> nx.Graph:
         pass

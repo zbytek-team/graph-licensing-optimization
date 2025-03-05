@@ -3,9 +3,8 @@ import random
 
 import networkx as nx
 
+from src.solvers.base import Assignment, BaseStaticSolver
 from src.utils.logger import get_logger
-
-from src.solvers.base import AssignmentResult, BaseStaticSolver
 
 logger = get_logger(__name__)
 
@@ -16,17 +15,17 @@ class TabuSolver(BaseStaticSolver):
         individual_cost: float,
         group_cost: float,
         group_size: int,
-        tabu_size: int = 256,
-        iterations: int = 2048,
-        max_neighbor_solutions: int = 128,
+        tabu_size: int,
+        iterations: int,
+        max_neighbor_solutions: int,
     ):
         super().__init__(individual_cost, group_cost, group_size)
         self.tabu_size = tabu_size
         self.iterations = iterations
         self.max_neighbor_solutions = max_neighbor_solutions
 
-    def _generate_initial_solution(self, graph: nx.Graph) -> AssignmentResult:
-        solution: AssignmentResult = {"individual": set(), "group": {}}
+    def _generate_initial_solution(self, graph: nx.Graph) -> Assignment:
+        solution: Assignment = {"individual": set(), "group": {}}
         nodes = list(graph.nodes)
         random.shuffle(nodes)
 
@@ -34,7 +33,7 @@ class TabuSolver(BaseStaticSolver):
 
         return solution
 
-    def _get_neighbors(self, solution: AssignmentResult, graph: nx.Graph) -> list:
+    def _get_neighbors(self, solution: Assignment, graph: nx.Graph) -> list:
         neighbors = []
 
         possible_moves = ["individual_to_group", "group_to_individual"]
@@ -100,7 +99,7 @@ class TabuSolver(BaseStaticSolver):
 
         return neighbors
 
-    def _solve(self, graph: nx.Graph) -> AssignmentResult:
+    def _solve(self, graph: nx.Graph) -> Assignment:
         best_solution = self._generate_initial_solution(graph)
         best_cost = self.calculate_total_cost(best_solution)
 

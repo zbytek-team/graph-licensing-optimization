@@ -1,12 +1,13 @@
 import optuna
+
+from src.generators import WattsStrogatzGenerator
 from src.solvers import AntColonySolver
-from src.generators import ScaleFreeGenerator
 
 INDIVIDUAL_COST = 5.0
 GROUP_COST = 8.0
 GROUP_SIZE = 6
 
-generator = ScaleFreeGenerator()
+generator = WattsStrogatzGenerator(12, 0.3)
 graph = generator.generate(200)
 
 
