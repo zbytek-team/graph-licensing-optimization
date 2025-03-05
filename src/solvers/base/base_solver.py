@@ -19,7 +19,7 @@ class SolverOutput(TypedDict):
     time_taken: float
 
 
-class Solver(ABC):
+class BaseSolver(ABC):
     def __init__(self, individual_cost: float, group_cost: float, group_size: int):
         logger.info(
             f"Initializing solver {self.__class__.__name__} with: "

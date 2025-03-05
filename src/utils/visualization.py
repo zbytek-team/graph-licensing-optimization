@@ -23,9 +23,14 @@ def vary_color(hex_color: str, variation: int = 30) -> str:
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def visualize_graph(graph: nx.Graph, result: AssignmentResult, output_path: str | None = None) -> None:
+def create_layout(graph: nx.Graph):
+    return nx.spring_layout(graph, iterations=50, seed=42)
+
+
+def visualize_graph(graph: nx.Graph, result: AssignmentResult, output_path: str | None = None, pos=None) -> None:
     plt.figure(figsize=(10, 8))
-    pos = nx.spring_layout(graph)
+    if pos is None:
+        pos = nx.spring_layout(graph)
 
     nx.draw(graph, pos, node_size=10, edge_color="gray", alpha=0.5, width=0.5)
 

@@ -2,16 +2,21 @@ import os
 
 
 from src.generators import ScaleFreeGenerator
-from src.solvers.base import StaticSolver
-from src.solvers.static import AntColonySolver, GreedySolver, MIPSolver, TabuSolver, AntColonySolverWithPathing
-from src.utils.visualization import visualize_graph
+from src.solvers.base import BaseStaticSolver
+from src.solvers import (
+    GreedySolver,
+    CPSATSolver,
+    MIPSolver,
+)
+from src.utils.visualization import visualize_graph, create_layout
 
-SOLVERS: list[tuple[str, type[StaticSolver]]] = [
+SOLVERS: list[tuple[str, type[BaseStaticSolver]]] = [
     ("Greedy", GreedySolver),
+    ("Constraints Programming", CPSATSolver),
     ("MIP", MIPSolver),
-    ("Tabu", TabuSolver),
-    ("Ant Colony", AntColonySolver),
-    ("Ant Colony With Pathing", AntColonySolverWithPathing),
+    # ("Tabu", TabuSolver),
+    # ("Ant Colony", AntColonySolver),
+    # ("Ant Colony With Pathing", AntColonySolverWithPathing),
 ]
 
 INDIVIDUAL_COST = 5.0
@@ -25,7 +30,8 @@ def main():
     print("\n=== OPTIMAL LICENSE DISTRIBUTION SOLVER ===\n")
 
     generator = ScaleFreeGenerator()
-    graph = generator.generate(100, m=2)
+    graph = generator.generate(200, m=2)
+    pos = create_layout(graph)
     results: list[tuple[str, float, float]] = []
 
     for solver_name, solver_class in SOLVERS:
@@ -40,7 +46,7 @@ def main():
 
         results.append((solver_name, total_cost, time_taken))
 
-        visualize_graph(graph, assignment, f"images/{solver_name}.png")
+        visualize_graph(graph, assignment, f"images/{solver_name}.png", pos)
 
         if len(assignment["individual"]) < 50 and len(assignment["group"]) < 10:
             print("\nSolution:")

@@ -3,16 +3,26 @@ import os
 import matplotlib.pyplot as plt
 
 from src.generators import ScaleFreeGenerator
-from src.solvers.base import StaticSolver
-from src.solvers.static import AntColonySolver, GreedySolver, MIPSolver
+from src.solvers.base import BaseStaticSolver
+from src.solvers import (
+    AntColonySolver,
+    GreedySolver,
+    MIPSolver,
+    AntColonySolverWithPathing,
+    CPSATSolver,
+    TabuSolver,
+)
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-SOLVERS: list[tuple[str, type[StaticSolver]]] = [
-    ("Greedy", GreedySolver),
+SOLVERS: list[tuple[str, type[BaseStaticSolver]]] = [
     ("MIP", MIPSolver),
+    ("CPSAT", CPSATSolver),
+    ("Greedy", GreedySolver),
     ("Ant Colony", AntColonySolver),
+    ("Ant Colony with Pathing", AntColonySolverWithPathing),
+    ("Tabu", TabuSolver),
 ]
 
 INDIVIDUAL_COST = 5.0
@@ -29,7 +39,7 @@ def main():
 
     results = []
 
-    for size in range(100, 1001, 100):
+    for size in range(20, 201, 10):
         graph = generator.generate(size, m=2)
 
         for solver_name, solver_class in SOLVERS:

@@ -1,5 +1,5 @@
-from .dynamic_solver import DynamicSolver
-from .solver import AssignmentResult
-from .static_solver import StaticSolver
+from .base_dynamic_solver import BaseDynamicSolver
+from .base_solver import AssignmentResult
+from .base_static_solver import BaseStaticSolver
 
-__all__ = ["AssignmentResult", "DynamicSolver", "StaticSolver"]
+__all__ = ["AssignmentResult", "BaseDynamicSolver", "BaseStaticSolver"]

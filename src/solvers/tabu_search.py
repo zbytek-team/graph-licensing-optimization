@@ -5,12 +5,12 @@ import networkx as nx
 
 from src.utils.logger import get_logger
 
-from ..base import AssignmentResult, StaticSolver
+from src.solvers.base import AssignmentResult, BaseStaticSolver
 
 logger = get_logger(__name__)
 
 
-class TabuSolver(StaticSolver):
+class TabuSolver(BaseStaticSolver):
     def __init__(
         self,
         individual_cost: float,
@@ -36,7 +36,6 @@ class TabuSolver(StaticSolver):
 
     def _get_neighbors(self, solution: AssignmentResult, graph: nx.Graph) -> list:
         neighbors = []
-        nodes = list(graph.nodes)
 
         possible_moves = ["individual_to_group", "group_to_individual"]
 

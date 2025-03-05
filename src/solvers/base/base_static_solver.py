@@ -4,12 +4,12 @@ import networkx as nx
 
 from src.utils.logger import get_logger
 
-from .solver import Solver, SolverOutput
+from .base_solver import BaseSolver, SolverOutput
 
 logger = get_logger(__name__)
 
 
-class StaticSolver(Solver):
+class BaseStaticSolver(BaseSolver):
     def __init__(self, individual_cost: float, group_cost: float, group_size: int):
         super().__init__(individual_cost, group_cost, group_size)
 

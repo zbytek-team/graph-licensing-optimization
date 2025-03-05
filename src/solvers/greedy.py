@@ -1,21 +1,22 @@
 import networkx as nx
 
-from ..base import AssignmentResult, StaticSolver
+from src.solvers.base import AssignmentResult, BaseStaticSolver
+from src.utils.graph import get_degree
 
 
-class GreedySolver(StaticSolver):
+class GreedySolver(BaseStaticSolver):
     def _solve(self, graph: nx.Graph) -> AssignmentResult:
-        covered = set()
+        covered: set[int] = set()
         result: AssignmentResult = {"individual": set(), "group": {}}
 
-        sorted_nodes = sorted(graph.nodes, key=lambda x: len(list(graph.neighbors(x))), reverse=True)
+        sorted_nodes = sorted(graph.nodes, key=lambda x: get_degree(graph, x), reverse=True)
 
         for node in sorted_nodes:
             if node in covered:
                 continue
 
-            potential_group_members = set(graph.neighbors(node)) - covered
-            selected_members = {node}
+            potential_group_members: set[int] = set(graph.neighbors(node)) - covered
+            selected_members: set[int] = {node}
 
             if len(potential_group_members) > self.group_size - 1:
                 sorted_neighbors = sorted(

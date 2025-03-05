@@ -1,12 +1,13 @@
 import random
 import networkx as nx
 from src.utils.logger import get_logger
-from ..base import AssignmentResult, StaticSolver
+from src.solvers.base import AssignmentResult, BaseStaticSolver
 from concurrent.futures import ProcessPoolExecutor
 
 logger = get_logger(__name__)
 
-class AntColonySolverWithPathing(StaticSolver):
+
+class AntColonySolverWithPathing(BaseStaticSolver):
     def __init__(
         self,
         individual_cost: float,
@@ -60,8 +61,8 @@ class AntColonySolverWithPathing(StaticSolver):
             h_individual = beta / (n_neighbors + 1e-10)
             h_group = n_neighbors
 
-            p_individual = (pheromones["individual"] ** alpha) * (h_individual ** beta)
-            p_group = (pheromones["group"] ** alpha) * (h_group ** beta)
+            p_individual = (pheromones["individual"] ** alpha) * (h_individual**beta)
+            p_group = (pheromones["group"] ** alpha) * (h_group**beta)
             total = p_individual + p_group
             if total > 0:
                 p_individual /= total
@@ -152,10 +153,9 @@ class AntColonySolverWithPathing(StaticSolver):
 
         with ProcessPoolExecutor() as executor:
             for _ in range(self.iterations):
-
                 generated = list(executor.map(self._make_solution, [graph] * self.ant_count))
                 solutions, orders = zip(*generated)
-                
+
                 results = [(solution, self.calculate_total_cost(solution)) for solution in solutions]
 
                 self._update_pheromones(results, list(orders))

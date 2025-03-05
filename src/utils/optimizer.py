@@ -1,5 +1,5 @@
 import optuna
-from src.solvers.static import AntColonySolver
+from src.solvers import AntColonySolver
 from src.generators import ScaleFreeGenerator
 
 INDIVIDUAL_COST = 5.0

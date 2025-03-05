@@ -12,6 +12,7 @@ dependencies = [
     "pyqt6>=6.8.1",
     "pyright>=1.1.396",
     "ruff>=0.9.9",
+    "scipy>=1.15.2",
 ]
 
 [tool.ruff]

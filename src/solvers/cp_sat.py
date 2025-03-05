@@ -1,10 +1,10 @@
 import networkx as nx
 from ortools.sat.python import cp_model
 
-from ..base import AssignmentResult, StaticSolver
+from src.solvers.base import AssignmentResult, BaseStaticSolver
 
 
-class CPSATSolver(StaticSolver):
+class CPSATSolver(BaseStaticSolver):
     def _solve(self, graph: nx.Graph) -> AssignmentResult:
         model = cp_model.CpModel()
         solver = cp_model.CpSolver()
@@ -18,8 +18,7 @@ class CPSATSolver(StaticSolver):
         z = [[model.NewBoolVar(f"z_{i}_{j}") for j in range(n)] for i in range(n)]
 
         model.Minimize(
-            sum(x[i] * self.individual_cost for i in range(n))
-            + sum(y[j] * self.group_cost for j in range(n))
+            sum(x[i] * self.individual_cost for i in range(n)) + sum(y[j] * self.group_cost for j in range(n))
         )
 
         for i in range(n):

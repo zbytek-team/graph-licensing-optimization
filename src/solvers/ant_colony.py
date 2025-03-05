@@ -1,12 +1,12 @@
 import random
 import networkx as nx
 from src.utils.logger import get_logger
-from ..base import AssignmentResult, StaticSolver
+from src.solvers.base import AssignmentResult, BaseStaticSolver
 
 logger = get_logger(__name__)
 
 
-class AntColonySolver(StaticSolver):
+class AntColonySolver(BaseStaticSolver):
     def __init__(
         self,
         individual_cost: float,
@@ -44,7 +44,7 @@ class AntColonySolver(StaticSolver):
 
             heuristic = {
                 "individual": self.beta / (heuristic_neighbors_value + 1e-10),
-                "group": heuristic_neighbors_value
+                "group": heuristic_neighbors_value,
             }
 
             probabilities = {
@@ -67,8 +67,8 @@ class AntColonySolver(StaticSolver):
 
                 if neighbors:
                     probabilities_O = [
-                        (self.pheromone_deposit[node]["O"][neighbor] ** self.alpha) *
-                        (1 / (len(self.neighbors_cache[neighbor]) + 1e-10)) ** self.beta
+                        (self.pheromone_deposit[node]["O"][neighbor] ** self.alpha)
+                        * (1 / (len(self.neighbors_cache[neighbor]) + 1e-10)) ** self.beta
                         for neighbor in neighbors
                     ]
                     total_O = sum(probabilities_O)
@@ -130,7 +130,7 @@ class AntColonySolver(StaticSolver):
                         self.pheromone_deposit[node][node_type][neighbor] = 1
                 else:
                     self.pheromone_deposit[node][node_type] = 1
-        
+
         for _ in range(self.iterations):
             solutions = [self._make_solution(graph) for _ in range(self.ant_count)]
             results = [(solution, self.calculate_total_cost(solution)) for solution in solutions]
