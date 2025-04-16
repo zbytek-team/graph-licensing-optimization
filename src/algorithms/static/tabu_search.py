@@ -1,27 +1,31 @@
-import random
 import copy
+import random
+
 import networkx as nx
-from .base import StaticSolver, AssignmentResult
-from src.logger import get_logger
+
+from src.solvers.base import Assignment, BaseStaticSolver
+from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 
-class TabuSolver(StaticSolver):
+class TabuSolver(BaseStaticSolver):
     def __init__(
         self,
         individual_cost: float,
         group_cost: float,
         group_size: int,
-        tabu_size: int = 10,
-        iterations: int = 1000,
+        tabu_size: int,
+        iterations: int,
+        max_neighbor_solutions: int,
     ):
         super().__init__(individual_cost, group_cost, group_size)
         self.tabu_size = tabu_size
         self.iterations = iterations
+        self.max_neighbor_solutions = max_neighbor_solutions
 
-    def _generate_initial_solution(self, graph: nx.Graph) -> AssignmentResult:
-        solution: AssignmentResult = {"individual": set(), "group": {}}
+    def _generate_initial_solution(self, graph: nx.Graph) -> Assignment:
+        solution: Assignment = {"individual": set(), "group": {}}
         nodes = list(graph.nodes)
         random.shuffle(nodes)
 
@@ -29,13 +33,12 @@ class TabuSolver(StaticSolver):
 
         return solution
 
-    def _get_neighbors(self, solution: AssignmentResult, graph: nx.Graph) -> list:
+    def _get_neighbors(self, solution: Assignment, graph: nx.Graph) -> list:
         neighbors = []
-        nodes = list(graph.nodes)
 
         possible_moves = ["individual_to_group", "group_to_individual"]
 
-        for _ in range(len(nodes)):
+        for _ in range(self.max_neighbor_solutions):
             move = random.choice(possible_moves)
             neighbor_solution = copy.deepcopy(solution)
 
@@ -63,13 +66,17 @@ class TabuSolver(StaticSolver):
                         if len(group_members_candidates) == 0:
                             continue
                         if group_members_candidates:
+                            population_len = min(self.group_size - 1, len(group_members_candidates))
+                            group_members_candidates = random.sample(group_members_candidates, population_len)
                             neighbor_solution["individual"].remove(individual)
+                            for member in group_members_candidates:
+                                neighbor_solution["individual"].remove(member)
                             neighbor_solution["group"][individual] = {individual} | set(group_members_candidates)
                 case "group_to_individual":
                     if not neighbor_solution["group"]:
                         continue
 
-                    group_nodes = {node for group in neighbor_solution["group"].values() for node in group}
+                    group_nodes = {node for nodes in neighbor_solution["group"].values() for node in nodes}
 
                     node = random.choice(list(group_nodes))
 
@@ -81,9 +88,9 @@ class TabuSolver(StaticSolver):
                         for group, members in neighbor_solution["group"].items():
                             if node in members:
                                 neighbor_solution["individual"].add(node)
-                                members.remove(node)
-                                if len(members) == 1:
-                                    remaining_node = members.pop()
+                                neighbor_solution["group"][group].remove(node)
+                                if len(neighbor_solution["group"][group]) == 1:
+                                    remaining_node = neighbor_solution["group"][group].pop()
                                     neighbor_solution["individual"].add(remaining_node)
                                     del neighbor_solution["group"][group]
                                 break
@@ -92,7 +99,7 @@ class TabuSolver(StaticSolver):
 
         return neighbors
 
-    def _solve(self, graph: nx.Graph) -> AssignmentResult:
+    def _solve(self, graph: nx.Graph) -> Assignment:
         best_solution = self._generate_initial_solution(graph)
         best_cost = self.calculate_total_cost(best_solution)
 
