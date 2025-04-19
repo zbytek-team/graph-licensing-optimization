@@ -1,5 +1,6 @@
 import pytest
 
+from src.algorithms.static.ant_colony import AntColonySolver
 from src.algorithms.static.greedy_basic import GreedyBasicSolver
 from src.algorithms.static.ilp_solver import ILPSolver
 from src.utils.solution_utils import validate_solution, calculate_cost
@@ -9,7 +10,7 @@ from src.data.generators import (
     generate_watts_strogatz,
 )
 
-SOLVERS = [GreedyBasicSolver, ILPSolver]
+SOLVERS = [GreedyBasicSolver, ILPSolver, AntColonySolver]
 
 GRAPH_PARAMS = [
     #  (generator, kwargs, c_single, c_group, group_size)
