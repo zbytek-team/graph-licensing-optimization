@@ -1,98 +1,65 @@
 from typing import override
-
 import networkx as nx
 import pulp
-
 from ..base import BaseSolver, Solution
 
 
 class ILPSolver(BaseSolver):
+    def _round(self, val):
+        v = pulp.value(val)
+        if isinstance(v, float):
+            return round(v)
+        return v
+
     @override
     def solve(self, graph: nx.Graph, c_single: float, c_group: float, group_size: int) -> Solution:
-        vertices = sorted(graph.nodes())
+        vertices: list[int] = sorted(graph.nodes())
 
-        adjacency_matrix = {}
-        for v in vertices:
-            adjacency_matrix[v] = {}
-            for u in vertices:
-                adjacency_matrix[v][u] = 0
-            for nei in graph[v]:
-                adjacency_matrix[v][nei] = 1
-            adjacency_matrix[v][v] = 1
+        adj: dict[int, dict[int, int]] = {
+            v: {u: 1 if u in graph[v] or u == v else 0 for u in vertices} for v in vertices
+        }
 
         prob = pulp.LpProblem("LicenseILP", pulp.LpMinimize)
 
-        x1 = {}
-        x2 = {}
-        y = {}
+        x_indiv = {v: pulp.LpVariable(f"x_{v}", cat=pulp.LpBinary) for v in vertices}
+        x_holder = {v: pulp.LpVariable(f"y_{v}", cat=pulp.LpBinary) for v in vertices}
+        z = {(u, h): pulp.LpVariable(f"z_{u}_{h}", cat=pulp.LpBinary) for u in vertices for h in vertices}
 
         for v in vertices:
-            x1[v] = pulp.LpVariable(f"x1_{v}", cat=pulp.LpBinary)
-            x2[v] = pulp.LpVariable(f"x2_{v}", cat=pulp.LpBinary)
-            for u in vertices:
-                y[(u, v)] = pulp.LpVariable(f"y_{u}_{v}", cat=pulp.LpBinary)
-
-        for v in vertices:
-            prob += (x1[v] + x2[v] <= 1, f"unique_license_{v}")
+            prob += x_indiv[v] + x_holder[v] <= 1
 
         for u in vertices:
-            prob += (
-                pulp.lpSum([y[(u, v)] for v in vertices]) + x1[u] + x2[u] >= 1,
-                f"coverage_{u}",
-            )
+            prob += x_indiv[u] + pulp.lpSum(z[(u, h)] for h in vertices) == 1
 
-        for v in vertices:
+        for h in vertices:
             for u in vertices:
-                prob += (y[(u, v)] <= x2[v], f"only_active_{u}_{v}")
+                prob += z[(u, h)] <= x_holder[h]
 
-        for v in vertices:
+        for h in vertices:
+            prob += z[(h, h)] == x_holder[h]
+
+        for h in vertices:
             for u in vertices:
-                prob += (y[(u, v)] <= adjacency_matrix[v][u], f"adj_{u}_{v}")
+                prob += z[(u, h)] <= adj[h][u]
 
-        for v in vertices:
-            prob += (
-                pulp.lpSum([y[(u, v)] for u in vertices]) <= group_size * x2[v],
-                f"group_size_{v}",
-            )
+        for h in vertices:
+            prob += pulp.lpSum(z[(u, h)] for u in vertices) >= 2 * x_holder[h]
+            prob += pulp.lpSum(z[(u, h)] for u in vertices) <= group_size * x_holder[h]
 
-        for v in vertices:
-            prob += (y[(v, v)] == x2[v], f"self_cover_{v}")
-
-        prob += (
-            pulp.lpSum([c_single * x1[v] + c_group * x2[v] for v in vertices]),
-            "MinimizeCost",
-        )
+        prob += pulp.lpSum(c_single * x_indiv[v] + c_group * x_holder[v] for v in vertices)
 
         prob.solve(pulp.PULP_CBC_CMD(msg=False))
 
-        if pulp.LpStatus[prob.status] not in [
-            "Optimal",
-            "Integer Feasible",
-            "Optimal_infeasible",
-            "Feasible",
-        ]:
-            raise RuntimeError(f"ILP solver failed with status {pulp.LpStatus[prob.status]}")
+        if pulp.LpStatus[prob.status] not in {"Optimal", "Integer Feasible"}:
+            raise RuntimeError(f"ILP solver status: {pulp.LpStatus[prob.status]}")
 
-        licenses: Solution = {"singles": [], "groups": []}
-
-        cost_sum = 0.0
+        solution: Solution = {"singles": [], "groups": []}
 
         for v in vertices:
-            xv1 = round(pulp.value(x1[v]))
-            xv2 = round(pulp.value(x2[v]))
-            if xv1 == 1:
-                licenses["singles"].append(v)
-                cost_sum += c_single
-            elif xv2 == 1:
-                members: list[int] = []
-                for u in vertices:
-                    yu = round(number=pulp.value(y[(u, v)]))
-                    if yu == 1:
-                        members.append(u)
+            if self._round(x_indiv[v]) == 1:
+                solution["singles"].append(v)
+            elif self._round(x_holder[v]) == 1:
+                members = [u for u in vertices if self._round(z[(u, v)]) == 1]
+                solution["groups"].append({"license_holder": v, "members": members})
 
-                licenses["groups"].append({"license_holder": v, "members": members})
-                cost_sum += c_group
-            else:
-                pass
-
-        return licenses
+        return solution
