@@ -2,6 +2,7 @@ from pathlib import Path
 import time
 from typing import Protocol, TypedDict
 import networkx as nx
+from src.algorithms.static.ant_colony import AntColonySolver
 from src.algorithms.base import BaseSolver
 from src.algorithms.static.greedy_basic import GreedyBasicSolver
 from src.algorithms.static.ilp_solver import ILPSolver
@@ -64,6 +65,17 @@ SOLVER_CONFIGS: list[SolverConfig] = [
         "name": "ILP",
         "cls": ILPSolver,
         "kwargs": {},
+    },
+    {
+        "name": "AntColony",
+        "cls": AntColonySolver,
+        "kwargs": {
+            "ant_count": 20,
+            "alpha": 1.0,
+            "beta": 2.0,
+            "evaporation_rate": 0.3,
+            "iterations": 100,
+        },
     },
 ]
 
