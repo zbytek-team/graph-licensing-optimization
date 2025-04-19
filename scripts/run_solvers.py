@@ -5,7 +5,7 @@ import networkx as nx
 from src.algorithms.base import BaseSolver
 from src.algorithms.static.greedy_basic import GreedyBasicSolver
 from src.algorithms.static.ilp_solver import ILPSolver
-from src.utils.calculate_cost import (
+from src.utils.solution_utils import (
     calculate_cost,
     validate_solution,
 )

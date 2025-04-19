@@ -175,9 +175,6 @@ cython_debug/
 
 results/
 
-__pycache__/
-*.py[cod]
-
 # Academic material is maintained in the private thesis repository.
 /docs/thesis/
 /docs/THESIS_GUIDE.md
