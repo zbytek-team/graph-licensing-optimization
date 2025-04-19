@@ -174,6 +174,3 @@ cython_debug/
 .pypirc
 
 results/
-
-__pycache__/
-*.py[cod]
