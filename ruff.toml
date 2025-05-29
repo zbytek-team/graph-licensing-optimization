@@ -1,0 +1,20 @@
+line-length = 120
+target-version = "py313"
+
+[lint]
+select = ['E', 'F', 'W', 'A', 'PLC', 'PLE', 'PLW', 'I']
+ignore = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "D203",
+    "D213",
+]
+
+[lint.pydocstyle]
+convention = "google"
