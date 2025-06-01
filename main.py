@@ -83,7 +83,8 @@ algorithm_option = click.option(
 algorithms_option = click.option(
     "--algorithms",
     multiple=True,
-    default=["greedy", "dominating_set", "randomized", "genetic", "simulated_annealing", "tabu_search"],
+    default=["ilp", "greedy", "dominating_set", "simulated_annealing"],
+    # default=["greedy", "dominating_set", "randomized", "genetic", "simulated_annealing", "tabu_search"],
     type=click.Choice(list(create_algorithms().keys())),
     help="Algorithms to run (can specify multiple)",
 )
@@ -98,7 +99,8 @@ graph_type_option = click.option(
 graph_types_option = click.option(
     "--graph-types",
     multiple=True,
-    default=["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle"],
+    default=["scale_free"],
+    # default=["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle"],
     type=click.Choice(["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle"]),
     help="Types of graphs to test",
 )
@@ -113,7 +115,8 @@ graph_size_option = click.option(
 graph_sizes_option = click.option(
     "--graph-sizes",
     multiple=True,
-    default=[10, 20, 30],
+    default=[256, 512, 1024],
+    # default=[8, 16, 32, 64, 128, 256, 512],
     type=int,
     help="Graph sizes to test",
 )
@@ -134,7 +137,7 @@ solo_cost_option = click.option(
 
 group_cost_option = click.option(
     "--group-cost",
-    default=2.4,
+    default=2.08,
     type=float,
     help="Cost of group license",
 )
@@ -259,7 +262,7 @@ def single(
         click.echo("========================\n")
 
         # Save results
-        output = Path("results/") / f"{algorithm}_{graph_type}_{graph_size}"
+        output = Path("results/single/") / f"{algorithm}_{graph_type}_{graph_size}"
 
         output.mkdir(parents=True, exist_ok=True)
 

@@ -16,9 +16,15 @@ class GraphVisualizer:
     def __init__(self) -> None:
         """Initialize the visualizer."""
         self.color_map = {
-            "solo": "#FF6B6B",  # Red
-            "group_owner": "#4ECDC4",  # Teal
-            "group_member": "#45B7D1",  # Blue
+            "solo": "#c20d31",
+            "group_owner": "#013865", 
+            "group_member": "#013865",
+        }
+
+        self.size_map = {
+            "solo": 20,
+            "group_owner": 40,
+            "group_member": 20
         }
 
     def visualize_solution(
@@ -42,47 +48,36 @@ class GraphVisualizer:
             figsize: Figure size as (width, height).
         """
         plt.figure(figsize=figsize)
-
+        print("spring layouting")
         # Calculate layout
-        pos = nx.spring_layout(graph, seed=42)
-
+        pos = nx.spring_layout(graph, seed=42, iterations=1000)
+        print("done springing")
         # Prepare node colors and labels
         node_colors = []
-        node_labels = {}
+        node_sizes = []
 
         for node in graph.nodes():
             license_type = solution.get_node_license_type(node)
             node_colors.append(self.color_map[license_type.value])
-
-            # Create label with cost information
-            if license_type.value == "solo":
-                node_labels[node] = f"{node}\n(S: ${config.solo_price:.1f})"
-            elif license_type.value == "group_owner":
-                group_size = len(solution.group_owners[node])
-                cost_per_member = config.group_price / group_size
-                node_labels[node] = f"{node}\n(O: ${cost_per_member:.1f})"
-            else:  # group_member
-                owner = solution.get_group_owner(node)
-                group_size = len(solution.group_owners[owner])
-                cost_per_member = config.group_price / group_size
-                node_labels[node] = f"{node}\n(M: ${cost_per_member:.1f})"
+            node_sizes.append(self.size_map[license_type.value])
 
         # Draw nodes
         nx.draw_networkx_nodes(
             graph,
             pos,
             node_color=node_colors,
-            node_size=800,
-            alpha=0.8,
+            node_size=node_sizes,
+            alpha=1,
         )
 
         # Draw regular edges
         nx.draw_networkx_edges(
             graph,
             pos,
-            edge_color="lightgray",
+            edge_color="gray",
             width=1,
             alpha=0.6,
+            style="dashed"
         )
 
         # Draw group edges with different colors
@@ -97,13 +92,13 @@ class GraphVisualizer:
                 graph,
                 pos,
                 edgelist=group_edges,
-                edge_color="green",
-                width=3,
+                edge_color="#013865",
+                width=2,
                 alpha=0.8,
             )
 
         # Draw labels
-        nx.draw_networkx_labels(graph, pos, node_labels, font_size=8)
+        # nx.draw_networkx_labels(graph, pos, node_labels, font_size=8)
 
         # Add legend
         legend_elements = [
@@ -114,7 +109,7 @@ class GraphVisualizer:
                 color="w",
                 markerfacecolor=self.color_map["solo"],
                 markersize=10,
-                label=f"Solo (${config.solo_price:.1f})",
+                label=f"Solo",
             ),
             plt.Line2D(
                 [0],
@@ -123,40 +118,31 @@ class GraphVisualizer:
                 color="w",
                 markerfacecolor=self.color_map["group_owner"],
                 markersize=10,
-                label="Group Owner",
-            ),
-            plt.Line2D(
-                [0],
-                [0],
-                marker="o",
-                color="w",
-                markerfacecolor=self.color_map["group_member"],
-                markersize=10,
                 label="Group Member",
             ),
-            plt.Line2D([0], [0], color="green", linewidth=3, label="Group Connection"),
+            plt.Line2D([0], [0], color="#013865", linewidth=3, label="Group Connection"),
         ]
-        plt.legend(
-            handles=legend_elements,
-            loc="upper right",
-            bbox_to_anchor=(1.0, 1.0),
-        )
+        # plt.legend(
+        #     handles=legend_elements,
+        #     loc="upper right",
+        #     bbox_to_anchor=(1.0, 1.0),
+        # )
 
         # Add cost information
         total_cost = solution.calculate_cost(config)
         num_solo = len(solution.solo_nodes)
         num_groups = len(solution.group_owners)
-        cost_info = f"Total Cost: ${total_cost:.2f}\\nSolo Licenses: {num_solo}\\nGroup Licenses: {num_groups}"
-        plt.text(
-            0.02,
-            0.98,
-            cost_info,
-            transform=plt.gca().transAxes,
-            verticalalignment="top",
-            bbox={"boxstyle": "round", "facecolor": "wheat", "alpha": 0.8},
-        )
+        cost_info = f"Total Cost: ${total_cost:.2f}\nSolo Licenses: {num_solo}\nGroup Licenses: {num_groups}"
+        # plt.text(
+        #     0.02,
+        #     0.98,
+        #     cost_info,
+        #     size='large',
+        #     transform=plt.gca().transAxes,
+        #     verticalalignment="top",
+        #     bbox={"boxstyle": "round", "facecolor": "white", "alpha": 0.2},
+        # )
 
-        plt.title(title)
         plt.axis("off")
         plt.tight_layout()
 
