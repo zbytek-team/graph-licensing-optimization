@@ -50,7 +50,8 @@ class GraphVisualizer:
         plt.figure(figsize=figsize)
         print("spring layouting")
         # Calculate layout
-        pos = nx.spring_layout(graph, seed=42, iterations=1000)
+        pos = nx.spring_layout(graph, seed=42, iterations=200, k=0.15, scale=2.0)
+        # pos = nx.spectral_layout(graph)
         print("done springing")
         # Prepare node colors and labels
         node_colors = []
