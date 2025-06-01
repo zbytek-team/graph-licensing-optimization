@@ -92,7 +92,7 @@ algorithms_option = click.option(
 graph_type_option = click.option(
     "--graph-type",
     default="random",
-    type=click.Choice(["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle"]),
+    type=click.Choice(["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle", "facebook"]),
     help="Type of graph to generate",
 )
 
@@ -100,8 +100,8 @@ graph_types_option = click.option(
     "--graph-types",
     multiple=True,
     default=["scale_free"],
-    # default=["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle"],
-    type=click.Choice(["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle"]),
+    # default=["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle", "facebook"],
+    type=click.Choice(["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle", "facebook"]),
     help="Types of graphs to test",
 )
 
@@ -149,6 +149,13 @@ group_size_option = click.option(
     help="Maximum group size",
 )
 
+facebook_ego_option = click.option(
+    "--facebook-ego",
+    default=None,
+    type=str,
+    help="Specific Facebook ego network ID to load (e.g., '0', '107'). If not specified, loads random ego network.",
+)
+
 
 @click.group()
 @click.option(
@@ -168,6 +175,10 @@ def cli(ctx, log_level):
     \b
     # Run single algorithm test
     uv run main.py single --algorithm greedy --graph-type random --graph-size 20
+
+    \b
+    # Run on Facebook ego network
+    uv run main.py single --algorithm ilp --graph-type facebook --facebook-ego 0
 
     \b
     # Run benchmark on multiple algorithms
@@ -190,6 +201,7 @@ def cli(ctx, log_level):
 @solo_cost_option
 @group_cost_option
 @group_size_option
+@facebook_ego_option
 @click.pass_context
 def single(
     ctx,
@@ -200,6 +212,7 @@ def single(
     solo_cost,
     group_cost,
     group_size,
+    facebook_ego,
 ):
     """Run single algorithm test."""
     if not algorithm:
@@ -209,7 +222,10 @@ def single(
     try:
         # Create graph
         generator = GraphGenerator()
-        graph = generator.generate_graph(graph_type, graph_size, seed=seed)
+        kwargs = {}
+        if graph_type == "facebook" and facebook_ego:
+            kwargs["ego_id"] = facebook_ego
+        graph = generator.generate_graph(graph_type, graph_size, seed=seed, **kwargs)
 
         # Create configuration
         config = LicenseConfig(
@@ -396,13 +412,17 @@ def benchmark(
 @solo_cost_option
 @group_cost_option
 @group_size_option
+@facebook_ego_option
 @click.pass_context
-def compare(ctx, algorithms, graph_type, graph_size, seed, solo_cost, group_cost, group_size):
+def compare(ctx, algorithms, graph_type, graph_size, seed, solo_cost, group_cost, group_size, facebook_ego):
     """Compare multiple algorithms."""
     try:
         # Create graph
         generator = GraphGenerator()
-        graph = generator.generate_graph(graph_type, graph_size, seed=seed)
+        kwargs = {}
+        if graph_type == "facebook" and facebook_ego:
+            kwargs["ego_id"] = facebook_ego
+        graph = generator.generate_graph(graph_type, graph_size, seed=seed, **kwargs)
 
         # Create configuration
         config = LicenseConfig(

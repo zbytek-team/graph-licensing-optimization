@@ -5,6 +5,8 @@ from collections.abc import Callable
 
 import networkx as nx
 
+from .facebook_loader import FacebookDataLoader
+
 
 class GraphGenerator:
     """Generator for various types of graphs used in licensing optimization testing."""
@@ -152,6 +154,26 @@ class GraphGenerator:
         """
         return nx.powerlaw_cluster_graph(n, m, p, seed=seed)
 
+    @staticmethod
+    def facebook_graph(size: int = None, ego_id: str = None, seed: int | None = None) -> nx.Graph:
+        """Load a Facebook ego network.
+
+        Args:
+            size: Ignored for Facebook graphs (included for compatibility).
+            ego_id: Specific ego network ID to load. If None, loads random network.
+            seed: Random seed for reproducibility when selecting random network.
+
+        Returns:
+            Facebook ego network graph.
+        """
+        loader = FacebookDataLoader()
+        
+        if ego_id is not None:
+            return loader.load_ego_network(ego_id)
+        else:
+            graph, _ = loader.load_random_ego_network(seed=seed)
+            return graph
+
     @classmethod
     def get_generator_function(cls, graph_type: str) -> Callable[..., nx.Graph]:
         """Get the generator function for a specific graph type.
@@ -176,6 +198,7 @@ class GraphGenerator:
             "cycle": cls.cycle_graph,
             "random_regular": cls.random_regular_graph,
             "powerlaw_cluster": cls.powerlaw_cluster_graph,
+            "facebook": cls.facebook_graph,
         }
 
         if graph_type not in generators:
@@ -234,5 +257,8 @@ class GraphGenerator:
             if size >= 4 and m > 0:
                 return generator(size, m, p, seed=seed)
             return nx.path_graph(size)
+        if graph_type == "facebook":
+            ego_id = kwargs.get("ego_id", None)
+            return generator(size, ego_id=ego_id, seed=seed)
         # For simple graphs (complete, star, path, cycle)
         return generator(size)
