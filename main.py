@@ -52,8 +52,8 @@ def create_algorithms() -> dict:
         "dominating_set": DominatingSetAlgorithm(),
         "randomized": RandomizedAlgorithm(seed=42),
         "genetic": GeneticAlgorithm(
-            population_size=200,
-            generations=500,
+            population_size=50,
+            generations=100,
             mutation_rate=0.1,
             crossover_rate=0.8,
             seed=42,
@@ -61,13 +61,13 @@ def create_algorithms() -> dict:
         "simulated_annealing": SimulatedAnnealingAlgorithm(
             initial_temp=100.0,
             final_temp=0.1,
-            max_iterations=5000,
-            cooling_rate=0.995,
+            max_iterations=1000,
+            cooling_rate=0.95,
             seed=42,
         ),
         "tabu_search": TabuSearchAlgorithm(
-            max_iterations=1000,
-            max_no_improvement=50,
+            max_iterations=100,
+            max_no_improvement=20,
             seed=42,
         ),
     }
@@ -83,8 +83,8 @@ algorithm_option = click.option(
 algorithms_option = click.option(
     "--algorithms",
     multiple=True,
-    default=["ilp", "greedy", "dominating_set", "simulated_annealing"],
-    # default=["greedy", "dominating_set", "randomized", "genetic", "simulated_annealing", "tabu_search"],
+    # default=["ilp", "greedy", "dominating_set", "simulated_annealing"],
+    default=["ilp",  "greedy", "tabu_search"],
     type=click.Choice(list(create_algorithms().keys())),
     help="Algorithms to run (can specify multiple)",
 )
@@ -99,8 +99,8 @@ graph_type_option = click.option(
 graph_types_option = click.option(
     "--graph-types",
     multiple=True,
+    # default=["scale_free"],
     default=["scale_free"],
-    # default=["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle", "facebook"],
     type=click.Choice(["random", "scale_free", "small_world", "complete", "grid", "star", "path", "cycle", "facebook"]),
     help="Types of graphs to test",
 )
@@ -115,7 +115,7 @@ graph_size_option = click.option(
 graph_sizes_option = click.option(
     "--graph-sizes",
     multiple=True,
-    default=[256, 512, 1024],
+    default=[64, 128, 256, 512],
     # default=[8, 16, 32, 64, 128, 256, 512],
     type=int,
     help="Graph sizes to test",
