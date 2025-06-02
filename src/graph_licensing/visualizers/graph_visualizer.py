@@ -50,7 +50,8 @@ class GraphVisualizer:
         plt.figure(figsize=figsize)
         print("spring layouting")
         # Calculate layout
-        pos = nx.spring_layout(graph, seed=42, iterations=200, k=0.15, scale=2.0)
+        pos = nx.spring_layout(graph, seed=42)
+        # pos = nx.spring_layout(graph, seed=42, iterations=200, k=0.15, scale=2.0)
         # pos = nx.spectral_layout(graph)
         print("done springing")
         # Prepare node colors and labels
@@ -215,20 +216,20 @@ class GraphVisualizer:
                     graph,
                     pos,
                     edgelist=group_edges,
-                    edge_color="green",
+                    edge_color="#013865",
                     width=2,
                     alpha=0.8,
                     ax=ax,
                 )
 
             # Labels and title
-            nx.draw_networkx_labels(
-                graph,
-                pos,
-                {n: str(n) for n in graph.nodes()},
-                font_size=8,
-                ax=ax,
-            )
+            # nx.draw_networkx_labels(
+            #     graph,
+            #     pos,
+            #     {n: str(n) for n in graph.nodes()},
+            #     font_size=8,
+            #     ax=ax,
+            # )
             total_cost = solution.calculate_cost(config)
             num_solo = len(solution.solo_nodes)
             num_groups = len(solution.group_owners)
