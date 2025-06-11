@@ -1,6 +1,6 @@
 """Integer Linear Programming algorithm for exact optimization."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import pulp
 
@@ -23,6 +23,7 @@ class ILPAlgorithm(BaseAlgorithm):
         self,
         graph: "nx.Graph",
         config: "LicenseConfig",
+        warm_start: Optional["LicenseSolution"] = None,
         time_limit: int | None = None,
         **kwargs,
     ) -> "LicenseSolution":
@@ -31,6 +32,7 @@ class ILPAlgorithm(BaseAlgorithm):
         Args:
             graph: The social network graph.
             config: License configuration.
+            warm_start: Previous solution (ignored for exact algorithm).
             time_limit: Time limit in seconds for the solver.
             **kwargs: Additional parameters (ignored).
 

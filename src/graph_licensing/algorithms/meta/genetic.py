@@ -1,7 +1,7 @@
 """Genetic Algorithm for licensing optimization."""
 
 import random
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from ..base import BaseAlgorithm
 
@@ -64,8 +64,20 @@ class GeneticAlgorithm(BaseAlgorithm):
         if not nodes:
             return LicenseSolution(solo_nodes=[], group_owners={})
 
-        # Initialize population
-        population = [self._create_random_individual(graph, config) for _ in range(self.population_size)]
+        # Initialize population with greedy solution as first individual
+        from ..approx.greedy import GreedyAlgorithm
+        
+        population = []
+        
+        # Start with greedy solution
+        greedy_algorithm = GreedyAlgorithm()
+        greedy_solution = greedy_algorithm.solve(graph, config)
+        greedy_individual = self._encode_solution(greedy_solution, nodes)
+        population.append(greedy_individual)
+        
+        # Fill rest with random individuals
+        for _ in range(self.population_size - 1):
+            population.append(self._create_random_individual(graph, config))
 
         # Evolution loop
         for _generation in range(self.generations):
@@ -156,14 +168,42 @@ class GeneticAlgorithm(BaseAlgorithm):
         nodes = list(graph.nodes())
         individual = [0] * len(nodes)  # Start with all solo
 
-        # Randomly assign some nodes to groups
+        # Create groups more aggressively
+        processed = set()
+        
         for i, node in enumerate(nodes):
-            if random.random() < 0.3:  # 30% chance to be in a group
-                # Find potential group owners (neighbors)
-                neighbors = list(graph.neighbors(node))
+            if node in processed:
+                continue
+                
+            # Higher probability for group formation
+            if random.random() < 0.7:  # 70% chance to try forming a group
+                # Find potential group members (neighbors)
+                neighbors = [n for n in graph.neighbors(node) 
+                           if n not in processed and n != node]
+                
                 if neighbors:
-                    owner = random.choice([*neighbors, node])  # Can own group too
-                    individual[i] = nodes.index(owner) + 1  # +1 to avoid 0 (solo)
+                    # Choose group size (prefer larger groups when beneficial)
+                    max_group_size = min(config.group_size, len(neighbors) + 1)
+                    if config.is_group_beneficial(max_group_size):
+                        # Select group members
+                        group_size = random.randint(2, max_group_size)
+                        selected_members = random.sample(neighbors, min(group_size - 1, len(neighbors)))
+                        
+                        # Assign group
+                        owner_idx = nodes.index(node)
+                        individual[i] = owner_idx + 1  # Node is group owner
+                        processed.add(node)
+                        
+                        for member in selected_members:
+                            member_idx = nodes.index(member)
+                            individual[member_idx] = owner_idx + 1
+                            processed.add(member)
+                        
+                        continue
+            
+            # Assign solo license if not in group
+            individual[i] = 0
+            processed.add(node)
 
         return self._repair_individual(individual, graph, config)
 
@@ -360,3 +400,35 @@ class GeneticAlgorithm(BaseAlgorithm):
                 group_owners[owner_node].append(node)
 
         return LicenseSolution(solo_nodes=solo_nodes, group_owners=group_owners)
+
+    def _encode_solution(
+        self,
+        solution: "LicenseSolution",
+        nodes: List[int],
+    ) -> List[int]:
+        """Encode LicenseSolution to individual representation.
+        
+        Args:
+            solution: Solution to encode.
+            nodes: List of graph nodes.
+            
+        Returns:
+            Individual representation.
+        """
+        individual = [0] * len(nodes)
+        
+        # Encode solo nodes
+        for node in solution.solo_nodes:
+            if node in nodes:
+                individual[nodes.index(node)] = 0
+        
+        # Encode group memberships
+        for owner, members in solution.group_owners.items():
+            if owner in nodes:
+                owner_idx = nodes.index(owner)
+                for member in members:
+                    if member in nodes:
+                        member_idx = nodes.index(member)
+                        individual[member_idx] = owner_idx + 1
+        
+        return individual

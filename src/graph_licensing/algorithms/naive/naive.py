@@ -1,6 +1,6 @@
 """Naive brute-force algorithm for exact optimization."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..base import BaseAlgorithm
 
@@ -21,6 +21,7 @@ class NaiveAlgorithm(BaseAlgorithm):
         self,
         graph: "nx.Graph",
         config: "LicenseConfig",
+        warm_start: Optional["LicenseSolution"] = None,
         **kwargs,
     ) -> "LicenseSolution":
         """Solve using brute-force enumeration.
@@ -28,6 +29,7 @@ class NaiveAlgorithm(BaseAlgorithm):
         Args:
             graph: The social network graph.
             config: License configuration.
+            warm_start: Previous solution (ignored for exact algorithm).
             **kwargs: Additional parameters (ignored).
 
         Returns:

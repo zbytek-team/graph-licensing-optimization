@@ -1,0 +1,273 @@
+"""Optuna-based parameter tuning for optimization algorithms."""
+
+import logging
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Callable
+
+import optuna
+from optuna.pruners import MedianPruner
+from optuna.samplers import TPESampler
+
+if TYPE_CHECKING:
+    import networkx as nx
+    from ..algorithms.base import BaseAlgorithm
+    from ..models.license import LicenseConfig
+
+
+class OptunaTuner:
+    """Optuna-based hyperparameter tuner for optimization algorithms."""
+
+    def __init__(
+        self,
+        n_trials: int = 100,
+        timeout: Optional[float] = None,
+        n_jobs: int = 1,
+        seed: Optional[int] = None,
+    ) -> None:
+        """Initialize the tuner.
+        
+        Args:
+            n_trials: Number of optimization trials.
+            timeout: Timeout in seconds for optimization.
+            n_jobs: Number of parallel jobs.
+            seed: Random seed for reproducibility.
+        """
+        self.n_trials = n_trials
+        self.timeout = timeout
+        self.n_jobs = n_jobs
+        self.seed = seed
+        self.logger = logging.getLogger(__name__)
+
+    def tune_genetic_algorithm(
+        self,
+        graphs: List["nx.Graph"],
+        configs: List["LicenseConfig"],
+        metric: str = "cost",
+        minimize: bool = True,
+    ) -> Dict[str, Any]:
+        """Tune Genetic Algorithm parameters.
+        
+        Args:
+            graphs: List of test graphs.
+            configs: List of license configurations.
+            metric: Metric to optimize ("cost", "runtime", "quality").
+            minimize: Whether to minimize the metric.
+            
+        Returns:
+            Best parameters found.
+        """
+        def objective(trial: optuna.Trial) -> float:
+            # Suggest hyperparameters
+            # population_size = trial.suggest_int("population_size", 20, 200, step=10)
+            # generations = trial.suggest_int("generations", 50, 500, step=25)
+            mutation_rate = trial.suggest_float("mutation_rate", 0.01, 0.5)
+            population_size = 200
+            generations = 500
+            crossover_rate = trial.suggest_float("crossover_rate", 0.1, 0.99)
+            
+            # Import here to avoid circular imports
+            from ..algorithms.genetic.genetic import GeneticAlgorithm
+            
+            algorithm = GeneticAlgorithm(
+                population_size=population_size,
+                generations=generations,
+                mutation_rate=mutation_rate,
+                crossover_rate=crossover_rate,
+                seed=self.seed,
+            )
+            
+            return self._evaluate_algorithm(algorithm, graphs, configs, metric)
+
+        return self._run_optimization(objective, "genetic_algorithm")
+
+    def tune_simulated_annealing(
+        self,
+        graphs: List["nx.Graph"],
+        configs: List["LicenseConfig"],
+        metric: str = "cost",
+        minimize: bool = True,
+    ) -> Dict[str, Any]:
+        """Tune Simulated Annealing parameters.
+        
+        Args:
+            graphs: List of test graphs.
+            configs: List of license configurations.
+            metric: Metric to optimize.
+            minimize: Whether to minimize the metric.
+            
+        Returns:
+            Best parameters found.
+        """
+        def objective(trial: optuna.Trial) -> float:
+            initial_temp = trial.suggest_float("initial_temp", 50.0, 500.0)
+            final_temp = trial.suggest_float("final_temp", 0.01, 1.0)
+            cooling_rate = trial.suggest_float("cooling_rate", 0.8, 0.99)
+            max_iterations = trial.suggest_int("max_iterations", 500, 2000, step=100)
+            
+            from ..algorithms.simulated_annealing.simulated_annealing import SimulatedAnnealingAlgorithm
+            
+            algorithm = SimulatedAnnealingAlgorithm(
+                initial_temp=initial_temp,
+                final_temp=final_temp,
+                cooling_rate=cooling_rate,
+                max_iterations=max_iterations,
+                seed=self.seed,
+            )
+            
+            return self._evaluate_algorithm(algorithm, graphs, configs, metric)
+
+        return self._run_optimization(objective, "simulated_annealing")
+
+    def tune_tabu_search(
+        self,
+        graphs: List["nx.Graph"],
+        configs: List["LicenseConfig"],
+        metric: str = "cost",
+        minimize: bool = True,
+    ) -> Dict[str, Any]:
+        """Tune Tabu Search parameters.
+        
+        Args:
+            graphs: List of test graphs.
+            configs: List of license configurations.
+            metric: Metric to optimize.
+            minimize: Whether to minimize the metric.
+            
+        Returns:
+            Best parameters found.
+        """
+        def objective(trial: optuna.Trial) -> float:
+            max_iterations = trial.suggest_int("max_iterations", 50, 500, step=25)
+            max_no_improvement = trial.suggest_int("max_no_improvement", 10, 100, step=5)
+            
+            from ..algorithms.tabu_search.tabu_search import TabuSearchAlgorithm
+            
+            algorithm = TabuSearchAlgorithm(
+                max_iterations=max_iterations,
+                max_no_improvement=max_no_improvement,
+                seed=self.seed,
+            )
+            
+            return self._evaluate_algorithm(algorithm, graphs, configs, metric)
+
+        return self._run_optimization(objective, "tabu_search")
+
+    def _evaluate_algorithm(
+        self,
+        algorithm: "BaseAlgorithm",
+        graphs: List["nx.Graph"],
+        configs: List["LicenseConfig"],
+        metric: str,
+    ) -> float:
+        """Evaluate algorithm performance on test instances.
+        
+        Args:
+            algorithm: Algorithm to evaluate.
+            graphs: Test graphs.
+            configs: Test configurations.
+            metric: Metric to evaluate.
+            
+        Returns:
+            Average metric value.
+        """
+        scores = []
+        
+        for graph, config in zip(graphs, configs):
+            try:
+                if metric == "cost":
+                    solution = algorithm.solve(graph, config)
+                    scores.append(solution.calculate_cost(config))
+                elif metric == "runtime":
+                    import time
+                    start_time = time.perf_counter()
+                    algorithm.solve(graph, config)
+                    end_time = time.perf_counter()
+                    scores.append(end_time - start_time)
+                elif metric == "quality":
+                    solution = algorithm.solve(graph, config)
+                    # Quality metric: percentage of nodes in groups
+                    total_nodes = graph.number_of_nodes()
+                    group_members = sum(len(members) for members in solution.group_owners.values())
+                    quality = group_members / total_nodes if total_nodes > 0 else 0
+                    scores.append(-quality)  # Negative because we want to maximize
+                    
+            except Exception as e:
+                self.logger.warning(f"Algorithm failed on test instance: {e}")
+                scores.append(float("inf"))
+        
+        return sum(scores) / len(scores) if scores else float("inf")
+
+    def _run_optimization(
+        self,
+        objective: Callable[[optuna.Trial], float],
+        study_name: str,
+    ) -> Dict[str, Any]:
+        """Run Optuna optimization study.
+        
+        Args:
+            objective: Objective function to optimize.
+            study_name: Name of the study.
+            
+        Returns:
+            Best parameters and study results.
+        """
+        # Create study
+        study = optuna.create_study(
+            direction="minimize",
+            sampler=TPESampler(seed=self.seed),
+            pruner=MedianPruner(n_startup_trials=5, n_warmup_steps=10),
+            study_name=study_name,
+        )
+        
+        # Optimize
+        study.optimize(
+            objective,
+            n_trials=self.n_trials,
+            timeout=self.timeout,
+            n_jobs=self.n_jobs,
+            show_progress_bar=True,
+        )
+        
+        # Return results
+        return {
+            "best_params": study.best_params,
+            "best_value": study.best_value,
+            "n_trials": len(study.trials),
+            "study": study,
+        }
+
+    def tune_all_algorithms(
+        self,
+        graphs: List["nx.Graph"],
+        configs: List["LicenseConfig"],
+        algorithms: Optional[List[str]] = None,
+        metric: str = "cost",
+    ) -> Dict[str, Dict[str, Any]]:
+        """Tune parameters for multiple algorithms.
+        
+        Args:
+            graphs: Test graphs.
+            configs: License configurations.
+            algorithms: List of algorithm names to tune.
+            metric: Metric to optimize.
+            
+        Returns:
+            Dictionary of results for each algorithm.
+        """
+        if algorithms is None:
+            algorithms = ["genetic", "simulated_annealing", "tabu_search"]
+        
+        results = {}
+        
+        for algorithm_name in algorithms:
+            self.logger.info(f"Tuning {algorithm_name}...")
+            
+            if algorithm_name == "genetic":
+                results[algorithm_name] = self.tune_genetic_algorithm(graphs, configs, metric)
+            elif algorithm_name == "simulated_annealing":
+                results[algorithm_name] = self.tune_simulated_annealing(graphs, configs, metric)
+            elif algorithm_name == "tabu_search":
+                results[algorithm_name] = self.tune_tabu_search(graphs, configs, metric)
+            else:
+                self.logger.warning(f"Unknown algorithm: {algorithm_name}")
+        
+        return results

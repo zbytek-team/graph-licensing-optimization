@@ -1,6 +1,6 @@
 """Greedy approximation algorithm for licensing optimization."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..base import BaseAlgorithm
 
@@ -21,6 +21,7 @@ class GreedyAlgorithm(BaseAlgorithm):
         self,
         graph: "nx.Graph",
         config: "LicenseConfig",
+        warm_start: Optional["LicenseSolution"] = None,
         **kwargs,
     ) -> "LicenseSolution":
         """Solve using greedy heuristic.
@@ -28,6 +29,7 @@ class GreedyAlgorithm(BaseAlgorithm):
         Args:
             graph: The social network graph.
             config: License configuration.
+            warm_start: Previous solution (ignored for greedy algorithm).
             **kwargs: Additional parameters (ignored).
 
         Returns:
