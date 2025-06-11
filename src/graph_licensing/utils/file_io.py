@@ -129,6 +129,20 @@ class FileIO:
 
             f.write("\\n" + "=" * 50 + "\\n")
 
+    @staticmethod
+    def save_json(data: Any, filepath: str | Path) -> None:
+        """Save data to JSON file.
+
+        Args:
+            data: Data to save.
+            filepath: Path to save the JSON file.
+        """
+        filepath = Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(filepath, "w") as f:
+            json.dump(data, f, indent=2)
+
 
 class CSVLogger:
     """CSV logger for experiment results."""

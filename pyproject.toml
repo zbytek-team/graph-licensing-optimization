@@ -9,6 +9,7 @@ dependencies = [
     "matplotlib>=3.10.3",
     "networkx>=3.4.2",
     "numpy>=2.2.6",
+    "optuna>=4.3.0",
     "pandas>=2.2.3",
     "pulp>=3.2.1",
     "pytest>=8.3.5",

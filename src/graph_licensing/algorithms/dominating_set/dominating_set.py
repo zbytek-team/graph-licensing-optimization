@@ -1,6 +1,6 @@
 """Dominating set based algorithm for licensing optimization."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..base import BaseAlgorithm
 
@@ -21,6 +21,7 @@ class DominatingSetAlgorithm(BaseAlgorithm):
         self,
         graph: "nx.Graph",
         config: "LicenseConfig",
+        warm_start: Optional["LicenseSolution"] = None,
         **kwargs,
     ) -> "LicenseSolution":
         """Solve using dominating set approach.
@@ -28,6 +29,7 @@ class DominatingSetAlgorithm(BaseAlgorithm):
         Args:
             graph: The social network graph.
             config: License configuration.
+            warm_start: Previous solution (ignored for this algorithm).
             **kwargs: Additional parameters (ignored).
 
         Returns:

@@ -16,9 +16,9 @@ class GraphVisualizer:
     def __init__(self) -> None:
         """Initialize the visualizer."""
         self.color_map = {
-            "solo": "#c20d31",
-            "group_owner": "#013865", 
-            "group_member": "#013865",
+            "solo": "#f7ca00",
+            "group_owner": "#003667", 
+            "group_member": "#003667",
         }
 
         self.size_map = {
@@ -51,35 +51,27 @@ class GraphVisualizer:
         print("spring layouting")
         # Calculate layout
         pos = nx.spring_layout(graph, seed=42)
-        # pos = nx.spring_layout(graph, seed=42, iterations=200, k=0.15, scale=2.0)
-        # pos = nx.spectral_layout(graph)
         print("done springing")
-        # Prepare node colors and labels
-        node_colors = []
-        node_sizes = []
+        
+        # Prepare node colors (standardized with compare_solutions)
+        node_colors = [self.color_map[solution.get_node_license_type(node).value] for node in graph.nodes()]
 
-        for node in graph.nodes():
-            license_type = solution.get_node_license_type(node)
-            node_colors.append(self.color_map[license_type.value])
-            node_sizes.append(self.size_map[license_type.value])
-
-        # Draw nodes
+        # Draw nodes (standardized with compare_solutions)
         nx.draw_networkx_nodes(
             graph,
             pos,
             node_color=node_colors,
-            node_size=node_sizes,
-            alpha=1,
+            node_size=500,
+            alpha=0.8,
         )
 
-        # Draw regular edges
+        # Draw regular edges (standardized with compare_solutions)
         nx.draw_networkx_edges(
             graph,
             pos,
-            edge_color="gray",
+            edge_color="lightgray",
             width=1,
             alpha=0.6,
-            style="dashed"
         )
 
         # Draw group edges with different colors
@@ -130,25 +122,26 @@ class GraphVisualizer:
         #     bbox_to_anchor=(1.0, 1.0),
         # )
 
-        # Add cost information
+        # Add cost information as title
         total_cost = solution.calculate_cost(config)
         num_solo = len(solution.solo_nodes)
         num_groups = len(solution.group_owners)
-        cost_info = f"Total Cost: ${total_cost:.2f}\nSolo Licenses: {num_solo}\nGroup Licenses: {num_groups}"
-        # plt.text(
-        #     0.02,
-        #     0.98,
-        #     cost_info,
-        #     size='large',
-        #     transform=plt.gca().transAxes,
-        #     verticalalignment="top",
-        #     bbox={"boxstyle": "round", "facecolor": "white", "alpha": 0.2},
-        # )
+        plt.title(f"{title}\nCost: ${total_cost:.2f}  |  Solo: {num_solo}  |  Groups: {num_groups}", 
+                 fontsize=14, pad=20)
 
         plt.axis("off")
         plt.tight_layout()
 
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
+            print(f"Visualization saved to: {save_path}")
+        else:
+            # Generate a default save path if none provided
+            from pathlib import Path
+            default_path = Path("results/single") / "visualization.png"
+            default_path.parent.mkdir(parents=True, exist_ok=True)
+            plt.savefig(default_path, dpi=300, bbox_inches="tight")
+            print(f"Visualization saved to: {default_path}")
 
         plt.close()
 
@@ -243,8 +236,16 @@ class GraphVisualizer:
         plt.suptitle(title, fontsize=16)
         plt.tight_layout()
 
-        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        if save_path:
+            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
+            print(f"Comparison visualization saved to: {save_path}")
+        else:
+            # Generate a default save path if none provided
+            default_path = Path("results/compare") / "solution_comparison.png"
+            default_path.parent.mkdir(parents=True, exist_ok=True)
+            plt.savefig(default_path, dpi=300, bbox_inches="tight")
+            print(f"Comparison visualization saved to: {default_path}")
 
         plt.close()
 

@@ -1,7 +1,7 @@
 """Tabu Search algorithm for licensing optimization."""
 
 import random
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..base import BaseAlgorithm
 
@@ -32,10 +32,15 @@ class TabuSearchAlgorithm(BaseAlgorithm):
         self.max_no_improvement = max_no_improvement
         self.seed = seed
 
+    def supports_warm_start(self) -> bool:
+        """Tabu search supports warm start initialization."""
+        return True
+
     def solve(
         self,
         graph: "nx.Graph",
         config: "LicenseConfig",
+        warm_start: Optional["LicenseSolution"] = None,
         **kwargs,
     ) -> "LicenseSolution":
         """Solve using tabu search.
@@ -43,13 +48,14 @@ class TabuSearchAlgorithm(BaseAlgorithm):
         Args:
             graph: The social network graph.
             config: License configuration.
+            warm_start: Previous solution to use as starting point.
             **kwargs: Additional parameters (ignored).
 
         Returns:
             Best licensing solution found.
         """
         from ...models.license import LicenseSolution
-        from ..approx.greedy import GreedyAlgorithm
+        from ...algorithms.greedy import GreedyAlgorithm
 
         self.tabu_size = graph.number_of_nodes() // 20
 
@@ -60,11 +66,15 @@ class TabuSearchAlgorithm(BaseAlgorithm):
         if not nodes:
             return LicenseSolution(solo_nodes=[], group_owners={})
 
-        # Start with greedy solution
-        greedy = GreedyAlgorithm()
-        current_solution = greedy.solve(graph, config)
+        # Start with warm start if available, otherwise greedy solution
+        if warm_start is not None:
+            # Adapt warm start to current graph
+            current_solution = self._adapt_solution_to_graph(warm_start, graph, config)
+        else:
+            greedy = GreedyAlgorithm()
+            current_solution = greedy.solve(graph, config)
+        
         current_cost = current_solution.calculate_cost(config)
-
         best_solution = current_solution
         best_cost = current_cost
 
@@ -114,6 +124,51 @@ class TabuSearchAlgorithm(BaseAlgorithm):
                 no_improvement_count += 1
 
         return best_solution
+
+    def _adapt_solution_to_graph(
+        self, 
+        solution: "LicenseSolution", 
+        graph: "nx.Graph", 
+        config: "LicenseConfig"
+    ) -> "LicenseSolution":
+        """Adapt a solution to work with a modified graph.
+        
+        Args:
+            solution: Previous solution.
+            graph: Current graph.
+            config: License configuration.
+            
+        Returns:
+            Adapted solution valid for current graph.
+        """
+        from ...models.license import LicenseSolution
+        
+        current_nodes = set(graph.nodes())
+        
+        # Filter solo nodes to only include existing nodes
+        new_solo = [node for node in solution.solo_nodes if node in current_nodes]
+        
+        # Adapt groups
+        new_groups = {}
+        for owner, members in solution.group_owners.items():
+            if owner in current_nodes:
+                # Keep only existing members
+                valid_members = [m for m in members if m in current_nodes]
+                # Ensure all members are still connected to owner
+                connected_members = [m for m in valid_members 
+                                   if m == owner or graph.has_edge(owner, m)]
+                
+                if len(connected_members) > 1:  # Valid group
+                    new_groups[owner] = connected_members
+                elif connected_members:  # Only owner left
+                    new_solo.append(owner)
+        
+        # Handle any nodes that weren't assigned
+        assigned_nodes = set(new_solo) | set().union(*new_groups.values()) if new_groups else set(new_solo)
+        unassigned = current_nodes - assigned_nodes
+        new_solo.extend(list(unassigned))
+        
+        return LicenseSolution(solo_nodes=new_solo, group_owners=new_groups)
 
     def _generate_all_neighbors(
         self,
