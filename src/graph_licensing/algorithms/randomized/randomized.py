@@ -1,7 +1,7 @@
 """Randomized algorithm for licensing optimization."""
 
 import random
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..base import BaseAlgorithm
 
@@ -27,6 +27,7 @@ class RandomizedAlgorithm(BaseAlgorithm):
         self,
         graph: "nx.Graph",
         config: "LicenseConfig",
+        warm_start: Optional["LicenseSolution"] = None,
         **kwargs,
     ) -> "LicenseSolution":
         """Solve using randomized approach.
@@ -34,6 +35,7 @@ class RandomizedAlgorithm(BaseAlgorithm):
         Args:
             graph: The social network graph.
             config: License configuration.
+            warm_start: Previous solution (ignored for randomized algorithm).
             **kwargs: Additional parameters (ignored).
 
         Returns:

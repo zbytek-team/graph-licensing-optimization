@@ -1,7 +1,7 @@
-"""Base algorithm interface for licensing optimization."""
+"""Enhanced base algorithm interface for licensing optimization."""
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, List
 import networkx as nx
 
 if TYPE_CHECKING:
@@ -24,6 +24,7 @@ class BaseAlgorithm(ABC):
         self,
         graph: "nx.Graph",
         config: "LicenseConfig",
+        warm_start: Optional["LicenseSolution"] = None,
         **kwargs,
     ) -> "LicenseSolution":
         """Solve the licensing optimization problem.
@@ -31,6 +32,7 @@ class BaseAlgorithm(ABC):
         Args:
             graph: The social network graph.
             config: License configuration with pricing and constraints.
+            warm_start: Previous solution to use as starting point (for dynamic problems).
             **kwargs: Additional algorithm-specific parameters.
 
         Returns:
@@ -44,7 +46,7 @@ class BaseAlgorithm(ABC):
         iterations: int,
         modification_prob: float = 0.1,
         **kwargs,
-    ) -> list["LicenseSolution"]:
+    ) -> List["LicenseSolution"]:
         """Solve the dynamic version of the problem.
 
         Args:
@@ -59,11 +61,18 @@ class BaseAlgorithm(ABC):
         """
         solutions = []
         current_graph = graph.copy()
+        previous_solution = None
 
         for i in range(iterations):
-            # Solve current graph
-            solution = self.solve(current_graph, config, **kwargs)
+            # Solve current graph, using previous solution as warm start
+            solution = self.solve(
+                current_graph, 
+                config, 
+                warm_start=previous_solution,
+                **kwargs
+            )
             solutions.append(solution)
+            previous_solution = solution
 
             # Modify graph for next iteration (except last iteration)
             if i < iterations - 1:
@@ -116,3 +125,11 @@ class BaseAlgorithm(ABC):
                     modified_graph.add_edge(*edge_to_add)
 
         return modified_graph
+
+    def supports_warm_start(self) -> bool:
+        """Check if the algorithm supports warm start initialization.
+        
+        Returns:
+            True if the algorithm can use previous solutions as starting points.
+        """
+        return False
