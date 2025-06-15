@@ -1,3 +1,3 @@
-from .graph_visualizer import GraphVisualizer
+from . import graph_visualizer
 
-__all__ = ["GraphVisualizer"]
+__all__ = ["graph_visualizer"]
