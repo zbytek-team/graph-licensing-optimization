@@ -4,7 +4,7 @@ import click
 
 from scripts.run_single import single
 from scripts.run_compare import compare
-from scripts.run_tune import tune  
+from scripts.run_tune import tune
 from scripts.run_benchmark import benchmark
 from scripts.run_dynamic import dynamic
 from scripts.run_analyze import analyze
@@ -14,8 +14,8 @@ from scripts.run_analyze import analyze
 @click.version_option(version="0.1.0", prog_name="graph-licensing-optimization")
 def cli():
     """Graph Licensing Optimization CLI.
-    
-    A comprehensive tool for optimizing software license allocation 
+
+    A comprehensive tool for optimizing software license allocation
     across graph structures using various algorithms.
     """
     pass

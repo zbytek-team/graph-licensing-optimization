@@ -20,17 +20,17 @@ def tune_genetic_algorithm(
     seed: int = None,
 ) -> Dict[str, Any]:
     """Tune Genetic Algorithm parameters using Optuna."""
-    
+
     def objective(trial: optuna.Trial) -> float:
         # Parameter suggestions
         mutation_rate = trial.suggest_float("mutation_rate", 0.01, 0.5)
         population_size = 200
         generations = 500
         crossover_rate = trial.suggest_float("crossover_rate", 0.1, 0.99)
-        
+
         # Import here to avoid circular imports
         from ..algorithms.genetic.genetic import GeneticAlgorithm
-        
+
         algorithm = GeneticAlgorithm(
             population_size=population_size,
             generations=generations,
@@ -38,9 +38,9 @@ def tune_genetic_algorithm(
             crossover_rate=crossover_rate,
             seed=seed,
         )
-        
+
         return evaluate_algorithm(algorithm, graphs, configs, metric)
-    
+
     return run_optuna_study(
         objective_func=objective,
         study_name="genetic_algorithm",

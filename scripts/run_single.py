@@ -73,12 +73,8 @@ def run_single_algorithm(
             config={"solo_cost": solo_cost, "group_cost": group_cost, "group_size": group_size},
             solution=stats,
         )
-        
-        results_path = save_results(
-            results, 
-            output_dir, 
-            f"{algorithm}_{graph_type}_{graph_size}_results"
-        )
+
+        results_path = save_results(results, output_dir, f"{algorithm}_{graph_type}_{graph_size}_results")
         click.echo(f"Results saved to: {results_path}")
 
     except Exception as e:

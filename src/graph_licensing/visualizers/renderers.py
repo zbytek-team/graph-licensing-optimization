@@ -13,8 +13,9 @@ from .constants import COLOR_MAP, DEFAULT_EDGE_WIDTH_UNASSIGNED, DEFAULT_EDGE_WI
 from .utils import get_node_colors_and_sizes, get_edge_lists_and_colors
 
 
-def draw_edges(graph: "nx.Graph", pos: dict, group_edges: list, unassigned_edges: list, 
-               group_edge_colors: list[str], ax=None) -> None:
+def draw_edges(
+    graph: "nx.Graph", pos: dict, group_edges: list, unassigned_edges: list, group_edge_colors: list[str], ax=None
+) -> None:
     """Draw both unassigned and group edges with appropriate styling."""
     # Draw unassigned edges with dashed style and gray color
     if unassigned_edges:
@@ -82,14 +83,15 @@ def save_figure(save_path: str | None, default_subdir: str, default_filename: st
         print(f"Visualization saved to: {default_path}")
 
 
-def render_single_solution(graph: "nx.Graph", solution: "LicenseSolution", 
-                          pos: dict, ax=None, node_size: int = None) -> None:
+def render_single_solution(
+    graph: "nx.Graph", solution: "LicenseSolution", pos: dict, ax=None, node_size: int = None
+) -> None:
     """Render a single solution (nodes and edges) on given axes."""
     from .constants import DEFAULT_NODE_SIZE
-    
+
     # Get node colors and sizes
     node_colors, node_sizes = get_node_colors_and_sizes(graph, solution)
-    
+
     # Override node sizes if specified
     if node_size is not None:
         node_sizes = [node_size] * len(node_colors)
@@ -105,6 +107,6 @@ def render_single_solution(graph: "nx.Graph", solution: "LicenseSolution",
 
     # Get edge lists and colors
     group_edges, unassigned_edges, group_edge_colors = get_edge_lists_and_colors(graph, solution)
-    
+
     # Draw edges
     draw_edges(graph, pos, group_edges, unassigned_edges, group_edge_colors, ax=ax)

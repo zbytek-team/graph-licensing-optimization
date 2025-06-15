@@ -88,7 +88,7 @@ def run_tuning(
     # Save full results and best parameters
     save_results(full_results, output_dir, f"{algorithm}_tuning_results")
     save_results(results["best_params"], output_dir, f"{algorithm}_best_params")
-    
+
     click.echo(f"Tuning results saved to {output_dir}")
 
 

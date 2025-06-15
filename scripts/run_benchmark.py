@@ -86,9 +86,7 @@ def run_benchmark(
 
 @click.command()
 @click.option(
-    "--algorithms", 
-    multiple=True, 
-    default=["ilp", "greedy", "randomized", "genetic", "dominating_set", "tabu_search"]
+    "--algorithms", multiple=True, default=["ilp", "greedy", "randomized", "genetic", "dominating_set", "tabu_search"]
 )
 @click.option("--graph-types", multiple=True, default=["random", "scale_free", "small_world"])
 @click.option("--graph-sizes", multiple=True, type=int, default=[i for i in range(10, 201, 10)])

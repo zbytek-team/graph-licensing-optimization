@@ -18,7 +18,7 @@ def evaluate_algorithm(
     """Evaluate algorithm performance on test instances."""
     logger = logging.getLogger(__name__)
     scores = []
-    
+
     for graph, config in zip(graphs, configs):
         try:
             if metric == "cost":
@@ -26,6 +26,7 @@ def evaluate_algorithm(
                 scores.append(solution.calculate_cost(config))
             elif metric == "runtime":
                 import time
+
                 start_time = time.perf_counter()
                 algorithm.solve(graph, config)
                 end_time = time.perf_counter()
@@ -34,15 +35,14 @@ def evaluate_algorithm(
                 solution = algorithm.solve(graph, config)
                 total_nodes = graph.number_of_nodes()
                 group_members = sum(
-                    sum(len(members) for members in groups.values()) 
-                    for groups in solution.licenses.values()
+                    sum(len(members) for members in groups.values()) for groups in solution.licenses.values()
                 )
                 quality = group_members / total_nodes if total_nodes > 0 else 0
                 scores.append(-quality)  # Negative because we minimize
         except Exception as e:
             logger.warning(f"Algorithm failed on test instance: {e}")
             scores.append(float("inf"))
-            
+
     return sum(scores) / len(scores) if scores else float("inf")
 
 
@@ -58,14 +58,14 @@ def run_optuna_study(
     import optuna
     from optuna.pruners import MedianPruner
     from optuna.samplers import TPESampler
-    
+
     study = optuna.create_study(
         direction="minimize",
         sampler=TPESampler(seed=seed),
         pruner=MedianPruner(n_startup_trials=5, n_warmup_steps=10),
         study_name=study_name,
     )
-    
+
     study.optimize(
         objective_func,
         n_trials=n_trials,
@@ -73,7 +73,7 @@ def run_optuna_study(
         n_jobs=n_jobs,
         show_progress_bar=True,
     )
-    
+
     return {
         "best_params": study.best_params,
         "best_value": study.best_value,

@@ -2,8 +2,8 @@
 
 # Color mapping for different license types
 COLOR_MAP = {
-    "solo": "#f6d700", 
-    "duo": "#c3102f",  
+    "solo": "#f6d700",
+    "duo": "#c3102f",
     "family": "#003667",
     "default": "#000001",
     "unassigned": "#cccccc",

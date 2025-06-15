@@ -20,23 +20,23 @@ def tune_tabu_search(
     seed: int = None,
 ) -> Dict[str, Any]:
     """Tune Tabu Search parameters using Optuna."""
-    
+
     def objective(trial: optuna.Trial) -> float:
         # Parameter suggestions
         max_iterations = trial.suggest_int("max_iterations", 50, 500, step=25)
         max_no_improvement = trial.suggest_int("max_no_improvement", 10, 100, step=5)
-        
+
         # Import here to avoid circular imports
         from ..algorithms.tabu_search.tabu_search import TabuSearchAlgorithm
-        
+
         algorithm = TabuSearchAlgorithm(
             max_iterations=max_iterations,
             max_no_improvement=max_no_improvement,
             seed=seed,
         )
-        
+
         return evaluate_algorithm(algorithm, graphs, configs, metric)
-    
+
     return run_optuna_study(
         objective_func=objective,
         study_name="tabu_search",

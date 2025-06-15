@@ -19,7 +19,6 @@ class NaiveAlgorithm(BaseAlgorithm):
         warm_start: Optional["LicenseSolution"] = None,
         **kwargs,
     ) -> "LicenseSolution":
-
         from ...models.license import LicenseSolution
 
         nodes = list(graph.nodes())

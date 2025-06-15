@@ -123,7 +123,6 @@ class TabuSearchAlgorithm(BaseAlgorithm):
         graph: "nx.Graph",
         config: "LicenseConfig",
     ) -> list["LicenseSolution"]:
-
         neighbors = []
         nodes = list(graph.nodes())
         for node in nodes:

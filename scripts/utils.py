@@ -81,23 +81,17 @@ def create_test_graph(graph_type: str, size: int, seed: int = None, **kwargs) ->
 def calculate_solution_stats(solution, config, graph=None) -> Dict[str, Any]:
     """Calculate standard statistics for a solution."""
     total_cost = solution.calculate_cost(config)
-    
+
     solo_count = sum(
-        1
-        for license_type, groups in solution.licenses.items()
-        for members in groups.values()
-        if len(members) == 1
+        1 for license_type, groups in solution.licenses.items() for members in groups.values() if len(members) == 1
     )
-    
+
     group_count = sum(
-        1
-        for license_type, groups in solution.licenses.items()
-        for members in groups.values()
-        if len(members) > 1
+        1 for license_type, groups in solution.licenses.items() for members in groups.values() if len(members) > 1
     )
-    
+
     is_valid = solution.is_valid(graph, config) if graph is not None else True
-    
+
     return {
         "total_cost": total_cost,
         "solo_licenses": solo_count,
@@ -128,8 +122,10 @@ def save_results(results: Dict[str, Any], output_dir: Path, prefix: str = "resul
 def print_solution_summary(algorithm: str, stats: Dict[str, Any]) -> None:
     """Print standardized solution summary."""
     status = "✓" if stats["valid"] else "✗"
-    print(f"  {status} {algorithm}: Cost: {stats['total_cost']:.2f}, "
-          f"Solo: {stats['solo_licenses']}, Groups: {stats['group_licenses']}")
+    print(
+        f"  {status} {algorithm}: Cost: {stats['total_cost']:.2f}, "
+        f"Solo: {stats['solo_licenses']}, Groups: {stats['group_licenses']}"
+    )
 
 
 def print_comparison_table(results: list) -> None:
@@ -137,10 +133,12 @@ def print_comparison_table(results: list) -> None:
     print("\n" + "=" * 60)
     print("COMPARISON SUMMARY")
     print("=" * 60)
-    
+
     results.sort(key=lambda x: x["total_cost"])
-    
+
     for i, result in enumerate(results, 1):
         status = "✓" if result["valid"] else "✗"
-        print(f"{i}. {result['algorithm']}: ${result['total_cost']:.2f} "
-              f"(Solo: {result['solo_licenses']}, Groups: {result['group_licenses']}) {status}")
+        print(
+            f"{i}. {result['algorithm']}: ${result['total_cost']:.2f} "
+            f"(Solo: {result['solo_licenses']}, Groups: {result['group_licenses']}) {status}"
+        )
