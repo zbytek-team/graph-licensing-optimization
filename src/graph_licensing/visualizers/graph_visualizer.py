@@ -11,17 +11,11 @@ if TYPE_CHECKING:
 class GraphVisualizer:
     def __init__(self) -> None:
         self.color_map = {
-            "solo": "#f7ca00",  # Yellow for solo
-            "individual": "#f7ca00",  # Yellow for individual
-            "duo": "#ff6b6b",  # Red for duo
-            "trio": "#4ecdc4",  # Teal for trio
-            "family": "#45b7d1",  # Blue for family
-            "small_team": "#96ceb4",  # Light green for small team
-            "large_team": "#003667",  # Dark blue for large team
-            "small": "#96ceb4",  # Light green
-            "medium": "#45b7d1",  # Blue
-            "large": "#003667",  # Dark blue
-            "group": "#003667",  # Default group color
+            "solo": "#f6d700", 
+            "duo": "#c3102f",  
+            "family": "#003667",
+            "default": "#000001",
+            "unassigned": "#cccccc",
         }
 
         self.size_map = {"owner": 500, "member": 300, "solo": 400}
@@ -65,42 +59,51 @@ class GraphVisualizer:
             pos,
             node_color=node_colors,
             node_size=node_sizes,
-            alpha=0.8,
         )
 
-        nx.draw_networkx_edges(
-            graph,
-            pos,
-            edge_color="gray",
-            width=1,
-            alpha=0.5,
-            style="dashed",
-        )
-
-        license_colors = ["#ff4444", "#44ff44", "#4444ff", "#ffff44", "#ff44ff", "#44ffff"]
-        color_idx = 0
-
+        # Separate edges into group edges and unassigned edges
+        group_edges = []
+        group_edge_colors = []
+        
         for license_type, groups in solution.licenses.items():
+            license_color = self.color_map.get(license_type, self.color_map["unassigned"])
             for owner, members in groups.items():
                 if len(members) > 1:  # Only for multi-member groups
-                    group_edges = []
                     for member in members:
                         if member != owner and graph.has_edge(owner, member):
                             group_edges.append((owner, member))
+                            group_edge_colors.append(license_color)
 
-                    if group_edges:
-                        edge_color = license_colors[color_idx % len(license_colors)]
-                        nx.draw_networkx_edges(
-                            graph,
-                            pos,
-                            edgelist=group_edges,
-                            edge_color=edge_color,
-                            width=3,
-                            alpha=0.8,
-                        )
-                        color_idx += 1
+        # Get all edges that are not group edges (unassigned edges)
+        all_edges = list(graph.edges())
+        unassigned_edges = [
+            edge for edge in all_edges 
+            if edge not in group_edges and tuple(reversed(edge)) not in group_edges
+        ]
 
-        nx.draw_networkx_labels(graph, pos, font_size=8, font_weight="bold")
+        # Draw unassigned edges with dashed style and gray color
+        if unassigned_edges:
+            nx.draw_networkx_edges(
+                graph,
+                pos,
+                edgelist=unassigned_edges,
+                edge_color=self.color_map["unassigned"],
+                width=1,
+                alpha=1,
+                style="--",
+            )
+
+        # Draw group edges with solid lines and appropriate colors
+        if group_edges:
+            nx.draw_networkx_edges(
+                graph,
+                pos,
+                edgelist=group_edges,
+                edge_color=group_edge_colors,
+                width=3,
+                alpha=1,
+                style="solid",
+            )
 
         legend_elements = []
         used_license_types = set()
@@ -196,35 +199,51 @@ class GraphVisualizer:
                 pos,
                 node_color=node_colors,
                 node_size=500,
-                alpha=0.8,
                 ax=ax,
             )
-            nx.draw_networkx_edges(
-                graph,
-                pos,
-                edge_color="gray",
-                width=1,
-                alpha=0.7,
-                style="dashed",
-                ax=ax,
-            )
-
+            # Separate edges into group edges and unassigned edges
             group_edges = []
+            group_edge_colors = []
+            
             for license_type, groups in solution.licenses.items():
+                license_color = self.color_map.get(license_type, self.color_map["unassigned"])
                 for owner, members in groups.items():
                     if len(members) > 1:  # Multi-member group
                         for member in members:
                             if member != owner and graph.has_edge(owner, member):
                                 group_edges.append((owner, member))
+                                group_edge_colors.append(license_color)
 
+            # Get unassigned edges
+            all_edges = list(graph.edges())
+            unassigned_edges = [
+                edge for edge in all_edges 
+                if edge not in group_edges and tuple(reversed(edge)) not in group_edges
+            ]
+
+            # Draw unassigned edges with dashed style
+            if unassigned_edges:
+                nx.draw_networkx_edges(
+                    graph,
+                    pos,
+                    edgelist=unassigned_edges,
+                    edge_color=self.color_map["unassigned"],
+                    width=1,
+                    alpha=1,
+                    style="--",
+                    ax=ax,
+                )
+
+            # Draw group edges with solid lines and appropriate colors
             if group_edges:
                 nx.draw_networkx_edges(
                     graph,
                     pos,
                     edgelist=group_edges,
-                    edge_color="#013865",
+                    edge_color=group_edge_colors,
                     width=2,
-                    alpha=0.8,
+                    alpha=1,
+                    style="solid",
                     ax=ax,
                 )
 
@@ -399,37 +418,47 @@ class GraphVisualizer:
             current_solution = solutions[frame]
             current_pos = pos_cache[frame]
 
+            # Separate edges into group edges and unassigned edges
             group_edges = []
+            group_edge_colors = []
+            
             for license_type, groups in current_solution.licenses.items():
+                license_color = self.color_map.get(license_type, self.color_map["unassigned"])
                 for owner, members in groups.items():
                     for member in members:
                         if member != owner and current_graph.has_edge(owner, member):
                             group_edges.append((owner, member))
+                            group_edge_colors.append(license_color)
 
-            non_group_edges = [
-                edge
-                for edge in current_graph.edges()
+            # Get unassigned edges
+            all_edges = list(current_graph.edges())
+            unassigned_edges = [
+                edge for edge in all_edges 
                 if edge not in group_edges and tuple(reversed(edge)) not in group_edges
             ]
-            if non_group_edges:
+
+            # Draw unassigned edges with dashed style
+            if unassigned_edges:
                 nx.draw_networkx_edges(
                     current_graph,
                     current_pos,
-                    edgelist=non_group_edges,
-                    edge_color="#666666",  # Darker gray instead of lightgray
+                    edgelist=unassigned_edges,
+                    edge_color=self.color_map["unassigned"],
                     width=1,
-                    alpha=0.6,
-                    style="dashed",  # Dashed lines
+                    alpha=1,
+                    style="--",
                 )
 
+            # Draw group edges with solid lines and appropriate colors
             if group_edges:
                 nx.draw_networkx_edges(
                     current_graph,
                     current_pos,
                     edgelist=group_edges,
-                    edge_color="#013865",
+                    edge_color=group_edge_colors,
                     width=3,
-                    alpha=0.8,
+                    alpha=1,
+                    style="solid",
                 )
 
             node_colors = []
@@ -444,7 +473,6 @@ class GraphVisualizer:
                 current_pos,
                 node_color=node_colors,
                 node_size=node_sizes,
-                alpha=0.9,
             )
 
             total_cost = current_solution.calculate_cost(config)
@@ -517,12 +545,22 @@ class GraphVisualizer:
                     [0],
                     marker="o",
                     color="w",
-                    markerfacecolor=self.color_map["group_owner"],
+                    markerfacecolor=self.color_map["duo"],
                     markersize=8,
-                    label="Group Member",
+                    label="Duo Member",
                 ),
-                plt.Line2D([0], [0], color="#013865", linewidth=3, label="Group Connection"),
-                plt.Line2D([0], [0], color="#666666", linewidth=1, linestyle="dashed", label="Other Connection"),
+                plt.Line2D(
+                    [0],
+                    [0],
+                    marker="o",
+                    color="w",
+                    markerfacecolor=self.color_map["family"],
+                    markersize=8,
+                    label="Family Member",
+                ),
+                plt.Line2D([0], [0], color=self.color_map["duo"], linewidth=3, label="Duo Connection"),
+                plt.Line2D([0], [0], color=self.color_map["family"], linewidth=3, label="Family Connection"),
+                plt.Line2D([0], [0], color=self.color_map["unassigned"], linewidth=1, linestyle="dashed", label="Unassigned Connection"),
             ]
 
             ax.legend(handles=legend_elements, loc="upper right", bbox_to_anchor=(0.98, 0.98), framealpha=0.9)
