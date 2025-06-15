@@ -75,9 +75,9 @@ def get_algorithms() -> Dict[str, Any]:
 
 
 def create_license_config(
-    solo_cost: float = 10.0,
-    group_cost: float = 15.0,
-    group_size: int = 5
+    solo_cost: float = 1.0,
+    group_cost: float = 2.08,
+    group_size: int = 6
 ) -> LicenseConfig:
     """Create license configuration."""
     return LicenseConfig(
@@ -334,9 +334,16 @@ def tune(algorithm, n_trials, graph_type, graph_size, metric):
 @click.option("--graph-type", default="random")
 @click.option("--initial-size", default=20, type=int)
 @click.option("--iterations", default=10, type=int)
-@click.option("--modification-prob", default=0.1, type=float)
-def dynamic(algorithm, graph_type, initial_size, iterations, modification_prob):
-    """Run dynamic analysis with graph changes."""
+@click.option("--modification-prob", default=1.0, type=float, help="Modification intensity (1.0 = ~3 changes per iteration)")
+@click.option("--create-gif", is_flag=True, help="Create animated GIF showing graph evolution")
+def dynamic(algorithm, graph_type, initial_size, iterations, modification_prob, create_gif):
+    """Run dynamic analysis with graph changes.
+    
+    The modification_prob parameter controls the intensity of graph modifications:
+    - 0.5 = mild changes (~1 node, ~4 edges per iteration)
+    - 1.0 = moderate changes (~2 nodes, ~6 edges per iteration) 
+    - 1.5 = intense changes (~3 nodes, ~10+ edges per iteration)
+    """
     
     algorithms = get_algorithms()
     if algorithm not in algorithms:
@@ -361,9 +368,17 @@ def dynamic(algorithm, graph_type, initial_size, iterations, modification_prob):
     start_time = datetime.now()
     
     try:
-        results = benchmark_runner.run_dynamic_test(
-            algo, initial_graph, config, iterations, modification_prob
-        )
+        if create_gif:
+            # Use the method that returns graph states and solutions
+            results, graph_states, solutions = benchmark_runner.run_dynamic_test_with_states(
+                algo, initial_graph, config, iterations, modification_prob
+            )
+        else:
+            # Use regular method
+            results = benchmark_runner.run_dynamic_test(
+                algo, initial_graph, config, iterations, modification_prob
+            )
+            graph_states, solutions = None, None
         
         # Add timestamps to results
         for result in results:
@@ -374,6 +389,30 @@ def dynamic(algorithm, graph_type, initial_size, iterations, modification_prob):
         if costs:
             click.echo(f"Average cost: {sum(costs)/len(costs):.2f}")
             click.echo(f"Cost range: {min(costs):.2f} - {max(costs):.2f}")
+        
+        # Display graph evolution summary
+        if results:
+            click.echo("\nGraph Evolution:")
+            click.echo("Iter | Nodes | Edges | Cost | Node Δ | Edge Δ")
+            click.echo("-" * 45)
+            prev_nodes, prev_edges = initial_size, initial_graph.number_of_edges()
+            for r in results[:min(10, len(results))]:  # Show first 10 iterations
+                node_delta = r['n_nodes'] - prev_nodes
+                edge_delta = r['n_edges'] - prev_edges
+                click.echo(f"{r['iteration']:4} | {r['n_nodes']:5} | {r['n_edges']:5} | {r['total_cost']:4.0f} | {node_delta:+3} | {edge_delta:+3}")
+                prev_nodes, prev_edges = r['n_nodes'], r['n_edges']
+            if len(results) > 10:
+                click.echo("... (truncated)")
+            
+            # Show modification statistics
+            node_changes = [abs(results[i]['n_nodes'] - results[i-1]['n_nodes']) for i in range(1, len(results))]
+            edge_changes = [abs(results[i]['n_edges'] - results[i-1]['n_edges']) for i in range(1, len(results))]
+            if node_changes and edge_changes:
+                click.echo(f"\nModification Summary:")
+                click.echo(f"Avg node changes per iteration: {sum(node_changes)/len(node_changes):.1f}")
+                click.echo(f"Avg edge changes per iteration: {sum(edge_changes)/len(edge_changes):.1f}")
+                click.echo(f"Total node variance: {max(r['n_nodes'] for r in results) - min(r['n_nodes'] for r in results)}")
+                click.echo(f"Total edge variance: {max(r['n_edges'] for r in results) - min(r['n_edges'] for r in results)}")
         
         # Save results with metadata
         end_time = datetime.now()
@@ -393,6 +432,35 @@ def dynamic(algorithm, graph_type, initial_size, iterations, modification_prob):
         FileIO.save_json(results, output_path / f"dynamic_{algorithm}_results.json")
         FileIO.save_json(dynamic_metadata, output_path / f"dynamic_{algorithm}_metadata.json")
         
+        # Create GIF if requested
+        if create_gif and graph_states and solutions:
+            click.echo("Creating animated GIF...")
+            try:
+                visualizer = GraphVisualizer()
+                gif_path = output_path / f"dynamic_{algorithm}_evolution.gif"
+                
+                # Filter out None solutions
+                valid_indices = [i for i, sol in enumerate(solutions) if sol is not None]
+                if len(valid_indices) < 2:
+                    click.echo("Warning: Not enough valid solutions to create GIF")
+                else:
+                    valid_graph_states = [graph_states[i] for i in valid_indices]
+                    valid_solutions = [solutions[i] for i in valid_indices]
+                    
+                    visualizer.create_dynamic_gif(
+                        graph_states=valid_graph_states,
+                        solutions=valid_solutions,
+                        config=config,
+                        algorithm_name=algorithm.title(),
+                        title=f"Dynamic {graph_type.title()} Graph Evolution",
+                        save_path=str(gif_path),
+                        duration=1.5,  # 1.5 seconds per frame
+                        show_changes=True,
+                    )
+                    click.echo(f"GIF saved to: {gif_path}")
+            except Exception as e:
+                click.echo(f"Failed to create GIF: {e}")
+        
         click.echo(f"Dynamic analysis complete! Results saved to {output_path}")
         click.echo(f"Duration: {dynamic_metadata['duration_seconds']:.2f} seconds")
         
@@ -402,10 +470,10 @@ def dynamic(algorithm, graph_type, initial_size, iterations, modification_prob):
 
 @cli.command()
 @click.option("--algorithms", multiple=True, default=["ilp", "greedy", "randomized", "genetic", "dominating_set", "tabu_search"])
-@click.option("--graph-type", default="small_world")
-@click.option("--graph-size", default=30, type=int)
+@click.option("--graph-type", default="scale_free")
+@click.option("--graph-size", default=15, type=int)
 @click.option("--solo-cost", default=1.0, type=float)
-@click.option("--group-cost", default=2.1, type=float)
+@click.option("--group-cost", default=2.08, type=float)
 @click.option("--group-size", default=6, type=int)
 @click.option("--seed", default=42, type=int)
 def compare(algorithms, graph_type, graph_size, solo_cost, group_cost, 
