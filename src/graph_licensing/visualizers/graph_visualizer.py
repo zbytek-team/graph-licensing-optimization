@@ -120,6 +120,70 @@ class GraphVisualizer:
 
         return legend_elements
 
+    def _calculate_solution_stats(self, solution: "LicenseSolution", config: "LicenseConfig") -> dict:
+        """Calculate statistics for a solution."""
+        total_cost = solution.calculate_cost(config)
+        total_licenses = sum(len(groups) for groups in solution.licenses.values())
+        total_people = len(solution.get_all_nodes())
+        
+        num_solo = sum(
+            1
+            for license_type, groups in solution.licenses.items()
+            for members in groups.values()
+            if len(members) == 1
+        )
+        num_groups = sum(
+            1
+            for license_type, groups in solution.licenses.items()
+            for members in groups.values()
+            if len(members) > 1
+        )
+        
+        return {
+            "total_cost": total_cost,
+            "total_licenses": total_licenses,
+            "total_people": total_people,
+            "cost_per_person": total_cost / total_people if total_people > 0 else 0,
+            "num_solo": num_solo,
+            "num_groups": num_groups,
+        }
+
+    def _save_figure(self, save_path: str | None, default_subdir: str, default_filename: str) -> None:
+        """Save figure with consistent logic."""
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
+            print(f"Visualization saved to: {save_path}")
+        else:
+            default_path = Path(f"results/{default_subdir}") / default_filename
+            default_path.parent.mkdir(parents=True, exist_ok=True)
+            plt.savefig(default_path, dpi=300, bbox_inches="tight")
+            print(f"Visualization saved to: {default_path}")
+
+    def _render_single_solution(self, graph: "nx.Graph", solution: "LicenseSolution", 
+                               pos: dict, ax=None, node_size: int = 500) -> None:
+        """Render a single solution (nodes and edges) on given axes."""
+        # Get node colors and sizes
+        node_colors, node_sizes = self._get_node_colors_and_sizes(graph, solution)
+        
+        # Override node sizes if specified
+        if node_size != 500:
+            node_sizes = [node_size] * len(node_colors)
+
+        # Draw nodes
+        nx.draw_networkx_nodes(
+            graph,
+            pos,
+            node_color=node_colors,
+            node_size=node_sizes,
+            ax=ax,
+        )
+
+        # Get edge lists and colors
+        group_edges, unassigned_edges, group_edge_colors = self._get_edge_lists_and_colors(graph, solution)
+        
+        # Draw edges
+        self._draw_edges(graph, pos, group_edges, unassigned_edges, group_edge_colors, ax=ax)
+
     def visualize_solution(
         self,
         graph: "nx.Graph",
@@ -135,30 +199,18 @@ class GraphVisualizer:
         pos = nx.spring_layout(graph, seed=42)
         print("done springing")
 
-        node_colors, node_sizes = self._get_node_colors_and_sizes(graph, solution)
+        # Render the solution
+        self._render_single_solution(graph, solution, pos)
 
-        nx.draw_networkx_nodes(
-            graph,
-            pos,
-            node_color=node_colors,
-            node_size=node_sizes,
-        )
-
-        group_edges, unassigned_edges, group_edge_colors = self._get_edge_lists_and_colors(graph, solution)
-
-        self._draw_edges(graph, pos, group_edges, unassigned_edges, group_edge_colors)
-
+        # Create and display legend
         legend_elements = self._create_legend(solution)
-
         if legend_elements:
             plt.legend(handles=legend_elements, loc="upper right", bbox_to_anchor=(1.0, 1.0), fontsize=10)
 
-        total_cost = solution.calculate_cost(config)
-        total_licenses = sum(len(groups) for groups in solution.licenses.values())
-        total_people = len(solution.get_all_nodes())
-
+        # Add title with statistics
+        stats = self._calculate_solution_stats(solution, config)
         plt.title(
-            f"{title}\nTotal Cost: ${total_cost:.2f} | {total_licenses} licenses | {total_people} people | ${total_cost / total_people:.2f}/person",
+            f"{title}\nTotal Cost: ${stats['total_cost']:.2f} | {stats['total_licenses']} licenses | {stats['total_people']} people | ${stats['cost_per_person']:.2f}/person",
             fontsize=14,
             pad=20,
         )
@@ -166,18 +218,48 @@ class GraphVisualizer:
         plt.axis("off")
         plt.tight_layout()
 
-        if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches="tight")
-            print(f"Visualization saved to: {save_path}")
-        else:
-            from pathlib import Path
-
-            default_path = Path("results/single") / "visualization.png"
-            default_path.parent.mkdir(parents=True, exist_ok=True)
-            plt.savefig(default_path, dpi=300, bbox_inches="tight")
-            print(f"Visualization saved to: {default_path}")
+        # Save figure
+        self._save_figure(save_path, "single", "visualization.png")
 
         plt.close()
+
+    def _calculate_frame_changes(self, current_graph: "nx.Graph", prev_graph: "nx.Graph") -> str:
+        """Calculate changes between two graph frames."""
+        added_nodes = list(set(current_graph.nodes()) - set(prev_graph.nodes()))
+        removed_nodes = list(set(prev_graph.nodes()) - set(current_graph.nodes()))
+        added_edges = list(set(current_graph.edges()) - set(prev_graph.edges()))
+        removed_edges = list(set(prev_graph.edges()) - set(current_graph.edges()))
+
+        changes_text = "Changes: "
+        if added_nodes:
+            changes_text += f"+{len(added_nodes)} nodes "
+        if removed_nodes:
+            changes_text += f"-{len(removed_nodes)} nodes "
+        if added_edges:
+            changes_text += f"+{len(added_edges)} edges "
+        if removed_edges:
+            changes_text += f"-{len(removed_edges)} edges"
+        if changes_text == "Changes: ":
+            changes_text += "None"
+        
+        return changes_text
+
+    def _calculate_node_position(self, new_node, current_graph: "nx.Graph", prev_pos: dict) -> tuple[float, float]:
+        """Calculate position for a new node based on its neighbors."""
+        import random
+        
+        neighbors = list(current_graph.neighbors(new_node))
+        if neighbors:
+            neighbor_positions = [prev_pos[n] for n in neighbors if n in prev_pos]
+            if neighbor_positions:
+                avg_x = sum(pos[0] for pos in neighbor_positions) / len(neighbor_positions)
+                avg_y = sum(pos[1] for pos in neighbor_positions) / len(neighbor_positions)
+                
+                offset_x = random.uniform(-0.1, 0.1)
+                offset_y = random.uniform(-0.1, 0.1)
+                return (avg_x + offset_x, avg_y + offset_y)
+        
+        return (random.uniform(-1, 1), random.uniform(-1, 1))
 
     def compare_solutions(
         self,
@@ -207,29 +289,13 @@ class GraphVisualizer:
         for idx, (algorithm_name, solution) in enumerate(solutions.items()):
             ax = axes_list[idx]
 
-            # Get node colors and sizes
-            node_colors, node_sizes = self._get_node_colors_and_sizes(graph, solution)
+            # Render the solution
+            self._render_single_solution(graph, solution, pos, ax=ax, node_size=500)
 
-            # Draw nodes
-            nx.draw_networkx_nodes(
-                graph,
-                pos,
-                node_color=node_colors,
-                node_size=500,
-                ax=ax,
-            )
-
-            # Get edge lists and colors
-            group_edges, unassigned_edges, group_edge_colors = self._get_edge_lists_and_colors(graph, solution)
-            
-            # Draw edges
-            self._draw_edges(graph, pos, group_edges, unassigned_edges, group_edge_colors, ax=ax)
-
-            total_cost = solution.calculate_cost(config)
-            total_licenses = sum(len(groups) for groups in solution.licenses.values())
-            total_people = len(solution.get_all_nodes())
+            # Add title with statistics
+            stats = self._calculate_solution_stats(solution, config)
             ax.set_title(
-                f"{algorithm_name}\nCost: ${total_cost:.2f} | {total_licenses} licenses | {total_people} people"
+                f"{algorithm_name}\nCost: ${stats['total_cost']:.2f} | {stats['total_licenses']} licenses | {stats['total_people']} people"
             )
             ax.axis("off")
 
@@ -239,15 +305,8 @@ class GraphVisualizer:
         plt.suptitle(title, fontsize=16)
         plt.tight_layout()
 
-        if save_path:
-            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-            plt.savefig(save_path, dpi=300, bbox_inches="tight")
-            print(f"Comparison visualization saved to: {save_path}")
-        else:
-            default_path = Path("results/compare") / "solution_comparison.png"
-            default_path.parent.mkdir(parents=True, exist_ok=True)
-            plt.savefig(default_path, dpi=300, bbox_inches="tight")
-            print(f"Comparison visualization saved to: {default_path}")
+        # Save figure
+        self._save_figure(save_path, "compare", "solution_comparison.png")
 
         plt.close()
 
@@ -294,24 +353,7 @@ class GraphVisualizer:
 
             new_nodes = set(current_graph.nodes()) - set(prev_graph.nodes())
             for new_node in new_nodes:
-                neighbors = list(current_graph.neighbors(new_node))
-                if neighbors:
-                    neighbor_positions = [prev_pos[n] for n in neighbors if n in prev_pos]
-                    if neighbor_positions:
-                        avg_x = sum(pos[0] for pos in neighbor_positions) / len(neighbor_positions)
-                        avg_y = sum(pos[1] for pos in neighbor_positions) / len(neighbor_positions)
-
-                        import random
-
-                        offset_x = random.uniform(-0.1, 0.1)
-                        offset_y = random.uniform(-0.1, 0.1)
-                        current_pos[new_node] = (avg_x + offset_x, avg_y + offset_y)
-                    else:
-                        current_pos[new_node] = (random.uniform(-1, 1), random.uniform(-1, 1))
-                else:
-                    import random
-
-                    current_pos[new_node] = (random.uniform(-1, 1), random.uniform(-1, 1))
+                current_pos[new_node] = self._calculate_node_position(new_node, current_graph, prev_pos)
 
             removed_nodes = set(prev_graph.nodes()) - set(current_graph.nodes())
             for removed_node in removed_nodes:
@@ -331,101 +373,35 @@ class GraphVisualizer:
             current_solution = solutions[frame]
             current_pos = pos_cache[frame]
 
-            # Separate edges into group edges and unassigned edges
-            group_edges = []
-            group_edge_colors = []
+            # Get edge lists and colors
+            group_edges, unassigned_edges, group_edge_colors = self._get_edge_lists_and_colors(current_graph, current_solution)
             
-            for license_type, groups in current_solution.licenses.items():
-                license_color = self.color_map.get(license_type, self.color_map["unassigned"])
-                for owner, members in groups.items():
-                    for member in members:
-                        if member != owner and current_graph.has_edge(owner, member):
-                            group_edges.append((owner, member))
-                            group_edge_colors.append(license_color)
+            # Draw edges
+            self._draw_edges(current_graph, current_pos, group_edges, unassigned_edges, group_edge_colors)
 
-            # Get unassigned edges
-            all_edges = list(current_graph.edges())
-            unassigned_edges = [
-                edge for edge in all_edges 
-                if edge not in group_edges and tuple(reversed(edge)) not in group_edges
-            ]
+            # Get node colors and sizes
+            node_colors, node_sizes = self._get_node_colors_and_sizes(current_graph, current_solution)
 
-            # Draw unassigned edges with dashed style
-            if unassigned_edges:
-                nx.draw_networkx_edges(
-                    current_graph,
-                    current_pos,
-                    edgelist=unassigned_edges,
-                    edge_color=self.color_map["unassigned"],
-                    width=1,
-                    alpha=1,
-                    style="--",
-                )
-
-            # Draw group edges with solid lines and appropriate colors
-            if group_edges:
-                nx.draw_networkx_edges(
-                    current_graph,
-                    current_pos,
-                    edgelist=group_edges,
-                    edge_color=group_edge_colors,
-                    width=3,
-                    alpha=1,
-                    style="solid",
-                )
-
-            node_colors = []
-            node_sizes = []
-            for node in current_graph.nodes():
-                license_type = current_solution.get_node_license_type(node).value
-                node_colors.append(self.color_map[license_type])
-                node_sizes.append(500)  # Consistent size for all nodes
-
+            # Draw nodes with consistent size
             nx.draw_networkx_nodes(
                 current_graph,
                 current_pos,
                 node_color=node_colors,
-                node_size=node_sizes,
+                node_size=[500] * len(node_colors),
             )
 
-            total_cost = current_solution.calculate_cost(config)
-            num_solo = sum(
-                1
-                for license_type, groups in current_solution.licenses.items()
-                for members in groups.values()
-                if len(members) == 1
-            )
-            num_groups = sum(
-                1
-                for license_type, groups in current_solution.licenses.items()
-                for members in groups.values()
-                if len(members) > 1
-            )
+            # Calculate statistics
+            stats = self._calculate_solution_stats(current_solution, config)
             num_nodes = current_graph.number_of_nodes()
             num_edges = current_graph.number_of_edges()
 
             ax.set_title(f"{title} - {algorithm_name}\nIteration {frame}", fontsize=16, fontweight="bold", pad=20)
 
-            stats_text = f"Nodes: {num_nodes} | Edges: {num_edges}\nCost: ${total_cost:.2f} | Solo: {num_solo} | Groups: {num_groups}"
+            stats_text = f"Nodes: {num_nodes} | Edges: {num_edges}\nCost: ${stats['total_cost']:.2f} | Solo: {stats['num_solo']} | Groups: {stats['num_groups']}"
 
             if show_changes and frame > 0:
                 prev_graph = graph_states[frame - 1]
-                added_nodes = list(set(current_graph.nodes()) - set(prev_graph.nodes()))
-                removed_nodes = list(set(prev_graph.nodes()) - set(current_graph.nodes()))
-                added_edges = list(set(current_graph.edges()) - set(prev_graph.edges()))
-                removed_edges = list(set(prev_graph.edges()) - set(current_graph.edges()))
-
-                changes_text = "Changes: "
-                if added_nodes:
-                    changes_text += f"+{len(added_nodes)} nodes "
-                if removed_nodes:
-                    changes_text += f"-{len(removed_nodes)} nodes "
-                if added_edges:
-                    changes_text += f"+{len(added_edges)} edges "
-                if removed_edges:
-                    changes_text += f"-{len(removed_edges)} edges"
-                if changes_text == "Changes: ":
-                    changes_text += "None"
+                changes_text = self._calculate_frame_changes(current_graph, prev_graph)
                 stats_text += f"\n{changes_text}"
 
             text_box = FancyBboxPatch(
