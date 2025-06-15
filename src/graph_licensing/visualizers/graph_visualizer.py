@@ -478,10 +478,11 @@ class GraphVisualizer:
             
             # Find group edges first
             group_edges = []
-            for owner, members in current_solution.group_owners.items():
-                for member in members:
-                    if member != owner and current_graph.has_edge(owner, member):
-                        group_edges.append((owner, member))
+            for license_type, groups in current_solution.licenses.items():
+                for owner, members in groups.items():
+                    for member in members:
+                        if member != owner and current_graph.has_edge(owner, member):
+                            group_edges.append((owner, member))
 
             # Draw non-group edges with darker gray and dashed lines
             non_group_edges = [edge for edge in current_graph.edges() if edge not in group_edges and tuple(reversed(edge)) not in group_edges]
@@ -526,8 +527,10 @@ class GraphVisualizer:
 
             # Add iteration info and stats
             total_cost = current_solution.calculate_cost(config)
-            num_solo = len(current_solution.solo_nodes)
-            num_groups = len(current_solution.group_owners)
+            num_solo = sum(1 for license_type, groups in current_solution.licenses.items() 
+                          for members in groups.values() if len(members) == 1)
+            num_groups = sum(1 for license_type, groups in current_solution.licenses.items() 
+                            for members in groups.values() if len(members) > 1)
             num_nodes = current_graph.number_of_nodes()
             num_edges = current_graph.number_of_edges()
             

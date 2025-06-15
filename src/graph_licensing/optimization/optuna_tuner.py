@@ -186,7 +186,10 @@ class OptunaTuner:
                     solution = algorithm.solve(graph, config)
                     # Quality metric: percentage of nodes in groups
                     total_nodes = graph.number_of_nodes()
-                    group_members = sum(len(members) for members in solution.group_owners.values())
+                    group_members = sum(
+                        sum(len(members) for members in groups.values())
+                        for groups in solution.licenses.values()
+                    )
                     quality = group_members / total_nodes if total_nodes > 0 else 0
                     scores.append(-quality)  # Negative because we want to maximize
                     

@@ -155,14 +155,17 @@ class AnalysisRunner:
                 axes[1,0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 2,
                              f'{value*100:.1f}%', ha='center', va='bottom', fontweight='bold')
         
-        # Group formation rate
-        if 'n_group_licenses' in df.columns and 'n_solo_licenses' in df.columns:
-            df['group_ratio'] = df['n_group_licenses'] / (df['n_group_licenses'] + df['n_solo_licenses'])
+        # Group formation rate - Generic for any license types
+        license_type_columns = [col for col in df.columns if col.startswith('n_') and col.endswith('_licenses')]
+        
+        if len(license_type_columns) >= 2:
+            # Calculate group formation ratio using first two license types
+            df['group_ratio'] = df[license_type_columns[1]] / (df[license_type_columns[0]] + df[license_type_columns[1]])
             group_ratio = df.groupby('algorithm')['group_ratio'].mean().reset_index()
             bars = axes[1,1].bar(group_ratio['algorithm'], group_ratio['group_ratio'] * 100, 
                                color=self.color_palette, alpha=0.8)
-            axes[1,1].set_title('Group License Formation Rate', fontweight='bold')
-            axes[1,1].set_ylabel('Group Formation Rate (%)')
+            axes[1,1].set_title('License Formation Rate', fontweight='bold')
+            axes[1,1].set_ylabel('Formation Rate (%)')
             axes[1,1].tick_params(axis='x', rotation=45)
             
             for bar, value in zip(bars, group_ratio['group_ratio']):
@@ -321,22 +324,37 @@ class AnalysisRunner:
                 axes[0,1].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 2,
                              f'{value*100:.1f}%', ha='center', va='bottom', fontweight='bold')
         
-        # Group vs Solo ratio
-        if 'n_group_licenses' in df.columns and 'n_solo_licenses' in df.columns:
+        # License Distribution Analysis - Generic for any license types
+        license_type_columns = [col for col in df.columns if col.startswith('n_') and col.endswith('_licenses')]
+        
+        if license_type_columns:
+            # Calculate total licenses and percentages
             df_copy = df.copy()
-            df_copy['total_licenses'] = df_copy['n_group_licenses'] + df_copy['n_solo_licenses']
-            df_copy['group_percentage'] = (df_copy['n_group_licenses'] / df_copy['total_licenses']) * 100
+            df_copy['total_licenses'] = df_copy[license_type_columns].sum(axis=1)
             
-            group_pct = df_copy.groupby('algorithm')['group_percentage'].mean().reset_index()
-            bars = axes[1,0].bar(group_pct['algorithm'], group_pct['group_percentage'], 
-                               color=self.color_palette, alpha=0.8)
-            axes[1,0].set_title('Group License Percentage', fontweight='bold')
-            axes[1,0].set_ylabel('Group Licenses (%)')
-            axes[1,0].tick_params(axis='x', rotation=45)
+            # Get the most common license types for display
+            license_percentages = {}
+            for col in license_type_columns:
+                license_type = col.replace('n_', '').replace('_licenses', '')
+                df_copy[f'{license_type}_percentage'] = (df_copy[col] / df_copy['total_licenses']) * 100
+                license_percentages[license_type] = df_copy.groupby('algorithm')[f'{license_type}_percentage'].mean()
             
-            for bar, value in zip(bars, group_pct['group_percentage']):
-                axes[1,0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
-                             f'{value:.1f}%', ha='center', va='bottom', fontweight='bold')
+            # Display the most significant license type distribution
+            if license_percentages:
+                # Use the first license type found for the chart
+                first_license_type = list(license_percentages.keys())[0]
+                pct_data = license_percentages[first_license_type].reset_index()
+                pct_data.columns = ['algorithm', 'percentage']
+                
+                bars = axes[1,0].bar(pct_data['algorithm'], pct_data['percentage'], 
+                                   color=self.color_palette, alpha=0.8)
+                axes[1,0].set_title(f'{first_license_type.title()} License Percentage', fontweight='bold')
+                axes[1,0].set_ylabel(f'{first_license_type.title()} Licenses (%)')
+                axes[1,0].tick_params(axis='x', rotation=45)
+                
+                for bar, value in zip(bars, pct_data['percentage']):
+                    axes[1,0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
+                                 f'{value:.1f}%', ha='center', va='bottom', fontweight='bold')
         
         # Cost efficiency (lower is better)
         if 'total_cost' in df.columns and 'n_nodes' in df.columns:
@@ -425,10 +443,12 @@ class AnalysisRunner:
         
         # Select numeric columns for correlation
         numeric_cols = df.select_dtypes(include=[np.number]).columns
+        # Include common metrics and any license-type specific columns
+        license_columns = [col for col in numeric_cols if col.startswith('n_') and col.endswith('_licenses')]
         correlation_cols = [col for col in numeric_cols if col in [
-            'total_cost', 'runtime_seconds', 'n_nodes', 'n_edges', 
-            'n_solo_licenses', 'n_group_licenses', 'avg_group_size'
+            'total_cost', 'runtime_seconds', 'n_nodes', 'n_edges', 'avg_group_size'
         ]]
+        correlation_cols.extend(license_columns)
         
         if len(correlation_cols) < 2:
             return
@@ -494,12 +514,13 @@ class AnalysisRunner:
         
         report.append("")
         
-        # Group formation analysis
-        if 'n_group_licenses' in df.columns and 'n_solo_licenses' in df.columns:
-            report.append("GROUP FORMATION ANALYSIS:")
+        # License formation analysis
+        license_type_columns = [col for col in df.columns if col.startswith('n_') and col.endswith('_licenses')]
+        if len(license_type_columns) >= 2:
+            report.append("LICENSE FORMATION ANALYSIS:")
             df_temp = df.copy()
-            df_temp['group_ratio'] = df_temp['n_group_licenses'] / (
-                df_temp['n_group_licenses'] + df_temp['n_solo_licenses']
+            df_temp['group_ratio'] = df_temp[license_type_columns[1]] / (
+                df_temp[license_type_columns[0]] + df_temp[license_type_columns[1]]
             )
             group_stats = df_temp.groupby('algorithm')['group_ratio'].mean() * 100
             for algo, ratio in group_stats.items():
