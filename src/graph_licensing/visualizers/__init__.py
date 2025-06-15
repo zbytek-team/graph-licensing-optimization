@@ -5,7 +5,7 @@ from .graph_visualizer import *
 __all__ = [
     # Constants
     "COLOR_MAP",
-    "SIZE_MAP", 
+    "SIZE_MAP",
     "DEFAULT_FIGSIZE",
     "DEFAULT_DPI",
     "DEFAULT_NODE_SIZE",

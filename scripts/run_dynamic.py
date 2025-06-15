@@ -87,9 +87,7 @@ def run_dynamic_analysis(
 
         # Create GIF if requested
         if create_gif and graph_states and solutions:
-            _create_evolution_gif(
-                graph_states, solutions, config, algorithm, graph_type, output_path
-            )
+            _create_evolution_gif(graph_states, solutions, config, algorithm, graph_type, output_path)
 
         click.echo(f"Dynamic analysis complete! Results saved to {output_path}")
         click.echo(f"Duration: {dynamic_metadata['duration_seconds']:.2f} seconds")
@@ -103,10 +101,10 @@ def _print_evolution_summary(results: list, initial_size: int, initial_graph) ->
     click.echo("\nGraph Evolution:")
     click.echo("Iter | Nodes | Edges | Cost | Node Δ | Edge Δ")
     click.echo("-" * 45)
-    
+
     prev_nodes, prev_edges = initial_size, initial_graph.number_of_edges()
-    
-    for r in results[:min(10, len(results))]:  # Show first 10 iterations
+
+    for r in results[: min(10, len(results))]:  # Show first 10 iterations
         node_delta = r["n_nodes"] - prev_nodes
         edge_delta = r["n_edges"] - prev_edges
         click.echo(
@@ -114,14 +112,14 @@ def _print_evolution_summary(results: list, initial_size: int, initial_graph) ->
             f"{r['total_cost']:4.0f} | {node_delta:+3} | {edge_delta:+3}"
         )
         prev_nodes, prev_edges = r["n_nodes"], r["n_edges"]
-    
+
     if len(results) > 10:
         click.echo("... (truncated)")
 
     # Calculate modification statistics
     node_changes = [abs(results[i]["n_nodes"] - results[i - 1]["n_nodes"]) for i in range(1, len(results))]
     edge_changes = [abs(results[i]["n_edges"] - results[i - 1]["n_edges"]) for i in range(1, len(results))]
-    
+
     if node_changes and edge_changes:
         click.echo("\nModification Summary:")
         click.echo(f"Avg node changes per iteration: {sum(node_changes) / len(node_changes):.1f}")
@@ -166,10 +164,7 @@ def _create_evolution_gif(graph_states, solutions, config, algorithm, graph_type
 @click.option("--initial-size", default=20, type=int)
 @click.option("--iterations", default=10, type=int)
 @click.option(
-    "--modification-prob", 
-    default=1.0, 
-    type=float, 
-    help="Modification intensity (1.0 = ~3 changes per iteration)"
+    "--modification-prob", default=1.0, type=float, help="Modification intensity (1.0 = ~3 changes per iteration)"
 )
 @click.option("--create-gif", is_flag=True, help="Create animated GIF showing graph evolution")
 @click.option("--log-level", default="INFO", type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR"]))

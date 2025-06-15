@@ -49,10 +49,10 @@ def run_comparison(
         try:
             click.echo(f"Running {algo_name}...")
             solution = algorithm.solve(graph, config)
-            
+
             stats = calculate_solution_stats(solution, config, graph)
             solutions[algo_name] = solution
-            
+
             result = stats.copy()
             result["algorithm"] = algo_name
             results_summary.append(result)
@@ -72,7 +72,7 @@ def run_comparison(
     # Create output directory
     output_dir = create_timestamped_path("results", "compare")
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Generate visualization
     algorithms_str = "_vs_".join(sorted(solutions.keys()))
     save_path = output_dir / f"{algorithms_str}_{graph_type}_{graph_size}_comparison.png"
@@ -100,20 +100,14 @@ def run_comparison(
         results=results_summary,
     )
 
-    json_path = save_results(
-        comparison_data,
-        output_dir,
-        f"{algorithms_str}_{graph_type}_{graph_size}_results"
-    )
+    json_path = save_results(comparison_data, output_dir, f"{algorithms_str}_{graph_type}_{graph_size}_results")
     click.echo(f"Comparison results saved to: {json_path}")
     click.echo("Comparison complete!")
 
 
 @click.command()
 @click.option(
-    "--algorithms", 
-    multiple=True, 
-    default=["ilp", "greedy", "randomized", "genetic", "dominating_set", "tabu_search"]
+    "--algorithms", multiple=True, default=["ilp", "greedy", "randomized", "genetic", "dominating_set", "tabu_search"]
 )
 @click.option("--graph-type", default="scale_free")
 @click.option("--graph-size", default=15, type=int)
