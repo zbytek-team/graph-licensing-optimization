@@ -10,9 +10,10 @@ if TYPE_CHECKING:
 
 
 class RandomizedAlgorithm(BaseAlgorithm):
-    def __init__(self, seed: int | None = None) -> None:
+    def __init__(self, seed: int | None = None, greedy_probability: float = 0.3) -> None:
         super().__init__("Randomized")
         self.seed = seed
+        self.greedy_probability = greedy_probability  # Probability of making greedy choice
 
     def solve(
         self,
@@ -35,6 +36,21 @@ class RandomizedAlgorithm(BaseAlgorithm):
         for node in nodes:
             if node not in unassigned:
                 continue
+                
+            # Sometimes make greedy choice, sometimes random
+            if random.random() < self.greedy_probability:
+                # Greedy choice: find best cost-effective assignment
+                best_assignment = self._find_best_assignment(node, graph, config, unassigned)
+                if best_assignment:
+                    license_type, owner, members = best_assignment
+                    if license_type not in licenses:
+                        licenses[license_type] = {}
+                    licenses[license_type][owner] = members
+                    for member in members:
+                        unassigned.discard(member)
+                    continue
+            
+            # Random choice (original logic)
             available_license_types = list(config.license_types.keys())
             random.shuffle(available_license_types)
             assigned = False
@@ -73,3 +89,35 @@ class RandomizedAlgorithm(BaseAlgorithm):
                     licenses[license_type][node] = [node]
                     unassigned.discard(node)
         return LicenseSolution(licenses=licenses)
+
+    def _find_best_assignment(self, node: int, graph: "nx.Graph", config: "LicenseConfig", unassigned: set) -> tuple | None:
+        """Find the most cost-effective license assignment for a node."""
+        best_cost_per_person = float("inf")
+        best_assignment = None
+        
+        available_neighbors = [n for n in graph.neighbors(node) if n in unassigned]
+        
+        for license_type, license_config in config.license_types.items():
+            max_possible_size = min(license_config.max_size, len(available_neighbors) + 1, len(unassigned))
+            
+            for group_size in range(license_config.min_size, max_possible_size + 1):
+                if group_size == 1:
+                    cost_per_person = license_config.price
+                    if cost_per_person < best_cost_per_person:
+                        best_cost_per_person = cost_per_person
+                        best_assignment = (license_type, node, [node])
+                        
+                elif group_size > 1 and available_neighbors:
+                    # Select best neighbors based on degree (simple heuristic)
+                    neighbors_by_degree = sorted(available_neighbors, key=lambda x: graph.degree(x), reverse=True)
+                    selected_members = neighbors_by_degree[:group_size - 1]
+                    
+                    if len(selected_members) == group_size - 1:
+                        members = [node] + selected_members
+                        cost_per_person = license_config.price / len(members)
+                        
+                        if cost_per_person < best_cost_per_person:
+                            best_cost_per_person = cost_per_person
+                            best_assignment = (license_type, node, members)
+        
+        return best_assignment
