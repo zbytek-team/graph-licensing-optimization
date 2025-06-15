@@ -85,7 +85,7 @@ def create_dynamic_gif(
 
         # Get edge lists and colors
         group_edges, unassigned_edges, group_edge_colors = get_edge_lists_and_colors(current_graph, current_solution)
-        
+
         # Draw edges
         draw_edges(current_graph, current_pos, group_edges, unassigned_edges, group_edge_colors)
 
@@ -136,9 +136,7 @@ def create_dynamic_gif(
         )
 
         legend_elements = [
-            plt.Line2D(
-                [0], [0], marker="o", color="w", markerfacecolor=COLOR_MAP["solo"], markersize=8, label="Solo"
-            ),
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=COLOR_MAP["solo"], markersize=8, label="Solo"),
             plt.Line2D(
                 [0],
                 [0],
@@ -159,7 +157,9 @@ def create_dynamic_gif(
             ),
             plt.Line2D([0], [0], color=COLOR_MAP["duo"], linewidth=3, label="Duo Connection"),
             plt.Line2D([0], [0], color=COLOR_MAP["family"], linewidth=3, label="Family Connection"),
-            plt.Line2D([0], [0], color=COLOR_MAP["unassigned"], linewidth=1, linestyle="dashed", label="Unassigned Connection"),
+            plt.Line2D(
+                [0], [0], color=COLOR_MAP["unassigned"], linewidth=1, linestyle="dashed", label="Unassigned Connection"
+            ),
         ]
 
         ax.legend(handles=legend_elements, loc="upper right", bbox_to_anchor=(0.98, 0.98), framealpha=0.9)

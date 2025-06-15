@@ -10,7 +10,7 @@ from .utils import evaluate_algorithm, run_optuna_study
 __all__ = [
     # Functional API
     "tune_genetic_algorithm",
-    "tune_simulated_annealing", 
+    "tune_simulated_annealing",
     "tune_tabu_search",
     "tune_all_algorithms",
     "get_best_parameters",
