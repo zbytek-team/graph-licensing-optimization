@@ -5,7 +5,7 @@ from datetime import datetime
 
 from graph_licensing.utils import Benchmark
 from graph_licensing.visualizers import graph_visualizer
-from scripts.common import (
+from scripts.utils import (
     setup_logging,
     get_algorithms,
     create_license_config,

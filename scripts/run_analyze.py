@@ -4,7 +4,7 @@ import click
 from datetime import datetime
 from pathlib import Path
 
-from scripts.common import (
+from scripts.utils import (
     setup_logging,
     create_timestamped_path,
     create_metadata,

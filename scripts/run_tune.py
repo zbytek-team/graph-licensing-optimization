@@ -3,8 +3,12 @@
 import click
 from datetime import datetime
 
-from graph_licensing.optimization import OptunaTuner
-from scripts.common import (
+from graph_licensing.optimization import (
+    tune_genetic_algorithm,
+    tune_simulated_annealing,
+    tune_tabu_search,
+)
+from scripts.utils import (
     setup_logging,
     create_license_config,
     create_test_graph,
@@ -28,16 +32,30 @@ def run_tuning(
     graphs = [create_test_graph(graph_type, graph_size, seed=i) for i in range(5)]
     configs = [create_license_config() for _ in range(5)]
 
-    tuner = OptunaTuner(n_trials=n_trials)
     start_time = datetime.now()
 
     # Run tuning based on algorithm
     if algorithm == "genetic":
-        results = tuner.tune_genetic_algorithm(graphs, configs, metric)
+        results = tune_genetic_algorithm(
+            graphs=graphs,
+            configs=configs,
+            metric=metric,
+            n_trials=n_trials,
+        )
     elif algorithm == "simulated_annealing":
-        results = tuner.tune_simulated_annealing(graphs, configs, metric)
+        results = tune_simulated_annealing(
+            graphs=graphs,
+            configs=configs,
+            metric=metric,
+            n_trials=n_trials,
+        )
     elif algorithm == "tabu_search":
-        results = tuner.tune_tabu_search(graphs, configs, metric)
+        results = tune_tabu_search(
+            graphs=graphs,
+            configs=configs,
+            metric=metric,
+            n_trials=n_trials,
+        )
     else:
         click.echo(f"Tuning not supported for {algorithm}")
         return
