@@ -1,143 +1,286 @@
 """License models and data structures."""
 
 from dataclasses import dataclass
-from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List, Any
 
 if TYPE_CHECKING:
     import networkx as nx
 
 
-class LicenseType(Enum):
-    """Types of licenses available."""
-
-    SOLO = "solo"
-    GROUP_OWNER = "group_owner"
-    GROUP_MEMBER = "group_member"
+@dataclass
+class LicenseTypeConfig:
+    """Configuration for a single license type."""
+    
+    price: float
+    min_size: int
+    max_size: int
+    
+    def is_valid_size(self, size: int) -> bool:
+        """Check if the group size is valid for this license type."""
+        return self.min_size <= size <= self.max_size
+    
+    def cost_per_person(self, size: int) -> float:
+        """Calculate cost per person for this license type."""
+        if not self.is_valid_size(size):
+            return float('inf')
+        return self.price / size
 
 
 @dataclass
 class LicenseConfig:
-    """Configuration for license pricing and constraints."""
+    """Configuration for all available license types."""
 
-    solo_price: float
-    group_price: float
-    group_size: int
+    license_types: Dict[str, LicenseTypeConfig]
+
+    @classmethod
+    def create_traditional(cls, solo_price: float = 1.0, group_price: float = 2.08, group_size: int = 6):
+        """Create traditional solo/group configuration for backward compatibility."""
+        return cls(license_types={
+            "solo": LicenseTypeConfig(price=solo_price, min_size=1, max_size=1),
+            "group": LicenseTypeConfig(price=group_price, min_size=2, max_size=group_size)
+        })
+    
+    @classmethod
+    def create_flexible(cls, license_configs: Dict[str, Dict[str, Any]]):
+        """Create flexible license configuration from dictionary.
+        
+        Args:
+            license_configs: Dictionary like {
+                "solo": {"price": 1.0, "min_size": 1, "max_size": 1},
+                "duo": {"price": 1.6, "min_size": 2, "max_size": 2},
+                "family": {"price": 2.08, "min_size": 2, "max_size": 6}
+            }
+        """
+        license_types = {}
+        for name, config in license_configs.items():
+            license_types[name] = LicenseTypeConfig(
+                price=config["price"],
+                min_size=config["min_size"],
+                max_size=config["max_size"]
+            )
+        return cls(license_types=license_types)
+    
+    def get_best_license_for_size(self, size: int) -> tuple[str, LicenseTypeConfig] | None:
+        """Find the most cost-effective license type for a given group size."""
+        best_license = None
+        best_cost_per_person = float('inf')
+        
+        for name, license_type in self.license_types.items():
+            if license_type.is_valid_size(size):
+                cost_per_person = license_type.cost_per_person(size)
+                if cost_per_person < best_cost_per_person:
+                    best_cost_per_person = cost_per_person
+                    best_license = (name, license_type)
+        
+        return best_license
+    
+    def is_size_beneficial(self, license_name: str, size: int) -> bool:
+        """Check if a specific license type is beneficial for given size."""
+        if license_name not in self.license_types:
+            return False
+            
+        license_type = self.license_types[license_name]
+        if not license_type.is_valid_size(size):
+            return False
+        
+        # Compare with best alternative
+        best_alternative = self.get_best_license_for_size(size)
+        if best_alternative is None:
+            return True
+        
+        return license_type.cost_per_person(size) <= best_alternative[1].cost_per_person(size)
 
     @property
+    def solo_price(self) -> float:
+        """Backward compatibility: get solo license price."""
+        if "solo" in self.license_types:
+            return self.license_types["solo"].price
+        # Find first single-person license
+        for license_type in self.license_types.values():
+            if license_type.min_size == 1 and license_type.max_size == 1:
+                return license_type.price
+        return 1.0  # Default fallback
+    
+    @property
+    def group_price(self) -> float:
+        """Backward compatibility: get group license price."""
+        if "group" in self.license_types:
+            return self.license_types["group"].price
+        # Find first multi-person license
+        for license_type in self.license_types.values():
+            if license_type.max_size > 1:
+                return license_type.price
+        return 2.0  # Default fallback
+    
+    @property
+    def group_size(self) -> int:
+        """Backward compatibility: get max group size."""
+        if "group" in self.license_types:
+            return self.license_types["group"].max_size
+        # Find largest group size
+        max_size = 1
+        for license_type in self.license_types.values():
+            max_size = max(max_size, license_type.max_size)
+        return max_size
+    
+    @property
     def price_ratio(self) -> float:
-        """Calculate the ratio of group price to solo price."""
-        return self.group_price / self.solo_price
-
-    def is_group_beneficial(self, group_members: int) -> bool:
-        """Check if group license is more cost-effective than solo licenses.
-
-        Args:
-            group_members: Number of members in the potential group.
-
-        Returns:
-            True if group license is more cost-effective.
-        """
-        if group_members > self.group_size:
-            return False
-        return self.group_price < group_members * self.solo_price
+        """Backward compatibility: get price ratio."""
+        return self.group_price / self.solo_price if self.solo_price > 0 else 1.0
 
 
 @dataclass
 class LicenseSolution:
-    """Solution for the licensing optimization problem."""
+    """Solution for the licensing optimization problem.
+    
+    Structure: {
+        "license_type_name": {
+            owner_id: [owner_id, member1, member2, ...]
+        }
+    }
+    """
 
-    solo_nodes: list[int]
-    group_owners: dict[int, list[int]]  # owner_id -> [owner_id, member1, member2, ...]
+    licenses: Dict[str, Dict[int, List[int]]]  # license_type -> {owner_id -> [members]}
 
     def __post_init__(self) -> None:
         """Validate the solution after initialization."""
-        # Ensure group owners include themselves in their member lists
-        for owner_id, members in self.group_owners.items():
-            if owner_id not in members:
-                members.insert(0, owner_id)
+        # Ensure owners include themselves in their member lists
+        for license_type, groups in self.licenses.items():
+            for owner_id, members in groups.items():
+                if owner_id not in members:
+                    members.insert(0, owner_id)
 
     @property
-    def total_cost(self) -> float:
-        """Calculate total cost of the solution."""
-        return 0.0  # This will be calculated by the optimization algorithms
+    def solo_nodes(self) -> List[int]:
+        """Get all nodes with solo licenses (backward compatibility)."""
+        solo_nodes = []
+        for license_type, groups in self.licenses.items():
+            for owner_id, members in groups.items():
+                if len(members) == 1:
+                    solo_nodes.extend(members)
+        return solo_nodes
 
-    def get_node_license_type(self, node_id: int) -> LicenseType:
-        """Get the license type for a specific node.
+    @property
+    def group_owners(self) -> Dict[int, List[int]]:
+        """Get all group owners (backward compatibility)."""
+        group_owners = {}
+        for license_type, groups in self.licenses.items():
+            for owner_id, members in groups.items():
+                if len(members) > 1:
+                    group_owners[owner_id] = members
+        return group_owners
 
-        Args:
-            node_id: The node identifier.
-
-        Returns:
-            The license type for the node.
-        """
-        if node_id in self.solo_nodes:
-            return LicenseType.SOLO
-
-        for owner_id, members in self.group_owners.items():
-            if node_id == owner_id:
-                return LicenseType.GROUP_OWNER
-            if node_id in members:
-                return LicenseType.GROUP_MEMBER
-
-        msg = f"Node {node_id} not found in any license assignment"
-        raise ValueError(msg)
-
-    def get_group_owner(self, node_id: int) -> int | None:
-        """Get the group owner for a node, if it's a group member.
+    def get_node_license_info(self, node_id: int) -> tuple[str, int] | None:
+        """Get the license type and owner for a specific node.
 
         Args:
             node_id: The node identifier.
 
         Returns:
-            The owner node ID if the node is in a group, None otherwise.
+            Tuple of (license_type, owner_id) or None if not found.
         """
-        for owner_id, members in self.group_owners.items():
-            if node_id in members:
-                return owner_id
+        for license_type, groups in self.licenses.items():
+            for owner_id, members in groups.items():
+                if node_id in members:
+                    return (license_type, owner_id)
         return None
 
+    def get_all_nodes(self) -> List[int]:
+        """Get all nodes in the solution."""
+        all_nodes = []
+        for license_type, groups in self.licenses.items():
+            for owner_id, members in groups.items():
+                all_nodes.extend(members)
+        return list(set(all_nodes))  # Remove duplicates
+
     def calculate_cost(self, config: LicenseConfig) -> float:
-        """Calculate the total cost of this solution.
+        """Calculate total cost of the solution.
 
         Args:
-            config: License configuration with pricing information.
-
-        Returns:
-            Total cost of the solution.
-        """
-        solo_cost = len(self.solo_nodes) * config.solo_price
-        group_cost = len(self.group_owners) * config.group_price
-        return solo_cost + group_cost
-
-    def is_valid(self, graph: "nx.Graph", config: "LicenseConfig") -> bool:
-        """Validate that the solution is feasible.
-
-        Args:
-            graph: NetworkX graph representing the social network.
             config: License configuration.
 
         Returns:
-            True if the solution is valid.
+            Total cost of all licenses.
         """
-        # Check all nodes are assigned
-        all_nodes = set(graph.nodes())
-        assigned_nodes = set(self.solo_nodes)
+        total_cost = 0.0
+        
+        for license_type, groups in self.licenses.items():
+            if license_type not in config.license_types:
+                continue
+                
+            license_config = config.license_types[license_type]
+            
+            for owner_id, members in groups.items():
+                group_size = len(members)
+                if license_config.is_valid_size(group_size):
+                    total_cost += license_config.price
+                else:
+                    # Invalid group size - return high penalty
+                    total_cost += float('inf')
+        
+        return total_cost
 
-        for members in self.group_owners.values():
-            assigned_nodes.update(members)
+    def is_valid(self, graph: "nx.Graph", config: "LicenseConfig") -> bool:
+        """Check if the solution is valid.
 
-        if assigned_nodes != all_nodes:
+        Args:
+            graph: The social network graph.
+            config: License configuration.
+
+        Returns:
+            True if solution is valid.
+        """
+        try:
+            # Check if all nodes are covered
+            graph_nodes = set(graph.nodes())
+            solution_nodes = set(self.get_all_nodes())
+            
+            if graph_nodes != solution_nodes:
+                return False
+            
+            # Check if all groups are valid
+            for license_type, groups in self.licenses.items():
+                if license_type not in config.license_types:
+                    return False
+                    
+                license_config = config.license_types[license_type]
+                
+                for owner_id, members in groups.items():
+                    # Check group size constraints
+                    if not license_config.is_valid_size(len(members)):
+                        return False
+                    
+                    # Check if owner is in the graph
+                    if owner_id not in graph_nodes:
+                        return False
+                    
+                    # Check if all members are connected to owner (for groups > 1)
+                    if len(members) > 1:
+                        for member in members:
+                            if member != owner_id and not graph.has_edge(owner_id, member):
+                                return False
+            
+            return True
+            
+        except Exception:
             return False
 
-        # Check group size constraints and connectivity
-        for owner_id, members in self.group_owners.items():
-            if len(members) > config.group_size:
-                return False
+    @classmethod
+    def create_empty(cls) -> "LicenseSolution":
+        """Create an empty solution."""
+        return cls(licenses={})
 
-            # Check that all members are connected to the owner
-            for member_id in members:
-                if member_id != owner_id and not graph.has_edge(owner_id, member_id):
-                    return False
-
-        return True
+    @classmethod
+    def from_traditional(cls, solo_nodes: List[int], group_owners: Dict[int, List[int]]) -> "LicenseSolution":
+        """Create solution from traditional format (backward compatibility)."""
+        licenses = {}
+        
+        # Add solo licenses
+        if solo_nodes:
+            licenses["solo"] = {node: [node] for node in solo_nodes}
+        
+        # Add group licenses
+        if group_owners:
+            licenses["group"] = group_owners.copy()
+        
+        return cls(licenses=licenses)

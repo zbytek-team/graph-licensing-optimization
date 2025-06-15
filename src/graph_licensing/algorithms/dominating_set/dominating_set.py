@@ -41,14 +41,13 @@ class DominatingSetAlgorithm(BaseAlgorithm):
 
         nodes = list(graph.nodes())
         if not nodes:
-            return LicenseSolution(solo_nodes=[], group_owners={})
+            return LicenseSolution.create_empty()
 
         # Find a dominating set using greedy approach
         dominating_set = self._greedy_dominating_set(graph)
 
         unassigned = set(nodes)
-        solo_nodes = []
-        group_owners = {}
+        licenses = {}
 
         # Try to form groups around dominating nodes
         for dominator in dominating_set:
@@ -58,23 +57,53 @@ class DominatingSetAlgorithm(BaseAlgorithm):
             # Get unassigned neighbors
             available_neighbors = [n for n in graph.neighbors(dominator) if n in unassigned]
 
-            # Form group if beneficial
-            potential_group_size = min(len(available_neighbors) + 1, config.group_size)
-
-            if config.is_group_beneficial(potential_group_size):
-                group_members = [dominator] + available_neighbors[: config.group_size - 1]
-                group_owners[dominator] = group_members
-
-                for member in group_members:
+            # Try different license types and group sizes
+            best_assignment = None
+            best_cost_per_person = float('inf')
+            
+            # Try each license type
+            for license_type, license_config in config.license_types.items():
+                # Try different group sizes within the license constraints
+                max_possible_size = min(len(available_neighbors) + 1, license_config.max_size)
+                
+                for group_size in range(license_config.min_size, max_possible_size + 1):
+                    if config.is_size_beneficial(license_type, group_size):
+                        cost_per_person = license_config.cost_per_person(group_size)
+                        if cost_per_person < best_cost_per_person:
+                            best_cost_per_person = cost_per_person
+                            members = [dominator] + available_neighbors[:group_size - 1]
+                            best_assignment = (license_type, members)
+            
+            # Apply best assignment
+            if best_assignment:
+                license_type, members = best_assignment
+                if license_type not in licenses:
+                    licenses[license_type] = {}
+                licenses[license_type][dominator] = members
+                
+                for member in members:
                     unassigned.discard(member)
             else:
-                solo_nodes.append(dominator)
-                unassigned.discard(dominator)
+                # Fallback to solo with best license type
+                best_solo = config.get_best_license_for_size(1)
+                if best_solo:
+                    license_type, _ = best_solo
+                    if license_type not in licenses:
+                        licenses[license_type] = {}
+                    licenses[license_type][dominator] = [dominator]
+                    unassigned.discard(dominator)
 
-        # Handle remaining nodes
-        solo_nodes.extend(list(unassigned))
+        # Handle remaining nodes with best solo license
+        if unassigned:
+            best_solo = config.get_best_license_for_size(1)
+            if best_solo:
+                license_type, _ = best_solo
+                if license_type not in licenses:
+                    licenses[license_type] = {}
+                for node in unassigned:
+                    licenses[license_type][node] = [node]
 
-        return LicenseSolution(solo_nodes=solo_nodes, group_owners=group_owners)
+        return LicenseSolution(licenses=licenses)
 
     def _greedy_dominating_set(self, graph: "nx.Graph") -> list[int]:
         """Find a dominating set using greedy heuristic.

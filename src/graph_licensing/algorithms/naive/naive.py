@@ -35,7 +35,7 @@ class NaiveAlgorithm(BaseAlgorithm):
         Returns:
             Optimal licensing solution.
         """
-        from itertools import combinations
+        from itertools import combinations, product
 
         from ...models.license import LicenseSolution
 
@@ -43,67 +43,113 @@ class NaiveAlgorithm(BaseAlgorithm):
         n = len(nodes)
 
         if n == 0:
-            return LicenseSolution(solo_nodes=[], group_owners={})
+            return LicenseSolution.create_empty()
 
-        if n > 15:  # Prevent exponential explosion
-            msg = f"Graph too large for naive algorithm (n={n}). Use n <= 15."
+        if n > 12:  # Prevent exponential explosion - reduced due to increased complexity
+            msg = f"Graph too large for naive algorithm (n={n}). Use n <= 12."
             raise ValueError(msg)
 
         best_solution = None
         best_cost = float("inf")
+        
+        # Generate all possible valid assignments
+        all_assignments = self._generate_all_assignments(nodes, graph, config)
+        
+        for assignment in all_assignments:
+            solution = LicenseSolution(licenses=assignment)
+            if solution.is_valid(graph, config):
+                cost = solution.calculate_cost(config)
+                if cost < best_cost:
+                    best_cost = cost
+                    best_solution = solution
 
-        # Try all possible combinations of solo and group assignments
-        for num_groups in range(n + 1):
-            # Choose which nodes will be group owners
-            for group_owners in combinations(nodes, num_groups):
-                remaining_nodes = [node for node in nodes if node not in group_owners]
+        # Fallback: assign all nodes to best solo license if no valid solution found
+        if best_solution is None:
+            best_solo = config.get_best_license_for_size(1)
+            if best_solo:
+                license_type, _ = best_solo
+                licenses = {license_type: {node: [node] for node in nodes}}
+                best_solution = LicenseSolution(licenses=licenses)
+        
+        return best_solution or LicenseSolution.create_empty()
 
-                # For each group owner, try all possible group memberships
-                group_assignments = {}
-                valid = True
-
-                for owner in group_owners:
-                    # Get potential members (neighbors + owner)
-                    potential_members = [owner, *list(graph.neighbors(owner))]
-                    potential_members = [n for n in potential_members if n not in group_assignments]
-
-                    # Try all possible subsets up to group_size
-                    best_group = None
-                    for group_size in range(
-                        1,
-                        min(config.group_size + 1, len(potential_members) + 1),
-                    ):
-                        for group_members in combinations(
-                            potential_members,
-                            group_size,
-                        ):
-                            if owner in group_members:
-                                if best_group is None or len(group_members) > len(
-                                    best_group,
-                                ):
-                                    best_group = list(group_members)
-
-                    if best_group and len(best_group) >= 1:
-                        group_assignments[owner] = best_group
-                        # Remove assigned members from remaining nodes
-                        remaining_nodes = [n for n in remaining_nodes if n not in best_group]
-                    else:
-                        valid = False
-                        break
-
-                if valid:
-                    # Remaining nodes get solo licenses
-                    solo_nodes = remaining_nodes
-
-                    solution = LicenseSolution(
-                        solo_nodes=solo_nodes,
-                        group_owners=group_assignments,
-                    )
-
-                    if solution.is_valid(graph, config):
-                        cost = solution.calculate_cost(config)
-                        if cost < best_cost:
-                            best_cost = cost
-                            best_solution = solution
-
-        return best_solution or LicenseSolution(solo_nodes=nodes, group_owners={})
+    def _generate_all_assignments(self, nodes: list, graph: "nx.Graph", config: "LicenseConfig") -> list:
+        """Generate all possible valid license assignments.
+        
+        Args:
+            nodes: List of nodes.
+            graph: The graph.
+            config: License configuration.
+            
+        Returns:
+            List of all possible license assignments.
+        """
+        if not nodes:
+            return [{}]
+        
+        all_assignments = []
+        
+        # For small graphs, we can try all possible partitions
+        # We'll use a recursive approach to generate all valid groupings
+        self._recursive_assignment(nodes, graph, config, {}, set(), all_assignments)
+        
+        return all_assignments
+    
+    def _recursive_assignment(self, remaining_nodes: list, graph: "nx.Graph", config: "LicenseConfig", 
+                             current_licenses: dict, assigned_nodes: set, all_assignments: list):
+        """Recursively generate all possible assignments.
+        
+        Args:
+            remaining_nodes: Nodes not yet assigned.
+            graph: The graph.
+            config: License configuration.
+            current_licenses: Current partial assignment.
+            assigned_nodes: Set of nodes already assigned.
+            all_assignments: List to append complete assignments to.
+        """
+        from itertools import combinations
+        
+        if not remaining_nodes:
+            # All nodes assigned, add to results
+            all_assignments.append(current_licenses.copy())
+            return
+        
+        # Take the first remaining node
+        node = remaining_nodes[0]
+        remaining = remaining_nodes[1:]
+        
+        # Try all license types
+        for license_type, license_config in config.license_types.items():
+            # Try different group sizes for this license type
+            for group_size in range(license_config.min_size, license_config.max_size + 1):
+                if group_size == 1:
+                    # Solo assignment
+                    new_licenses = current_licenses.copy()
+                    if license_type not in new_licenses:
+                        new_licenses[license_type] = {}
+                    new_licenses[license_type][node] = [node]
+                    
+                    new_assigned = assigned_nodes | {node}
+                    new_remaining = [n for n in remaining if n not in new_assigned]
+                    
+                    self._recursive_assignment(new_remaining, graph, config, new_licenses, new_assigned, all_assignments)
+                
+                else:
+                    # Group assignment - find all possible groups of this size with node as owner
+                    # Get neighbors that are still unassigned
+                    available_neighbors = [n for n in graph.neighbors(node) if n not in assigned_nodes and n in remaining_nodes]
+                    
+                    # Try all combinations of neighbors for the group
+                    if len(available_neighbors) >= group_size - 1:
+                        for members_subset in combinations(available_neighbors, group_size - 1):
+                            group_members = [node] + list(members_subset)
+                            
+                            new_licenses = current_licenses.copy()
+                            if license_type not in new_licenses:
+                                new_licenses[license_type] = {}
+                            new_licenses[license_type][node] = group_members
+                            
+                            new_assigned = assigned_nodes | set(group_members)
+                            new_remaining = [n for n in remaining if n not in new_assigned]
+                            
+                            self._recursive_assignment(new_remaining, graph, config, new_licenses, new_assigned, all_assignments)

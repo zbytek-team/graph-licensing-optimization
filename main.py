@@ -32,12 +32,6 @@ from graph_licensing.optimization import OptunaTuner
 from graph_licensing.utils import Benchmark, FileIO
 from graph_licensing.visualizers.graph_visualizer import GraphVisualizer
 
-# Import analysis visualizer from root directory
-import sys
-sys.path.append(".")
-from analysis_visualizer import AnalysisVisualizer
-
-
 def setup_logging(level: str = "INFO") -> None:
     """Setup logging configuration."""
     logging.basicConfig(
@@ -82,7 +76,7 @@ def create_license_config(
     group_size: int = 6
 ) -> LicenseConfig:
     """Create license configuration."""
-    return LicenseConfig(
+    return LicenseConfig.create_traditional(
         solo_price=solo_cost,
         group_price=group_cost,
         group_size=group_size
@@ -120,9 +114,9 @@ def cli(ctx, log_level):
               type=click.Choice(list(get_algorithms().keys())))
 @click.option("--graph-type", default="random")
 @click.option("--graph-size", default=20, type=int)
-@click.option("--solo-cost", default=10.0, type=float)
-@click.option("--group-cost", default=15.0, type=float)
-@click.option("--group-size", default=5, type=int)
+@click.option("--solo-cost", default=1.0, type=float)
+@click.option("--group-cost", default=2.08, type=float)
+@click.option("--group-size", default=6, type=int)
 @click.option("--seed", default=42, type=int)
 def single(algorithm, graph_type, graph_size, solo_cost, group_cost, 
            group_size, seed):
@@ -604,8 +598,9 @@ def analyze(input_dir):
     try:
         start_time = datetime.now()
         
-        # Use AnalysisVisualizer instead of AnalysisRunner
-        analyzer = AnalysisVisualizer(results_path=str(input_dir))
+        # Use AnalysisRunner from analysis module
+        from src.graph_licensing.analysis import AnalysisRunner
+        analyzer = AnalysisRunner(results_path=str(input_dir))
         analyzer.output_dir = output_path
         analyzer.generate_comprehensive_report()
         

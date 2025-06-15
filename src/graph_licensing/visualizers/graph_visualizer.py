@@ -15,16 +15,25 @@ class GraphVisualizer:
 
     def __init__(self) -> None:
         """Initialize the visualizer."""
+        # Enhanced color map for different license types
         self.color_map = {
-            "solo": "#f7ca00",
-            "group_owner": "#003667", 
-            "group_member": "#003667",
+            "solo": "#f7ca00",         # Yellow for solo
+            "individual": "#f7ca00",   # Yellow for individual  
+            "duo": "#ff6b6b",          # Red for duo
+            "trio": "#4ecdc4",         # Teal for trio
+            "family": "#45b7d1",       # Blue for family
+            "small_team": "#96ceb4",   # Light green for small team
+            "large_team": "#003667",   # Dark blue for large team
+            "small": "#96ceb4",        # Light green
+            "medium": "#45b7d1",       # Blue
+            "large": "#003667",        # Dark blue
+            "group": "#003667",        # Default group color
         }
 
         self.size_map = {
-            "solo": 20,
-            "group_owner": 40,
-            "group_member": 20
+            "owner": 500,
+            "member": 300,
+            "solo": 400
         }
 
     def visualize_solution(
@@ -44,7 +53,6 @@ class GraphVisualizer:
             config: License configuration.
             title: Plot title.
             save_path: Path to save the plot (optional).
-            show: Whether to display the plot.
             figsize: Figure size as (width, height).
         """
         plt.figure(figsize=figsize)
@@ -53,82 +61,112 @@ class GraphVisualizer:
         pos = nx.spring_layout(graph, seed=42)
         print("done springing")
         
-        # Prepare node colors (standardized with compare_solutions)
-        node_colors = [self.color_map[solution.get_node_license_type(node).value] for node in graph.nodes()]
+        # Prepare node colors and sizes based on new license structure
+        node_colors = []
+        node_sizes = []
+        
+        for node in graph.nodes():
+            license_info = solution.get_node_license_info(node)
+            if license_info:
+                license_type, owner = license_info
+                # Get color for license type
+                color = self.color_map.get(license_type, "#cccccc")
+                node_colors.append(color)
+                
+                # Set size based on role (owner vs member)
+                if node == owner:
+                    node_sizes.append(self.size_map["owner"])
+                else:
+                    node_sizes.append(self.size_map["member"])
+            else:
+                node_colors.append("#cccccc")  # Gray for unassigned
+                node_sizes.append(self.size_map["solo"])
 
-        # Draw nodes (standardized with compare_solutions)
+        # Draw nodes
         nx.draw_networkx_nodes(
             graph,
             pos,
             node_color=node_colors,
-            node_size=500,
+            node_size=node_sizes,
             alpha=0.8,
         )
 
-        # Draw regular edges (standardized with compare_solutions)
+        # Draw regular edges
         nx.draw_networkx_edges(
             graph,
             pos,
             edge_color="gray",
             width=1,
-            alpha=0.7,
+            alpha=0.5,
             style='dashed',
         )
 
-        # Draw group edges with different colors
-        group_edges = []
-        for owner, members in solution.group_owners.items():
-            for member in members:
-                if member != owner and graph.has_edge(owner, member):
-                    group_edges.append((owner, member))
+        # Draw license group edges with colors
+        license_colors = ["#ff4444", "#44ff44", "#4444ff", "#ffff44", "#ff44ff", "#44ffff"]
+        color_idx = 0
+        
+        for license_type, groups in solution.licenses.items():
+            for owner, members in groups.items():
+                if len(members) > 1:  # Only for multi-member groups
+                    group_edges = []
+                    for member in members:
+                        if member != owner and graph.has_edge(owner, member):
+                            group_edges.append((owner, member))
+                    
+                    if group_edges:
+                        edge_color = license_colors[color_idx % len(license_colors)]
+                        nx.draw_networkx_edges(
+                            graph,
+                            pos,
+                            edgelist=group_edges,
+                            edge_color=edge_color,
+                            width=3,
+                            alpha=0.8,
+                        )
+                        color_idx += 1
 
-        if group_edges:
-            nx.draw_networkx_edges(
-                graph,
-                pos,
-                edgelist=group_edges,
-                edge_color="#013865",
-                width=2,
-                alpha=0.8,
+        # Draw node labels
+        nx.draw_networkx_labels(graph, pos, font_size=8, font_weight="bold")
+
+        # Create legend for license types
+        legend_elements = []
+        used_license_types = set()
+        
+        for license_type, groups in solution.licenses.items():
+            if license_type not in used_license_types:
+                color = self.color_map.get(license_type, "#cccccc")
+                count = len(groups)
+                total_people = sum(len(members) for members in groups.values())
+                
+                legend_elements.append(
+                    plt.Line2D(
+                        [0], [0],
+                        marker="o",
+                        color="w",
+                        markerfacecolor=color,
+                        markersize=10,
+                        label=f"{license_type.title()}: {count} licenses ({total_people} people)",
+                    )
+                )
+                used_license_types.add(license_type)
+
+        if legend_elements:
+            plt.legend(
+                handles=legend_elements,
+                loc="upper right",
+                bbox_to_anchor=(1.0, 1.0),
+                fontsize=10
             )
 
-        # Draw labels
-        # nx.draw_networkx_labels(graph, pos, node_labels, font_size=8)
-
-        # Add legend
-        legend_elements = [
-            plt.Line2D(
-                [0],
-                [0],
-                marker="o",
-                color="w",
-                markerfacecolor=self.color_map["solo"],
-                markersize=10,
-                label=f"Solo",
-            ),
-            plt.Line2D(
-                [0],
-                [0],
-                marker="o",
-                color="w",
-                markerfacecolor=self.color_map["group_owner"],
-                markersize=10,
-                label="Group Member",
-            ),
-            plt.Line2D([0], [0], color="#013865", linewidth=3, label="Group Connection"),
-        ]
-        # plt.legend(
-        #     handles=legend_elements,
-        #     loc="upper right",
-        #     bbox_to_anchor=(1.0, 1.0),
-        # )
-
-        # Add cost information as title
+        # Add comprehensive cost information as title
         total_cost = solution.calculate_cost(config)
-        num_solo = len(solution.solo_nodes)
-        num_groups = len(solution.group_owners)
-        plt.title(f"{title}\nCost: ${total_cost:.2f}  |  Solo: {num_solo}  |  Groups: {num_groups}", 
-                 fontsize=14, pad=20)
+        total_licenses = sum(len(groups) for groups in solution.licenses.values())
+        total_people = len(solution.get_all_nodes())
+        
+        plt.title(
+            f"{title}\nTotal Cost: ${total_cost:.2f} | {total_licenses} licenses | {total_people} people | ${total_cost/total_people:.2f}/person", 
+            fontsize=14, pad=20
+        )
 
         plt.axis("off")
         plt.tight_layout()
@@ -178,8 +216,16 @@ class GraphVisualizer:
         for idx, (algorithm_name, solution) in enumerate(solutions.items()):
             ax = axes_list[idx]
 
-            # Prepare node colors
-            node_colors = [self.color_map[solution.get_node_license_type(node).value] for node in graph.nodes()]
+            # Prepare node colors based on new license structure
+            node_colors = []
+            for node in graph.nodes():
+                license_info = solution.get_node_license_info(node)
+                if license_info:
+                    license_type, owner = license_info
+                    color = self.color_map.get(license_type, "#cccccc")
+                    node_colors.append(color)
+                else:
+                    node_colors.append("#cccccc")  # Gray for unassigned
 
             # Draw everything on this Axes
             nx.draw_networkx_nodes(
@@ -200,12 +246,15 @@ class GraphVisualizer:
                 ax=ax,
             )
 
-            # Highlight group‐member edges
+            # Highlight group‐member edges using new structure
             group_edges = []
-            for owner, members in solution.group_owners.items():
-                for member in members:
-                    if member != owner and graph.has_edge(owner, member):
-                        group_edges.append((owner, member))
+            for license_type, groups in solution.licenses.items():
+                for owner, members in groups.items():
+                    if len(members) > 1:  # Multi-member group
+                        for member in members:
+                            if member != owner and graph.has_edge(owner, member):
+                                group_edges.append((owner, member))
+            
             if group_edges:
                 nx.draw_networkx_edges(
                     graph,
@@ -217,18 +266,11 @@ class GraphVisualizer:
                     ax=ax,
                 )
 
-            # Labels and title
-            # nx.draw_networkx_labels(
-            #     graph,
-            #     pos,
-            #     {n: str(n) for n in graph.nodes()},
-            #     font_size=8,
-            #     ax=ax,
-            # )
+            # Labels and title with new license structure info
             total_cost = solution.calculate_cost(config)
-            num_solo = len(solution.solo_nodes)
-            num_groups = len(solution.group_owners)
-            ax.set_title(f"{algorithm_name}\nCost: ${total_cost:.2f}  |  Solo: {num_solo}  |  Groups: {num_groups}")
+            total_licenses = sum(len(groups) for groups in solution.licenses.values())
+            total_people = len(solution.get_all_nodes())
+            ax.set_title(f"{algorithm_name}\nCost: ${total_cost:.2f} | {total_licenses} licenses | {total_people} people")
             ax.axis("off")
 
         # Turn off any unused subplots

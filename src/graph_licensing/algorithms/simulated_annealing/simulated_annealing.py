@@ -69,7 +69,7 @@ class SimulatedAnnealingAlgorithm(BaseAlgorithm):
 
         nodes = list(graph.nodes())
         if not nodes:
-            return LicenseSolution(solo_nodes=[], group_owners={})
+            return LicenseSolution.create_empty()
 
         # Start with warm start if available, otherwise greedy solution
         if warm_start is not None:
@@ -128,31 +128,47 @@ class SimulatedAnnealingAlgorithm(BaseAlgorithm):
         from ...models.license import LicenseSolution
         
         current_nodes = set(graph.nodes())
+        new_licenses = {}
+        assigned_nodes = set()
         
-        # Filter solo nodes to only include existing nodes
-        new_solo = [node for node in solution.solo_nodes if node in current_nodes]
-        
-        # Adapt groups
-        new_groups = {}
-        for owner, members in solution.group_owners.items():
-            if owner in current_nodes:
-                # Keep only existing members
-                valid_members = [m for m in members if m in current_nodes]
-                # Ensure all members are still connected to owner
-                connected_members = [m for m in valid_members 
-                                   if m == owner or graph.has_edge(owner, m)]
+        # Process each license type and group
+        for license_type, groups in solution.licenses.items():
+            if license_type not in config.license_types:
+                continue
                 
-                if len(connected_members) > 1:  # Valid group
-                    new_groups[owner] = connected_members
-                elif connected_members:  # Only owner left
-                    new_solo.append(owner)
+            license_config = config.license_types[license_type]
+            new_groups = {}
+            
+            for owner, members in groups.items():
+                if owner in current_nodes:
+                    # Keep only existing members that are connected to owner
+                    valid_members = []
+                    for member in members:
+                        if member in current_nodes:
+                            if member == owner or graph.has_edge(owner, member):
+                                valid_members.append(member)
+                    
+                    # Check if group is still valid for this license type
+                    if valid_members and license_config.is_valid_size(len(valid_members)):
+                        new_groups[owner] = valid_members
+                        assigned_nodes.update(valid_members)
+            
+            if new_groups:
+                new_licenses[license_type] = new_groups
         
-        # Handle any nodes that weren't assigned
-        assigned_nodes = set(new_solo) | set().union(*new_groups.values()) if new_groups else set(new_solo)
+        # Handle unassigned nodes - assign them solo licenses with best license type
         unassigned = current_nodes - assigned_nodes
-        new_solo.extend(list(unassigned))
+        if unassigned:
+            # Find best solo license type
+            best_solo = config.get_best_license_for_size(1)
+            if best_solo:
+                license_type, _ = best_solo
+                if license_type not in new_licenses:
+                    new_licenses[license_type] = {}
+                for node in unassigned:
+                    new_licenses[license_type][node] = [node]
         
-        return LicenseSolution(solo_nodes=new_solo, group_owners=new_groups)
+        return LicenseSolution(licenses=new_licenses)
 
     def _generate_neighbor(
         self,
@@ -171,67 +187,143 @@ class SimulatedAnnealingAlgorithm(BaseAlgorithm):
             Neighbor solution.
         """
         from ...models.license import LicenseSolution
+        import copy
 
         nodes = list(graph.nodes())
         if not nodes:
             return solution
 
-        # Choose a random modification type
-        modification_type = random.choice(["change_solo", "change_group", "swap_group"])
-
-        new_solo = solution.solo_nodes.copy()
-        new_groups = {k: v.copy() for k, v in solution.group_owners.items()}
-
-        if modification_type == "change_solo" and new_solo:
-            # Convert a solo node to group member or vice versa
-            node = random.choice(new_solo)
-            new_solo.remove(node)
-
-            # Try to add to an existing group or create new one
+        # Deep copy the current solution
+        new_licenses = copy.deepcopy(solution.licenses)
+        
+        # Choose a random node to modify
+        node = random.choice(nodes)
+        
+        # Find current assignment of this node
+        current_license_type = None
+        current_owner = None
+        current_members = None
+        
+        for license_type, groups in new_licenses.items():
+            for owner, members in groups.items():
+                if node in members:
+                    current_license_type = license_type
+                    current_owner = owner
+                    current_members = members
+                    break
+            if current_license_type:
+                break
+        
+        if current_license_type is None:
+            return solution  # Node not found, return original
+        
+        # Remove node from current assignment
+        current_members.remove(node)
+        if len(current_members) == 0:
+            del new_licenses[current_license_type][current_owner]
+            if len(new_licenses[current_license_type]) == 0:
+                del new_licenses[current_license_type]
+        elif current_owner == node:
+            # Owner removed, need to reassign group
+            if current_members:
+                new_owner = current_members[0]
+                new_licenses[current_license_type][new_owner] = current_members
+            del new_licenses[current_license_type][current_owner]
+        
+        # Now try to assign node to a new license/group
+        modification_types = ["solo", "join_group", "create_group"]
+        modification = random.choice(modification_types)
+        
+        if modification == "solo":
+            # Assign as solo with best license type for size 1
+            best_license = config.get_best_license_for_size(1)
+            if best_license:
+                license_type, _ = best_license
+                if license_type not in new_licenses:
+                    new_licenses[license_type] = {}
+                new_licenses[license_type][node] = [node]
+        
+        elif modification == "join_group":
+            # Try to join an existing group
             neighbors = list(graph.neighbors(node))
-            if neighbors and random.random() < 0.5:
-                # Join existing group if possible
-                potential_owners = [n for n in neighbors if n in new_groups]
-                if potential_owners:
-                    owner = random.choice(potential_owners)
-                    if len(new_groups[owner]) < config.group_size:
-                        new_groups[owner].append(node)
-                    else:
-                        new_solo.append(node)  # Can't join, stay solo
+            potential_groups = []
+            
+            for license_type, groups in new_licenses.items():
+                license_config = config.license_types[license_type]
+                for owner, members in groups.items():
+                    if owner in neighbors and len(members) < license_config.max_size:
+                        potential_groups.append((license_type, owner))
+            
+            if potential_groups:
+                license_type, owner = random.choice(potential_groups)
+                new_licenses[license_type][owner].append(node)
+            else:
+                # Can't join any group, make solo
+                best_license = config.get_best_license_for_size(1)
+                if best_license:
+                    license_type, _ = best_license
+                    if license_type not in new_licenses:
+                        new_licenses[license_type] = {}
+                    new_licenses[license_type][node] = [node]
+        
+        elif modification == "create_group":
+            # Try to create a new group with neighbors
+            neighbors = [n for n in graph.neighbors(node) if n != node]
+            if neighbors:
+                # Pick a neighbor to group with
+                neighbor = random.choice(neighbors)
+                
+                # Remove neighbor from current assignment
+                neighbor_license_type = None
+                neighbor_owner = None
+                neighbor_members = None
+                
+                for license_type, groups in new_licenses.items():
+                    for owner, members in groups.items():
+                        if neighbor in members:
+                            neighbor_license_type = license_type
+                            neighbor_owner = owner
+                            neighbor_members = members
+                            break
+                    if neighbor_license_type:
+                        break
+                
+                if neighbor_license_type:
+                    neighbor_members.remove(neighbor)
+                    if len(neighbor_members) == 0:
+                        del new_licenses[neighbor_license_type][neighbor_owner]
+                        if len(new_licenses[neighbor_license_type]) == 0:
+                            del new_licenses[neighbor_license_type]
+                    elif neighbor_owner == neighbor:
+                        # Neighbor was owner, reassign
+                        if neighbor_members:
+                            new_owner = neighbor_members[0]
+                            new_licenses[neighbor_license_type][new_owner] = neighbor_members
+                        del new_licenses[neighbor_license_type][neighbor_owner]
+                
+                # Find best license type for group of 2
+                best_license = config.get_best_license_for_size(2)
+                if best_license:
+                    license_type, _ = best_license
+                    if license_type not in new_licenses:
+                        new_licenses[license_type] = {}
+                    new_licenses[license_type][node] = [node, neighbor]
                 else:
-                    # Create new group
-                    potential_members = [n for n in neighbors if n in new_solo]
-                    if potential_members:
-                        member = random.choice(potential_members)
-                        new_solo.remove(member)
-                        new_groups[node] = [node, member]
-                    else:
-                        new_solo.append(node)  # No neighbors available
+                    # Can't form group, make both solo
+                    best_solo = config.get_best_license_for_size(1)
+                    if best_solo:
+                        license_type, _ = best_solo
+                        if license_type not in new_licenses:
+                            new_licenses[license_type] = {}
+                        new_licenses[license_type][node] = [node]
+                        new_licenses[license_type][neighbor] = [neighbor]
             else:
-                new_solo.append(node)  # Keep as solo
-
-        elif modification_type == "change_group" and new_groups:
-            # Modify an existing group
-            owner = random.choice(list(new_groups.keys()))
-            group = new_groups[owner]
-
-            if len(group) > 1:
-                # Remove a member
-                members = [m for m in group if m != owner]
-                if members:
-                    member_to_remove = random.choice(members)
-                    group.remove(member_to_remove)
-                    new_solo.append(member_to_remove)
-
-                    if len(group) == 1:  # Only owner left
-                        del new_groups[owner]
-                        new_solo.append(owner)
-            else:
-                # Try to add a member
-                neighbors = [n for n in graph.neighbors(owner) if n in new_solo]
-                if neighbors and len(group) < config.group_size:
-                    new_member = random.choice(neighbors)
-                    new_solo.remove(new_member)
-                    group.append(new_member)
-
-        return LicenseSolution(solo_nodes=new_solo, group_owners=new_groups)
+                # No neighbors, make solo
+                best_license = config.get_best_license_for_size(1)
+                if best_license:
+                    license_type, _ = best_license
+                    if license_type not in new_licenses:
+                        new_licenses[license_type] = {}
+                    new_licenses[license_type][node] = [node]
+        
+        return LicenseSolution(licenses=new_licenses)
