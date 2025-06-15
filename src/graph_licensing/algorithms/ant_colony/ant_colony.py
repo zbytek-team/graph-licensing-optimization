@@ -1,313 +1,318 @@
+"""Refactored Ant Colony Optimization algorithm using common components."""
+
 import random
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
-from ..base import BaseAlgorithm
+from ..common.population_base import PopulationBasedAlgorithm
+from ..common.initialization import SolutionInitializer
+from ..common.validation import SolutionValidator
 
 if TYPE_CHECKING:
     import networkx as nx
-
     from ...models.license import LicenseConfig, LicenseSolution, LicenseTypeConfig
+    from ..common.config import AntColonyConfig
 
 
-class AntColonyAlgorithm(BaseAlgorithm):
+class AntColonyAlgorithm(PopulationBasedAlgorithm):
+    """Ant Colony Optimization algorithm for license optimization."""
+
     def __init__(
         self,
         num_ants: int = 50,
         max_iterations: int = 100,
         alpha: float = 1.0,  # pheromone importance
-        beta: float = 2.0,  # heuristic importance
+        beta: float = 2.0,  # heuristic importance  
         rho: float = 0.5,  # evaporation rate
         q0: float = 0.9,  # exploitation vs exploration parameter
         initial_pheromone: float = 0.1,
         seed: int | None = None,
     ) -> None:
-        super().__init__("Ant Colony")
-        self.num_ants = num_ants
-        self.max_iterations = max_iterations
+        super().__init__("Ant Colony", num_ants, max_iterations, seed)
         self.alpha = alpha
         self.beta = beta
         self.rho = rho
         self.q0 = q0
         self.initial_pheromone = initial_pheromone
-        self.seed = seed
 
-        self.solo_pheromones: Dict[int, float] = {}  # node -> pheromone for solo license
-        self.group_pheromones: Dict[Tuple[int, int], float] = {}  # (owner, member) -> pheromone
+        # Pheromone matrices
+        self.license_pheromones: Dict[Tuple[str, int], float] = {}  # (license_type, node) -> pheromone
+        self.group_pheromones: Dict[Tuple[str, int, int], float] = {}  # (license_type, owner, member) -> pheromone
 
-        self._best_solution = None
-        self._best_cost = float("inf")
+    def _initialize_population(
+        self, graph: "nx.Graph", config: "LicenseConfig", warm_start: Optional["LicenseSolution"] = None
+    ) -> List["LicenseSolution"]:
+        """Initialize population using ant construction."""
+        return []  # ACO constructs solutions during each iteration
 
-    def supports_warm_start(self) -> bool:
-        return True
+    def _initialize_algorithm_state(
+        self, graph: "nx.Graph", config: "LicenseConfig", population: List["LicenseSolution"]
+    ) -> None:
+        """Initialize pheromone matrices."""
+        self._initialize_pheromones(graph, config)
 
-    def solve(
+    def _evolve_population(
         self,
+        population: List["LicenseSolution"],
+        fitness_scores: List[float],
         graph: "nx.Graph",
         config: "LicenseConfig",
-        warm_start: Optional["LicenseSolution"] = None,
-        **kwargs,
-    ) -> "LicenseSolution":
-        from ...models.license import LicenseSolution
+        generation: int,
+    ) -> List["LicenseSolution"]:
+        """Construct new solutions using ants."""
+        new_solutions = []
+        
+        for _ in range(self.population_size):
+            solution = self._construct_solution(graph, config)
+            if solution:
+                new_solutions.append(solution)
+        
+        # Update pheromones based on solution quality
+        if new_solutions:
+            fitness_scores = [SolutionValidator.calculate_solution_fitness(sol, config) for sol in new_solutions]
+            self._update_pheromones(list(zip(new_solutions, fitness_scores)))
+        
+        return new_solutions
 
-        if self.seed is not None:
-            random.seed(self.seed)
-
-        nodes = list(graph.nodes())
-        if not nodes:
-            return LicenseSolution.create_empty()
-
-        self._initialize_pheromones(graph, config, warm_start)
-
-        if warm_start:
-            self._best_solution = warm_start
-            self._best_cost = warm_start.calculate_cost(config)
-        else:
-            self._best_solution = None
-            self._best_cost = float("inf")
-
-        for iteration in range(self.max_iterations):
-            iteration_solutions = []
-            for ant in range(self.num_ants):
-                solution = self._construct_solution(graph, config)
-                if solution:
-                    cost = solution.calculate_cost(config)
-                    iteration_solutions.append((solution, cost))
-
-                    if cost < self._best_cost:
-                        self._best_cost = cost
-                        self._best_solution = solution
-
-            self._update_pheromones(iteration_solutions)
-
-            if iteration > 20 and iteration % 10 == 0:
-                pass
-
-        return self._best_solution or self._create_fallback_solution(graph, config)
-
-    def _initialize_pheromones(
-        self, graph: "nx.Graph", config: "LicenseConfig", warm_start: Optional["LicenseSolution"] = None
+    def _update_algorithm_state(
+        self, population: List["LicenseSolution"], fitness_scores: List[float], generation: int
     ) -> None:
+        """Update pheromones and apply evaporation."""
+        self._evaporate_pheromones()
+
+    def _initialize_pheromones(self, graph: "nx.Graph", config: "LicenseConfig") -> None:
+        """Initialize pheromone matrices."""
         nodes = list(graph.nodes())
-
-        self.license_pheromones = {}  # (license_type, node) -> pheromone
-        self.group_pheromones = {}  # (license_type, owner, member) -> pheromone
-
+        
+        # Initialize license assignment pheromones
         for license_type in config.license_types.keys():
             for node in nodes:
                 self.license_pheromones[(license_type, node)] = self.initial_pheromone
-
-            for node1 in nodes:
-                for node2 in graph.neighbors(node1):
-                    if node1 != node2:
-                        self.group_pheromones[(license_type, node1, node2)] = self.initial_pheromone
-
-        if warm_start:
-            boost_factor = 2.0
-
-            for license_type, groups in warm_start.licenses.items():
-                for owner, members in groups.items():
-                    if len(members) == 1:
-                        key = (license_type, owner)
-                        if key in self.license_pheromones:
-                            self.license_pheromones[key] *= boost_factor
-                    else:
-                        for member in members:
-                            if member != owner:
-                                key = (license_type, owner, member)
-                                if key in self.group_pheromones:
-                                    self.group_pheromones[key] *= boost_factor
+        
+        # Initialize group membership pheromones
+        for license_type in config.license_types.keys():
+            for owner in nodes:
+                for member in graph.neighbors(owner):
+                    self.group_pheromones[(license_type, owner, member)] = self.initial_pheromone
 
     def _construct_solution(self, graph: "nx.Graph", config: "LicenseConfig") -> Optional["LicenseSolution"]:
+        """Construct a solution using ant behavior."""
         from ...models.license import LicenseSolution
-
+        
         nodes = list(graph.nodes())
-        unassigned_nodes = set(nodes)
-        solution_licenses = {}
-
-        while unassigned_nodes:
-            current_node = random.choice(list(unassigned_nodes))
-
-            best_choice = self._choose_license_assignment(current_node, graph, config, unassigned_nodes)
-
-            if best_choice:
-                license_type, owner, members = best_choice
-
-                if license_type not in solution_licenses:
-                    solution_licenses[license_type] = {}
-
-                solution_licenses[license_type][owner] = members
-
-                for member in members:
-                    unassigned_nodes.discard(member)
-            else:
-                cheapest_solo = self._get_cheapest_solo_license(config)
-                if cheapest_solo:
-                    license_type = cheapest_solo
-                    if license_type not in solution_licenses:
-                        solution_licenses[license_type] = {}
-                    solution_licenses[license_type][current_node] = [current_node]
-
-                unassigned_nodes.remove(current_node)
-
-        return LicenseSolution(licenses=solution_licenses)
-
-    def _update_pheromones(self, solutions: List[Tuple["LicenseSolution", float]]) -> None:
-        if not solutions:
-            return
-
-        for key in self.license_pheromones:
-            self.license_pheromones[key] *= 1.0 - self.rho
-
-        for key in self.group_pheromones:
-            self.group_pheromones[key] *= 1.0 - self.rho
-
-        for solution, cost in solutions:
-            if cost <= 0:
-                continue
-
-            deposit = 1.0 / cost
-
-            if cost == self._best_cost:
-                deposit *= 2.0  # Best solution gets double pheromone
-
-            for license_type, groups in solution.licenses.items():
-                for owner, members in groups.items():
-                    if len(members) == 1:
-                        key = (license_type, owner)
-                        if key in self.license_pheromones:
-                            self.license_pheromones[key] += deposit
-                    else:
-                        for member in members:
-                            if member != owner:
-                                key = (license_type, owner, member)
-                                if key in self.group_pheromones:
-                                    self.group_pheromones[key] += deposit
-
-    def _choose_license_assignment(
-        self, node: int, graph: "nx.Graph", config: "LicenseConfig", unassigned_nodes: Set[int]
-    ) -> Optional[Tuple[str, int, List[int]]]:
-        candidates = []
-
-        for license_type, license_config in config.license_types.items():
-            for group_size in range(
-                license_config.min_size, min(license_config.max_size + 1, len(unassigned_nodes) + 1)
-            ):
-                if group_size == 1:
-                    pheromone = self.license_pheromones.get((license_type, node), self.initial_pheromone)
-                    heuristic = self._calculate_solo_heuristic(node, license_config, graph)
-                    attractiveness = (pheromone**self.alpha) * (heuristic**self.beta)
-                    candidates.append((attractiveness, license_type, node, [node]))
-
-                elif group_size > 1:
-                    potential_members = self._find_potential_group_members(
-                        node, graph, unassigned_nodes, group_size - 1
-                    )
-
-                    if len(potential_members) >= group_size - 1:
-                        members = [node] + potential_members[: group_size - 1]
-                        pheromone = self._calculate_group_pheromone(license_type, node, members[1:])
-                        heuristic = self._calculate_group_heuristic(license_config, members, graph)
-                        attractiveness = (pheromone**self.alpha) * (heuristic**self.beta)
-                        candidates.append((attractiveness, license_type, node, members))
-
-        if not candidates:
-            return None
-
-        if random.random() < self.q0:
-            best_candidate = max(candidates, key=lambda x: x[0])
-            return (best_candidate[1], best_candidate[2], best_candidate[3])
-        else:
-            total_attractiveness = sum(candidate[0] for candidate in candidates)
-            if total_attractiveness > 0:
-                rand_val = random.random() * total_attractiveness
-                cumulative = 0.0
-                for attractiveness, license_type, owner, members in candidates:
-                    cumulative += attractiveness
-                    if cumulative >= rand_val:
-                        return (license_type, owner, members)
-
-            chosen = random.choice(candidates)
-            return (chosen[1], chosen[2], chosen[3])
-
-    def _get_cheapest_solo_license(self, config: "LicenseConfig") -> Optional[str]:
-        cheapest_type = None
-        cheapest_cost = float("inf")
-
-        for license_type, license_config in config.license_types.items():
-            if license_config.is_valid_size(1) and license_config.price < cheapest_cost:
-                cheapest_cost = license_config.price
-                cheapest_type = license_type
-
-        return cheapest_type
-
-    def _find_potential_group_members(
-        self, node: int, graph: "nx.Graph", unassigned_nodes: Set[int], max_members: int
-    ) -> List[int]:
-        neighbors = [n for n in graph.neighbors(node) if n in unassigned_nodes]
-
-        neighbors.sort(key=lambda x: graph.degree(x), reverse=True)
-
-        return neighbors[:max_members]
-
-    def _calculate_solo_heuristic(self, node: int, license_config: "LicenseTypeConfig", graph: "nx.Graph") -> float:
-        degree = graph.degree(node)
-        return 1.0 / (1.0 + degree * 0.1)
-
-    def _calculate_group_pheromone(self, license_type: str, owner: int, members: List[int]) -> float:
-        total_pheromone = 0.0
-        count = 0
-
-        for member in members:
-            key = (license_type, owner, member)
-            if key in self.group_pheromones:
-                total_pheromone += self.group_pheromones[key]
-                count += 1
-
-        return total_pheromone / max(count, 1)
-
-    def _calculate_group_heuristic(
-        self, license_config: "LicenseTypeConfig", members: List[int], graph: "nx.Graph"
-    ) -> float:
-        group_size = len(members)
-        if not license_config.is_valid_size(group_size):
-            return 0.0
-
-        cost_per_person = license_config.cost_per_person(group_size)
-
-        owner = members[0]
-        connectivity = sum(1 for member in members[1:] if graph.has_edge(owner, member))
-        connectivity_factor = connectivity / max(len(members) - 1, 1)
-
-        return (1.0 / cost_per_person) * connectivity_factor
-
-    def _create_fallback_solution(self, graph: "nx.Graph", config: "LicenseConfig") -> "LicenseSolution":
-        from ...models.license import LicenseSolution
-
-        cheapest_type = self._get_cheapest_solo_license(config)
-        if not cheapest_type:
+        if not nodes:
             return LicenseSolution.create_empty()
-
-        nodes = list(graph.nodes())
-        licenses = {cheapest_type: {node: [node] for node in nodes}}
-
+        
+        unassigned = set(nodes)
+        licenses = {}
+        
+        while unassigned:
+            # Select starting node based on heuristic
+            start_node = self._select_node_probabilistically(unassigned, graph, config)
+            unassigned.remove(start_node)
+            
+            # Select license type for this node
+            license_type = self._select_license_type(start_node, config)
+            license_config = config.license_types[license_type]
+            
+            # Build group around this node
+            group = [start_node]
+            
+            # Add members to group based on pheromones and heuristics
+            while len(group) < license_config.max_size and unassigned:
+                next_member = self._select_group_member(start_node, group, unassigned, graph, license_type, config)
+                if next_member is None:
+                    break
+                group.append(next_member)
+                unassigned.remove(next_member)
+            
+            # Check if group size is valid
+            if license_config.is_valid_size(len(group)):
+                if license_type not in licenses:
+                    licenses[license_type] = {} 
+                licenses[license_type][start_node] = group
+            else:
+                # If group is too small, try to create individual licenses
+                for member in group:
+                    best_solo_license = config.get_best_license_for_size(1)
+                    if best_solo_license:
+                        solo_license_type = best_solo_license[0]
+                        if solo_license_type not in licenses:
+                            licenses[solo_license_type] = {}
+                        licenses[solo_license_type][member] = [member]
+        
         return LicenseSolution(licenses=licenses)
 
-    def get_algorithm_info(self) -> dict:
-        return {
-            "name": self.name,
-            "num_ants": self.num_ants,
-            "max_iterations": self.max_iterations,
-            "alpha": self.alpha,
-            "beta": self.beta,
-            "rho": self.rho,
-            "q0": self.q0,
-            "best_cost": self._best_cost if self._best_cost != float("inf") else None,
-            "pheromone_levels": {
-                "license_avg": sum(self.license_pheromones.values()) / len(self.license_pheromones)
-                if self.license_pheromones
-                else 0,
-                "group_avg": sum(self.group_pheromones.values()) / len(self.group_pheromones)
-                if self.group_pheromones
-                else 0,
-            },
-        }
+    def _select_node_probabilistically(
+        self, available_nodes: Set[int], graph: "nx.Graph", config: "LicenseConfig"
+    ) -> int:
+        """Select a node probabilistically based on heuristics."""
+        if len(available_nodes) == 1:
+            return next(iter(available_nodes))
+        
+        # Use degree as heuristic (higher degree = better starting point)
+        node_scores = {}
+        for node in available_nodes:
+            degree = graph.degree(node)
+            # Add small random component to break ties
+            node_scores[node] = degree + random.random() * 0.1
+        
+        # Select based on scores (higher is better)
+        total_score = sum(node_scores.values())
+        if total_score == 0:
+            return random.choice(list(available_nodes))
+        
+        rand_val = random.random() * total_score
+        cumulative = 0
+        
+        for node, score in node_scores.items():
+            cumulative += score
+            if rand_val <= cumulative:
+                return node
+        
+        return list(available_nodes)[-1]  # Fallback
+
+    def _select_license_type(self, node: int, config: "LicenseConfig") -> str:
+        """Select license type for a node based on pheromones."""
+        license_types = list(config.license_types.keys())
+        
+        if len(license_types) == 1:
+            return license_types[0]
+            
+        # Calculate probabilities based on pheromones
+        probabilities = {}
+        for license_type in license_types:
+            pheromone = self.license_pheromones.get((license_type, node), self.initial_pheromone)
+            # Simple heuristic: prefer licenses with better cost-per-person ratio
+            license_config = config.license_types[license_type]
+            heuristic = 1.0 / license_config.cost_per_person(license_config.min_size)
+            
+            probabilities[license_type] = (pheromone ** self.alpha) * (heuristic ** self.beta)
+        
+        # Normalize probabilities
+        total_prob = sum(probabilities.values())
+        if total_prob == 0:
+            return random.choice(license_types)
+        
+        # Roulette wheel selection
+        rand_val = random.random() * total_prob
+        cumulative = 0
+        
+        for license_type, prob in probabilities.items():
+            cumulative += prob
+            if rand_val <= cumulative:
+                return license_type
+        
+        return license_types[-1]  # Fallback
+
+    def _select_group_member(
+        self,
+        owner: int,
+        current_group: List[int],
+        available_nodes: Set[int],
+        graph: "nx.Graph",
+        license_type: str,
+        config: "LicenseConfig"
+    ) -> Optional[int]:
+        """Select next member for a group."""
+        # Only consider neighbors for group formation
+        candidates = [n for n in available_nodes if n in graph.neighbors(owner)]
+        
+        if not candidates:
+            return None
+        
+        # Calculate probabilities for each candidate
+        probabilities = {}
+        
+        for candidate in candidates:
+            # Pheromone component
+            pheromone = self.group_pheromones.get((license_type, owner, candidate), self.initial_pheromone)
+            
+            # Heuristic component (preference for nodes with many connections to current group)
+            shared_connections = sum(1 for member in current_group if candidate in graph.neighbors(member))
+            heuristic = shared_connections + 1  # +1 to avoid zero
+            
+            probabilities[candidate] = (pheromone ** self.alpha) * (heuristic ** self.beta)
+        
+        # Apply exploitation vs exploration
+        if random.random() < self.q0:
+            # Exploitation: choose best candidate
+            return max(candidates, key=lambda c: probabilities[c])
+        else:
+            # Exploration: probabilistic selection
+            total_prob = sum(probabilities.values())
+            if total_prob == 0:
+                return random.choice(candidates)
+            
+            rand_val = random.random() * total_prob
+            cumulative = 0
+            
+            for candidate, prob in probabilities.items():
+                cumulative += prob
+                if rand_val <= cumulative:
+                    return candidate
+            
+            return candidates[-1]  # Fallback
+
+    def _update_pheromones(self, solutions_with_costs: List[Tuple["LicenseSolution", float]]) -> None:
+        """Update pheromones based on solution quality."""
+        if not solutions_with_costs:
+            return
+        
+        # Find best solution in this iteration
+        best_solution, best_cost = min(solutions_with_costs, key=lambda x: x[1])
+        
+        # Update pheromones for all solutions (with different intensities)
+        for solution, cost in solutions_with_costs:
+            # Calculate pheromone deposit (inversely proportional to cost)
+            if cost > 0:
+                deposit = 1.0 / cost
+            else:
+                deposit = 1.0
+                
+            # Extra deposit for best solution
+            if solution == best_solution:
+                deposit *= 2.0
+            
+            self._deposit_pheromones(solution, deposit)
+
+    def _deposit_pheromones(self, solution: "LicenseSolution", deposit: float) -> None:
+        """Deposit pheromones for a given solution."""
+        for license_type, groups in solution.licenses.items():
+            for owner, members in groups.items():
+                # Deposit on license type assignment
+                current_pheromone = self.license_pheromones.get((license_type, owner), self.initial_pheromone)
+                self.license_pheromones[(license_type, owner)] = current_pheromone + deposit
+                
+                # Deposit on group membership
+                for member in members:
+                    if member != owner:
+                        key = (license_type, owner, member)
+                        current_pheromone = self.group_pheromones.get(key, self.initial_pheromone)
+                        self.group_pheromones[key] = current_pheromone + deposit
+
+    def _evaporate_pheromones(self) -> None:
+        """Apply pheromone evaporation."""
+        # Evaporate license assignment pheromones
+        for key in self.license_pheromones:
+            self.license_pheromones[key] *= (1 - self.rho)
+            # Ensure minimum pheromone level
+            self.license_pheromones[key] = max(self.license_pheromones[key], self.initial_pheromone * 0.1)
+        
+        # Evaporate group membership pheromones
+        for key in self.group_pheromones:
+            self.group_pheromones[key] *= (1 - self.rho)
+            self.group_pheromones[key] = max(self.group_pheromones[key], self.initial_pheromone * 0.1)
+
+    @classmethod
+    def from_config(cls, config: "AntColonyConfig"):
+        """Create instance from configuration object."""
+        return cls(
+            num_ants=config.num_ants,
+            max_iterations=config.max_iterations,
+            alpha=config.alpha,
+            beta=config.beta,
+            rho=config.rho,
+            q0=config.q0,
+            initial_pheromone=config.initial_pheromone,
+            seed=config.seed
+        )

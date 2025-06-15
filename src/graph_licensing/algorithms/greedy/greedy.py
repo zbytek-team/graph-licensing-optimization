@@ -12,6 +12,11 @@ class GreedyAlgorithm(BaseAlgorithm):
     def __init__(self) -> None:
         super().__init__("Greedy")
 
+    @classmethod
+    def from_config(cls, config):
+        """Create instance from configuration object."""
+        return cls()
+
     def solve(
         self,
         graph: "nx.Graph",
