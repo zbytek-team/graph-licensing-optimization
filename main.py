@@ -75,12 +75,12 @@ def create_license_config(
     group_cost: float = 2.08,
     group_size: int = 6
 ) -> LicenseConfig:
-    """Create license configuration."""
-    return LicenseConfig.create_traditional(
-        solo_price=solo_cost,
-        group_price=group_cost,
-        group_size=group_size
-    )
+    """Create flexible license configuration with multiple license types."""
+    return LicenseConfig.create_flexible({
+        "solo": {"price": solo_cost, "min_size": 1, "max_size": 1},
+        "duo": {"price": solo_cost * 1.6, "min_size": 2, "max_size": 2},
+        "family": {"price": group_cost, "min_size": 2, "max_size": group_size}
+    })
 
 
 def create_test_graph(
@@ -141,8 +141,15 @@ def single(algorithm, graph_type, graph_size, solo_cost, group_cost,
         # Display results
         click.echo(f"Solution found!")
         click.echo(f"Total cost: {solution.calculate_cost(config)}")
-        click.echo(f"Solo licenses: {len(solution.solo_nodes)}")
-        click.echo(f"Group licenses: {len(solution.group_owners)}")
+        
+        # Count license types
+        solo_count = sum(1 for license_type, groups in solution.licenses.items() 
+                        for members in groups.values() if len(members) == 1)
+        group_count = sum(1 for license_type, groups in solution.licenses.items() 
+                         for members in groups.values() if len(members) > 1)
+        
+        click.echo(f"Solo licenses: {solo_count}")
+        click.echo(f"Group licenses: {group_count}")
         click.echo(f"Valid solution: {solution.is_valid(graph, config)}")
         
         # Always create timestamped output directory and visualize
@@ -172,8 +179,10 @@ def single(algorithm, graph_type, graph_size, solo_cost, group_cost,
             },
             "solution": {
                 "total_cost": solution.calculate_cost(config),
-                "solo_licenses": len(solution.solo_nodes),
-                "group_licenses": len(solution.group_owners),
+                "solo_licenses": sum(1 for license_type, groups in solution.licenses.items() 
+                                   for members in groups.values() if len(members) == 1),
+                "group_licenses": sum(1 for license_type, groups in solution.licenses.items() 
+                                    for members in groups.values() if len(members) > 1),
                 "valid": solution.is_valid(graph, config)
             }
         }
@@ -501,8 +510,10 @@ def compare(algorithms, graph_type, graph_size, solo_cost, group_cost,
             solution = algorithm.solve(graph, config)
             
             total_cost = solution.calculate_cost(config)
-            solo_count = len(solution.solo_nodes)
-            group_count = len(solution.group_owners)
+            solo_count = sum(1 for license_type, groups in solution.licenses.items() 
+                           for members in groups.values() if len(members) == 1)
+            group_count = sum(1 for license_type, groups in solution.licenses.items() 
+                            for members in groups.values() if len(members) > 1)
             is_valid = solution.is_valid(graph, config)
             
             solutions[algo_name] = solution

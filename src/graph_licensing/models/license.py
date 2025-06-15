@@ -31,14 +31,6 @@ class LicenseConfig:
     """Configuration for all available license types."""
 
     license_types: Dict[str, LicenseTypeConfig]
-
-    @classmethod
-    def create_traditional(cls, solo_price: float = 1.0, group_price: float = 2.08, group_size: int = 6):
-        """Create traditional solo/group configuration for backward compatibility."""
-        return cls(license_types={
-            "solo": LicenseTypeConfig(price=solo_price, min_size=1, max_size=1),
-            "group": LicenseTypeConfig(price=group_price, min_size=2, max_size=group_size)
-        })
     
     @classmethod
     def create_flexible(cls, license_configs: Dict[str, Dict[str, Any]]):
@@ -90,44 +82,6 @@ class LicenseConfig:
         
         return license_type.cost_per_person(size) <= best_alternative[1].cost_per_person(size)
 
-    @property
-    def solo_price(self) -> float:
-        """Backward compatibility: get solo license price."""
-        if "solo" in self.license_types:
-            return self.license_types["solo"].price
-        # Find first single-person license
-        for license_type in self.license_types.values():
-            if license_type.min_size == 1 and license_type.max_size == 1:
-                return license_type.price
-        return 1.0  # Default fallback
-    
-    @property
-    def group_price(self) -> float:
-        """Backward compatibility: get group license price."""
-        if "group" in self.license_types:
-            return self.license_types["group"].price
-        # Find first multi-person license
-        for license_type in self.license_types.values():
-            if license_type.max_size > 1:
-                return license_type.price
-        return 2.0  # Default fallback
-    
-    @property
-    def group_size(self) -> int:
-        """Backward compatibility: get max group size."""
-        if "group" in self.license_types:
-            return self.license_types["group"].max_size
-        # Find largest group size
-        max_size = 1
-        for license_type in self.license_types.values():
-            max_size = max(max_size, license_type.max_size)
-        return max_size
-    
-    @property
-    def price_ratio(self) -> float:
-        """Backward compatibility: get price ratio."""
-        return self.group_price / self.solo_price if self.solo_price > 0 else 1.0
-
 
 @dataclass
 class LicenseSolution:
@@ -149,26 +103,6 @@ class LicenseSolution:
             for owner_id, members in groups.items():
                 if owner_id not in members:
                     members.insert(0, owner_id)
-
-    @property
-    def solo_nodes(self) -> List[int]:
-        """Get all nodes with solo licenses (backward compatibility)."""
-        solo_nodes = []
-        for license_type, groups in self.licenses.items():
-            for owner_id, members in groups.items():
-                if len(members) == 1:
-                    solo_nodes.extend(members)
-        return solo_nodes
-
-    @property
-    def group_owners(self) -> Dict[int, List[int]]:
-        """Get all group owners (backward compatibility)."""
-        group_owners = {}
-        for license_type, groups in self.licenses.items():
-            for owner_id, members in groups.items():
-                if len(members) > 1:
-                    group_owners[owner_id] = members
-        return group_owners
 
     def get_node_license_info(self, node_id: int) -> tuple[str, int] | None:
         """Get the license type and owner for a specific node.
@@ -269,18 +203,3 @@ class LicenseSolution:
     def create_empty(cls) -> "LicenseSolution":
         """Create an empty solution."""
         return cls(licenses={})
-
-    @classmethod
-    def from_traditional(cls, solo_nodes: List[int], group_owners: Dict[int, List[int]]) -> "LicenseSolution":
-        """Create solution from traditional format (backward compatibility)."""
-        licenses = {}
-        
-        # Add solo licenses
-        if solo_nodes:
-            licenses["solo"] = {node: [node] for node in solo_nodes}
-        
-        # Add group licenses
-        if group_owners:
-            licenses["group"] = group_owners.copy()
-        
-        return cls(licenses=licenses)

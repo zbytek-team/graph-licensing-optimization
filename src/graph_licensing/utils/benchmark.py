@@ -2,7 +2,7 @@
 
 import time
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Dict, List
 
 if TYPE_CHECKING:
     import networkx as nx
@@ -61,36 +61,52 @@ class Benchmark:
         # Calculate solution metrics
         if success and solution:
             total_cost = solution.calculate_cost(config)
-            n_solo = len(solution.solo_nodes)
-            n_groups = len(solution.group_owners)
-            total_group_members = sum(len(members) for members in solution.group_owners.values())
-            avg_group_size = total_group_members / n_groups if n_groups > 0 else 0
+            
+            # Count licenses by type
+            license_counts = {}
+            total_licenses = 0
+            total_members = 0
+            
+            for license_type, groups in solution.licenses.items():
+                license_counts[f"n_{license_type}_licenses"] = len(groups)
+                total_licenses += len(groups)
+                
+                # Count members for this license type
+                type_members = sum(len(members) for members in groups.values())
+                license_counts[f"n_{license_type}_members"] = type_members
+                total_members += type_members
+            
+            avg_group_size = total_members / total_licenses if total_licenses > 0 else 0
             is_valid = solution.is_valid(graph, config)
         else:
             total_cost = float("inf")
-            n_solo = 0
-            n_groups = 0
-            total_group_members = 0
+            license_counts = {}
+            total_licenses = 0
+            total_members = 0
             avg_group_size = 0
             is_valid = False
 
+        # License configuration details
+        license_config_details = {}
+        for license_name, license_config in config.license_types.items():
+            license_config_details[f"{license_name}_price"] = license_config.price
+            license_config_details[f"{license_name}_min_size"] = license_config.min_size
+            license_config_details[f"{license_name}_max_size"] = license_config.max_size
+        
         result = {
             "test_name": test_name,
             "algorithm": algorithm.name,
             "n_nodes": n_nodes,
             "n_edges": n_edges,
             "edge_to_node_ratio": edge_to_node_ratio,
-            "solo_price": config.solo_price,
-            "group_price": config.group_price,
-            "group_size_limit": config.group_size,
-            "price_ratio": config.price_ratio,
+            **license_config_details,
             "runtime_seconds": runtime,
             "success": success,
             "error_msg": error_msg,
             "total_cost": total_cost,
-            "n_solo_licenses": n_solo,
-            "n_group_licenses": n_groups,
-            "total_group_members": total_group_members,
+            **license_counts,
+            "total_licenses": total_licenses,
+            "total_members": total_members,
             "avg_group_size": avg_group_size,
             "is_valid_solution": is_valid,
         }
@@ -98,178 +114,59 @@ class Benchmark:
         self.results.append(result)
         return result
 
-    def run_comparison(
-        self,
-        algorithms: list["BaseAlgorithm"],
-        graph: "nx.Graph",
-        config: "LicenseConfig",
-        test_name: str = "",
-        **kwargs,
-    ) -> list[dict[str, Any]]:
-        """Compare multiple algorithms on the same problem instance.
-
-        Args:
-            algorithms: List of algorithms to compare.
-            graph: Graph to solve.
-            config: License configuration.
-            test_name: Name identifier for the test.
-            **kwargs: Additional arguments to pass to algorithms.
-
-        Returns:
-            List of results for each algorithm.
-        """
-        comparison_results = []
-
-        for algorithm in algorithms:
-            result = self.run_single_test(algorithm, graph, config, test_name, **kwargs)
-            comparison_results.append(result)
-
-        return comparison_results
-
-    def run_scalability_test(
-        self,
-        algorithm: "BaseAlgorithm",
-        graph_generator: Callable[[int], "nx.Graph"],
-        config: "LicenseConfig",
-        sizes: list[int],
-        test_name: str = "",
-        **kwargs,
-    ) -> list[dict[str, Any]]:
-        """Test algorithm scalability across different graph sizes.
-
-        Args:
-            algorithm: Algorithm to test.
-            graph_generator: Function that generates graphs given size.
-            config: License configuration.
-            sizes: List of graph sizes to test.
-            test_name: Name identifier for the test.
-            **kwargs: Additional arguments to pass to the algorithm.
-
-        Returns:
-            List of results for each graph size.
-        """
-        scalability_results = []
-
-        for size in sizes:
-            graph = graph_generator(size)
-            size_test_name = f"{test_name}_size_{size}" if test_name else f"size_{size}"
-            result = self.run_single_test(
-                algorithm,
-                graph,
-                config,
-                size_test_name,
-                **kwargs,
-            )
-            scalability_results.append(result)
-
-        return scalability_results
-
-    def run_price_sensitivity_test(
-        self,
-        algorithm: "BaseAlgorithm",
-        graph: "nx.Graph",
-        base_config: "LicenseConfig",
-        price_ratios: list[float],
-        test_name: str = "",
-        **kwargs,
-    ) -> list[dict[str, Any]]:
-        """Test algorithm behavior across different price ratios.
-
-        Args:
-            algorithm: Algorithm to test.
-            graph: Graph to solve.
-            base_config: Base license configuration.
-            price_ratios: List of group_price/solo_price ratios to test.
-            test_name: Name identifier for the test.
-            **kwargs: Additional arguments to pass to the algorithm.
-
-        Returns:
-            List of results for each price ratio.
-        """
-        from ..models.license import LicenseConfig
-
-        sensitivity_results = []
-
-        for ratio in price_ratios:
-            config = LicenseConfig(
-                solo_price=base_config.solo_price,
-                group_price=base_config.solo_price * ratio,
-                group_size=base_config.group_size,
-            )
-            ratio_test_name = f"{test_name}_ratio_{ratio:.1f}" if test_name else f"ratio_{ratio:.1f}"
-            result = self.run_single_test(
-                algorithm,
-                graph,
-                config,
-                ratio_test_name,
-                **kwargs,
-            )
-            sensitivity_results.append(result)
-
-        return sensitivity_results
 
     def run_dynamic_test(
         self,
         algorithm: "BaseAlgorithm",
         initial_graph: "nx.Graph",
         config: "LicenseConfig",
-        iterations: int,
-        modification_prob: float = 0.1,
-        test_name: str = "",
-        **kwargs,
-    ) -> list[dict[str, Any]]:
-        """Test algorithm on dynamic graph changes.
+        iterations: int = 10,
+        modification_prob: float = 1.0,
+        test_name: str = None,
+    ) -> List[Dict[str, Any]]:
+        """Run dynamic test with graph modifications.
 
         Args:
             algorithm: Algorithm to test.
             initial_graph: Initial graph state.
             config: License configuration.
-            iterations: Number of dynamic iterations.
-            modification_prob: Probability of graph modification.
-            test_name: Name identifier for the test.
-            **kwargs: Additional arguments to pass to the algorithm.
+            iterations: Number of iterations to run.
+            modification_prob: Probability of modifications per iteration.
+            test_name: Name for test results.
 
         Returns:
-            List of results for each iteration.
+            List of test results for each iteration.
         """
-        start_time = time.perf_counter()
-        
-        # Track graph states and solutions at each iteration
-        graph_states = []
-        solutions = []
         current_graph = initial_graph.copy()
-        previous_solution = None
+        graph_states = [current_graph.copy()]
+        solutions = []
+        total_runtime = 0
         success = True
         error_msg = None
 
         try:
+            # Run algorithm on each graph state
             for i in range(iterations):
-                # Store current graph state
-                graph_states.append(current_graph.copy())
+                start_time = time.perf_counter()
                 
-                # Solve current graph
-                iteration_start = time.perf_counter()
-                solution = algorithm.solve(
-                    current_graph, 
-                    config, 
-                    warm_start=previous_solution,
-                    **kwargs
-                )
-                iteration_end = time.perf_counter()
+                try:
+                    solution = algorithm.solve(current_graph, config)
+                    end_time = time.perf_counter()
+                    iteration_runtime = end_time - start_time
+                    
+                    solutions.append((solution, iteration_runtime))
+                    total_runtime += iteration_runtime
+                    
+                except Exception as e:
+                    solutions.append((None, 0))
+                    print(f"Warning: Algorithm failed at iteration {i}: {e}")
                 
-                solutions.append((solution, iteration_end - iteration_start))
-                previous_solution = solution
-
-                # Modify graph for next iteration (except last iteration)
+                # Modify graph for next iteration (except last one)
                 if i < iterations - 1:
                     current_graph = algorithm._modify_graph(current_graph, modification_prob)
-                    
-            end_time = time.perf_counter()
-            total_runtime = end_time - start_time
-            
+                    graph_states.append(current_graph.copy())
+        
         except Exception as e:
-            end_time = time.perf_counter()
-            total_runtime = end_time - start_time
             success = False
             error_msg = str(e)
             # Fill remaining iterations with None solutions
@@ -294,19 +191,38 @@ class Benchmark:
 
             if success and solution:
                 total_cost = solution.calculate_cost(config)
-                n_solo = len(solution.solo_nodes)
-                n_groups = len(solution.group_owners)
-                total_group_members = sum(len(members) for members in solution.group_owners.values())
-                avg_group_size = total_group_members / n_groups if n_groups > 0 else 0
+                
+                # Count licenses by type
+                license_counts = {}
+                total_licenses = 0
+                total_members = 0
+                
+                for license_type, groups in solution.licenses.items():
+                    license_counts[f"n_{license_type}_licenses"] = len(groups)
+                    total_licenses += len(groups)
+                    
+                    # Count members for this license type
+                    type_members = sum(len(members) for members in groups.values())
+                    license_counts[f"n_{license_type}_members"] = type_members
+                    total_members += type_members
+                
+                avg_group_size = total_members / total_licenses if total_licenses > 0 else 0
                 is_valid = solution.is_valid(iteration_graph, config)
             else:
                 total_cost = float("inf")
-                n_solo = 0
-                n_groups = 0
-                total_group_members = 0
+                license_counts = {}
+                total_licenses = 0
+                total_members = 0
                 avg_group_size = 0
                 is_valid = False
 
+            # License configuration details
+            license_config_details = {}
+            for license_name, license_config in config.license_types.items():
+                license_config_details[f"{license_name}_price"] = license_config.price
+                license_config_details[f"{license_name}_min_size"] = license_config.min_size
+                license_config_details[f"{license_name}_max_size"] = license_config.max_size
+            
             result = {
                 "test_name": iteration_test_name,
                 "algorithm": algorithm.name,
@@ -315,19 +231,16 @@ class Benchmark:
                 "n_nodes": n_nodes,
                 "n_edges": n_edges,
                 "edge_to_node_ratio": edge_to_node_ratio,
-                "solo_price": config.solo_price,
-                "group_price": config.group_price,
-                "group_size_limit": config.group_size,
-                "price_ratio": config.price_ratio,
+                **license_config_details,
                 "total_runtime_seconds": total_runtime,
                 "iteration_runtime_seconds": iteration_runtime,
                 "avg_runtime_per_iteration": total_runtime / iterations,
                 "success": success,
                 "error_msg": error_msg,
                 "total_cost": total_cost,
-                "n_solo_licenses": n_solo,
-                "n_group_licenses": n_groups,
-                "total_group_members": total_group_members,
+                **license_counts,
+                "total_licenses": total_licenses,
+                "total_members": total_members,
                 "avg_group_size": avg_group_size,
                 "is_valid_solution": is_valid,
             }
@@ -426,18 +339,37 @@ class Benchmark:
 
             if success and solution:
                 total_cost = solution.calculate_cost(config)
-                n_solo = len(solution.solo_nodes)
-                n_groups = len(solution.group_owners)
-                total_group_members = sum(len(members) for members in solution.group_owners.values())
-                avg_group_size = total_group_members / n_groups if n_groups > 0 else 0
+                
+                # Count licenses by type
+                license_counts = {}
+                total_licenses = 0
+                total_members = 0
+                
+                for license_type, groups in solution.licenses.items():
+                    license_counts[f"n_{license_type}_licenses"] = len(groups)
+                    total_licenses += len(groups)
+                    
+                    # Count members for this license type
+                    type_members = sum(len(members) for members in groups.values())
+                    license_counts[f"n_{license_type}_members"] = type_members
+                    total_members += type_members
+                
+                avg_group_size = total_members / total_licenses if total_licenses > 0 else 0
                 is_valid = solution.is_valid(iteration_graph, config)
             else:
                 total_cost = float("inf")
-                n_solo = 0
-                n_groups = 0
-                total_group_members = 0
+                license_counts = {}
+                total_licenses = 0
+                total_members = 0
                 avg_group_size = 0
                 is_valid = False
+
+            # License configuration details
+            license_config_details = {}
+            for license_name, license_config in config.license_types.items():
+                license_config_details[f"{license_name}_price"] = license_config.price
+                license_config_details[f"{license_name}_min_size"] = license_config.min_size
+                license_config_details[f"{license_name}_max_size"] = license_config.max_size
 
             result = {
                 "test_name": iteration_test_name,
@@ -447,19 +379,16 @@ class Benchmark:
                 "n_nodes": n_nodes,
                 "n_edges": n_edges,
                 "edge_to_node_ratio": edge_to_node_ratio,
-                "solo_price": config.solo_price,
-                "group_price": config.group_price,
-                "group_size_limit": config.group_size,
-                "price_ratio": config.price_ratio,
+                **license_config_details,
                 "total_runtime_seconds": total_runtime,
                 "iteration_runtime_seconds": iteration_runtime,
                 "avg_runtime_per_iteration": total_runtime / iterations,
                 "success": success,
                 "error_msg": error_msg,
                 "total_cost": total_cost,
-                "n_solo_licenses": n_solo,
-                "n_group_licenses": n_groups,
-                "total_group_members": total_group_members,
+                **license_counts,
+                "total_licenses": total_licenses,
+                "total_members": total_members,
                 "avg_group_size": avg_group_size,
                 "is_valid_solution": is_valid,
             }
@@ -511,29 +440,3 @@ class Benchmark:
             )
 
         return summary
-
-    def clear_results(self) -> None:
-        """Clear all stored results."""
-        self.results.clear()
-
-    def save_results(self, filepath: str) -> None:
-        """Save benchmark results to CSV file.
-
-        Args:
-            filepath: Path to save the CSV file.
-        """
-        if not self.results:
-            return
-
-        import pandas as pd
-
-        df = pd.DataFrame(self.results)
-        df.to_csv(filepath, index=False)
-
-    def get_summary(self) -> dict[str, Any]:
-        """Get summary of benchmark results.
-
-        Returns:
-            Dictionary with summary information.
-        """
-        return self.get_summary_statistics()
