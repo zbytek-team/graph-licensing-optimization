@@ -16,6 +16,7 @@ import click
 import networkx as nx
 
 from graph_licensing.algorithms import (
+    AntColonyAlgorithm,
     GreedyAlgorithm, 
     GeneticAlgorithm, 
     SimulatedAnnealingAlgorithm,
@@ -63,6 +64,7 @@ def create_timestamped_path(base_path: str, command_name: str) -> Path:
 def get_algorithms() -> Dict[str, Any]:
     """Get all available algorithms."""
     return {
+        "ant_colony": AntColonyAlgorithm(),
         "greedy": GreedyAlgorithm(),
         "genetic": GeneticAlgorithm(),
         "simulated_annealing": SimulatedAnnealingAlgorithm(),
