@@ -48,11 +48,10 @@ class RandomizedAlgorithm(BaseAlgorithm):
 
         nodes = list(graph.nodes())
         if not nodes:
-            return LicenseSolution(solo_nodes=[], group_owners={})
+            return LicenseSolution.create_empty()
 
         unassigned = set(nodes)
-        solo_nodes = []
-        group_owners = {}
+        licenses = {}
 
         # Randomly shuffle nodes
         random.shuffle(nodes)
@@ -61,35 +60,59 @@ class RandomizedAlgorithm(BaseAlgorithm):
             if node not in unassigned:
                 continue
 
-            # Randomly decide whether to try forming a group
-            if random.random() < 0.5:
-                # Try to form a group
-                available_neighbors = [n for n in graph.neighbors(node) if n in unassigned]
+            # Get available license types
+            available_license_types = list(config.license_types.keys())
+            random.shuffle(available_license_types)
 
-                if available_neighbors:
-                    # Randomly select group members
-                    max_additional = min(
-                        len(available_neighbors),
-                        config.group_size - 1,
-                    )
-                    num_members = random.randint(0, max_additional)
-
-                    if num_members > 0:
-                        selected_members = random.sample(
-                            available_neighbors,
-                            num_members,
-                        )
-                        group_members = [node, *selected_members]
-
-                        # Check if group is beneficial
-                        if config.is_group_beneficial(len(group_members)):
-                            group_owners[node] = group_members
+            assigned = False
+            
+            # Try each license type randomly
+            for license_type in available_license_types:
+                license_config = config.license_types[license_type]
+                
+                # Randomly decide group size within valid range
+                max_size = min(license_config.max_size, len(unassigned))
+                if max_size < license_config.min_size:
+                    continue
+                    
+                group_size = random.randint(license_config.min_size, max_size)
+                
+                if group_size == 1:
+                    # Solo assignment
+                    if license_type not in licenses:
+                        licenses[license_type] = {}
+                    licenses[license_type][node] = [node]
+                    unassigned.discard(node)
+                    assigned = True
+                    break
+                else:
+                    # Group assignment - find connected neighbors
+                    available_neighbors = [n for n in graph.neighbors(node) if n in unassigned]
+                    
+                    if len(available_neighbors) >= group_size - 1:
+                        # Select random members
+                        selected_members = random.sample(available_neighbors, group_size - 1)
+                        group_members = [node] + selected_members
+                        
+                        # Check if this is a beneficial assignment
+                        if config.is_size_beneficial(license_type, group_size):
+                            if license_type not in licenses:
+                                licenses[license_type] = {}
+                            licenses[license_type][node] = group_members
+                            
                             for member in group_members:
                                 unassigned.discard(member)
-                            continue
+                            assigned = True
+                            break
+            
+            # If no assignment worked, use best solo license
+            if not assigned:
+                best_solo = config.get_best_license_for_size(1)
+                if best_solo:
+                    license_type, _ = best_solo
+                    if license_type not in licenses:
+                        licenses[license_type] = {}
+                    licenses[license_type][node] = [node]
+                    unassigned.discard(node)
 
-            # Assign solo license
-            solo_nodes.append(node)
-            unassigned.discard(node)
-
-        return LicenseSolution(solo_nodes=solo_nodes, group_owners=group_owners)
+        return LicenseSolution(licenses=licenses)
