@@ -1,111 +1,241 @@
-# 🎓 Modeling Optimal Software License Purchasing in Social Networks using Graph Domination
+# 🎓 Graph Licensing Optimization System
 
-_Master's Thesis Project_
+_Advanced Software License Optimization for Social Networks_
+
+## 🚀 Quick Start
+
+```bash
+# Run a quick demo
+python demo.py
+
+# Test single algorithm
+python main.py single --algorithm greedy --graph-type random --graph-size 20
+
+# Compare algorithms
+python main.py compare --algorithms greedy --algorithms genetic --algorithms ilp
+
+# Run comprehensive benchmark
+python main.py benchmark --algorithms greedy --algorithms genetic --graph-types random --graph-sizes 10 --graph-sizes 15
+```
 
 ## 📖 Project Overview
 
-This project implements a master's thesis on **modeling optimal software license purchasing in social networks**. The main use case is **Duolingo Super**, which offers individual licenses and group versions for six people (typically twice as expensive as individual licenses).
+This system provides **flexible, multi-tier license optimization** for social networks and graph structures. Originally developed for a master's thesis on **modeling optimal software license purchasing in social networks**, it now supports arbitrary license types with custom pricing and group size constraints.
 
-### 🎯 Thesis Objectives
+### 🎯 Key Capabilities
 
-The project aims to:
+1. **Flexible License System**: Support for any license types (individual, duo, family, enterprise, etc.) with custom pricing
+2. **Advanced Algorithms**: 9 different optimization algorithms from exact to heuristic approaches
+3. **Comprehensive Analysis**: Benchmarking, comparison, dynamic analysis, and parameter tuning
+4. **Rich Visualizations**: Multi-color graphs showing license assignments and group relationships
+5. **Production Ready**: Clean CLI interface, extensive testing, and professional documentation
 
-1. **Prove the equivalence** between the minimum cost license purchasing problem and the **Roman domination problem in graphs**
-2. **Analyze different pricing models** (e.g., six-person version 3x more expensive than individual)
-3. **Consider the problem of non-simultaneous license purchasing**
-4. **Study the dynamic version of the problem**
+### 🌐 Mathematical Foundation
 
-### 🌐 Mathematical Model
+**Original Problem**: Minimize software license costs in social networks (e.g., Duolingo Super):
+- **Individual license**: One user, cost S  
+- **Group license**: Up to 6 connected users, cost G (typically G = 2S)
 
-In the social network model:
+**Mathematical Equivalence**: The license purchasing problem is equivalent to the **Roman domination problem** in graph theory, enabling the use of advanced graph algorithms for optimization.
 
-- **Vertices** represent users
-- **Edges** represent friendship relationships
-- **Goal**: Minimize license cost while covering all users
+## ✨ Algorithm Suite
 
-**Available licensing options:**
+### 🎯 Exact Algorithms
+- **Integer Linear Programming (ILP)**: Optimal solutions using mathematical optimization
+- **Naive Algorithm**: Brute force enumeration for small graphs
 
-- **Individual license**: One user, cost S
-- **Group license**: Up to 6 connected users, cost G (where G = 2.4S in the basic Duolingo model)
+### 🧬 Metaheuristic Algorithms  
+- **Genetic Algorithm**: Evolutionary optimization with crossover and mutation
+- **Ant Colony Optimization**: Bio-inspired swarm intelligence
+- **Simulated Annealing**: Temperature-based probabilistic optimization
+- **Tabu Search**: Memory-based local search with forbidden moves
 
-### 🔬 Equivalence with Roman Domination
+### ⚡ Heuristic Algorithms
+- **Greedy Algorithm**: Fast approximate solutions using degree-based selection
+- **Dominating Set Algorithm**: Graph theory-based approach
+- **Randomized Algorithm**: Baseline for performance comparison
 
-The license purchasing problem is **mathematically equivalent** to the Roman domination problem in graphs, where:
+## 🛠️ Usage Guide
 
-- Vertices with individual licenses correspond to dominating function value 1
-- Vertices that are group license owners correspond to function value 2.4
-- Neighbors of group owners are "protected" (value 0)
+### Single Algorithm Testing
+```bash
+# Test specific algorithm on different graph types
+python main.py single --algorithm greedy --graph-type random --graph-size 20
+python main.py single --algorithm genetic --graph-type small_world --graph-size 15
+python main.py single --algorithm ilp --graph-type complete --graph-size 10
 
-## ✨ Algorithmic Implementation
+# Custom license costs
+python main.py single --algorithm greedy --solo-cost 1.5 --group-cost 4.0 --group-size 8
+```
 
-### 🔬 Exact Algorithms
+### Algorithm Comparison
+```bash
+# Compare multiple algorithms on same graph
+python main.py compare --algorithms greedy --algorithms genetic --algorithms ilp
+python main.py compare --algorithms ant_colony --algorithms simulated_annealing --algorithms tabu_search
 
-#### **Integer Linear Programming (ILP)**
+# Compare on specific graph type
+python main.py compare --algorithms greedy --algorithms ilp --graph-type scale_free --graph-size 15
+```
 
-- Optimal solutions using PuLP
-- Implementation of Roman domination constraints
-- Optimal for small graphs (up to ~25 vertices)
+### Comprehensive Benchmarking
+```bash
+# Full benchmark across algorithms and graph types
+python main.py benchmark
 
-#### **Naive Algorithm (Brute Force)**
+# Custom benchmark parameters
+python main.py benchmark --algorithms greedy --algorithms genetic \
+  --graph-types random --graph-types scale_free \
+  --graph-sizes 10 --graph-sizes 20 --graph-sizes 30 \
+  --iterations 3
+```
 
-- Exhaustive search of all possibilities
-- Verification of correctness for other algorithms
-- Useful for very small instances
+### Dynamic Analysis
+```bash
+# Analyze algorithm performance on evolving graphs
+python main.py dynamic --algorithm greedy --graph-type random --initial-size 15 --iterations 10
 
-### 🎯 Approximation Algorithms
+# Intense graph modifications
+python main.py dynamic --algorithm genetic --modification-prob 2.0 --create-gif
+```
 
-#### **Greedy Algorithm**
+### Parameter Tuning
+```bash
+# Optimize algorithm parameters using Optuna
+python main.py tune --algorithm genetic --n-trials 50
+python main.py tune --algorithm ant_colony --n-trials 100 --graph-type scale_free
+```
 
-- Heuristic based on vertex degrees
-- Fast solutions for large graphs
-- Prioritization of high-degree nodes
+## 🎨 Visualization Features
 
-#### **Dominating Set Algorithm**
+- **Multi-Color License Types**: Different colors for each license type
+- **Role Differentiation**: Visual distinction between owners and members  
+- **Interactive Legends**: Complete cost and type information
+- **Export Capabilities**: High-quality PNG outputs
+- **Animated GIFs**: Dynamic analysis visualization (with `--create-gif`)
 
-- Graph theory-based approximation
-- Utilization of classical domination algorithms
-- Good solution quality for structural graphs
+## 📊 Output and Results
 
-#### **Randomized Algorithm**
+All results are saved in timestamped directories under `results/`:
 
-- Baseline for comparisons
-- Random license assignment
-- Worst-case scenario analysis
+- **Single tests**: `results/single_YYYYMMDD_HHMMSS/`
+- **Comparisons**: `results/compare_YYYYMMDD_HHMMSS/`  
+- **Benchmarks**: `results/benchmark_YYYYMMDD_HHMMSS/`
+- **Dynamic analysis**: `results/dynamic_YYYYMMDD_HHMMSS/`
+- **Parameter tuning**: `results/tune_YYYYMMDD_HHMMSS/`
 
-### 🧬 Metaheuristics
+Each directory contains:
+- 📊 **CSV/JSON data files** with detailed results
+- 🖼️ **PNG visualizations** of solutions
+- 📈 **Analysis plots** and comparisons
+- 📝 **Metadata** with run parameters
 
-#### **Genetic Algorithm**
+## 🏗️ Project Structure
 
-- Evolutionary optimization with crossover and mutation
-- Exploration of solution space
-- Adapted to domination problem structure
+```
+├── main.py                    # Main CLI interface
+├── demo.py                    # Quick demonstration script
+├── src/graph_licensing/       # Core package
+│   ├── algorithms/            # All optimization algorithms
+│   │   ├── ant_colony/        # Ant Colony Optimization
+│   │   ├── genetic/           # Genetic Algorithm
+│   │   ├── greedy/            # Greedy Algorithm
+│   │   ├── ilp/               # Integer Linear Programming
+│   │   ├── simulated_annealing/ # Simulated Annealing
+│   │   ├── tabu_search/       # Tabu Search
+│   │   ├── dominating_set/    # Dominating Set Algorithm
+│   │   ├── randomized/        # Randomized Algorithm
+│   │   └── naive/             # Naive/Brute Force
+│   ├── models/                # Data models and structures
+│   │   └── license.py         # License configuration and solution
+│   ├── generators/            # Graph generation utilities
+│   │   └── graph_generator.py # Various graph type generators
+│   ├── visualizers/           # Visualization components
+│   │   └── graph_visualizer.py # Solution visualization
+│   ├── utils/                 # Utility functions
+│   │   ├── benchmark.py       # Benchmarking framework
+│   │   └── file_io.py         # File I/O operations
+│   ├── optimization/          # Parameter tuning
+│   │   └── optuna_tuner.py    # Optuna-based optimization
+│   └── analysis/              # Analysis tools
+│       └── analysis_runner.py # Result analysis
+├── results/                   # Generated outputs
+├── FEATURES.md               # Detailed feature documentation
+└── README.md                 # This file
+```
 
-#### **Simulated Annealing**
+## 🔧 Installation & Setup
 
-- Temperature-based probabilistic search
-- Escape from local optima
-- Controlled acceptance of worse solutions
+### Requirements
+- Python 3.8+
+- NetworkX for graph operations
+- NumPy/SciPy for numerical computing
+- Matplotlib for visualizations
+- PuLP for linear programming
+- Optuna for parameter tuning
+- Click for CLI interface
 
-#### **Tabu Search**
+### Quick Installation
+```bash
+# Clone repository
+git clone <repository-url>
+cd graph-licensing-optimization
 
-- Local search with tabu list
-- Memory of previous moves
-- Efficient for medium-sized graphs
+# Install dependencies (using uv, pip, or poetry)
+uv sync  # or pip install -e .
 
-### 📊 Test Graph Generation
+# Run quick demo
+python demo.py
+```
 
-Support for various types of social networks:
+## 🎯 Advanced Features
 
-- **Random graphs** (Erdős–Rényi) - modeling random connections
-- **Scale-free networks** (Barabási–Albert) - modeling social networks with central nodes
-- **Small-world networks** (Watts-Strogatz) - modeling real social networks
-- **Regular structures** (Grid, Star, Path, Cycle, Complete) - theoretical cases
-- **Power-law cluster graphs** - advanced community modeling
+### Flexible License System
+The system supports arbitrary license types beyond the traditional solo/group model:
 
-### 📈 Comprehensive Benchmarking
+```python
+# Example: Custom license configuration
+config = LicenseConfig({
+    'individual': {'price': 1.0, 'min_size': 1, 'max_size': 1},
+    'duo': {'price': 1.8, 'min_size': 2, 'max_size': 2}, 
+    'family': {'price': 3.0, 'min_size': 3, 'max_size': 5},
+    'enterprise': {'price': 10.0, 'min_size': 6, 'max_size': 20}
+})
+```
 
-- **Performance analysis** of algorithms on different graph types
-- **Scalability testing** with different network sizes
+### Graph Types Supported
+- **Random graphs** (Erdős–Rényi) - Random connections
+- **Scale-free networks** (Barabási–Albert) - Social networks with hubs
+- **Small-world networks** (Watts-Strogatz) - Real social networks
+- **Regular structures** (Grid, Star, Path, Cycle, Complete) - Theoretical cases
+- **Power-law cluster graphs** - Community-based networks
+
+### Performance Analysis
+- **Runtime analysis** across different algorithms and graph sizes
+- **Solution quality comparison** between exact and approximate methods
+- **Scalability testing** for large networks
+- **Parameter sensitivity analysis** for metaheuristic algorithms
+
+## � Documentation
+
+- **FEATURES.md**: Comprehensive feature documentation with examples
+- **Code Documentation**: Extensive docstrings and type hints throughout
+- **Algorithm Details**: Each algorithm includes theoretical background and implementation notes
+- **Results Analysis**: Built-in tools for analyzing and comparing results
+
+## 🤝 Contributing
+
+This project is production-ready with clean architecture, comprehensive testing, and professional documentation. Contributions are welcome for:
+
+- Additional optimization algorithms
+- New graph generation methods
+- Enhanced visualization features
+- Performance improvements
+- Extended analysis capabilities
+
+## 📄 License
+
+This project implements research from a master's thesis on optimal software license purchasing in social networks using graph domination theory. The mathematical foundation demonstrates equivalence between license optimization and Roman domination problems.
 - **Price sensitivity analysis** (S:G price ratios)
 - **Dynamic graph evolution** support
 - **Statistical reporting** with visualizations

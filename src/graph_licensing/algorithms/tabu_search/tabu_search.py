@@ -64,7 +64,7 @@ class TabuSearchAlgorithm(BaseAlgorithm):
 
         nodes = list(graph.nodes())
         if not nodes:
-            return LicenseSolution(solo_nodes=[], group_owners={})
+            return LicenseSolution.create_empty()
 
         # Start with warm start if available, otherwise greedy solution
         if warm_start is not None:
@@ -144,31 +144,47 @@ class TabuSearchAlgorithm(BaseAlgorithm):
         from ...models.license import LicenseSolution
         
         current_nodes = set(graph.nodes())
+        new_licenses = {}
+        assigned_nodes = set()
         
-        # Filter solo nodes to only include existing nodes
-        new_solo = [node for node in solution.solo_nodes if node in current_nodes]
-        
-        # Adapt groups
-        new_groups = {}
-        for owner, members in solution.group_owners.items():
-            if owner in current_nodes:
-                # Keep only existing members
-                valid_members = [m for m in members if m in current_nodes]
-                # Ensure all members are still connected to owner
-                connected_members = [m for m in valid_members 
-                                   if m == owner or graph.has_edge(owner, m)]
+        # Process each license type and group
+        for license_type, groups in solution.licenses.items():
+            if license_type not in config.license_types:
+                continue
                 
-                if len(connected_members) > 1:  # Valid group
-                    new_groups[owner] = connected_members
-                elif connected_members:  # Only owner left
-                    new_solo.append(owner)
+            license_config = config.license_types[license_type]
+            new_groups = {}
+            
+            for owner, members in groups.items():
+                if owner in current_nodes:
+                    # Keep only existing members that are connected to owner
+                    valid_members = []
+                    for member in members:
+                        if member in current_nodes:
+                            if member == owner or graph.has_edge(owner, member):
+                                valid_members.append(member)
+                    
+                    # Check if group is still valid for this license type
+                    if valid_members and license_config.is_valid_size(len(valid_members)):
+                        new_groups[owner] = valid_members
+                        assigned_nodes.update(valid_members)
+            
+            if new_groups:
+                new_licenses[license_type] = new_groups
         
-        # Handle any nodes that weren't assigned
-        assigned_nodes = set(new_solo) | set().union(*new_groups.values()) if new_groups else set(new_solo)
+        # Handle unassigned nodes - assign them solo licenses with best license type
         unassigned = current_nodes - assigned_nodes
-        new_solo.extend(list(unassigned))
+        if unassigned:
+            # Find best solo license type
+            best_solo = config.get_best_license_for_size(1)
+            if best_solo:
+                license_type, _ = best_solo
+                if license_type not in new_licenses:
+                    new_licenses[license_type] = {}
+                for node in unassigned:
+                    new_licenses[license_type][node] = [node]
         
-        return LicenseSolution(solo_nodes=new_solo, group_owners=new_groups)
+        return LicenseSolution(licenses=new_licenses)
 
     def _generate_all_neighbors(
         self,
@@ -186,72 +202,93 @@ class TabuSearchAlgorithm(BaseAlgorithm):
         Returns:
             List of neighbor solutions.
         """
+        import copy
         neighbors = []
         nodes = list(graph.nodes())
 
         # For each node, try different assignments
         for node in nodes:
-            current_type = solution.get_node_license_type(node)
+            current_info = solution.get_node_license_info(node)
+            if current_info is None:
+                continue
+                
+            current_license_type, current_owner = current_info
 
-            # Try solo assignment
-            if current_type.value != "solo":
-                new_solution = self._assign_solo(solution, node)
-                if new_solution.is_valid(graph, config):
-                    neighbors.append(new_solution)
-
-            # Try group assignments with neighbors
-            for neighbor in graph.neighbors(node):
-                neighbor_type = solution.get_node_license_type(neighbor)
-
-                # Try making neighbor the group owner
-                if neighbor_type.value != "group_owner" or node not in solution.group_owners.get(neighbor, []):
-                    new_solution = self._assign_to_group(solution, node, neighbor)
+            # Try solo assignment with each license type that supports size 1
+            for license_name, license_config in config.license_types.items():
+                if license_config.is_valid_size(1) and license_name != current_license_type:
+                    new_solution = self._assign_solo(solution, node, license_name, config)
                     if new_solution and new_solution.is_valid(graph, config):
                         neighbors.append(new_solution)
 
+            # Try group assignments with neighbors
+            for neighbor in graph.neighbors(node):
+                neighbor_info = solution.get_node_license_info(neighbor)
+                if neighbor_info is None:
+                    continue
+                    
+                neighbor_license_type, neighbor_owner = neighbor_info
+                
+                # Try joining neighbor's group (if neighbor is owner and has space)
+                if neighbor == neighbor_owner:
+                    for license_name, license_config in config.license_types.items():
+                        if license_name == neighbor_license_type:
+                            current_group_size = len(solution.licenses[license_name][neighbor])
+                            if current_group_size < license_config.max_size:
+                                new_solution = self._assign_to_group(solution, node, neighbor, license_name, config)
+                                if new_solution and new_solution.is_valid(graph, config):
+                                    neighbors.append(new_solution)
+
+                # Try creating new group with neighbor
+                for license_name, license_config in config.license_types.items():
+                    if license_config.is_valid_size(2):
+                        new_solution = self._create_group(solution, node, neighbor, license_name, config)
+                        if new_solution and new_solution.is_valid(graph, config):
+                            neighbors.append(new_solution)
+
         return neighbors
 
-    def _assign_solo(self, solution: "LicenseSolution", node: int) -> "LicenseSolution":
+    def _assign_solo(self, solution: "LicenseSolution", node: int, license_type: str, config: "LicenseConfig") -> "LicenseSolution | None":
         """Assign a node to solo license.
 
         Args:
             solution: Current solution.
             node: Node to assign.
+            license_type: License type to assign.
+            config: License configuration.
 
         Returns:
-            New solution with node assigned to solo.
+            New solution with node assigned to solo or None if invalid.
         """
         from ...models.license import LicenseSolution
+        import copy
 
-        new_solo = solution.solo_nodes.copy()
-        new_groups = {k: v.copy() for k, v in solution.group_owners.items()}
+        if license_type not in config.license_types:
+            return None
+            
+        license_config = config.license_types[license_type]
+        if not license_config.is_valid_size(1):
+            return None
 
-        # Remove from current group if any
-        for owner, members in new_groups.items():
-            if node in members:
-                members.remove(node)
-                if len(members) == 0:
-                    del new_groups[owner]
-                elif owner == node:
-                    # Node was owner, need to handle group
-                    if len(members) > 0:
-                        # Make first member the new owner
-                        new_owner = members[0]
-                        new_groups[new_owner] = members
-                    del new_groups[owner]
-                break
+        new_licenses = copy.deepcopy(solution.licenses)
+        
+        # Remove node from current assignment
+        self._remove_node_from_solution(new_licenses, node)
+        
+        # Add to new solo license
+        if license_type not in new_licenses:
+            new_licenses[license_type] = {}
+        new_licenses[license_type][node] = [node]
 
-        # Add to solo
-        if node not in new_solo:
-            new_solo.append(node)
-
-        return LicenseSolution(solo_nodes=new_solo, group_owners=new_groups)
+        return LicenseSolution(licenses=new_licenses)
 
     def _assign_to_group(
         self,
         solution: "LicenseSolution",
         node: int,
         owner: int,
+        license_type: str,
+        config: "LicenseConfig",
     ) -> "LicenseSolution | None":
         """Assign a node to a group.
 
@@ -259,38 +296,110 @@ class TabuSearchAlgorithm(BaseAlgorithm):
             solution: Current solution.
             node: Node to assign.
             owner: Group owner.
+            license_type: License type for the group.
+            config: License configuration.
 
         Returns:
             New solution or None if assignment is invalid.
         """
         from ...models.license import LicenseSolution
+        import copy
 
-        new_solo = solution.solo_nodes.copy()
-        new_groups = {k: v.copy() for k, v in solution.group_owners.items()}
+        if license_type not in config.license_types:
+            return None
+            
+        license_config = config.license_types[license_type]
+        
+        # Check if owner already has a group of this type
+        if license_type not in solution.licenses or owner not in solution.licenses[license_type]:
+            return None
+            
+        current_group = solution.licenses[license_type][owner]
+        if len(current_group) >= license_config.max_size:
+            return None
 
+        new_licenses = copy.deepcopy(solution.licenses)
+        
         # Remove node from current assignment
-        if node in new_solo:
-            new_solo.remove(node)
-        else:
-            for group_owner, members in new_groups.items():
+        self._remove_node_from_solution(new_licenses, node)
+        
+        # Add to the group
+        new_licenses[license_type][owner].append(node)
+
+        return LicenseSolution(licenses=new_licenses)
+
+    def _create_group(
+        self,
+        solution: "LicenseSolution",
+        node1: int,
+        node2: int,
+        license_type: str,
+        config: "LicenseConfig",
+    ) -> "LicenseSolution | None":
+        """Create a new group with two nodes.
+
+        Args:
+            solution: Current solution.
+            node1: First node (will be owner).
+            node2: Second node.
+            license_type: License type for the group.
+            config: License configuration.
+
+        Returns:
+            New solution or None if assignment is invalid.
+        """
+        from ...models.license import LicenseSolution
+        import copy
+
+        if license_type not in config.license_types:
+            return None
+            
+        license_config = config.license_types[license_type]
+        if not license_config.is_valid_size(2):
+            return None
+
+        new_licenses = copy.deepcopy(solution.licenses)
+        
+        # Remove both nodes from current assignments
+        self._remove_node_from_solution(new_licenses, node1)
+        self._remove_node_from_solution(new_licenses, node2)
+        
+        # Create new group
+        if license_type not in new_licenses:
+            new_licenses[license_type] = {}
+        new_licenses[license_type][node1] = [node1, node2]
+
+        return LicenseSolution(licenses=new_licenses)
+
+    def _remove_node_from_solution(self, licenses: dict, node: int) -> None:
+        """Remove a node from all licenses in the solution.
+
+        Args:
+            licenses: License dictionary to modify.
+            node: Node to remove.
+        """
+        to_delete = []
+        
+        for license_type, groups in licenses.items():
+            for owner, members in list(groups.items()):
                 if node in members:
                     members.remove(node)
+                    
                     if len(members) == 0:
-                        del new_groups[group_owner]
-                    break
-
-        # Remove owner from solo if needed
-        if owner in new_solo:
-            new_solo.remove(owner)
-
-        # Add to group
-        if owner not in new_groups:
-            new_groups[owner] = [owner]
-
-        if node not in new_groups[owner]:
-            new_groups[owner].append(node)
-
-        return LicenseSolution(solo_nodes=new_solo, group_owners=new_groups)
+                        # Group is empty, remove it
+                        to_delete.append((license_type, owner))
+                    elif owner == node and len(members) > 0:
+                        # Owner was removed, reassign to first member
+                        new_owner = members[0]
+                        groups[new_owner] = members
+                        to_delete.append((license_type, owner))
+        
+        # Remove empty groups
+        for license_type, owner in to_delete:
+            if owner in licenses[license_type]:
+                del licenses[license_type][owner]
+            if not licenses[license_type]:
+                del licenses[license_type]
 
     def _solution_to_move(
         self,
@@ -306,10 +415,10 @@ class TabuSearchAlgorithm(BaseAlgorithm):
         Returns:
             Move representation as tuple.
         """
-        # Simple representation: hash of the solution
-        return (
-            tuple(sorted(to_solution.solo_nodes)),
-            tuple(
-                sorted((k, tuple(sorted(v))) for k, v in to_solution.group_owners.items()),
-            ),
-        )
+        # Create a hashable representation of the solution
+        solution_repr = []
+        for license_type, groups in sorted(to_solution.licenses.items()):
+            for owner, members in sorted(groups.items()):
+                solution_repr.append((license_type, owner, tuple(sorted(members))))
+        
+        return tuple(solution_repr)
