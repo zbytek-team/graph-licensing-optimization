@@ -18,12 +18,7 @@ class FileIO:
 
     @staticmethod
     def save_graph(graph: "nx.Graph", filepath: str | Path) -> None:
-        """Save a NetworkX graph to file.
-
-        Args:
-            graph: Graph to save.
-            filepath: Path to save the graph.
-        """
+        """Save a NetworkX graph to file."""
         filepath = Path(filepath)
         filepath.parent.mkdir(parents=True, exist_ok=True)
 
@@ -44,18 +39,12 @@ class FileIO:
 
     @staticmethod
     def save_solution(solution: "LicenseSolution", filepath: str | Path) -> None:
-        """Save a licensing solution to file.
-
-        Args:
-            solution: Solution to save.
-            filepath: Path to save the solution.
-        """
+        """Save a licensing solution to file."""
         filepath = Path(filepath)
         filepath.parent.mkdir(parents=True, exist_ok=True)
 
         data = {
-            "solo_nodes": solution.solo_nodes,
-            "group_owners": solution.group_owners,
+            "licenses": solution.licenses,
         }
 
         if filepath.suffix == ".json":
@@ -70,20 +59,42 @@ class FileIO:
 
     @staticmethod
     def save_config(config: "LicenseConfig", filepath: str | Path) -> None:
-        """Save a license configuration to file.
-
-        Args:
-            config: Configuration to save.
-            filepath: Path to save the configuration.
-        """
+        """Save a license configuration to file."""
         filepath = Path(filepath)
         filepath.parent.mkdir(parents=True, exist_ok=True)
 
+        # Export flexible license configuration
         data = {
-            "solo_price": config.solo_price,
-            "group_price": config.group_price,
-            "group_size": config.group_size,
+            "license_types": {}
         }
+        
+        for license_type, license_config in config.license_types.items():
+            data["license_types"][license_type] = {
+                "price": license_config.price,
+                "min_size": license_config.min_size,
+                "max_size": license_config.max_size
+            }
+
+        with open(filepath, "w") as f:
+            json.dump(data, f, indent=2)
+
+    @staticmethod
+    def export_config(config: "LicenseConfig", filepath: str | Path) -> None:
+        """Export license configuration to JSON file."""
+        filepath = Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        # Export flexible license configuration
+        data = {
+            "license_types": {}
+        }
+        
+        for license_type, license_config in config.license_types.items():
+            data["license_types"][license_type] = {
+                "price": license_config.price,
+                "min_size": license_config.min_size,
+                "max_size": license_config.max_size
+            }
 
         with open(filepath, "w") as f:
             json.dump(data, f, indent=2)
@@ -94,96 +105,105 @@ class FileIO:
         config: "LicenseConfig",
         filepath: str | Path,
     ) -> None:
-        """Export a human-readable solution summary.
-
-        Args:
-            solution: Solution to export.
-            config: License configuration.
-            filepath: Path to save the summary.
-        """
+        """Export solution summary to JSON file."""
         filepath = Path(filepath)
         filepath.parent.mkdir(parents=True, exist_ok=True)
 
+        # Calculate license counts by type
+        license_counts = {}
         total_cost = solution.calculate_cost(config)
+        total_licenses = 0
+        total_members = 0
+
+        for license_type, groups in solution.licenses.items():
+            license_counts[f"n_{license_type}_licenses"] = len(groups)
+            total_licenses += len(groups)
+            
+            # Count members for this license type
+            type_members = sum(len(members) for members in groups.values())
+            license_counts[f"n_{license_type}_members"] = type_members
+            total_members += type_members
+
+        data = {
+            "total_cost": total_cost,
+            "total_licenses": total_licenses,
+            "total_members": total_members,
+            "avg_group_size": total_members / total_licenses if total_licenses > 0 else 0,
+            **license_counts,
+            "is_valid_solution": solution.is_valid(solution.get_covered_nodes(), config)
+        }
 
         with open(filepath, "w") as f:
-            f.write("LICENSING OPTIMIZATION SOLUTION SUMMARY\\n")
-            f.write("=" * 50 + "\\n\\n")
-
-            f.write(f"Total Cost: ${total_cost:.2f}\\n")
-            f.write(f"Solo License Price: ${config.solo_price:.2f}\\n")
-            f.write(f"Group License Price: ${config.group_price:.2f}\\n")
-            f.write(f"Group Size Limit: {config.group_size}\\n\\n")
-
-            f.write(f"Solo Licenses ({len(solution.solo_nodes)}): ")
-            f.write(f"${len(solution.solo_nodes) * config.solo_price:.2f}\\n")
-            f.write(f"Nodes: {sorted(solution.solo_nodes)}\\n\\n")
-
-            f.write(f"Group Licenses ({len(solution.group_owners)}): ")
-            f.write(f"${len(solution.group_owners) * config.group_price:.2f}\\n")
-
-            for owner, members in solution.group_owners.items():
-                cost_per_member = config.group_price / len(members)
-                f.write(f"  Group {owner}: {sorted(members)} ")
-                f.write(f"(${cost_per_member:.2f} per member)\\n")
-
-            f.write("\\n" + "=" * 50 + "\\n")
+            json.dump(data, f, indent=2)
 
     @staticmethod
     def save_json(data: Any, filepath: str | Path) -> None:
         """Save data to JSON file.
 
         Args:
-            data: Data to save.
+            data: Data to save (must be JSON serializable).
             filepath: Path to save the JSON file.
         """
         filepath = Path(filepath)
         filepath.parent.mkdir(parents=True, exist_ok=True)
 
         with open(filepath, "w") as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent=2, default=str)
 
 
 class CSVLogger:
-    """CSV logger for experiment results."""
+    """CSV logger for benchmark results."""
 
     def __init__(self, filepath: str | Path) -> None:
-        """Initialize the CSV logger.
-
-        Args:
-            filepath: Path to the CSV file.
-        """
+        """Initialize the CSV logger."""
         self.filepath = Path(filepath)
         self.filepath.parent.mkdir(parents=True, exist_ok=True)
-        self._initialized = False
-        self._fieldnames: list[str] = []
+        self.fieldnames: list[str] = []
+        self.file_handle = None
+        self.writer = None
 
-    def log_result(self, result: dict[str, Any]) -> None:
-        """Log a single result.
+    def __enter__(self):
+        """Enter context manager."""
+        self.file_handle = open(self.filepath, "w", newline="")
+        return self
 
-        Args:
-            result: Dictionary containing the result data.
-        """
-        if not self._initialized:
-            self._fieldnames = list(result.keys())
-            self._write_header()
-            self._initialized = True
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit context manager."""
+        if self.file_handle:
+            self.file_handle.close()
 
-        with open(self.filepath, "a", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=self._fieldnames)
-            writer.writerow(result)
+    def write_header(self, fieldnames: list[str]) -> None:
+        """Write the CSV header."""
+        self.fieldnames = fieldnames
+        self.writer = csv.DictWriter(self.file_handle, fieldnames=fieldnames)
+        self.writer.writeheader()
+
+    def write_row(self, row: dict[str, Any]) -> None:
+        """Write a row to the CSV."""
+        if not self.writer:
+            msg = "Must call write_header() before writing rows"
+            raise RuntimeError(msg)
+        self.writer.writerow(row)
+
+    def to_dataframe(self) -> pd.DataFrame:
+        """Convert CSV file to pandas DataFrame."""
+        if not self.filepath.exists():
+            return pd.DataFrame()
+        return pd.read_csv(self.filepath)
 
     def log_results(self, results: list[dict[str, Any]]) -> None:
-        """Log multiple results.
+        """Log benchmark results to CSV file.
 
         Args:
-            results: List of result dictionaries.
+            results: List of result dictionaries to log.
         """
-        for result in results:
-            self.log_result(result)
-
-    def _write_header(self) -> None:
-        """Write the CSV header."""
-        with open(self.filepath, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=self._fieldnames)
-            writer.writeheader()
+        if not results:
+            return
+            
+        # Extract fieldnames from first result
+        fieldnames = list(results[0].keys())
+        
+        with self:
+            self.write_header(fieldnames)
+            for result in results:
+                self.write_row(result)
