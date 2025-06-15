@@ -85,7 +85,7 @@ class BaseAlgorithm(ABC):
 
         Args:
             graph: Current graph.
-            modification_prob: Probability of each type of modification.
+            modification_prob: Probability of each type of modification (used as intensity factor).
 
         Returns:
             Modified graph.
@@ -94,35 +94,45 @@ class BaseAlgorithm(ABC):
 
         modified_graph = graph.copy()
         nodes = list(modified_graph.nodes())
-
-        # Add/remove nodes
-        if random.random() < modification_prob and len(nodes) > 1:
-            if random.random() < 0.5:  # Remove node
+        
+        # Calculate number of modifications based on probability as intensity
+        # Higher modification_prob means more changes per iteration
+        base_changes = max(1, int(len(nodes) * modification_prob * 0.15))  # ~3 changes for 20 nodes at prob=1.0
+        
+        # Node modifications (add/remove nodes)
+        node_changes = random.randint(0, base_changes)
+        for _ in range(node_changes):
+            if len(nodes) > 1 and random.random() < 0.5:  # 60% chance to remove
                 node_to_remove = random.choice(nodes)
                 modified_graph.remove_node(node_to_remove)
+                nodes.remove(node_to_remove)
             else:  # Add node
                 new_node = max(nodes) + 1 if nodes else 0
                 modified_graph.add_node(new_node)
+                nodes.append(new_node)
                 # Connect to 1-3 random existing nodes
-                if nodes:
-                    num_connections = min(random.randint(1, 3), len(nodes))
-                    targets = random.sample(nodes, num_connections)
+                if len(nodes) > 1:
+                    other_nodes = [n for n in nodes if n != new_node]
+                    num_connections = min(random.randint(1, 3), len(other_nodes))
+                    targets = random.sample(other_nodes, num_connections)
                     for target in targets:
                         modified_graph.add_edge(new_node, target)
 
-        # Add/remove edges
-        nodes = list(modified_graph.nodes())
-        if len(nodes) > 1 and random.random() < modification_prob:
-            if random.random() < 0.5 and modified_graph.number_of_edges() > 0:
-                # Remove edge
-                edge_to_remove = random.choice(list(modified_graph.edges()))
-                modified_graph.remove_edge(*edge_to_remove)
-            else:
-                # Add edge
-                non_edges = list(nx.non_edges(modified_graph))
-                if non_edges:
-                    edge_to_add = random.choice(non_edges)
-                    modified_graph.add_edge(*edge_to_add)
+        # Edge modifications (add/remove edges)
+        edge_changes = random.randint(0, base_changes * 2)  # More edge changes than node changes
+        for _ in range(edge_changes):
+            current_nodes = list(modified_graph.nodes())
+            if len(current_nodes) > 1:
+                if random.random() < 0.5 and modified_graph.number_of_edges() > 0:
+                    # Remove edge
+                    edge_to_remove = random.choice(list(modified_graph.edges()))
+                    modified_graph.remove_edge(*edge_to_remove)
+                else:
+                    # Add edge
+                    non_edges = list(nx.non_edges(modified_graph))
+                    if non_edges:
+                        edge_to_add = random.choice(non_edges)
+                        modified_graph.add_edge(*edge_to_add)
 
         return modified_graph
 
