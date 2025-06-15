@@ -20,21 +20,8 @@ class GraphVisualizer:
 
         self.size_map = {"owner": 500, "member": 300, "solo": 400}
 
-    def visualize_solution(
-        self,
-        graph: "nx.Graph",
-        solution: "LicenseSolution",
-        config: "LicenseConfig",
-        title: str = "Licensing Solution",
-        save_path: str | None = None,
-        figsize: tuple[int, int] = (12, 8),
-    ) -> None:
-        plt.figure(figsize=figsize)
-        print("spring layouting")
-
-        pos = nx.spring_layout(graph, seed=42)
-        print("done springing")
-
+    def _get_node_colors_and_sizes(self, graph: "nx.Graph", solution: "LicenseSolution") -> tuple[list[str], list[int]]:
+        """Get node colors and sizes based on solution."""
         node_colors = []
         node_sizes = []
 
@@ -42,8 +29,7 @@ class GraphVisualizer:
             license_info = solution.get_node_license_info(node)
             if license_info:
                 license_type, owner = license_info
-
-                color = self.color_map.get(license_type, "#cccccc")
+                color = self.color_map.get(license_type, self.color_map["unassigned"])
                 node_colors.append(color)
 
                 if node == owner:
@@ -51,17 +37,13 @@ class GraphVisualizer:
                 else:
                     node_sizes.append(self.size_map["member"])
             else:
-                node_colors.append("#cccccc")  # Gray for unassigned
+                node_colors.append(self.color_map["unassigned"])
                 node_sizes.append(self.size_map["solo"])
 
-        nx.draw_networkx_nodes(
-            graph,
-            pos,
-            node_color=node_colors,
-            node_size=node_sizes,
-        )
+        return node_colors, node_sizes
 
-        # Separate edges into group edges and unassigned edges
+    def _get_edge_lists_and_colors(self, graph: "nx.Graph", solution: "LicenseSolution") -> tuple[list, list, list[str]]:
+        """Separate edges into group edges and unassigned edges with their colors."""
         group_edges = []
         group_edge_colors = []
         
@@ -81,6 +63,11 @@ class GraphVisualizer:
             if edge not in group_edges and tuple(reversed(edge)) not in group_edges
         ]
 
+        return group_edges, unassigned_edges, group_edge_colors
+
+    def _draw_edges(self, graph: "nx.Graph", pos: dict, group_edges: list, unassigned_edges: list, 
+                   group_edge_colors: list[str], ax=None) -> None:
+        """Draw both unassigned and group edges with appropriate styling."""
         # Draw unassigned edges with dashed style and gray color
         if unassigned_edges:
             nx.draw_networkx_edges(
@@ -91,6 +78,7 @@ class GraphVisualizer:
                 width=1,
                 alpha=1,
                 style="--",
+                ax=ax,
             )
 
         # Draw group edges with solid lines and appropriate colors
@@ -103,14 +91,17 @@ class GraphVisualizer:
                 width=3,
                 alpha=1,
                 style="solid",
+                ax=ax,
             )
 
+    def _create_legend(self, solution: "LicenseSolution") -> list:
+        """Create legend elements for the visualization."""
         legend_elements = []
         used_license_types = set()
 
         for license_type, groups in solution.licenses.items():
             if license_type not in used_license_types:
-                color = self.color_map.get(license_type, "#cccccc")
+                color = self.color_map.get(license_type, self.color_map["unassigned"])
                 count = len(groups)
                 total_people = sum(len(members) for members in groups.values())
 
@@ -126,6 +117,38 @@ class GraphVisualizer:
                     )
                 )
                 used_license_types.add(license_type)
+
+        return legend_elements
+
+    def visualize_solution(
+        self,
+        graph: "nx.Graph",
+        solution: "LicenseSolution",
+        config: "LicenseConfig",
+        title: str = "Licensing Solution",
+        save_path: str | None = None,
+        figsize: tuple[int, int] = (12, 8),
+    ) -> None:
+        plt.figure(figsize=figsize)
+        print("spring layouting")
+
+        pos = nx.spring_layout(graph, seed=42)
+        print("done springing")
+
+        node_colors, node_sizes = self._get_node_colors_and_sizes(graph, solution)
+
+        nx.draw_networkx_nodes(
+            graph,
+            pos,
+            node_color=node_colors,
+            node_size=node_sizes,
+        )
+
+        group_edges, unassigned_edges, group_edge_colors = self._get_edge_lists_and_colors(graph, solution)
+
+        self._draw_edges(graph, pos, group_edges, unassigned_edges, group_edge_colors)
+
+        legend_elements = self._create_legend(solution)
 
         if legend_elements:
             plt.legend(handles=legend_elements, loc="upper right", bbox_to_anchor=(1.0, 1.0), fontsize=10)
@@ -184,16 +207,10 @@ class GraphVisualizer:
         for idx, (algorithm_name, solution) in enumerate(solutions.items()):
             ax = axes_list[idx]
 
-            node_colors = []
-            for node in graph.nodes():
-                license_info = solution.get_node_license_info(node)
-                if license_info:
-                    license_type, owner = license_info
-                    color = self.color_map.get(license_type, "#cccccc")
-                    node_colors.append(color)
-                else:
-                    node_colors.append("#cccccc")  # Gray for unassigned
+            # Get node colors and sizes
+            node_colors, node_sizes = self._get_node_colors_and_sizes(graph, solution)
 
+            # Draw nodes
             nx.draw_networkx_nodes(
                 graph,
                 pos,
@@ -201,51 +218,12 @@ class GraphVisualizer:
                 node_size=500,
                 ax=ax,
             )
-            # Separate edges into group edges and unassigned edges
-            group_edges = []
-            group_edge_colors = []
+
+            # Get edge lists and colors
+            group_edges, unassigned_edges, group_edge_colors = self._get_edge_lists_and_colors(graph, solution)
             
-            for license_type, groups in solution.licenses.items():
-                license_color = self.color_map.get(license_type, self.color_map["unassigned"])
-                for owner, members in groups.items():
-                    if len(members) > 1:  # Multi-member group
-                        for member in members:
-                            if member != owner and graph.has_edge(owner, member):
-                                group_edges.append((owner, member))
-                                group_edge_colors.append(license_color)
-
-            # Get unassigned edges
-            all_edges = list(graph.edges())
-            unassigned_edges = [
-                edge for edge in all_edges 
-                if edge not in group_edges and tuple(reversed(edge)) not in group_edges
-            ]
-
-            # Draw unassigned edges with dashed style
-            if unassigned_edges:
-                nx.draw_networkx_edges(
-                    graph,
-                    pos,
-                    edgelist=unassigned_edges,
-                    edge_color=self.color_map["unassigned"],
-                    width=1,
-                    alpha=1,
-                    style="--",
-                    ax=ax,
-                )
-
-            # Draw group edges with solid lines and appropriate colors
-            if group_edges:
-                nx.draw_networkx_edges(
-                    graph,
-                    pos,
-                    edgelist=group_edges,
-                    edge_color=group_edge_colors,
-                    width=2,
-                    alpha=1,
-                    style="solid",
-                    ax=ax,
-                )
+            # Draw edges
+            self._draw_edges(graph, pos, group_edges, unassigned_edges, group_edge_colors, ax=ax)
 
             total_cost = solution.calculate_cost(config)
             total_licenses = sum(len(groups) for groups in solution.licenses.values())
@@ -270,71 +248,6 @@ class GraphVisualizer:
             default_path.parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(default_path, dpi=300, bbox_inches="tight")
             print(f"Comparison visualization saved to: {default_path}")
-
-        plt.close()
-
-    def plot_cost_comparison(
-        self,
-        results: dict[str, dict[str, float]],
-        title: str = "Algorithm Cost Comparison",
-        save_path: str | None = None,
-        show: bool = True,
-        figsize: tuple[int, int] = (10, 6),
-    ) -> None:
-        import numpy as np
-
-        plt.figure(figsize=figsize)
-
-        graph_types = list(results.keys())
-        algorithms = list(next(iter(results.values())).keys())
-
-        x = np.arange(len(graph_types))
-        width = 0.8 / len(algorithms)
-
-        for i, algorithm in enumerate(algorithms):
-            costs = [results[graph_type].get(algorithm, 0) for graph_type in graph_types]
-            plt.bar(x + i * width, costs, width, label=algorithm, alpha=0.8)
-
-        plt.xlabel("Graph Type")
-        plt.ylabel("Total Cost")
-        plt.title(title)
-        plt.xticks(x + width * (len(algorithms) - 1) / 2, graph_types, rotation=45)
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        plt.tight_layout()
-
-        if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches="tight")
-
-        plt.close()
-
-    def plot_runtime_comparison(
-        self,
-        results: dict[str, dict[str, float]],
-        title: str = "Algorithm Runtime Comparison",
-        save_path: str | None = None,
-        show: bool = True,
-        figsize: tuple[int, int] = (10, 6),
-    ) -> None:
-        plt.figure(figsize=figsize)
-
-        graph_sizes = sorted([int(k) for k in results])
-        algorithms = list(next(iter(results.values())).keys())
-
-        for algorithm in algorithms:
-            runtimes = [results[str(size)].get(algorithm, 0) for size in graph_sizes]
-            plt.plot(graph_sizes, runtimes, marker="o", label=algorithm, linewidth=2)
-
-        plt.xlabel("Graph Size (number of nodes)")
-        plt.ylabel("Runtime (seconds)")
-        plt.title(title)
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        plt.yscale("log")
-        plt.tight_layout()
-
-        if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches="tight")
 
         plt.close()
 
