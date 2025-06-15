@@ -22,7 +22,7 @@ from graph_licensing.generators.graph_generator import GraphGenerator
 from graph_licensing.models.license import LicenseConfig
 from graph_licensing.optimization import OptunaTuner
 from graph_licensing.utils import Benchmark, FileIO
-from graph_licensing.visualizers.graph_visualizer import GraphVisualizer
+from graph_licensing.visualizers import graph_visualizer
 
 
 def setup_logging(level: str = "INFO") -> None:
@@ -122,9 +122,8 @@ def single(algorithm, graph_type, graph_size, solo_cost, group_cost, group_size,
         output_dir = create_timestamped_path("results", "single")
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        visualizer = GraphVisualizer()
         viz_path = output_dir / f"{algorithm}_{graph_type}_{graph_size}_visualization.png"
-        visualizer.visualize_solution(
+        graph_visualizer.visualize_solution(
             graph,
             solution,
             config,
@@ -383,7 +382,6 @@ def dynamic(algorithm, graph_type, initial_size, iterations, modification_prob, 
         if create_gif and graph_states and solutions:
             click.echo("Creating animated GIF...")
             try:
-                visualizer = GraphVisualizer()
                 gif_path = output_path / f"dynamic_{algorithm}_evolution.gif"
 
                 valid_indices = [i for i, sol in enumerate(solutions) if sol is not None]
@@ -393,7 +391,7 @@ def dynamic(algorithm, graph_type, initial_size, iterations, modification_prob, 
                     valid_graph_states = [graph_states[i] for i in valid_indices]
                     valid_solutions = [solutions[i] for i in valid_indices]
 
-                    visualizer.create_dynamic_gif(
+                    graph_visualizer.create_dynamic_gif(
                         graph_states=valid_graph_states,
                         solutions=valid_solutions,
                         config=config,
@@ -493,15 +491,13 @@ def compare(algorithms, graph_type, graph_size, solo_cost, group_cost, group_siz
             f"(Solo: {result['solo_licenses']}, Groups: {result['group_licenses']}) {status}"
         )
 
-    visualizer = GraphVisualizer()
-
     output_dir = create_timestamped_path("results", "compare")
     output_dir.mkdir(parents=True, exist_ok=True)
     algorithms_str = "_vs_".join(sorted(solutions.keys()))
     save_path = output_dir / f"{algorithms_str}_{graph_type}_{graph_size}_comparison.png"
 
     click.echo("\nGenerating comparison visualization...")
-    visualizer.compare_solutions(
+    graph_visualizer.compare_solutions(
         graph=graph,
         solutions=solutions,
         config=config,
