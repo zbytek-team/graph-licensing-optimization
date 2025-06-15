@@ -1,5 +1,3 @@
-"""New algorithms module with enhanced structure and dynamic support."""
-
 from .ant_colony import AntColonyAlgorithm
 from .base import BaseAlgorithm
 from .dominating_set import DominatingSetAlgorithm
@@ -15,7 +13,7 @@ __all__ = [
     "AntColonyAlgorithm",
     "BaseAlgorithm",
     "DominatingSetAlgorithm",
-    "GeneticAlgorithm", 
+    "GeneticAlgorithm",
     "GreedyAlgorithm",
     "ILPAlgorithm",
     "NaiveAlgorithm",

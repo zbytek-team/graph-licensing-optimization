@@ -1,7 +1,4 @@
-"""Benchmarking utilities for algorithm evaluation."""
-
 import time
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Dict, List
 
 if TYPE_CHECKING:
@@ -12,10 +9,7 @@ if TYPE_CHECKING:
 
 
 class Benchmark:
-    """Benchmarking utility for licensing optimization algorithms."""
-
     def __init__(self) -> None:
-        """Initialize the benchmark."""
         self.results: list[dict[str, Any]] = []
 
     def run_single_test(
@@ -26,24 +20,10 @@ class Benchmark:
         test_name: str = "",
         **kwargs,
     ) -> dict[str, Any]:
-        """Run a single test and measure performance.
-
-        Args:
-            algorithm: Algorithm to test.
-            graph: Graph to solve.
-            config: License configuration.
-            test_name: Name identifier for the test.
-            **kwargs: Additional arguments to pass to the algorithm.
-
-        Returns:
-            Dictionary with test results.
-        """
-        # Record graph properties
         n_nodes = graph.number_of_nodes()
         n_edges = graph.number_of_edges()
         edge_to_node_ratio = n_edges / n_nodes if n_nodes > 0 else 0
 
-        # Measure solving time
         start_time = time.perf_counter()
         try:
             solution = algorithm.solve(graph, config, **kwargs)
@@ -58,24 +38,21 @@ class Benchmark:
             success = False
             error_msg = str(e)
 
-        # Calculate solution metrics
         if success and solution:
             total_cost = solution.calculate_cost(config)
-            
-            # Count licenses by type
+
             license_counts = {}
             total_licenses = 0
             total_members = 0
-            
+
             for license_type, groups in solution.licenses.items():
                 license_counts[f"n_{license_type}_licenses"] = len(groups)
                 total_licenses += len(groups)
-                
-                # Count members for this license type
+
                 type_members = sum(len(members) for members in groups.values())
                 license_counts[f"n_{license_type}_members"] = type_members
                 total_members += type_members
-            
+
             avg_group_size = total_members / total_licenses if total_licenses > 0 else 0
             is_valid = solution.is_valid(graph, config)
         else:
@@ -86,13 +63,12 @@ class Benchmark:
             avg_group_size = 0
             is_valid = False
 
-        # License configuration details
         license_config_details = {}
         for license_name, license_config in config.license_types.items():
             license_config_details[f"{license_name}_price"] = license_config.price
             license_config_details[f"{license_name}_min_size"] = license_config.min_size
             license_config_details[f"{license_name}_max_size"] = license_config.max_size
-        
+
         result = {
             "test_name": test_name,
             "algorithm": algorithm.name,
@@ -114,7 +90,6 @@ class Benchmark:
         self.results.append(result)
         return result
 
-
     def run_dynamic_test(
         self,
         algorithm: "BaseAlgorithm",
@@ -124,19 +99,6 @@ class Benchmark:
         modification_prob: float = 1.0,
         test_name: str = None,
     ) -> List[Dict[str, Any]]:
-        """Run dynamic test with graph modifications.
-
-        Args:
-            algorithm: Algorithm to test.
-            initial_graph: Initial graph state.
-            config: License configuration.
-            iterations: Number of iterations to run.
-            modification_prob: Probability of modifications per iteration.
-            test_name: Name for test results.
-
-        Returns:
-            List of test results for each iteration.
-        """
         current_graph = initial_graph.copy()
         graph_states = [current_graph.copy()]
         solutions = []
@@ -145,31 +107,29 @@ class Benchmark:
         error_msg = None
 
         try:
-            # Run algorithm on each graph state
             for i in range(iterations):
                 start_time = time.perf_counter()
-                
+
                 try:
                     solution = algorithm.solve(current_graph, config)
                     end_time = time.perf_counter()
                     iteration_runtime = end_time - start_time
-                    
+
                     solutions.append((solution, iteration_runtime))
                     total_runtime += iteration_runtime
-                    
+
                 except Exception as e:
                     solutions.append((None, 0))
                     print(f"Warning: Algorithm failed at iteration {i}: {e}")
-                
-                # Modify graph for next iteration (except last one)
+
                 if i < iterations - 1:
                     current_graph = algorithm._modify_graph(current_graph, modification_prob)
                     graph_states.append(current_graph.copy())
-        
+
         except Exception as e:
             success = False
             error_msg = str(e)
-            # Fill remaining iterations with None solutions
+
             while len(solutions) < iterations:
                 solutions.append((None, 0))
             while len(graph_states) < iterations:
@@ -179,33 +139,29 @@ class Benchmark:
 
         for i in range(iterations):
             iteration_test_name = f"{test_name}_iter_{i}" if test_name else f"iter_{i}"
-            
-            # Get graph state for this iteration
+
             iteration_graph = graph_states[i] if i < len(graph_states) else initial_graph
             n_nodes = iteration_graph.number_of_nodes()
             n_edges = iteration_graph.number_of_edges()
             edge_to_node_ratio = n_edges / n_nodes if n_nodes > 0 else 0
-            
-            # Get solution for this iteration
+
             solution, iteration_runtime = solutions[i] if i < len(solutions) else (None, 0)
 
             if success and solution:
                 total_cost = solution.calculate_cost(config)
-                
-                # Count licenses by type
+
                 license_counts = {}
                 total_licenses = 0
                 total_members = 0
-                
+
                 for license_type, groups in solution.licenses.items():
                     license_counts[f"n_{license_type}_licenses"] = len(groups)
                     total_licenses += len(groups)
-                    
-                    # Count members for this license type
+
                     type_members = sum(len(members) for members in groups.values())
                     license_counts[f"n_{license_type}_members"] = type_members
                     total_members += type_members
-                
+
                 avg_group_size = total_members / total_licenses if total_licenses > 0 else 0
                 is_valid = solution.is_valid(iteration_graph, config)
             else:
@@ -216,13 +172,12 @@ class Benchmark:
                 avg_group_size = 0
                 is_valid = False
 
-            # License configuration details
             license_config_details = {}
             for license_name, license_config in config.license_types.items():
                 license_config_details[f"{license_name}_price"] = license_config.price
                 license_config_details[f"{license_name}_min_size"] = license_config.min_size
                 license_config_details[f"{license_name}_max_size"] = license_config.max_size
-            
+
             result = {
                 "test_name": iteration_test_name,
                 "algorithm": algorithm.name,
@@ -260,23 +215,8 @@ class Benchmark:
         test_name: str = "",
         **kwargs,
     ) -> tuple[list[dict[str, Any]], list["nx.Graph"], list["LicenseSolution"]]:
-        """Test algorithm on dynamic graph changes, returning graph states and solutions.
-
-        Args:
-            algorithm: Algorithm to test.
-            initial_graph: Initial graph state.
-            config: License configuration.
-            iterations: Number of dynamic iterations.
-            modification_prob: Probability of graph modification.
-            test_name: Name identifier for the test.
-            **kwargs: Additional arguments to pass to the algorithm.
-
-        Returns:
-            Tuple of (results, graph_states, solutions).
-        """
         start_time = time.perf_counter()
-        
-        # Track graph states and solutions at each iteration
+
         graph_states = []
         solutions_with_timing = []
         solutions_only = []
@@ -287,36 +227,28 @@ class Benchmark:
 
         try:
             for i in range(iterations):
-                # Store current graph state
                 graph_states.append(current_graph.copy())
-                
-                # Solve current graph
+
                 iteration_start = time.perf_counter()
-                solution = algorithm.solve(
-                    current_graph, 
-                    config, 
-                    warm_start=previous_solution,
-                    **kwargs
-                )
+                solution = algorithm.solve(current_graph, config, warm_start=previous_solution, **kwargs)
                 iteration_end = time.perf_counter()
-                
+
                 solutions_with_timing.append((solution, iteration_end - iteration_start))
                 solutions_only.append(solution)
                 previous_solution = solution
 
-                # Modify graph for next iteration (except last iteration)
                 if i < iterations - 1:
                     current_graph = algorithm._modify_graph(current_graph, modification_prob)
-                    
+
             end_time = time.perf_counter()
             total_runtime = end_time - start_time
-            
+
         except Exception as e:
             end_time = time.perf_counter()
             total_runtime = end_time - start_time
             success = False
             error_msg = str(e)
-            # Fill remaining iterations with None solutions
+
             while len(solutions_with_timing) < iterations:
                 solutions_with_timing.append((None, 0))
                 solutions_only.append(None)
@@ -327,33 +259,29 @@ class Benchmark:
 
         for i in range(iterations):
             iteration_test_name = f"{test_name}_iter_{i}" if test_name else f"iter_{i}"
-            
-            # Get graph state for this iteration
+
             iteration_graph = graph_states[i] if i < len(graph_states) else initial_graph
             n_nodes = iteration_graph.number_of_nodes()
             n_edges = iteration_graph.number_of_edges()
             edge_to_node_ratio = n_edges / n_nodes if n_nodes > 0 else 0
-            
-            # Get solution for this iteration
+
             solution, iteration_runtime = solutions_with_timing[i] if i < len(solutions_with_timing) else (None, 0)
 
             if success and solution:
                 total_cost = solution.calculate_cost(config)
-                
-                # Count licenses by type
+
                 license_counts = {}
                 total_licenses = 0
                 total_members = 0
-                
+
                 for license_type, groups in solution.licenses.items():
                     license_counts[f"n_{license_type}_licenses"] = len(groups)
                     total_licenses += len(groups)
-                    
-                    # Count members for this license type
+
                     type_members = sum(len(members) for members in groups.values())
                     license_counts[f"n_{license_type}_members"] = type_members
                     total_members += type_members
-                
+
                 avg_group_size = total_members / total_licenses if total_licenses > 0 else 0
                 is_valid = solution.is_valid(iteration_graph, config)
             else:
@@ -364,7 +292,6 @@ class Benchmark:
                 avg_group_size = 0
                 is_valid = False
 
-            # License configuration details
             license_config_details = {}
             for license_name, license_config in config.license_types.items():
                 license_config_details[f"{license_name}_price"] = license_config.price
@@ -399,11 +326,6 @@ class Benchmark:
         return dynamic_results, graph_states, solutions_only
 
     def get_summary_statistics(self) -> dict[str, Any]:
-        """Get summary statistics for all benchmark results.
-
-        Returns:
-            Dictionary with summary statistics.
-        """
         if not self.results:
             return {}
 
@@ -411,7 +333,6 @@ class Benchmark:
 
         df = pd.DataFrame(self.results)
 
-        # Filter successful runs only
         successful_df = df[df["success"] == True]  # noqa: E712
 
         if successful_df.empty:
@@ -430,7 +351,6 @@ class Benchmark:
             "max_cost": successful_df["total_cost"].max(),
         }
 
-        # Per-algorithm statistics
         for algorithm in successful_df["algorithm"].unique():
             alg_df = successful_df[successful_df["algorithm"] == algorithm]
             summary[f"{algorithm}_avg_runtime"] = alg_df["runtime_seconds"].mean()
