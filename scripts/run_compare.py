@@ -4,7 +4,7 @@ import click
 from datetime import datetime
 
 from graph_licensing.visualizers import graph_visualizer
-from scripts.utils import (
+from .utils import (
     setup_logging,
     get_algorithms,
     create_license_config,
@@ -107,7 +107,7 @@ def run_comparison(
 
 @click.command()
 @click.option(
-    "--algorithms", multiple=True, default=["ilp", "greedy", "randomized", "genetic", "dominating_set", "tabu_search"]
+    "--algorithms", multiple=True, default=["greedy", "genetic", "dominating_set", "tabu_search", "ant_colony", "simulated_annealing"],
 )
 @click.option("--graph-type", default="scale_free")
 @click.option("--graph-size", default=15, type=int)

@@ -67,7 +67,7 @@ def create_license_config(solo_cost: float = 1.0, group_cost: float = 2.08, grou
     return LicenseConfig.create_flexible(
         {
             "solo": {"price": solo_cost, "min_size": 1, "max_size": 1},
-            "duo": {"price": solo_cost * 1.6, "min_size": 2, "max_size": 2},
+            # "duo": {"price": solo_cost * 1.6, "min_size": 2, "max_size": 2},
             "family": {"price": group_cost, "min_size": 2, "max_size": group_size},
         }
     )
