@@ -164,9 +164,16 @@ class CSVLogger:
         if not results:
             return
 
-        fieldnames = list(results[0].keys())
+        # Collect all possible fieldnames from all results
+        all_fieldnames = set()
+        for result in results:
+            all_fieldnames.update(result.keys())
+        
+        fieldnames = sorted(list(all_fieldnames))
 
         with self:
             self.write_header(fieldnames)
             for result in results:
-                self.write_row(result)
+                # Fill missing fields with None/empty values
+                complete_result = {field: result.get(field, None) for field in fieldnames}
+                self.write_row(complete_result)
