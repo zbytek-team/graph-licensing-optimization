@@ -2,12 +2,12 @@
 
 import click
 
-from scripts.single import single
-from scripts.compare import compare
-from scripts.tune import tune  
-from scripts.benchmark import benchmark
-from scripts.dynamic import dynamic
-from scripts.analyze import analyze
+from scripts.run_single import single
+from scripts.run_compare import compare
+from scripts.run_tune import tune  
+from scripts.run_benchmark import benchmark
+from scripts.run_dynamic import dynamic
+from scripts.run_analyze import analyze
 
 
 @click.group()

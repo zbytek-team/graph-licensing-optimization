@@ -1,11 +1,11 @@
 """Scripts package for graph licensing optimization."""
 
 __all__ = [
-    "single",
-    "compare", 
-    "tune",
-    "benchmark",
-    "dynamic",
-    "analyze",
-    "common",
+    "run_single",
+    "run_compare", 
+    "run_tune",
+    "run_benchmark",
+    "run_dynamic",
+    "run_analyze",
+    "utils",
 ]
