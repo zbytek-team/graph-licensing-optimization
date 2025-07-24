@@ -1,101 +1,80 @@
 from typing import Any
-from ...core.types import GraphGenerator
-
 import networkx as nx
 
 
-class RandomGraphGenerator(GraphGenerator):
-    @property
-    def name(self) -> str:
-        return "random"
+class GraphGeneratorFactory:
+    @classmethod
+    def get_generator(cls, name: str):
+        generators = {
+            "random": cls.random,
+            "scale_free": cls.scale_free,
+            "small_world": cls.small_world,
+            "complete": cls.complete,
+            "star": cls.star,
+            "path": cls.path,
+            "cycle": cls.cycle,
+            "tree": cls.tree,
+        }
 
-    def generate(self, n_nodes: int, **kwargs: Any) -> nx.Graph:
+        if name not in generators:
+            available = ", ".join(generators.keys())
+            raise ValueError(f"Unknown graph generator '{name}'. Available options: {available}")
+
+        return generators[name]
+
+    @staticmethod
+    def random(n_nodes: int, **kwargs: Any) -> nx.Graph:
         p = kwargs.get("p", 0.1)
         seed = kwargs.get("seed", None)
-
         return nx.erdos_renyi_graph(n=n_nodes, p=p, seed=seed)
 
-
-class ScaleFreeGraphGenerator(GraphGenerator):
-    @property
-    def name(self) -> str:
-        return "scale_free"
-
-    def generate(self, n_nodes: int, **kwargs: Any) -> nx.Graph:
+    @staticmethod
+    def scale_free(n_nodes: int, **kwargs: Any) -> nx.Graph:
         m = kwargs.get("m", 2)
         seed = kwargs.get("seed", None)
-
         return nx.barabasi_albert_graph(n=n_nodes, m=m, seed=seed)
 
-
-class SmallWorldGraphGenerator(GraphGenerator):
-    @property
-    def name(self) -> str:
-        return "small_world"
-
-    def generate(self, n_nodes: int, **kwargs: Any) -> nx.Graph:
+    @staticmethod
+    def small_world(n_nodes: int, **kwargs: Any) -> nx.Graph:
         k = kwargs.get("k", 4)
         p = kwargs.get("p", 0.1)
         seed = kwargs.get("seed", None)
-
         return nx.watts_strogatz_graph(n=n_nodes, k=k, p=p, seed=seed)
 
-
-class CompleteGraphGenerator(GraphGenerator):
-    @property
-    def name(self) -> str:
-        return "complete"
-
-    def generate(self, n_nodes: int, **kwargs: Any) -> nx.Graph:
+    @staticmethod
+    def complete(n_nodes: int, **kwargs: Any) -> nx.Graph:
         return nx.complete_graph(n=n_nodes)
 
-
-class StarGraphGenerator(GraphGenerator):
-    @property
-    def name(self) -> str:
-        return "star"
-
-    def generate(self, n_nodes: int, **kwargs: Any) -> nx.Graph:
+    @staticmethod
+    def star(n_nodes: int, **kwargs: Any) -> nx.Graph:
         return nx.star_graph(n=n_nodes - 1)
 
-
-class PathGraphGenerator(GraphGenerator):
-    @property
-    def name(self) -> str:
-        return "path"
-
-    def generate(self, n_nodes: int, **kwargs: Any) -> nx.Graph:
+    @staticmethod
+    def path(n_nodes: int, **kwargs: Any) -> nx.Graph:
         return nx.path_graph(n=n_nodes)
 
-
-class CycleGraphGenerator(GraphGenerator):
-    @property
-    def name(self) -> str:
-        return "cycle"
-
-    def generate(self, n_nodes: int, **kwargs: Any) -> nx.Graph:
+    @staticmethod
+    def cycle(n_nodes: int, **kwargs: Any) -> nx.Graph:
         return nx.cycle_graph(n=n_nodes)
 
+    @staticmethod
+    def tree(n_nodes: int, **kwargs: Any) -> nx.Graph:
+        seed = kwargs.get("seed", None)
 
-class GraphGeneratorFactory:
-    _generators = {
-        "random": RandomGraphGenerator(),
-        "scale_free": ScaleFreeGraphGenerator(),
-        "small_world": SmallWorldGraphGenerator(),
-        "complete": CompleteGraphGenerator(),
-        "star": StarGraphGenerator(),
-        "path": PathGraphGenerator(),
-        "cycle": CycleGraphGenerator(),
-    }
+        if n_nodes <= 0:
+            return nx.Graph()
 
-    @classmethod
-    def get_generator(cls, name: str) -> GraphGenerator:
-        if name not in cls._generators:
-            available = ", ".join(cls._generators.keys())
-            raise ValueError(f"Unknown graph generator '{name}'. Available options: {available}")
+        if n_nodes == 1:
+            G = nx.Graph()
+            G.add_node(0)
+            return G
 
-        return cls._generators.get(name, None)
+        while True:
+            p = min(0.3, 4.0 / n_nodes)
+            G = nx.erdos_renyi_graph(n=n_nodes, p=p, seed=seed)
 
-    @classmethod
-    def list_generators(cls) -> list[str]:
-        return list(cls._generators.keys())
+            if nx.is_connected(G):
+                return nx.minimum_spanning_tree(G)
+
+            if seed is not None:
+                seed += 1
