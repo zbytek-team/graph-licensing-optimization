@@ -19,7 +19,7 @@ import traceback
 import sys
 
 GRAPH_TYPE = "small_world"
-GRAPH_NODES = 100
+GRAPH_NODES = 50
 GRAPH_K = 4
 GRAPH_P = 0.3
 GRAPH_SEED = 42
