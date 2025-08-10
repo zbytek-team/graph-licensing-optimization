@@ -6,6 +6,9 @@ from .genetic import GeneticAlgorithm
 from .ant_colony import AntColonyOptimization
 from .tree_dp import TreeDynamicProgramming
 from .branch_and_bound import BranchAndBound
+from .naive import NaiveAlgorithm
+from .dominating_set import DominatingSetAlgorithm
+from .randomized import RandomizedAlgorithm
 
 __all__ = [
     "ILPSolver",
@@ -16,4 +19,7 @@ __all__ = [
     "AntColonyOptimization",
     "TreeDynamicProgramming",
     "BranchAndBound",
+    "NaiveAlgorithm",
+    "DominatingSetAlgorithm",
+    "RandomizedAlgorithm",
 ]
