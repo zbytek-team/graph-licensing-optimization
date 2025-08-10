@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, List, Set
-
 import networkx as nx
 
 
@@ -11,7 +10,7 @@ class LicenseType:
     cost: float
     min_capacity: int
     max_capacity: int
-    color: str = "#000000"  # Default black color
+    color: str = "#000000"
 
 
 @dataclass(frozen=True)
@@ -39,17 +38,6 @@ class Solution:
 class Algorithm(ABC):
     @abstractmethod
     def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
-        pass
-
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        pass
-
-
-class GraphGenerator(ABC):
-    @abstractmethod
-    def generate(self, n_nodes: int, **kwargs: Any) -> nx.Graph:
         pass
 
     @property
