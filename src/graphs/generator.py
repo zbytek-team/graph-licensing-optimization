@@ -15,11 +15,9 @@ class GraphGeneratorFactory:
             "cycle": cls.cycle,
             "tree": cls.tree,
         }
-
         if name not in generators:
             available = ", ".join(generators.keys())
             raise ValueError(f"Unknown graph generator '{name}'. Available options: {available}")
-
         return generators[name]
 
     @staticmethod
@@ -60,21 +58,16 @@ class GraphGeneratorFactory:
     @staticmethod
     def tree(n_nodes: int, **kwargs: Any) -> nx.Graph:
         seed = kwargs.get("seed", None)
-
         if n_nodes <= 0:
             return nx.Graph()
-
         if n_nodes == 1:
             G = nx.Graph()
             G.add_node(0)
             return G
-
         while True:
             p = min(0.3, 4.0 / n_nodes)
             G = nx.erdos_renyi_graph(n=n_nodes, p=p, seed=seed)
-
             if nx.is_connected(G):
                 return nx.minimum_spanning_tree(G)
-
             if seed is not None:
                 seed += 1

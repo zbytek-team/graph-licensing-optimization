@@ -8,10 +8,8 @@ class BenchmarkCSVWriter:
     def __init__(self, output_dir: str = "results/stats"):
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
-
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.csv_path = os.path.join(output_dir, f"{timestamp}.csv")
-
         self.fieldnames = [
             "algorithm",
             "graph_type",
@@ -27,7 +25,6 @@ class BenchmarkCSVWriter:
             "avg_degree",
             "seed",
         ]
-
         with open(self.csv_path, "w", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
             writer.writeheader()

@@ -2,7 +2,7 @@ import random
 from typing import List, Optional
 import networkx as nx
 from src.core import Solution, LicenseGroup, LicenseType
-from .solution_builder import SolutionBuilder
+from src.utils import SolutionBuilder
 
 
 class MutationOperators:
