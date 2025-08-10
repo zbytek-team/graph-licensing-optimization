@@ -8,6 +8,7 @@ dependencies = [
     "matplotlib>=3.10.3",
     "networkx>=3.5",
     "pulp>=3.2.1",
+    "pymupdf>=1.26.3",
 ]
 
 [dependency-groups]

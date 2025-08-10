@@ -7,6 +7,9 @@ from src.algorithms import (
     AntColonyOptimization,
     TreeDynamicProgramming,
     BranchAndBound,
+    NaiveAlgorithm,
+    DominatingSetAlgorithm,
+    RandomizedAlgorithm,
 )
 from src.graphs import GraphGeneratorFactory, GraphVisualizer
 from src.core import LicenseConfigFactory, SolutionValidator
@@ -22,6 +25,9 @@ GRAPH_P = 0.3
 GRAPH_SEED = 42
 LICENSE_CONFIG = "spotify"
 ALGORITHMS = [
+    ("Dominating Set", lambda: DominatingSetAlgorithm()),
+    ("Randomized (70% greedy)", lambda: RandomizedAlgorithm(greedy_probability=0.7, seed=42)),
+    ("Randomized (30% greedy)", lambda: RandomizedAlgorithm(greedy_probability=0.3, seed=42)),
     ("Greedy", lambda: GreedyAlgorithm()),
     ("Tabu Search", lambda: TabuSearch()),
     ("Simulated Annealing", lambda: SimulatedAnnealing()),
@@ -30,6 +36,10 @@ ALGORITHMS = [
     ("Branch and Bound", lambda: BranchAndBound()),
     ("ILP Solver", lambda: ILPSolver()),
 ]
+
+# Add naive algorithm only for small graphs (n ≤ 10)
+if GRAPH_NODES <= 10:
+    ALGORITHMS.insert(0, ("Naive Algorithm", lambda: NaiveAlgorithm()))
 
 if GRAPH_TYPE == "tree":
     ALGORITHMS.append(("Tree Dynamic Programming", lambda: TreeDynamicProgramming()))
