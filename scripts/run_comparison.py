@@ -2,8 +2,8 @@ from src.algorithms import (
     ILPSolver,
     GreedyAlgorithm,
     TabuSearch,
-    SimulatedAnnealing,
-    GeneticAlgorithm,
+    SimulatedAnnealing,  # RE-ENABLED for testing
+    GeneticAlgorithm,  # RE-ENABLED for testing
     AntColonyOptimization,
     TreeDynamicProgramming,
     BranchAndBound,
@@ -18,8 +18,8 @@ import os
 import traceback
 import sys
 
-GRAPH_TYPE = "small_world"
-GRAPH_NODES = 50
+GRAPH_TYPE = "scale_free"
+GRAPH_NODES = 20  # TESTING - reduced for faster execution
 GRAPH_K = 4
 GRAPH_P = 0.3
 GRAPH_SEED = 42
@@ -30,8 +30,8 @@ ALGORITHMS = [
     ("Randomized (30% greedy)", lambda: RandomizedAlgorithm(greedy_probability=0.3, seed=42)),
     ("Greedy", lambda: GreedyAlgorithm()),
     ("Tabu Search", lambda: TabuSearch()),
-    ("Simulated Annealing", lambda: SimulatedAnnealing()),
-    ("Genetic Algorithm", lambda: GeneticAlgorithm()),
+    ("Simulated Annealing", lambda: SimulatedAnnealing()),  # RE-ENABLED
+    ("Genetic Algorithm", lambda: GeneticAlgorithm()),  # RE-ENABLED
     ("Ant Colony Optimization", lambda: AntColonyOptimization()),
     ("Branch and Bound", lambda: BranchAndBound()),
     ("ILP Solver", lambda: ILPSolver()),
