@@ -24,10 +24,8 @@ class AntColonyOptimization(Algorithm):
         pheromones = self._initialize_pheromones(graph, license_types)
         heuristics = self._calculate_heuristics(graph, license_types)
 
-        from .greedy import GreedyAlgorithm
-
-        greedy_algorithm = GreedyAlgorithm()
-        best_solution = greedy_algorithm.solve(graph, license_types)
+        # Initialize with random solution instead of greedy
+        best_solution = self._generate_random_initial_solution(graph, license_types)
         best_cost = best_solution.total_cost
 
         self._deposit_pheromones_for_solution(pheromones, best_solution, graph)
@@ -216,3 +214,30 @@ class AntColonyOptimization(Algorithm):
                 break
 
         return current_solution
+
+    def _generate_random_initial_solution(self, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+        nodes = list(graph.nodes())
+        random.shuffle(nodes)
+
+        covered_nodes = set()
+        license_groups = []
+
+        while len(covered_nodes) < len(nodes):
+            uncovered = [n for n in nodes if n not in covered_nodes]
+            if not uncovered:
+                break
+
+            center = random.choice(uncovered)
+            license_type = random.choice(license_types)
+
+            # License covers owner + direct neighbors (range = 1)
+            neighbors = set(graph.neighbors(center)) | {center}
+
+            license_group = LicenseGroup(center, license_type, neighbors)
+            license_groups.append(license_group)
+            covered_nodes.update(neighbors)
+
+        total_cost = sum(lg.license_type.cost for lg in license_groups)
+        all_covered = set().union(*(lg.covered_nodes for lg in license_groups))
+
+        return Solution(license_groups, total_cost, all_covered)
