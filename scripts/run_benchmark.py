@@ -105,6 +105,18 @@ def main():
                                         algorithm_skip_flags[larger_skip_key] = True
                             continue
                         avg_degree = sum(dict(graph.degree()).values()) / len(graph.nodes())
+                        iterations = getattr(solution, "iterations", getattr(algorithm, "iterations", None))
+                        memory_usage = getattr(solution, "memory_usage", getattr(algorithm, "memory_usage", None))
+                        if hasattr(algorithm, "get_params"):
+                            try:
+                                algorithm_params = algorithm.get_params()
+                            except Exception:
+                                algorithm_params = None
+                        else:
+                            try:
+                                algorithm_params = {k: v for k, v in vars(algorithm).items() if not k.startswith("_")}
+                            except Exception:
+                                algorithm_params = None
                         result = {
                             "algorithm": algorithm_name,
                             "graph_type": graph_type,
@@ -119,6 +131,9 @@ def main():
                             "groups_count": len(solution.groups),
                             "avg_degree": round(avg_degree, 3),
                             "seed": GRAPH_SEED,
+                            "iterations": iterations,
+                            "memory_usage": memory_usage,
+                            "algorithm_params": algorithm_params,
                         }
                         csv_writer.write_result(result)
                         print(f"  Result: cost={round(solution.total_cost, 2)}, time={execution_time:.3f}s, groups={len(solution.groups)}")

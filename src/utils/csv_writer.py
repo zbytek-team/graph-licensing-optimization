@@ -24,6 +24,9 @@ class BenchmarkCSVWriter:
             "groups_count",
             "avg_degree",
             "seed",
+            "iterations",
+            "memory_usage",
+            "algorithm_params",
         ]
         with open(self.csv_path, "w", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
@@ -32,7 +35,11 @@ class BenchmarkCSVWriter:
     def write_result(self, result: Dict[str, Any]):
         with open(self.csv_path, "a", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
-            writer.writerow(result)
+            row = {}
+            for field in self.fieldnames:
+                value = result.get(field)
+                row[field] = "" if value is None else value
+            writer.writerow(row)
 
     def get_csv_path(self) -> str:
         return self.csv_path

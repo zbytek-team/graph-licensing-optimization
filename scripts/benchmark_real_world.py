@@ -50,6 +50,9 @@ def benchmark_real_world_networks():
             "execution_time",
             "quality_ratio",
             "is_optimal",
+            "iterations",
+            "memory_usage",
+            "algorithm_params",
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
@@ -97,6 +100,19 @@ def benchmark_real_world_networks():
                             if optimal_cost and optimal_cost > 0:
                                 quality_ratio = solution.total_cost / optimal_cost
 
+                            iterations = getattr(solution, "iterations", getattr(algorithm, "iterations", None))
+                            memory_usage = getattr(solution, "memory_usage", getattr(algorithm, "memory_usage", None))
+                            if hasattr(algorithm, "get_params"):
+                                try:
+                                    algorithm_params = algorithm.get_params()
+                                except Exception:
+                                    algorithm_params = None
+                            else:
+                                try:
+                                    algorithm_params = {k: v for k, v in vars(algorithm).items() if not k.startswith("_")}
+                                except Exception:
+                                    algorithm_params = None
+
                             # Zapisz wyniki
                             writer.writerow(
                                 {
@@ -112,6 +128,9 @@ def benchmark_real_world_networks():
                                     "execution_time": execution_time,
                                     "quality_ratio": quality_ratio,
                                     "is_optimal": is_optimal,
+                                    "iterations": iterations,
+                                    "memory_usage": memory_usage,
+                                    "algorithm_params": algorithm_params,
                                 }
                             )
 
