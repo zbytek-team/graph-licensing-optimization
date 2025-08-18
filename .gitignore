@@ -156,3 +156,6 @@ debug_tree.py
 
 # Ruff cache
 .ruff_cache/
+
+# Ignore standalone test scripts
+test_*.py
