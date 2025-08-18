@@ -6,6 +6,8 @@ from src.core import LicenseConfigFactory
 from src.utils import BenchmarkCSVWriter
 import time
 import signal
+import argparse
+import logging
 
 GRAPH_TYPES = ["random", "scale_free", "small_world"]
 GRAPH_NODES = [10, 15, 20, 25, 30]
@@ -20,6 +22,9 @@ ALGORITHMS = [
     (TabuSearch(), "Tabu Search"),
     (ILPSolver(), "ILP Solver"),
 ]
+
+
+logger = logging.getLogger(__name__)
 
 
 class TimeoutException(Exception):
@@ -45,7 +50,7 @@ def run_algorithm_with_timeout(algorithm, graph, license_types, timeout_seconds)
         return None, timeout_seconds
     except Exception as e:
         signal.alarm(0)
-        print(f"Algorithm failed with error: {e}")
+        logger.error("Algorithm failed with error: %s", e)
         return None, -1
 
 
@@ -66,8 +71,17 @@ def generate_graph_configs():
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Run benchmark experiments")
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        help="Set the logging level (e.g., DEBUG, INFO, WARNING)",
+    )
+    args = parser.parse_args()
+    logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO))
+
     csv_writer = BenchmarkCSVWriter()
-    print(f"Starting benchmark - results will be saved to: {csv_writer.get_csv_path()}")
+    logger.info("Starting benchmark - results will be saved to: %s", csv_writer.get_csv_path())
     graph_configs = generate_graph_configs()
     total_experiments = len(LICENSE_CONFIGS) * len(ALGORITHMS) * len(GRAPH_NODES) * len(graph_configs)
     current_experiment = 0
@@ -83,7 +97,15 @@ def main():
                     if algorithm_skip_flags[skip_key]:
                         continue
                     current_experiment += 1
-                    print(f"Experiment {current_experiment}/{total_experiments}: {algorithm_name} on {graph_type} graph ({nodes} nodes) with {license_config}")
+                    logger.info(
+                        "Experiment %d/%d: %s on %s graph (%d nodes) with %s",
+                        current_experiment,
+                        total_experiments,
+                        algorithm_name,
+                        graph_type,
+                        nodes,
+                        license_config,
+                    )
                     try:
                         generator = GraphGeneratorFactory.get_generator(graph_type)
                         kwargs = {"seed": GRAPH_SEED}
@@ -95,10 +117,15 @@ def main():
                             kwargs["m"] = graph_config["m"]
                         graph = generator(n_nodes=nodes, **kwargs)
                         license_types = LicenseConfigFactory.get_config(license_config)
-                        solution, execution_time = run_algorithm_with_timeout(algorithm, graph, license_types, MAX_EXECUTION_TIME)
+                        solution, execution_time = run_algorithm_with_timeout(
+                            algorithm, graph, license_types, MAX_EXECUTION_TIME
+                        )
                         if solution is None:
                             if execution_time == MAX_EXECUTION_TIME:
-                                print(f"Timeout for {algorithm_name} - skipping larger graphs for this algorithm+graph_type combination")
+                                logger.warning(
+                                    "Timeout for %s - skipping larger graphs for this algorithm+graph_type combination",
+                                    algorithm_name,
+                                )
                                 for larger_nodes in GRAPH_NODES:
                                     if larger_nodes >= nodes:
                                         larger_skip_key = f"{algorithm_name}_{graph_type}_{graph_config}_{larger_nodes}"
@@ -121,10 +148,15 @@ def main():
                             "seed": GRAPH_SEED,
                         }
                         csv_writer.write_result(result)
-                        print(f"  Result: cost={round(solution.total_cost, 2)}, time={execution_time:.3f}s, groups={len(solution.groups)}")
+                        logger.info(
+                            "  Result: cost=%s, time=%.3fs, groups=%d",
+                            round(solution.total_cost, 2),
+                            execution_time,
+                            len(solution.groups),
+                        )
                     except Exception as e:
-                        print(f"  Error: {e}")
-    print(f"Benchmark completed! Results saved to: {csv_writer.get_csv_path()}")
+                        logger.error("  Error: %s", e)
+    logger.info("Benchmark completed! Results saved to: %s", csv_writer.get_csv_path())
 
 
 if __name__ == "__main__":

@@ -1,6 +1,9 @@
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from typing import Any, List
 import networkx as nx
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GreedyAlgorithm(Algorithm):
@@ -10,6 +13,7 @@ class GreedyAlgorithm(Algorithm):
 
     def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
         nodes = list(graph.nodes())
+        logger.debug("Starting GreedyAlgorithm.solve with %d nodes", len(nodes))
         uncovered_nodes = set(nodes)
         groups = []
         total_cost = 0.0

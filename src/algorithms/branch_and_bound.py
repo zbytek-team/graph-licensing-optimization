@@ -4,6 +4,9 @@ import networkx as nx
 from dataclasses import dataclass
 import heapq
 from itertools import combinations
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -27,6 +30,7 @@ class BranchAndBound(Algorithm):
         self.graph = graph
         self.license_types = license_types
         self.nodes = list(graph.nodes())
+        logger.debug("Starting BranchAndBound.solve with %d nodes", len(self.nodes))
         self.best_solution = None
         self.best_cost = float("inf")
 

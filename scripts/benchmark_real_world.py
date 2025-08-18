@@ -5,6 +5,10 @@ from datetime import datetime
 import csv
 import os
 import time
+import argparse
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def benchmark_real_world_networks():
@@ -29,7 +33,7 @@ def benchmark_real_world_networks():
 
     # Znajdź odpowiednie sieci do testowania
     suitable_networks = loader.get_suitable_networks_for_testing(min_nodes=20, max_nodes=200)
-    print(f"Testowanie na {len(suitable_networks)} sieciach Facebook: {suitable_networks}")
+    logger.info("Testowanie na %d sieciach Facebook: %s", len(suitable_networks), suitable_networks)
 
     # Przygotuj plik wyników
     results_dir = "results/real_world"
@@ -55,7 +59,7 @@ def benchmark_real_world_networks():
         writer.writeheader()
 
         for network_id in suitable_networks:
-            print(f"\nTesting network {network_id}...")
+            logger.info("\nTesting network %s...", network_id)
 
             # Załaduj sieć
             try:
@@ -69,7 +73,7 @@ def benchmark_real_world_networks():
                 density = nx.density(graph)
                 avg_clustering = nx.average_clustering(graph)
 
-                print(f"  {nodes} węzłów, {edges} krawędzi, density={density:.3f}")
+                logger.info("  %d węzłów, %d krawędzi, density=%.3f", nodes, edges, density)
 
                 for license_config in license_configs:
                     license_types = LicenseConfigFactory.get_config(license_config)
@@ -115,15 +119,26 @@ def benchmark_real_world_networks():
                                 }
                             )
 
-                            print(f"    {algo_name:25} | {license_config:15} | Cost: {solution.total_cost:7.2f} | Time: {execution_time:6.3f}s")
+                            logger.info(
+                                "    %s | %s | Cost: %.2f | Time: %.3fs",
+                                f"{algo_name:25}",
+                                f"{license_config:15}",
+                                solution.total_cost,
+                                execution_time,
+                            )
 
                         except Exception as e:
-                            print(f"    {algo_name:25} | {license_config:15} | ERROR: {e}")
+                            logger.error(
+                                "    %s | %s | ERROR: %s",
+                                f"{algo_name:25}",
+                                f"{license_config:15}",
+                                e,
+                            )
 
             except Exception as e:
-                print(f"  ERROR loading network {network_id}: {e}")
+                logger.error("  ERROR loading network %s: %s", network_id, e)
 
-    print(f"\nWyniki zapisane w: {results_file}")
+    logger.info("\nWyniki zapisane w: %s", results_file)
 
 
 def compare_real_vs_generated():
@@ -135,7 +150,7 @@ def compare_real_vs_generated():
     suitable_networks = loader.get_suitable_networks_for_testing(min_nodes=50, max_nodes=150)
 
     if len(suitable_networks) < 3:
-        print("Za mało odpowiednich sieci do porównania")
+        logger.warning("Za mało odpowiednich sieci do porównania")
         return
 
     # Weź 3 różne rozmiary sieci
@@ -149,8 +164,8 @@ def compare_real_vs_generated():
 
     license_types = LicenseConfigFactory.get_config("spotify")
 
-    print("Porównanie: Sieci Rzeczywiste vs. Wygenerowane")
-    print("=" * 60)
+    logger.info("Porównanie: Sieci Rzeczywiste vs. Wygenerowane")
+    logger.info("=" * 60)
 
     for network_id in test_networks:
         real_graph = loader.load_facebook_ego_network(network_id)
@@ -159,8 +174,8 @@ def compare_real_vs_generated():
         # Utwórz graf wygenerowany o podobnym rozmiarze
         generated_graph = GraphGeneratorFactory.small_world(real_nodes, k=min(4, real_nodes - 1), p=0.3, seed=42)
 
-        print(f"\nSieć {network_id} ({real_nodes} węzłów):")
-        print("-" * 40)
+        logger.info("\nSieć %s (%d węzłów):", network_id, real_nodes)
+        logger.info("-" * 40)
 
         for algo_name, algo_factory in algorithms:
             algorithm = algo_factory()
@@ -173,8 +188,12 @@ def compare_real_vs_generated():
 
             cost_ratio = real_solution.total_cost / generated_solution.total_cost
 
-            print(
-                f"{algo_name:15} | Rzeczywista: {real_solution.total_cost:6.2f} | Wygenerowana: {generated_solution.total_cost:6.2f} | Ratio: {cost_ratio:.2f}"
+            logger.info(
+                "%s | Rzeczywista: %.2f | Wygenerowana: %.2f | Ratio: %.2f",
+                f"{algo_name:15}",
+                real_solution.total_cost,
+                generated_solution.total_cost,
+                cost_ratio,
             )
 
 
@@ -184,44 +203,74 @@ def analyze_facebook_network_properties():
     loader = RealWorldDataLoader()
     stats = loader.get_facebook_network_stats()
 
-    print("Analiza właściwości sieci Facebook")
-    print("=" * 50)
+    logger.info("Analiza właściwości sieci Facebook")
+    logger.info("=" * 50)
 
     # Sortuj według rozmiaru
     sorted_networks = sorted(stats.items(), key=lambda x: x[1]["nodes"])
 
-    print(f"{'Network ID':<10} {'Nodes':<6} {'Edges':<6} {'Density':<8} {'Clustering':<10} {'Components':<10}")
-    print("-" * 70)
+    logger.info(f"{'Network ID':<10} {'Nodes':<6} {'Edges':<6} {'Density':<8} {'Clustering':<10} {'Components':<10}")
+    logger.info("-" * 70)
 
     for network_id, stat in sorted_networks:
-        print(f"{network_id:<10} {stat['nodes']:<6} {stat['edges']:<6} {stat['density']:<8.3f} {stat['avg_clustering']:<10.3f} {stat['components']:<10}")
+        logger.info(
+            f"{network_id:<10} {stat['nodes']:<6} {stat['edges']:<6} {stat['density']:<8.3f} {stat['avg_clustering']:<10.3f} {stat['components']:<10}"
+        )
 
     # Statystyki ogólne
     all_nodes = [stat["nodes"] for stat in stats.values()]
     all_densities = [stat["density"] for stat in stats.values()]
     all_clusterings = [stat["avg_clustering"] for stat in stats.values()]
 
-    print("\nStatystyki ogólne:")
-    print(f"Liczba sieci: {len(stats)}")
-    print(f"Rozmiar węzłów - min: {min(all_nodes)}, max: {max(all_nodes)}, avg: {sum(all_nodes) / len(all_nodes):.1f}")
-    print(f"Gęstość - min: {min(all_densities):.3f}, max: {max(all_densities):.3f}, avg: {sum(all_densities) / len(all_densities):.3f}")
-    print(f"Clustering - min: {min(all_clusterings):.3f}, max: {max(all_clusterings):.3f}, avg: {sum(all_clusterings) / len(all_clusterings):.3f}")
+    logger.info("\nStatystyki ogólne:")
+    logger.info("Liczba sieci: %d", len(stats))
+    logger.info(
+        "Rozmiar węzłów - min: %d, max: %d, avg: %.1f",
+        min(all_nodes),
+        max(all_nodes),
+        sum(all_nodes) / len(all_nodes),
+    )
+    logger.info(
+        "Gęstość - min: %.3f, max: %.3f, avg: %.3f",
+        min(all_densities),
+        max(all_densities),
+        sum(all_densities) / len(all_densities),
+    )
+    logger.info(
+        "Clustering - min: %.3f, max: %.3f, avg: %.3f",
+        min(all_clusterings),
+        max(all_clusterings),
+        sum(all_clusterings) / len(all_clusterings),
+    )
 
 
-if __name__ == "__main__":
-    print("=== Benchmark algorytmów na rzeczywistych danych Facebook ===\n")
+def main():
+    parser = argparse.ArgumentParser(description="Real world benchmark")
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        help="Set the logging level (e.g., DEBUG, INFO, WARNING)",
+    )
+    args = parser.parse_args()
+    logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO))
+
+    logger.info("=== Benchmark algorytmów na rzeczywistych danych Facebook ===\n")
 
     # 1. Analiza właściwości sieci
     analyze_facebook_network_properties()
 
-    print("\n" + "=" * 60 + "\n")
+    logger.info("\n" + "=" * 60 + "\n")
 
     # 2. Porównanie real vs generated
     compare_real_vs_generated()
 
-    print("\n" + "=" * 60 + "\n")
+    logger.info("\n" + "=" * 60 + "\n")
 
     # 3. Pełny benchmark
     benchmark_real_world_networks()
 
-    print("\n=== Benchmark zakończony ===")
+    logger.info("\n=== Benchmark zakończony ===")
+
+
+if __name__ == "__main__":
+    main()
