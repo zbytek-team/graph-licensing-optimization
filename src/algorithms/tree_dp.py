@@ -1,13 +1,17 @@
 from typing import Any, Dict, List, Tuple
 import networkx as nx
-from src.core import LicenseType, LicenseGroup, Solution
+from src.core import LicenseType, LicenseGroup, Solution, Algorithm
 from src.utils import SolutionBuilder
 
 
-class TreeDynamicProgramming:
+class TreeDynamicProgramming(Algorithm):
     """Dynamic programming algorithm optimized for tree graphs."""
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    @property
+    def name(self) -> str:
+        return "tree_dynamic_programming"
+
+    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
         if not nx.is_tree(graph):
             raise ValueError("TreeDynamicProgramming requires a tree graph")
 
