@@ -11,6 +11,10 @@ dependencies = [
     "pymupdf>=1.26.3",
 ]
 
+[project.scripts]
+benchmark = "scripts.run_benchmark:main"
+comparison = "scripts.run_comparison:main"
+
 [dependency-groups]
 dev = [
     "black>=25.1.0",
