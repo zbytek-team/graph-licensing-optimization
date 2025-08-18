@@ -11,7 +11,7 @@ from src.algorithms import (
     DominatingSetAlgorithm,
     RandomizedAlgorithm,
 )
-from src.graphs import GraphGeneratorFactory, GraphVisualizer
+from src.graphs import GraphGeneratorFactory, GraphVisualizer, generate_graph_report
 from src.core import LicenseConfigFactory, SolutionValidator
 from datetime import datetime
 import os
@@ -168,6 +168,9 @@ def main():
     now = datetime.now()
     timestamp_folder = now.strftime("%Y%m%d_%H%M%S")
     os.makedirs(f"results/graphs/{timestamp_folder}", exist_ok=True)
+    report_path = f"results/graphs/{timestamp_folder}/graph_report.md"
+    generate_graph_report(graph, report_path)
+    print(f"Graph report saved to: {report_path}")
     results = {}
     visualizer = GraphVisualizer()
     for name, algorithm_factory in ALGORITHMS:

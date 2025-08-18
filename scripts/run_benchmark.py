@@ -1,11 +1,12 @@
 from src.algorithms.ilp import ILPSolver
 from src.algorithms.greedy import GreedyAlgorithm
 from src.algorithms.tabu_search import TabuSearch
-from src.graphs.generator import GraphGeneratorFactory
+from src.graphs import GraphGeneratorFactory, generate_graph_report
 from src.core import LicenseConfigFactory
 from src.utils import BenchmarkCSVWriter
 import time
 import signal
+import os
 
 GRAPH_TYPES = ["random", "scale_free", "small_world"]
 GRAPH_NODES = [10, 15, 20, 25, 30]
@@ -94,6 +95,17 @@ def main():
                         if graph_config["m"] is not None:
                             kwargs["m"] = graph_config["m"]
                         graph = generator(n_nodes=nodes, **kwargs)
+                        report_dir = "results/graph_reports"
+                        os.makedirs(report_dir, exist_ok=True)
+                        report_name = f"{graph_type}_n{nodes}"
+                        if graph_config["k"] is not None:
+                            report_name += f"_k{graph_config['k']}"
+                        if graph_config["p"] is not None:
+                            report_name += f"_p{graph_config['p']}"
+                        if graph_config["m"] is not None:
+                            report_name += f"_m{graph_config['m']}"
+                        report_path = os.path.join(report_dir, f"{report_name}.md")
+                        generate_graph_report(graph, report_path)
                         license_types = LicenseConfigFactory.get_config(license_config)
                         solution, execution_time = run_algorithm_with_timeout(algorithm, graph, license_types, MAX_EXECUTION_TIME)
                         if solution is None:
