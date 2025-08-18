@@ -82,9 +82,9 @@ def benchmark_real_world_networks():
 
                         try:
                             algorithm = algo_factory()
-                            start_time = time.time()
+                            start_time = time.perf_counter()
                             solution = algorithm.solve(graph, license_types)
-                            execution_time = time.time() - start_time
+                            execution_time = time.perf_counter() - start_time
 
                             # Sprawdź czy to jest rozwiązanie optymalne
                             is_optimal = algo_name == "ILP Optimal" or (algo_name == "Naive" and nodes <= 10)

@@ -34,9 +34,9 @@ def run_algorithm_with_timeout(algorithm, graph, license_types, timeout_seconds)
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(timeout_seconds)
     try:
-        start_time = time.time()
+        start_time = time.perf_counter()
         solution = algorithm.solve(graph, license_types)
-        end_time = time.time()
+        end_time = time.perf_counter()
         execution_time = end_time - start_time
         signal.alarm(0)
         return solution, execution_time
