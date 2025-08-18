@@ -1,3 +1,8 @@
+"""Moduł zawiera operacje na grafach związane z dynamic simulator.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from typing import List, Dict, Any, Optional, Tuple
 import networkx as nx
 import random
@@ -43,7 +48,12 @@ class DynamicNetworkSimulator:
     4. Rebalansowanie licencji
     """
 
-    def __init__(self, rebalance_algorithm: Optional[Algorithm] = None, mutation_params: Optional[MutationParams] = None, seed: Optional[int] = None):
+    def __init__(
+        self,
+        rebalance_algorithm: Optional[Algorithm] = None,
+        mutation_params: Optional[MutationParams] = None,
+        seed: Optional[int] = None,
+    ):
         """
         Args:
             rebalance_algorithm: Algorytm do rebalansowania (domyślnie GreedyAlgorithm)
@@ -60,7 +70,11 @@ class DynamicNetworkSimulator:
             random.seed(seed)
 
     def simulate(
-        self, initial_graph: nx.Graph, license_types: List[LicenseType], num_steps: int = 10, initial_algorithm: Optional[Algorithm] = None
+        self,
+        initial_graph: nx.Graph,
+        license_types: List[LicenseType],
+        num_steps: int = 10,
+        initial_algorithm: Optional[Algorithm] = None,
     ) -> List[DynamicStep]:
         """
         Przeprowadza symulację dynamiczną.
@@ -76,7 +90,9 @@ class DynamicNetworkSimulator:
         """
         self.history.clear()
         current_graph = initial_graph.copy()
-        self.next_node_id = max(current_graph.nodes()) + 1 if current_graph.nodes() else 0
+        self.next_node_id = (
+            max(current_graph.nodes()) + 1 if current_graph.nodes() else 0
+        )
 
         # Krok 0: Początkowe przypisanie licencji
         if initial_algorithm is None:
@@ -84,7 +100,15 @@ class DynamicNetworkSimulator:
 
         current_solution = initial_algorithm.solve(current_graph, license_types)
 
-        self.history.append(DynamicStep(step_number=0, graph=current_graph.copy(), solution=current_solution, mutations_applied=[], rebalance_cost_change=0.0))
+        self.history.append(
+            DynamicStep(
+                step_number=0,
+                graph=current_graph.copy(),
+                solution=current_solution,
+                mutations_applied=[],
+                rebalance_cost_change=0.0,
+            )
+        )
 
         # Kroki 1-N: Mutacje i rebalansowanie
         for step in range(1, num_steps + 1):
@@ -96,7 +120,9 @@ class DynamicNetworkSimulator:
 
             # Rebalansowanie licencji
             old_cost = current_solution.total_cost
-            current_solution = self._rebalance_licenses(current_graph, license_types, current_solution)
+            current_solution = self._rebalance_licenses(
+                current_graph, license_types, current_solution
+            )
             new_cost = current_solution.total_cost
             cost_change = new_cost - old_cost
 
@@ -124,8 +150,13 @@ class DynamicNetworkSimulator:
             mutations.append(f"Added nodes: {new_nodes}")
 
         # Usuń węzły
-        if random.random() < self.mutation_params.remove_nodes_prob and len(graph.nodes()) > 5:
-            num_remove = random.randint(1, min(self.mutation_params.max_nodes_remove, len(graph.nodes()) - 5))
+        if (
+            random.random() < self.mutation_params.remove_nodes_prob
+            and len(graph.nodes()) > 5
+        ):
+            num_remove = random.randint(
+                1, min(self.mutation_params.max_nodes_remove, len(graph.nodes()) - 5)
+            )
             removed_nodes = self._remove_nodes(graph, num_remove)
             mutations.append(f"Removed nodes: {removed_nodes}")
 
@@ -136,8 +167,13 @@ class DynamicNetworkSimulator:
             mutations.append(f"Added {len(added_edges)} edges")
 
         # Usuń krawędzie
-        if random.random() < self.mutation_params.remove_edges_prob and len(graph.edges()) > 0:
-            num_remove = random.randint(1, min(self.mutation_params.max_edges_remove, len(graph.edges())))
+        if (
+            random.random() < self.mutation_params.remove_edges_prob
+            and len(graph.edges()) > 0
+        ):
+            num_remove = random.randint(
+                1, min(self.mutation_params.max_edges_remove, len(graph.edges()))
+            )
             removed_edges = self._remove_edges(graph, num_remove)
             mutations.append(f"Removed {len(removed_edges)} edges")
 
@@ -199,7 +235,9 @@ class DynamicNetworkSimulator:
 
         return edges_to_remove
 
-    def _rebalance_licenses(self, graph: nx.Graph, license_types: List[LicenseType], old_solution: Solution) -> Solution:
+    def _rebalance_licenses(
+        self, graph: nx.Graph, license_types: List[LicenseType], old_solution: Solution
+    ) -> Solution:
         """
         Rebalansowanie licencji po mutacjach grafu.
 
@@ -267,7 +305,9 @@ class DynamicNetworkSimulator:
         if not self.history:
             return {}
 
-        total_cost_changes = sum(step.rebalance_cost_change for step in self.history[1:])
+        total_cost_changes = sum(
+            step.rebalance_cost_change for step in self.history[1:]
+        )
         initial_cost = self.history[0].solution.total_cost
         final_cost = self.history[-1].solution.total_cost
 
@@ -289,7 +329,8 @@ class DynamicNetworkSimulator:
             "num_steps": len(self.history) - 1,
             "node_mutations": len(node_changes),
             "edge_mutations": len(edge_changes),
-            "avg_cost_change_per_step": total_cost_changes / max(1, len(self.history) - 1),
+            "avg_cost_change_per_step": total_cost_changes
+            / max(1, len(self.history) - 1),
         }
 
     def export_history_to_csv(self, filename: str) -> None:
@@ -297,7 +338,15 @@ class DynamicNetworkSimulator:
         import csv
 
         with open(filename, "w", newline="") as csvfile:
-            fieldnames = ["step", "nodes", "edges", "cost", "groups", "cost_change", "mutations"]
+            fieldnames = [
+                "step",
+                "nodes",
+                "edges",
+                "cost",
+                "groups",
+                "cost_change",
+                "mutations",
+            ]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
 

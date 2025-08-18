@@ -1,3 +1,8 @@
+"""Moduł implementuje algorytm dominating set dla dystrybucji licencji.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from src.utils import SolutionBuilder
 from typing import Any, List, Set, Tuple
@@ -9,7 +14,9 @@ class DominatingSetAlgorithm(Algorithm):
     def name(self) -> str:
         return "dominating_set_algorithm"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
         if len(graph.nodes()) == 0:
             return Solution(groups=[], total_cost=0.0, covered_nodes=set())
 
@@ -21,7 +28,9 @@ class DominatingSetAlgorithm(Algorithm):
         groups = []
 
         # Sortujemy dominatory według stopnia (malejąco) dla lepszej efektywności
-        sorted_dominators = sorted(dominating_set, key=lambda n: graph.degree(n), reverse=True)
+        sorted_dominators = sorted(
+            dominating_set, key=lambda n: graph.degree(n), reverse=True
+        )
 
         for dominator in sorted_dominators:
             if dominator not in remaining_nodes:
@@ -31,7 +40,9 @@ class DominatingSetAlgorithm(Algorithm):
             neighbors = set(graph.neighbors(dominator)) & remaining_nodes
             available_nodes = neighbors | {dominator}
 
-            best_assignment = self._find_best_cost_assignment(dominator, available_nodes, license_types)
+            best_assignment = self._find_best_cost_assignment(
+                dominator, available_nodes, license_types
+            )
 
             if best_assignment:
                 license_type, group_members = best_assignment
@@ -41,7 +52,9 @@ class DominatingSetAlgorithm(Algorithm):
                 remaining_nodes -= group_members
 
         # Krok 3: Pokrycie pozostałych węzłów
-        remaining_sorted = sorted(remaining_nodes, key=lambda n: graph.degree(n), reverse=True)
+        remaining_sorted = sorted(
+            remaining_nodes, key=lambda n: graph.degree(n), reverse=True
+        )
 
         for node in remaining_sorted:
             if node not in remaining_nodes:
@@ -50,7 +63,9 @@ class DominatingSetAlgorithm(Algorithm):
             neighbors = set(graph.neighbors(node)) & remaining_nodes
             available_nodes = neighbors | {node}
 
-            best_assignment = self._find_best_cost_assignment(node, available_nodes, license_types)
+            best_assignment = self._find_best_cost_assignment(
+                node, available_nodes, license_types
+            )
 
             if best_assignment:
                 license_type, group_members = best_assignment
@@ -67,7 +82,9 @@ class DominatingSetAlgorithm(Algorithm):
 
         return SolutionBuilder.create_solution_from_groups(groups)
 
-    def _find_cost_effective_dominating_set(self, graph: nx.Graph, license_types: List[LicenseType]) -> Set[Any]:
+    def _find_cost_effective_dominating_set(
+        self, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Set[Any]:
         """
         Znajduje zbiór dominujący uwzględniając efektywność kosztową.
         Używa heurystyki zachłannej wybierającej węzły o najlepszym współczynniku pokrycia/koszt.
@@ -92,13 +109,17 @@ class DominatingSetAlgorithm(Algorithm):
                     continue
 
                 # Oblicz minimalny koszt na osobę dla tego węzła
-                min_cost_per_node = self._calculate_min_cost_per_node(len(coverage), license_types)
+                min_cost_per_node = self._calculate_min_cost_per_node(
+                    len(coverage), license_types
+                )
 
                 # Współczynnik efektywności: pokrycie / koszt
                 if min_cost_per_node > 0:
                     score = len(coverage) / min_cost_per_node
                 else:
-                    score = len(coverage)  # Jeśli koszt = 0, priorytet dla większego pokrycia
+                    score = len(
+                        coverage
+                    )  # Jeśli koszt = 0, priorytet dla większego pokrycia
 
                 if score > best_score:
                     best_score = score
@@ -115,7 +136,9 @@ class DominatingSetAlgorithm(Algorithm):
 
         return dominating_set
 
-    def _calculate_min_cost_per_node(self, group_size: int, license_types: List[LicenseType]) -> float:
+    def _calculate_min_cost_per_node(
+        self, group_size: int, license_types: List[LicenseType]
+    ) -> float:
         """Oblicza minimalny koszt na osobę dla grupy danego rozmiaru."""
         min_cost = float("inf")
 
@@ -126,7 +149,9 @@ class DominatingSetAlgorithm(Algorithm):
 
         return min_cost if min_cost != float("inf") else 0
 
-    def _find_best_cost_assignment(self, owner: Any, available_nodes: Set[Any], license_types: List[LicenseType]) -> Tuple[LicenseType, Set[Any]]:
+    def _find_best_cost_assignment(
+        self, owner: Any, available_nodes: Set[Any], license_types: List[LicenseType]
+    ) -> Tuple[LicenseType, Set[Any]]:
         """
         Znajduje najlepsze przypisanie licencji dla danego właściciela i dostępnych węzłów.
         Zwraca (license_type, group_members) lub None jeśli nie można przypisać.
@@ -143,7 +168,9 @@ class DominatingSetAlgorithm(Algorithm):
                     break
 
                 # Wybierz węzły do grupy (właściciel + najlepsi sąsiedzi)
-                group_members = self._select_best_group_members(owner, available_nodes, group_size)
+                group_members = self._select_best_group_members(
+                    owner, available_nodes, group_size
+                )
 
                 if len(group_members) == group_size:
                     cost_per_node = license_type.cost / group_size
@@ -154,7 +181,9 @@ class DominatingSetAlgorithm(Algorithm):
 
         return best_assignment
 
-    def _select_best_group_members(self, owner: Any, available_nodes: Set[Any], target_size: int) -> Set[Any]:
+    def _select_best_group_members(
+        self, owner: Any, available_nodes: Set[Any], target_size: int
+    ) -> Set[Any]:
         """
         Wybiera najlepszych członków grupy dla danego właściciela.
         Priorytet dla węzłów o wysokim stopniu (więcej połączeń).
@@ -181,9 +210,13 @@ class DominatingSetAlgorithm(Algorithm):
 
         return group_members
 
-    def _find_cheapest_single_license(self, license_types: List[LicenseType]) -> LicenseType:
+    def _find_cheapest_single_license(
+        self, license_types: List[LicenseType]
+    ) -> LicenseType:
         """Znajduje najtańszą licencję dla pojedynczego użytkownika."""
-        single_licenses = [lt for lt in license_types if lt.min_capacity <= 1 <= lt.max_capacity]
+        single_licenses = [
+            lt for lt in license_types if lt.min_capacity <= 1 <= lt.max_capacity
+        ]
 
         if not single_licenses:
             # Jeśli nie ma licencji dla pojedynczych użytkowników, weź najtańszą ogólnie

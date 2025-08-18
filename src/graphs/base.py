@@ -1,3 +1,8 @@
+"""Moduł zawiera operacje na grafach związane z base.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from abc import ABC, abstractmethod
 from typing import Any
 import networkx as nx

@@ -1,3 +1,8 @@
+"""Moduł implementuje algorytm branch and bound dla dystrybucji licencji.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from typing import Any, List, Set, Tuple, Optional
 import networkx as nx
@@ -23,7 +28,9 @@ class BranchAndBound(Algorithm):
     def name(self) -> str:
         return "branch_and_bound"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
         self.graph = graph
         self.license_types = license_types
         self.nodes = list(graph.nodes())
@@ -35,7 +42,13 @@ class BranchAndBound(Algorithm):
         initial_lower_bound = self._calculate_lower_bound({}, set(self.nodes))
         initial_upper_bound = self._calculate_upper_bound_greedy()
 
-        root = BranchNode(assignments={}, unassigned_nodes=set(self.nodes), lower_bound=initial_lower_bound, upper_bound=initial_upper_bound, level=0)
+        root = BranchNode(
+            assignments={},
+            unassigned_nodes=set(self.nodes),
+            lower_bound=initial_lower_bound,
+            upper_bound=initial_upper_bound,
+            level=0,
+        )
 
         priority_queue = [root]
         iterations = 0
@@ -48,7 +61,9 @@ class BranchAndBound(Algorithm):
                 continue
 
             if not current_node.unassigned_nodes:
-                solution = self._build_solution_from_assignments(current_node.assignments)
+                solution = self._build_solution_from_assignments(
+                    current_node.assignments
+                )
                 if solution and solution.total_cost < self.best_cost:
                     self.best_solution = solution
                     self.best_cost = solution.total_cost
@@ -72,7 +87,9 @@ class BranchAndBound(Algorithm):
 
         target_node = min(node.unassigned_nodes)
 
-        possible_assignments = self._get_possible_assignments(target_node, node.assignments)
+        possible_assignments = self._get_possible_assignments(
+            target_node, node.assignments
+        )
 
         for assignment in possible_assignments:
             owner, license_idx, members = assignment
@@ -83,21 +100,35 @@ class BranchAndBound(Algorithm):
             new_unassigned = node.unassigned_nodes - members
 
             if self._is_valid_partial_assignment(new_assignments):
-                lower_bound = self._calculate_lower_bound(new_assignments, new_unassigned)
-                upper_bound = self._calculate_upper_bound(new_assignments, new_unassigned)
+                lower_bound = self._calculate_lower_bound(
+                    new_assignments, new_unassigned
+                )
+                upper_bound = self._calculate_upper_bound(
+                    new_assignments, new_unassigned
+                )
 
                 child = BranchNode(
-                    assignments=new_assignments, unassigned_nodes=new_unassigned, lower_bound=lower_bound, upper_bound=upper_bound, level=node.level + 1
+                    assignments=new_assignments,
+                    unassigned_nodes=new_unassigned,
+                    lower_bound=lower_bound,
+                    upper_bound=upper_bound,
+                    level=node.level + 1,
                 )
                 children.append(child)
 
         return children
 
-    def _get_possible_assignments(self, target_node: int, current_assignments: dict) -> List[Tuple[int, int, Set[int]]]:
+    def _get_possible_assignments(
+        self, target_node: int, current_assignments: dict
+    ) -> List[Tuple[int, int, Set[int]]]:
         assignments = []
 
         neighbors = set(self.graph.neighbors(target_node)) | {target_node}
-        available_neighbors = {n for n in neighbors if n not in self._get_assigned_nodes(current_assignments)}
+        available_neighbors = {
+            n
+            for n in neighbors
+            if n not in self._get_assigned_nodes(current_assignments)
+        }
 
         if not available_neighbors:
             return assignments
@@ -135,7 +166,9 @@ class BranchAndBound(Algorithm):
             assigned_nodes.update(members)
 
             license_type = self.license_types[license_idx]
-            if not (license_type.min_capacity <= len(members) <= license_type.max_capacity):
+            if not (
+                license_type.min_capacity <= len(members) <= license_type.max_capacity
+            ):
                 return False
 
             if owner not in members:
@@ -147,8 +180,13 @@ class BranchAndBound(Algorithm):
 
         return True
 
-    def _calculate_lower_bound(self, assignments: dict, unassigned_nodes: Set[int]) -> float:
-        current_cost = sum(self.license_types[license_idx].cost for owner, (license_idx, members) in assignments.items())
+    def _calculate_lower_bound(
+        self, assignments: dict, unassigned_nodes: Set[int]
+    ) -> float:
+        current_cost = sum(
+            self.license_types[license_idx].cost
+            for owner, (license_idx, members) in assignments.items()
+        )
 
         if not unassigned_nodes:
             return current_cost
@@ -158,8 +196,13 @@ class BranchAndBound(Algorithm):
 
         return current_cost + remaining_cost
 
-    def _calculate_upper_bound(self, assignments: dict, unassigned_nodes: Set[int]) -> float:
-        current_cost = sum(self.license_types[license_idx].cost for owner, (license_idx, members) in assignments.items())
+    def _calculate_upper_bound(
+        self, assignments: dict, unassigned_nodes: Set[int]
+    ) -> float:
+        current_cost = sum(
+            self.license_types[license_idx].cost
+            for owner, (license_idx, members) in assignments.items()
+        )
 
         if not unassigned_nodes:
             return current_cost
@@ -209,12 +252,18 @@ class BranchAndBound(Algorithm):
             license_type = self.license_types[license_idx]
             additional_members = members - {owner}
 
-            group = LicenseGroup(license_type=license_type, owner=owner, additional_members=additional_members)
+            group = LicenseGroup(
+                license_type=license_type,
+                owner=owner,
+                additional_members=additional_members,
+            )
             groups.append(group)
             covered_nodes.update(members)
 
         total_cost = sum(group.license_type.cost for group in groups)
-        return Solution(groups=groups, total_cost=total_cost, covered_nodes=covered_nodes)
+        return Solution(
+            groups=groups, total_cost=total_cost, covered_nodes=covered_nodes
+        )
 
     def _covers_all_nodes(self, assignments: dict) -> bool:
         covered = set()

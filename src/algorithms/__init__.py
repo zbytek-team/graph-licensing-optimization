@@ -1,3 +1,8 @@
+"""Pakiet udostępnia różne algorytmy dystrybucji licencji.
+
+Typowe wejście to graf `networkx.Graph` oraz konfiguracje licencji
+(`LicenseType`, `LicenseGroup`)."""
+
 from .ilp import ILPSolver
 from .greedy import GreedyAlgorithm
 from .tabu_search import TabuSearch

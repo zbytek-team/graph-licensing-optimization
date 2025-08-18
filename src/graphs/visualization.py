@@ -1,3 +1,8 @@
+"""Moduł zawiera operacje na grafach związane z visualization.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -29,8 +34,12 @@ class GraphVisualizer:
         pos = nx.spring_layout(graph, seed=42)
         node_colors, node_sizes = self._get_node_properties(graph, solution)
         edge_colors = self._get_edge_colors(graph, solution)
-        nx.draw_networkx_edges(graph, pos, edge_color=edge_colors, alpha=0.7, width=1.5, ax=ax)
-        nx.draw_networkx_nodes(graph, pos, node_color=node_colors, node_size=node_sizes, ax=ax)
+        nx.draw_networkx_edges(
+            graph, pos, edge_color=edge_colors, alpha=0.7, width=1.5, ax=ax
+        )
+        nx.draw_networkx_nodes(
+            graph, pos, node_color=node_colors, node_size=node_sizes, ax=ax
+        )
         self._add_legend(ax, solution)
         ax.axis("off")
         if save_path is None:
@@ -76,7 +85,11 @@ class GraphVisualizer:
                 node_to_group[member] = group
         for edge in graph.edges():
             node1, node2 = edge
-            if node1 in node_to_group and node2 in node_to_group and node_to_group[node1] == node_to_group[node2]:
+            if (
+                node1 in node_to_group
+                and node2 in node_to_group
+                and node_to_group[node1] == node_to_group[node2]
+            ):
                 color = node_to_group[node1].license_type.color
             else:
                 color = self.default_edge_color
@@ -108,4 +121,6 @@ class GraphVisualizer:
                 label="Other Edges",
             )
         )
-        ax.legend(handles=legend_elements, loc="upper right", bbox_to_anchor=(0.98, 0.98))
+        ax.legend(
+            handles=legend_elements, loc="upper right", bbox_to_anchor=(0.98, 0.98)
+        )

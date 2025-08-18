@@ -1,3 +1,8 @@
+"""Moduł implementuje algorytm randomized dla dystrybucji licencji.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from src.utils import SolutionBuilder
 from typing import Any, List, Set, Tuple, Optional
@@ -23,7 +28,9 @@ class RandomizedAlgorithm(Algorithm):
         if seed is not None:
             random.seed(seed)
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
         if len(graph.nodes()) == 0:
             return Solution(groups=[], total_cost=0.0, covered_nodes=set())
 
@@ -47,9 +54,13 @@ class RandomizedAlgorithm(Algorithm):
             use_greedy = random.random() < self.greedy_probability
 
             if use_greedy:
-                assignment = self._greedy_assignment(node, uncovered_nodes, graph, license_types)
+                assignment = self._greedy_assignment(
+                    node, uncovered_nodes, graph, license_types
+                )
             else:
-                assignment = self._random_assignment(node, uncovered_nodes, graph, license_types)
+                assignment = self._random_assignment(
+                    node, uncovered_nodes, graph, license_types
+                )
 
             if assignment:
                 license_type, group_members = assignment
@@ -68,7 +79,11 @@ class RandomizedAlgorithm(Algorithm):
         return SolutionBuilder.create_solution_from_groups(groups)
 
     def _greedy_assignment(
-        self, node: Any, uncovered_nodes: Set[Any], graph: nx.Graph, license_types: List[LicenseType]
+        self,
+        node: Any,
+        uncovered_nodes: Set[Any],
+        graph: nx.Graph,
+        license_types: List[LicenseType],
     ) -> Optional[Tuple[LicenseType, Set[Any]]]:
         """
         Strategia zachłanna: wybiera przypisanie minimalizujące koszt na osobę.
@@ -87,7 +102,9 @@ class RandomizedAlgorithm(Algorithm):
                     break
 
                 # Wybierz najlepszych sąsiadów (według stopnia w grafie)
-                group_members = self._select_greedy_group_members(node, available_nodes, group_size, graph)
+                group_members = self._select_greedy_group_members(
+                    node, available_nodes, group_size, graph
+                )
 
                 if len(group_members) == group_size:
                     cost_per_node = license_type.cost / group_size
@@ -99,7 +116,11 @@ class RandomizedAlgorithm(Algorithm):
         return best_assignment
 
     def _random_assignment(
-        self, node: Any, uncovered_nodes: Set[Any], graph: nx.Graph, license_types: List[LicenseType]
+        self,
+        node: Any,
+        uncovered_nodes: Set[Any],
+        graph: nx.Graph,
+        license_types: List[LicenseType],
     ) -> Optional[Tuple[LicenseType, Set[Any]]]:
         """
         Strategia losowa: losowy wybór typu licencji i członków grupy.
@@ -108,7 +129,9 @@ class RandomizedAlgorithm(Algorithm):
         available_nodes = neighbors | {node}
 
         # Losowo wybierz typ licencji
-        compatible_licenses = [lt for lt in license_types if lt.min_capacity <= len(available_nodes)]
+        compatible_licenses = [
+            lt for lt in license_types if lt.min_capacity <= len(available_nodes)
+        ]
 
         if not compatible_licenses:
             # Fallback: najlepsze dostępne
@@ -127,7 +150,9 @@ class RandomizedAlgorithm(Algorithm):
             group_size = random.randint(license_type.min_capacity, max_possible_size)
 
             # Losowo wybierz członków grupy
-            group_members = self._select_random_group_members(node, available_nodes, group_size)
+            group_members = self._select_random_group_members(
+                node, available_nodes, group_size
+            )
 
             if len(group_members) >= license_type.min_capacity:
                 return (license_type, group_members)
@@ -135,7 +160,9 @@ class RandomizedAlgorithm(Algorithm):
         # Fallback jeśli losowy wybór nie powiódł się
         return self._greedy_assignment(node, uncovered_nodes, graph, license_types)
 
-    def _select_greedy_group_members(self, owner: Any, available_nodes: Set[Any], target_size: int, graph: nx.Graph) -> Set[Any]:
+    def _select_greedy_group_members(
+        self, owner: Any, available_nodes: Set[Any], target_size: int, graph: nx.Graph
+    ) -> Set[Any]:
         """
         Wybiera członków grupy zachłannie (według stopnia w grafie).
         """
@@ -158,7 +185,9 @@ class RandomizedAlgorithm(Algorithm):
 
         return group_members
 
-    def _select_random_group_members(self, owner: Any, available_nodes: Set[Any], target_size: int) -> Set[Any]:
+    def _select_random_group_members(
+        self, owner: Any, available_nodes: Set[Any], target_size: int
+    ) -> Set[Any]:
         """
         Losowo wybiera członków grupy.
         """
@@ -182,9 +211,13 @@ class RandomizedAlgorithm(Algorithm):
 
         return group_members
 
-    def _find_cheapest_single_license(self, license_types: List[LicenseType]) -> LicenseType:
+    def _find_cheapest_single_license(
+        self, license_types: List[LicenseType]
+    ) -> LicenseType:
         """Znajduje najtańszą licencję dla pojedynczego użytkownika."""
-        single_licenses = [lt for lt in license_types if lt.min_capacity <= 1 <= lt.max_capacity]
+        single_licenses = [
+            lt for lt in license_types if lt.min_capacity <= 1 <= lt.max_capacity
+        ]
 
         if not single_licenses:
             return min(license_types, key=lambda lt: lt.cost)

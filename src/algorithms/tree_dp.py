@@ -1,3 +1,8 @@
+"""Moduł implementuje algorytm tree dp dla dystrybucji licencji.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from typing import Any, Dict, List, Tuple
 import networkx as nx
 from src.core import LicenseType, LicenseGroup, Solution
@@ -16,7 +21,10 @@ class TreeDynamicProgramming:
 
         if len(graph.nodes()) == 1:
             node = list(graph.nodes())[0]
-            cheapest = min(license_types, key=lambda lt: lt.cost if lt.min_capacity <= 1 else float("inf"))
+            cheapest = min(
+                license_types,
+                key=lambda lt: lt.cost if lt.min_capacity <= 1 else float("inf"),
+            )
             group = LicenseGroup(cheapest, node, set())
             return Solution([group], cheapest.cost, {node})
 
@@ -26,7 +34,14 @@ class TreeDynamicProgramming:
         cost, groups = self._solve_subtree(graph, root, None, license_types, memo)
         return SolutionBuilder.create_solution_from_groups(groups)
 
-    def _solve_subtree(self, graph: nx.Graph, node: Any, parent: Any, license_types: List[LicenseType], memo: Dict) -> Tuple[float, List[LicenseGroup]]:
+    def _solve_subtree(
+        self,
+        graph: nx.Graph,
+        node: Any,
+        parent: Any,
+        license_types: List[LicenseType],
+        memo: Dict,
+    ) -> Tuple[float, List[LicenseGroup]]:
         children = [child for child in graph.neighbors(node) if child != parent]
 
         # Memoization key
@@ -36,7 +51,12 @@ class TreeDynamicProgramming:
 
         # Base case: leaf node
         if not children:
-            cheapest = min(license_types, key=lambda lt: lt.cost if lt.min_capacity <= 1 <= lt.max_capacity else float("inf"))
+            cheapest = min(
+                license_types,
+                key=lambda lt: (
+                    lt.cost if lt.min_capacity <= 1 <= lt.max_capacity else float("inf")
+                ),
+            )
             group = LicenseGroup(cheapest, node, set())
             result = (cheapest.cost, [group])
             memo[state_key] = result
@@ -45,7 +65,9 @@ class TreeDynamicProgramming:
         # Recursively solve all child subtrees
         child_solutions = {}
         for child in children:
-            child_solutions[child] = self._solve_subtree(graph, child, node, license_types, memo)
+            child_solutions[child] = self._solve_subtree(
+                graph, child, node, license_types, memo
+            )
 
         best_cost = float("inf")
         best_groups = []
@@ -72,7 +94,9 @@ class TreeDynamicProgramming:
 
                 for child_combination in child_combinations:
                     included_children = set(child_combination)
-                    remaining_children = [c for c in children if c not in included_children]
+                    remaining_children = [
+                        c for c in children if c not in included_children
+                    ]
 
                     # Create license group for current node
                     cost = license_type.cost
@@ -87,7 +111,9 @@ class TreeDynamicProgramming:
                     # For children included in this license group, we need to solve their subtrees
                     # recursively, but without the child node needing its own license
                     for child in included_children:
-                        subtree_cost = self._solve_child_subtree(graph, child, node, license_types, memo)
+                        subtree_cost = self._solve_child_subtree(
+                            graph, child, node, license_types, memo
+                        )
                         cost += subtree_cost[0]
                         groups.extend(subtree_cost[1])
 
@@ -99,7 +125,14 @@ class TreeDynamicProgramming:
         memo[state_key] = result
         return result
 
-    def _solve_child_subtree(self, graph: nx.Graph, child: Any, parent: Any, license_types: List[LicenseType], memo: Dict) -> Tuple[float, List[LicenseGroup]]:
+    def _solve_child_subtree(
+        self,
+        graph: nx.Graph,
+        child: Any,
+        parent: Any,
+        license_types: List[LicenseType],
+        memo: Dict,
+    ) -> Tuple[float, List[LicenseGroup]]:
         """Solve the subtree rooted at child, where child is already covered by parent's license."""
 
         grandchildren = [gc for gc in graph.neighbors(child) if gc != parent]
@@ -113,7 +146,9 @@ class TreeDynamicProgramming:
         all_groups = []
 
         for grandchild in grandchildren:
-            gc_cost, gc_groups = self._solve_subtree(graph, grandchild, child, license_types, memo)
+            gc_cost, gc_groups = self._solve_subtree(
+                graph, grandchild, child, license_types, memo
+            )
             total_cost += gc_cost
             all_groups.extend(gc_groups)
 

@@ -1,3 +1,8 @@
+"""Moduł implementuje algorytm tabu search dla dystrybucji licencji.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from src.core import LicenseType, Solution, Algorithm
 from .greedy import GreedyAlgorithm
 from src.core import SolutionValidator
@@ -11,7 +16,9 @@ class TabuSearch(Algorithm):
     def name(self) -> str:
         return "tabu_search"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
         self.validator = SolutionValidator()
         max_iterations = kwargs.get("max_iterations", 1000)
         tabu_tenure = kwargs.get("tabu_tenure", 20)
@@ -25,7 +32,10 @@ class TabuSearch(Algorithm):
             best_neighbor_cost = float("inf")
             for neighbor in neighbors:
                 neighbor_hash = self._solution_hash(neighbor)
-                if neighbor_hash not in tabu_list or neighbor.total_cost < best_solution.total_cost:
+                if (
+                    neighbor_hash not in tabu_list
+                    or neighbor.total_cost < best_solution.total_cost
+                ):
                     if neighbor.total_cost < best_neighbor_cost:
                         best_neighbor = neighbor
                         best_neighbor_cost = neighbor.total_cost
@@ -39,17 +49,23 @@ class TabuSearch(Algorithm):
                 tabu_list.pop()
         return best_solution
 
-    def _generate_neighbors(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> List[Solution]:
+    def _generate_neighbors(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> List[Solution]:
         neighbors = []
         for _ in range(10):
-            neighbor = MutationOperators.apply_random_mutation(solution, graph, license_types)
+            neighbor = MutationOperators.apply_random_mutation(
+                solution, graph, license_types
+            )
             if neighbor:
                 neighbors.append(neighbor)
         return neighbors
 
     def _solution_hash(self, solution: Solution) -> str:
         groups_repr = []
-        for group in sorted(solution.groups, key=lambda g: (g.owner, g.license_type.name)):
+        for group in sorted(
+            solution.groups, key=lambda g: (g.owner, g.license_type.name)
+        ):
             members_str = ",".join(map(str, sorted(group.all_members)))
             groups_repr.append(f"{group.license_type.name}:{group.owner}:{members_str}")
         return "|".join(groups_repr)

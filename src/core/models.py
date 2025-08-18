@@ -1,3 +1,8 @@
+"""Podstawowe struktury danych i logika: models.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, List, Set
@@ -37,7 +42,9 @@ class Solution:
 
 class Algorithm(ABC):
     @abstractmethod
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
         pass
 
     @property

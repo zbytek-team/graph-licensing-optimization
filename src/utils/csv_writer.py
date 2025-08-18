@@ -1,3 +1,8 @@
+"""Funkcje pomocnicze dla algorytmów: csv writer.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 import csv
 import os
 from datetime import datetime

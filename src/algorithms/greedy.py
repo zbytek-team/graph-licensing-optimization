@@ -1,3 +1,8 @@
+"""Moduł implementuje algorytm greedy dla dystrybucji licencji.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from typing import Any, List
 import networkx as nx
@@ -8,12 +13,16 @@ class GreedyAlgorithm(Algorithm):
     def name(self) -> str:
         return "greedy"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
         nodes = list(graph.nodes())
         uncovered_nodes = set(nodes)
         groups = []
         total_cost = 0.0
-        sorted_license_types = sorted(license_types, key=lambda lt: lt.max_capacity, reverse=True)
+        sorted_license_types = sorted(
+            license_types, key=lambda lt: lt.max_capacity, reverse=True
+        )
         nodes_by_degree = sorted(nodes, key=lambda n: graph.degree(n), reverse=True)
         for node in nodes_by_degree:
             if node not in uncovered_nodes:
@@ -84,4 +93,6 @@ class GreedyAlgorithm(Algorithm):
         covered_nodes = set()
         for group in groups:
             covered_nodes.update(group.all_members)
-        return Solution(groups=groups, total_cost=total_cost, covered_nodes=covered_nodes)
+        return Solution(
+            groups=groups, total_cost=total_cost, covered_nodes=covered_nodes
+        )

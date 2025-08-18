@@ -1,3 +1,8 @@
+"""Moduł zawiera operacje na grafach związane z generator.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from typing import Any
 import networkx as nx
 
@@ -17,7 +22,9 @@ class GraphGeneratorFactory:
         }
         if name not in generators:
             available = ", ".join(generators.keys())
-            raise ValueError(f"Unknown graph generator '{name}'. Available options: {available}")
+            raise ValueError(
+                f"Unknown graph generator '{name}'. Available options: {available}"
+            )
         return generators[name]
 
     @staticmethod

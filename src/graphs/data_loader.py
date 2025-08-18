@@ -1,3 +1,8 @@
+"""Moduł zawiera operacje na grafach związane z data loader.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from typing import Dict, List, Optional, Any
 import networkx as nx
 from pathlib import Path
@@ -62,7 +67,9 @@ class RealWorldDataLoader:
         # Wczytaj kręgi jeśli dostępne
         self._load_circles(graph, facebook_dir, ego_id)
 
-        self.logger.info(f"Załadowano Facebook ego network {ego_id}: {len(graph.nodes())} węzłów, {len(graph.edges())} krawędzi")
+        self.logger.info(
+            f"Załadowano Facebook ego network {ego_id}: {len(graph.nodes())} węzłów, {len(graph.edges())} krawędzi"
+        )
 
         return graph
 
@@ -111,7 +118,11 @@ class RealWorldDataLoader:
                 "avg_clustering": nx.average_clustering(graph),
                 "is_connected": nx.is_connected(graph),
                 "components": nx.number_connected_components(graph),
-                "avg_degree": sum(dict(graph.degree()).values()) / len(graph.nodes()) if len(graph.nodes()) > 0 else 0,
+                "avg_degree": (
+                    sum(dict(graph.degree()).values()) / len(graph.nodes())
+                    if len(graph.nodes()) > 0
+                    else 0
+                ),
             }
 
             # Dodaj informacje o kręgach jeśli dostępne
@@ -121,7 +132,9 @@ class RealWorldDataLoader:
 
         return stats
 
-    def create_combined_facebook_network(self, max_networks: Optional[int] = None) -> nx.Graph:
+    def create_combined_facebook_network(
+        self, max_networks: Optional[int] = None
+    ) -> nx.Graph:
         """
         Tworzy połączony graf z wielu ego networks Facebook.
 
@@ -153,7 +166,9 @@ class RealWorldDataLoader:
             # Aktualizuj przesunięcie
             node_offset += max(graph.nodes()) + 1000  # Duży margines bezpieczeństwa
 
-        self.logger.info(f"Utworzono połączony graf Facebook: {len(combined_graph.nodes())} węzłów, {len(combined_graph.edges())} krawędzi")
+        self.logger.info(
+            f"Utworzono połączony graf Facebook: {len(combined_graph.nodes())} węzłów, {len(combined_graph.edges())} krawędzi"
+        )
 
         return combined_graph
 
@@ -215,7 +230,13 @@ class RealWorldDataLoader:
                     if len(parts) >= 2:
                         circle_name = parts[0]
                         circle_members = [int(x) for x in parts[1:] if x.isdigit()]
-                        circles.append({"name": circle_name, "members": circle_members, "size": len(circle_members)})
+                        circles.append(
+                            {
+                                "name": circle_name,
+                                "members": circle_members,
+                                "size": len(circle_members),
+                            }
+                        )
 
         # Dodaj informacje o kręgach do węzłów
         for node_id in graph.nodes():
@@ -228,7 +249,9 @@ class RealWorldDataLoader:
         # Dodaj metadane o kręgach do grafu
         graph.graph["circles"] = circles
 
-    def _get_circles_info(self, data_dir: Path, ego_id: str) -> Optional[Dict[str, Any]]:
+    def _get_circles_info(
+        self, data_dir: Path, ego_id: str
+    ) -> Optional[Dict[str, Any]]:
         """Pobiera informacje o kręgach bez ładowania całego grafu."""
         circles_file = data_dir / f"{ego_id}.circles"
 
@@ -248,12 +271,16 @@ class RealWorldDataLoader:
 
         return {
             "total_circles": len(circles),
-            "avg_circle_size": sum(c["size"] for c in circles) / len(circles) if circles else 0,
+            "avg_circle_size": (
+                sum(c["size"] for c in circles) / len(circles) if circles else 0
+            ),
             "max_circle_size": max((c["size"] for c in circles), default=0),
             "min_circle_size": min((c["size"] for c in circles), default=0),
         }
 
-    def get_suitable_networks_for_testing(self, min_nodes: int = 20, max_nodes: int = 200) -> List[str]:
+    def get_suitable_networks_for_testing(
+        self, min_nodes: int = 20, max_nodes: int = 200
+    ) -> List[str]:
         """
         Znajdź sieci odpowiednie do testowania algorytmów (nie za małe, nie za duże).
 

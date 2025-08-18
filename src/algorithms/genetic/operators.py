@@ -1,3 +1,8 @@
+"""Moduł implementuje algorytm operators dla dystrybucji licencji.
+
+Wejście zwykle obejmuje obiekt `networkx.Graph` oraz konfiguracje licencji (`LicenseType`, `LicenseGroup`).
+"""
+
 from src.core import LicenseType, Solution, LicenseGroup
 from src.core import SolutionValidator
 from src.utils import SolutionBuilder
@@ -11,7 +16,12 @@ class GeneticOperators:
     def __init__(self, validator: SolutionValidator):
         self.validator = validator
 
-    def tournament_selection(self, population: List[Solution], fitness_scores: List[float], tournament_size: int = 3) -> Solution:
+    def tournament_selection(
+        self,
+        population: List[Solution],
+        fitness_scores: List[float],
+        tournament_size: int = 3,
+    ) -> Solution:
         if not population:
             return population[0] if population else None
         tournament_size = min(tournament_size, len(population))
@@ -19,7 +29,13 @@ class GeneticOperators:
         best_idx = max(tournament_indices, key=lambda i: fitness_scores[i])
         return population[best_idx]
 
-    def crossover(self, parent1: Solution, parent2: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Tuple[Solution, Solution]:
+    def crossover(
+        self,
+        parent1: Solution,
+        parent2: Solution,
+        graph: nx.Graph,
+        license_types: List[LicenseType],
+    ) -> Tuple[Solution, Solution]:
         all_groups = parent1.groups + parent2.groups
         child1_groups = self._select_groups_for_child(all_groups, graph, 0.7)
         child2_groups = self._select_groups_for_child(all_groups, graph, 0.3)
@@ -34,7 +50,9 @@ class GeneticOperators:
 
         return child1, child2
 
-    def mutate(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def mutate(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         mutation_operators = [
             self._mutate_change_license,
             self._mutate_reassign_member,
@@ -51,7 +69,9 @@ class GeneticOperators:
         # If no valid mutation found, return original solution
         return solution
 
-    def intensive_mutate(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def intensive_mutate(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         mutated = solution
         num_mutations = random.randint(2, 4)
 
@@ -72,7 +92,9 @@ class GeneticOperators:
 
         return mutated
 
-    def intensive_local_search(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def intensive_local_search(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         current = solution
         improved = True
         iterations = 0
@@ -82,24 +104,32 @@ class GeneticOperators:
             improved = False
             iterations += 1
 
-            license_optimized = self._local_search_license_optimization(current, graph, license_types)
+            license_optimized = self._local_search_license_optimization(
+                current, graph, license_types
+            )
             if license_optimized.total_cost < current.total_cost:
                 current = license_optimized
                 improved = True
 
-            merge_optimized = self._local_search_group_merging(current, graph, license_types)
+            merge_optimized = self._local_search_group_merging(
+                current, graph, license_types
+            )
             if merge_optimized.total_cost < current.total_cost:
                 current = merge_optimized
                 improved = True
 
-            reassignment_optimized = self._local_search_member_reassignment(current, graph, license_types)
+            reassignment_optimized = self._local_search_member_reassignment(
+                current, graph, license_types
+            )
             if reassignment_optimized.total_cost < current.total_cost:
                 current = reassignment_optimized
                 improved = True
 
         return current
 
-    def _select_groups_for_child(self, all_groups: List[LicenseGroup], graph: nx.Graph, bias: float) -> List[LicenseGroup]:
+    def _select_groups_for_child(
+        self, all_groups: List[LicenseGroup], graph: nx.Graph, bias: float
+    ) -> List[LicenseGroup]:
         selected_groups = []
         covered_nodes = set()
 
@@ -111,7 +141,12 @@ class GeneticOperators:
 
         return selected_groups
 
-    def _repair_solution(self, groups: List[LicenseGroup], graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def _repair_solution(
+        self,
+        groups: List[LicenseGroup],
+        graph: nx.Graph,
+        license_types: List[LicenseType],
+    ) -> Solution:
         all_nodes = set(graph.nodes())
         covered_nodes = set()
         valid_groups = []
@@ -139,20 +174,27 @@ class GeneticOperators:
                         best_efficiency = efficiency
                         members = list(available)[:max_size]
                         additional_members = set(members) - {node}
-                        best_group = LicenseGroup(license_type, node, additional_members)
+                        best_group = LicenseGroup(
+                            license_type, node, additional_members
+                        )
 
             if best_group:
                 valid_groups.append(best_group)
                 uncovered -= best_group.all_members
             else:
-                cheapest = min(license_types, key=lambda lt: lt.cost if lt.min_capacity <= 1 else float("inf"))
+                cheapest = min(
+                    license_types,
+                    key=lambda lt: lt.cost if lt.min_capacity <= 1 else float("inf"),
+                )
                 group = LicenseGroup(cheapest, node, set())
                 valid_groups.append(group)
                 uncovered.remove(node)
 
         return SolutionBuilder.create_solution_from_groups(valid_groups)
 
-    def _force_repair_solution(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def _force_repair_solution(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         all_nodes = set(graph.nodes())
         covered_nodes = set()
         valid_groups = []
@@ -168,10 +210,16 @@ class GeneticOperators:
                         valid_members.add(member)
 
             license_type = group.license_type
-            if license_type.min_capacity <= len(valid_members) <= license_type.max_capacity:
+            if (
+                license_type.min_capacity
+                <= len(valid_members)
+                <= license_type.max_capacity
+            ):
                 if not (valid_members & covered_nodes):
                     additional_members = valid_members - {owner}
-                    repaired_group = LicenseGroup(license_type, owner, additional_members)
+                    repaired_group = LicenseGroup(
+                        license_type, owner, additional_members
+                    )
                     valid_groups.append(repaired_group)
                     covered_nodes.update(valid_members)
 
@@ -190,7 +238,10 @@ class GeneticOperators:
                 additional_members = set(members) - {node}
                 group = LicenseGroup(cheapest_license, node, additional_members)
             else:
-                single_license = next((lt for lt in license_types if lt.min_capacity <= 1), cheapest_license)
+                single_license = next(
+                    (lt for lt in license_types if lt.min_capacity <= 1),
+                    cheapest_license,
+                )
                 group = LicenseGroup(single_license, node, set())
 
             valid_groups.append(group)
@@ -198,33 +249,53 @@ class GeneticOperators:
 
         return SolutionBuilder.create_solution_from_groups(valid_groups)
 
-    def _mutate_change_license(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def _mutate_change_license(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         return MutationOperators.change_license_type(solution, graph, license_types)
 
-    def _mutate_reassign_member(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def _mutate_reassign_member(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         return MutationOperators.reassign_member(solution, graph, license_types)
 
-    def _mutate_merge_groups(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def _mutate_merge_groups(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         return MutationOperators.merge_groups(solution, graph, license_types)
 
-    def _mutate_split_group(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def _mutate_split_group(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         return MutationOperators.split_group(solution, graph, license_types)
 
-    def _local_search_license_optimization(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def _local_search_license_optimization(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         best_solution = solution
         for i, group in enumerate(solution.groups):
             for license_type in license_types:
                 if license_type != group.license_type:
-                    if license_type.min_capacity <= len(group.all_members) <= license_type.max_capacity:
+                    if (
+                        license_type.min_capacity
+                        <= len(group.all_members)
+                        <= license_type.max_capacity
+                    ):
                         new_groups = solution.groups.copy()
-                        new_group = LicenseGroup(license_type, group.owner, group.additional_members)
+                        new_group = LicenseGroup(
+                            license_type, group.owner, group.additional_members
+                        )
                         new_groups[i] = new_group
-                        new_solution = SolutionBuilder.create_solution_from_groups(new_groups)
+                        new_solution = SolutionBuilder.create_solution_from_groups(
+                            new_groups
+                        )
                         if new_solution.total_cost < best_solution.total_cost:
                             best_solution = new_solution
         return best_solution
 
-    def _local_search_group_merging(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def _local_search_group_merging(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         best_solution = solution
         for i in range(len(solution.groups)):
             for j in range(i + 1, len(solution.groups)):
@@ -232,20 +303,32 @@ class GeneticOperators:
                 combined_members = group1.all_members | group2.all_members
 
                 for license_type in license_types:
-                    if license_type.min_capacity <= len(combined_members) <= license_type.max_capacity:
+                    if (
+                        license_type.min_capacity
+                        <= len(combined_members)
+                        <= license_type.max_capacity
+                    ):
                         subgraph = graph.subgraph(combined_members)
                         if nx.is_connected(subgraph):
-                            new_groups = [g for k, g in enumerate(solution.groups) if k not in [i, j]]
+                            new_groups = [
+                                g
+                                for k, g in enumerate(solution.groups)
+                                if k not in [i, j]
+                            ]
                             owner = random.choice(list(combined_members))
                             additional = combined_members - {owner}
                             merged_group = LicenseGroup(license_type, owner, additional)
                             new_groups.append(merged_group)
-                            new_solution = SolutionBuilder.create_solution_from_groups(new_groups)
+                            new_solution = SolutionBuilder.create_solution_from_groups(
+                                new_groups
+                            )
                             if new_solution.total_cost < best_solution.total_cost:
                                 best_solution = new_solution
         return best_solution
 
-    def _local_search_member_reassignment(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def _local_search_member_reassignment(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Solution:
         best_solution = solution
         for i, group in enumerate(solution.groups):
             if len(group.additional_members) > 0:
@@ -256,13 +339,35 @@ class GeneticOperators:
                             if member in neighbors_other:
                                 new_other_members = other_group.all_members | {member}
                                 for license_type in license_types:
-                                    if license_type.min_capacity <= len(new_other_members) <= license_type.max_capacity:
+                                    if (
+                                        license_type.min_capacity
+                                        <= len(new_other_members)
+                                        <= license_type.max_capacity
+                                    ):
                                         new_groups = solution.groups.copy()
-                                        new_group1 = LicenseGroup(group.license_type, group.owner, group.additional_members - {member})
-                                        new_group2 = LicenseGroup(license_type, other_group.owner, (other_group.additional_members | {member}))
+                                        new_group1 = LicenseGroup(
+                                            group.license_type,
+                                            group.owner,
+                                            group.additional_members - {member},
+                                        )
+                                        new_group2 = LicenseGroup(
+                                            license_type,
+                                            other_group.owner,
+                                            (other_group.additional_members | {member}),
+                                        )
                                         new_groups[i] = new_group1
                                         new_groups[j] = new_group2
-                                        new_solution = SolutionBuilder.create_solution_from_groups(new_groups)
-                                        if self.validator.is_valid_solution(new_solution, graph) and new_solution.total_cost < best_solution.total_cost:
+                                        new_solution = (
+                                            SolutionBuilder.create_solution_from_groups(
+                                                new_groups
+                                            )
+                                        )
+                                        if (
+                                            self.validator.is_valid_solution(
+                                                new_solution, graph
+                                            )
+                                            and new_solution.total_cost
+                                            < best_solution.total_cost
+                                        ):
                                             best_solution = new_solution
         return best_solution
