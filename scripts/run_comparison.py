@@ -57,6 +57,11 @@ def test_algorithm(
     try:
         if algorithm_name == "Branch and Bound":
             solution = algorithm.solve(graph, license_types, max_iterations=50000)
+        elif algorithm_name == "Simulated Annealing":
+            # Example run with custom parameters
+            solution = algorithm.solve(
+                graph, license_types, T0=100.0, alpha=0.95, max_iter=1000
+            )
         else:
             solution = algorithm.solve(graph, license_types)
         print("Solution found!")
