@@ -1,3 +1,5 @@
+"""Tabu search heuristic for license optimization."""
+
 from src.core import LicenseType, Solution, Algorithm
 from .greedy import GreedyAlgorithm
 from src.core import SolutionValidator
@@ -7,11 +9,19 @@ import networkx as nx
 
 
 class TabuSearch(Algorithm):
+    """Explore neighbor solutions while avoiding recently visited states."""
+
     @property
     def name(self) -> str:
+        """Return algorithm identifier."""
+
         return "tabu_search"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
+        """Iteratively improve solution while maintaining a tabu list."""
+
         self.validator = SolutionValidator()
         max_iterations = kwargs.get("max_iterations", 1000)
         tabu_tenure = kwargs.get("tabu_tenure", 20)
@@ -39,7 +49,11 @@ class TabuSearch(Algorithm):
                 tabu_list.pop()
         return best_solution
 
-    def _generate_neighbors(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> List[Solution]:
+    def _generate_neighbors(
+        self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> List[Solution]:
+        """Produce nearby solutions via random mutations."""
+
         neighbors = []
         for _ in range(10):
             neighbor = MutationOperators.apply_random_mutation(solution, graph, license_types)
@@ -48,6 +62,8 @@ class TabuSearch(Algorithm):
         return neighbors
 
     def _solution_hash(self, solution: Solution) -> str:
+        """Create a stable hash representing a solution."""
+
         groups_repr = []
         for group in sorted(solution.groups, key=lambda g: (g.owner, g.license_type.name)):
             members_str = ",".join(map(str, sorted(group.all_members)))

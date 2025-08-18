@@ -1,3 +1,5 @@
+"""Collection of available optimization algorithms."""
+
 from .ilp import ILPSolver
 from .greedy import GreedyAlgorithm
 from .tabu_search import TabuSearch

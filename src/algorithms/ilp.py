@@ -1,3 +1,5 @@
+"""Integer linear programming formulation of the problem."""
+
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from typing import Any, List
 import networkx as nx
@@ -5,11 +7,19 @@ import pulp
 
 
 class ILPSolver(Algorithm):
+    """Solve the assignment using an ILP model."""
+
     @property
     def name(self) -> str:
+        """Return algorithm identifier."""
+
         return "ilp"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
+        """Use an ILP solver to find the optimal solution."""
+
         nodes = list(graph.nodes())
         prob = pulp.LpProblem("Graph_Licensing_Optimization", pulp.LpMinimize)
         x = {}

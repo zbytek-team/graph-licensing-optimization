@@ -1,3 +1,5 @@
+"""Ant colony optimization approach for license assignment."""
+
 import random
 from typing import Dict, List, Tuple, Any
 import networkx as nx
@@ -7,11 +9,25 @@ from src.utils import SolutionBuilder
 
 
 class AntColonyOptimization(Algorithm):
+    """Heuristic algorithm modeling ant behaviour to explore solutions."""
+
     @property
     def name(self) -> str:
+        """Return algorithm identifier."""
+
         return "ant_colony_optimization"
 
-    def __init__(self, alpha=1.0, beta=2.0, evaporation_rate=0.5, q0=0.9, num_ants=20, max_iterations=100):
+    def __init__(
+        self,
+        alpha: float = 1.0,
+        beta: float = 2.0,
+        evaporation_rate: float = 0.5,
+        q0: float = 0.9,
+        num_ants: int = 20,
+        max_iterations: int = 100,
+    ) -> None:
+        """Configure algorithm parameters and helper objects."""
+
         self.alpha = alpha
         self.beta = beta
         self.evaporation_rate = evaporation_rate
@@ -20,7 +36,11 @@ class AntColonyOptimization(Algorithm):
         self.max_iterations = max_iterations
         self.validator = SolutionValidator()
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
+        """Search for the best license assignment using ACO."""
+
         pheromones = self._initialize_pheromones(graph, license_types)
         heuristics = self._calculate_heuristics(graph, license_types)
 
@@ -56,7 +76,11 @@ class AntColonyOptimization(Algorithm):
 
         return best_solution
 
-    def _initialize_pheromones(self, graph: nx.Graph, license_types: List[LicenseType]) -> Dict[Tuple, float]:
+    def _initialize_pheromones(
+        self, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Dict[Tuple, float]:
+        """Create initial pheromone levels for nodes and edges."""
+
         pheromones = {}
         initial_pheromone = 1.0
         for node in graph.nodes():
@@ -67,7 +91,11 @@ class AntColonyOptimization(Algorithm):
                 pheromones[tuple(sorted((u, v))) + (lt.name,)] = initial_pheromone
         return pheromones
 
-    def _calculate_heuristics(self, graph: nx.Graph, license_types: List[LicenseType]) -> Dict[Tuple, float]:
+    def _calculate_heuristics(
+        self, graph: nx.Graph, license_types: List[LicenseType]
+    ) -> Dict[Tuple, float]:
+        """Estimate desirability of components using static information."""
+
         heuristics = {}
         for node in graph.nodes():
             degree = graph.degree(node)
@@ -80,7 +108,15 @@ class AntColonyOptimization(Algorithm):
                 heuristics[tuple(sorted((u, v))) + (lt.name,)] = benefit
         return heuristics
 
-    def _construct_ant_solution(self, graph: nx.Graph, license_types: List[LicenseType], pheromones: Dict, heuristics: Dict) -> Solution:
+    def _construct_ant_solution(
+        self,
+        graph: nx.Graph,
+        license_types: List[LicenseType],
+        pheromones: Dict,
+        heuristics: Dict,
+    ) -> Solution:
+        """Build a solution by simulating a single ant tour."""
+
         uncovered = set(graph.nodes())
         groups = []
         while uncovered:

@@ -1,3 +1,5 @@
+"""Algorithms based on dominating set heuristics."""
+
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from src.utils import SolutionBuilder
 from typing import Any, List, Set, Tuple
@@ -5,11 +7,19 @@ import networkx as nx
 
 
 class DominatingSetAlgorithm(Algorithm):
+    """Approximate solution via cost-aware dominating set selection."""
+
     @property
     def name(self) -> str:
+        """Return algorithm identifier."""
+
         return "dominating_set_algorithm"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
+        """Find a solution using a dominating-set-based heuristic."""
+
         if len(graph.nodes()) == 0:
             return Solution(groups=[], total_cost=0.0, covered_nodes=set())
 

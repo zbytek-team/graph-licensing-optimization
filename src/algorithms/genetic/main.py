@@ -1,3 +1,5 @@
+"""Genetic algorithm for the licensing problem."""
+
 from src.core import LicenseType, Solution, Algorithm
 from src.core import SolutionValidator
 from .population import PopulationManager
@@ -8,11 +10,19 @@ import networkx as nx
 
 
 class GeneticAlgorithm(Algorithm):
+    """Evolve a population of solutions using genetic operators."""
+
     @property
     def name(self) -> str:
+        """Return algorithm identifier."""
+
         return "genetic"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
+        """Run the evolutionary process to obtain a good solution."""
+
         self.validator = SolutionValidator()
         self.population_manager = PopulationManager(self.validator)
         self.operators = GeneticOperators(self.validator)
@@ -129,4 +139,6 @@ class GeneticAlgorithm(Algorithm):
         return best_solution
 
     def _calculate_fitness(self, solution: Solution) -> float:
+        """Inverse of cost used as a fitness score."""
+
         return 1.0 / (solution.total_cost + 1.0)

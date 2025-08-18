@@ -1,3 +1,5 @@
+"""Dynamic programming solver specialized for tree graphs."""
+
 from typing import Any, Dict, List, Tuple
 import networkx as nx
 from src.core import LicenseType, LicenseGroup, Solution
@@ -7,7 +9,11 @@ from src.utils import SolutionBuilder
 class TreeDynamicProgramming:
     """Dynamic programming algorithm optimized for tree graphs."""
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
+        """Solve the problem assuming the input graph is a tree."""
+
         if not nx.is_tree(graph):
             raise ValueError("TreeDynamicProgramming requires a tree graph")
 
@@ -26,7 +32,16 @@ class TreeDynamicProgramming:
         cost, groups = self._solve_subtree(graph, root, None, license_types, memo)
         return SolutionBuilder.create_solution_from_groups(groups)
 
-    def _solve_subtree(self, graph: nx.Graph, node: Any, parent: Any, license_types: List[LicenseType], memo: Dict) -> Tuple[float, List[LicenseGroup]]:
+    def _solve_subtree(
+        self,
+        graph: nx.Graph,
+        node: Any,
+        parent: Any,
+        license_types: List[LicenseType],
+        memo: Dict,
+    ) -> Tuple[float, List[LicenseGroup]]:
+        """Recursively solve the subtree rooted at ``node``."""
+
         children = [child for child in graph.neighbors(node) if child != parent]
 
         # Memoization key

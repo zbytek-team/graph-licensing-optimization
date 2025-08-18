@@ -1,3 +1,5 @@
+"""Randomized algorithm combining greedy and stochastic steps."""
+
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from src.utils import SolutionBuilder
 from typing import Any, List, Set, Tuple, Optional
@@ -6,8 +8,12 @@ import random
 
 
 class RandomizedAlgorithm(Algorithm):
+    """Mixes greedy and random choices to diversify search."""
+
     @property
     def name(self) -> str:
+        """Return algorithm identifier."""
+
         return "randomized_algorithm"
 
     def __init__(self, greedy_probability: float = 0.7, seed: Optional[int] = None):
@@ -23,7 +29,11 @@ class RandomizedAlgorithm(Algorithm):
         if seed is not None:
             random.seed(seed)
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
+        """Construct a solution using randomized and greedy assignments."""
+
         if len(graph.nodes()) == 0:
             return Solution(groups=[], total_cost=0.0, covered_nodes=set())
 

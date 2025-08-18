@@ -1,3 +1,5 @@
+"""Branch and bound algorithm for license optimization."""
+
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from typing import Any, List, Set, Tuple, Optional
 import networkx as nx
@@ -8,6 +10,8 @@ from itertools import combinations
 
 @dataclass
 class BranchNode:
+    """State container used during the search tree exploration."""
+
     assignments: dict
     unassigned_nodes: Set[int]
     lower_bound: float
@@ -15,15 +19,25 @@ class BranchNode:
     level: int
 
     def __lt__(self, other):
+        """Allow heapq to sort nodes by lower bound."""
+
         return self.lower_bound < other.lower_bound
 
 
 class BranchAndBound(Algorithm):
+    """Systematically explore assignments while pruning suboptimal branches."""
+
     @property
     def name(self) -> str:
+        """Return algorithm identifier."""
+
         return "branch_and_bound"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
+        """Find the optimal assignment using branch-and-bound search."""
+
         self.graph = graph
         self.license_types = license_types
         self.nodes = list(graph.nodes())
@@ -35,7 +49,13 @@ class BranchAndBound(Algorithm):
         initial_lower_bound = self._calculate_lower_bound({}, set(self.nodes))
         initial_upper_bound = self._calculate_upper_bound_greedy()
 
-        root = BranchNode(assignments={}, unassigned_nodes=set(self.nodes), lower_bound=initial_lower_bound, upper_bound=initial_upper_bound, level=0)
+        root = BranchNode(
+            assignments={},
+            unassigned_nodes=set(self.nodes),
+            lower_bound=initial_lower_bound,
+            upper_bound=initial_upper_bound,
+            level=0,
+        )
 
         priority_queue = [root]
         iterations = 0
@@ -65,6 +85,8 @@ class BranchAndBound(Algorithm):
         return self.best_solution
 
     def _branch(self, node: BranchNode) -> List[BranchNode]:
+        """Generate child nodes by assigning licenses to the next node."""
+
         children = []
 
         if not node.unassigned_nodes:
@@ -87,7 +109,11 @@ class BranchAndBound(Algorithm):
                 upper_bound = self._calculate_upper_bound(new_assignments, new_unassigned)
 
                 child = BranchNode(
-                    assignments=new_assignments, unassigned_nodes=new_unassigned, lower_bound=lower_bound, upper_bound=upper_bound, level=node.level + 1
+                    assignments=new_assignments,
+                    unassigned_nodes=new_unassigned,
+                    lower_bound=lower_bound,
+                    upper_bound=upper_bound,
+                    level=node.level + 1,
                 )
                 children.append(child)
 
@@ -148,7 +174,11 @@ class BranchAndBound(Algorithm):
         return True
 
     def _calculate_lower_bound(self, assignments: dict, unassigned_nodes: Set[int]) -> float:
-        current_cost = sum(self.license_types[license_idx].cost for owner, (license_idx, members) in assignments.items())
+        """Compute optimistic cost estimate for remaining nodes."""
+
+        current_cost = sum(
+            self.license_types[license_idx].cost for owner, (license_idx, members) in assignments.items()
+        )
 
         if not unassigned_nodes:
             return current_cost
@@ -159,7 +189,11 @@ class BranchAndBound(Algorithm):
         return current_cost + remaining_cost
 
     def _calculate_upper_bound(self, assignments: dict, unassigned_nodes: Set[int]) -> float:
-        current_cost = sum(self.license_types[license_idx].cost for owner, (license_idx, members) in assignments.items())
+        """Compute pessimistic cost bound based on cheapest license."""
+
+        current_cost = sum(
+            self.license_types[license_idx].cost for owner, (license_idx, members) in assignments.items()
+        )
 
         if not unassigned_nodes:
             return current_cost
@@ -170,6 +204,8 @@ class BranchAndBound(Algorithm):
         return current_cost + remaining_cost
 
     def _calculate_upper_bound_greedy(self) -> float:
+        """Greedy heuristic used to provide an initial upper bound."""
+
         uncovered = set(self.nodes)
         total_cost = 0
 

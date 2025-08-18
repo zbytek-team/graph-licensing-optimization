@@ -1,14 +1,24 @@
+"""Simple greedy approach for license assignment."""
+
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from typing import Any, List
 import networkx as nx
 
 
 class GreedyAlgorithm(Algorithm):
+    """Sequentially assigns licenses to the most connected nodes first."""
+
     @property
     def name(self) -> str:
+        """Return algorithm identifier."""
+
         return "greedy"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
+        """Assign licenses using a simple greedy heuristic."""
+
         nodes = list(graph.nodes())
         uncovered_nodes = set(nodes)
         groups = []

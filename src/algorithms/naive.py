@@ -1,3 +1,5 @@
+"""Exhaustive search algorithm for very small graphs."""
+
 from src.core import LicenseType, Solution, Algorithm, LicenseGroup
 from src.utils import SolutionBuilder
 from typing import Any, List, Set, Tuple, Iterator
@@ -6,11 +8,19 @@ from itertools import product
 
 
 class NaiveAlgorithm(Algorithm):
+    """Try every valid combination of license assignments."""
+
     @property
     def name(self) -> str:
+        """Return algorithm identifier."""
+
         return "naive_algorithm"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(
+        self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any
+    ) -> Solution:
+        """Brute-force search for the optimal solution."""
+
         nodes = list(graph.nodes())
         n = len(nodes)
 
@@ -40,11 +50,17 @@ class NaiveAlgorithm(Algorithm):
     def _generate_all_assignments(
         self, nodes: List[Any], graph: nx.Graph, license_types: List[LicenseType]
     ) -> Iterator[List[Tuple[LicenseType, Any, Set[Any]]]]:
+        """Enumerate all possible assignments for given nodes."""
+
         for partition in self._generate_partitions(nodes):
-            for assignment in self._generate_assignments_for_partition(partition, graph, license_types):
+            for assignment in self._generate_assignments_for_partition(
+                partition, graph, license_types
+            ):
                 yield assignment
 
     def _generate_partitions(self, nodes: List[Any]) -> Iterator[List[Set[Any]]]:
+        """Generate all possible partitions of the node set."""
+
         n = len(nodes)
 
         if n == 0:
