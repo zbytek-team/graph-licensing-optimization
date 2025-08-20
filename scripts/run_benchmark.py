@@ -1,0 +1,292 @@
+# scripts/run_benchmark.py
+# python 3.13+
+# Benchmark: sizes 50..5000 step 50, timeout per (algo, size). CSV per algorithm. No images.
+
+import os
+import sys
+import traceback
+from dataclasses import asdict
+from datetime import datetime
+from typing import Any, Dict, List, Iterable, Tuple
+
+import multiprocessing as mp
+from multiprocessing.connection import Connection
+import networkx as nx
+
+from src.factories.license_config_factory import LicenseConfigFactory
+from src.validation.solution_validator import SolutionValidator
+from src.core import Solution, LicenseType, Algorithm
+from scripts._common import (
+    RunResult,
+    build_paths,
+    ensure_dir,
+    generate_graph,
+)
+
+from src import algorithms  # class lookup in child process
+
+
+# ===== CONFIG =====
+
+RUN_ID: str | None = None
+
+GRAPH_NAME = [
+    # "random",
+    "scale_free",
+    # "small_world",
+    # "complete",
+    # "star",
+    # "path",
+    # "cycle",
+    # "tree",
+][0]
+
+GRAPH_PARAMS: Dict[str, Any] = {
+    "m": 2,
+    "seed": 42,
+}
+
+# sizes: 50 → 5000 step 50
+SIZES: List[int] = list(range(50, 5001, 50))
+
+LICENSE_CONFIG_NAME = [
+    # "duolingo_super",
+    "spotify",
+    # "roman_domination",
+][0]
+
+# default: ILP + Greedy enabled
+ALGORITHMS: List[str] = [
+    # "ILPSolver",
+    "GreedyAlgorithm",
+    # add more if needed
+]
+
+TIMEOUT_SECONDS = 300  # per-run timeout
+PRINT_ISSUE_LIMIT: int | None = 5
+
+# ===== END CONFIG =====
+
+
+def _solve_child(
+    algo_class_name: str,
+    graph: nx.Graph,
+    license_types: List[LicenseType],
+    conn: Connection,
+) -> None:
+    from time import perf_counter
+
+    try:
+        cls = getattr(algorithms, algo_class_name)
+        algo: Algorithm = cls()
+        t0 = perf_counter()
+        solution: Solution = algo.solve(graph=graph, license_types=license_types)
+        elapsed_ms = (perf_counter() - t0) * 1000.0
+        conn.send((True, (algo.name, elapsed_ms, solution)))
+    except Exception as e:
+        conn.send((False, repr(e)))
+    finally:
+        conn.close()
+
+
+def solve_with_timeout(
+    algo_class_name: str,
+    graph: nx.Graph,
+    license_types: List[LicenseType],
+    timeout_s: int,
+) -> Tuple[str, float, Solution] | None:
+    parent_conn, child_conn = mp.Pipe(duplex=False)
+    p = mp.Process(target=_solve_child, args=(algo_class_name, graph, license_types, child_conn))
+    p.start()
+    child_conn.close()
+    try:
+        if parent_conn.poll(timeout_s):
+            ok, payload = parent_conn.recv()
+            if ok:
+                algo_name, elapsed_ms, solution = payload  # type: ignore[misc]
+                return algo_name, float(elapsed_ms), solution
+            else:
+                raise RuntimeError(f"solver error: {payload}")
+        else:
+            p.terminate()
+            p.join(1)
+            return None
+    finally:
+        try:
+            parent_conn.close()
+        except Exception:
+            pass
+        if p.is_alive():
+            p.terminate()
+        p.join()
+
+
+def write_algo_csv(csv_dir: str, run_id: str, algo_name: str, rows: Iterable[RunResult]) -> str:
+    out_path = os.path.join(csv_dir, f"{run_id}_{algo_name}.csv")
+    first = True
+    with open(out_path, "w", newline="", encoding="utf-8") as f:
+        import csv
+
+        writer = None
+        for r in rows:
+            d = asdict(r)
+            if first:
+                writer = csv.DictWriter(f, fieldnames=list(d.keys()))
+                writer.writeheader()
+                first = False
+            writer.writerow(d)  # type: ignore[union-attr]
+    return out_path
+
+
+def _fmt_ms(ms: float) -> str:
+    return f"{ms:.2f} ms"
+
+
+def main() -> None:
+    mp.set_start_method("spawn", force=True)
+
+    run_id = RUN_ID or datetime.now().strftime("%Y%m%d_%H%M%S")
+    _, _graphs_dir, csv_dir = build_paths(run_id)
+    ensure_dir(csv_dir)
+
+    try:
+        license_types = LicenseConfigFactory.get_config(LICENSE_CONFIG_NAME)
+    except Exception as e:
+        print(f"[ERROR] license config failed: {LICENSE_CONFIG_NAME}: {e}", file=sys.stderr)
+        traceback.print_exc(limit=10, file=sys.stderr)
+        sys.exit(2)
+
+    missing = [n for n in ALGORITHMS if not hasattr(algorithms, n)]
+    if missing:
+        avail = ", ".join(getattr(algorithms, "__all__", []))
+        print(f"[ERROR] unknown algorithms: {', '.join(missing)}; available: {avail}", file=sys.stderr)
+        sys.exit(2)
+
+    print(f"Benchmark run_id={run_id}")
+    print(f"Graph={GRAPH_NAME} params={GRAPH_PARAMS} sizes={SIZES[0]}..{SIZES[-1]} step={SIZES[1] - SIZES[0]}")
+    print(f"License={LICENSE_CONFIG_NAME}")
+    print(f"Algorithms={ALGORITHMS}")
+    print(f"Timeout={TIMEOUT_SECONDS}s\n")
+
+    for algo_name in ALGORITHMS:
+        print(f"=== {algo_name} ===")
+        rows: List[RunResult] = []
+        timeouts = 0
+        failures = 0
+        successes = 0
+
+        for idx, n in enumerate(SIZES, start=1):
+            params = dict(GRAPH_PARAMS)
+            try:
+                G = generate_graph(GRAPH_NAME, n, params)
+            except Exception as e:
+                failures += 1
+                print(f"[{algo_name}] n={n} GEN-ERROR: {e}", file=sys.stderr)
+                rows.append(
+                    RunResult(
+                        run_id=run_id,
+                        algorithm=algo_name,
+                        graph=GRAPH_NAME,
+                        n_nodes=n,
+                        n_edges=0,
+                        graph_params=str(params),
+                        license_config=LICENSE_CONFIG_NAME,
+                        total_cost=float("nan"),
+                        time_ms=0.0,
+                        valid=False,
+                        issues=1,
+                        image_path="",
+                        notes="graph_gen_error",
+                    )
+                )
+                continue
+
+            try:
+                solved = solve_with_timeout(algo_name, G, license_types, TIMEOUT_SECONDS)
+            except Exception as e:
+                failures += 1
+                print(f"[{algo_name}] n={n} SOLVER-ERROR: {e}", file=sys.stderr)
+                rows.append(
+                    RunResult(
+                        run_id=run_id,
+                        algorithm=algo_name,
+                        graph=GRAPH_NAME,
+                        n_nodes=n,
+                        n_edges=G.number_of_edges(),
+                        graph_params=str(params),
+                        license_config=LICENSE_CONFIG_NAME,
+                        total_cost=float("nan"),
+                        time_ms=0.0,
+                        valid=False,
+                        issues=1,
+                        image_path="",
+                        notes="solver_error",
+                    )
+                )
+                continue
+
+            if solved is None:
+                timeouts += 1
+                print(f"[{algo_name}] n={n} TIMEOUT {TIMEOUT_SECONDS}s → stop further sizes for this algo")
+                rows.append(
+                    RunResult(
+                        run_id=run_id,
+                        algorithm=algo_name,
+                        graph=GRAPH_NAME,
+                        n_nodes=n,
+                        n_edges=G.number_of_edges(),
+                        graph_params=str(params),
+                        license_config=LICENSE_CONFIG_NAME,
+                        total_cost=float("nan"),
+                        time_ms=float(TIMEOUT_SECONDS * 1000),
+                        valid=False,
+                        issues=0,
+                        image_path="",
+                        notes="timeout",
+                    )
+                )
+                break
+
+            solved_algo_name, elapsed_ms, solution = solved
+            ok, issues = SolutionValidator(debug=False).validate(solution, G)
+
+            if not ok and PRINT_ISSUE_LIMIT is not None:
+                print(f"[{algo_name}] n={n} VALIDATION {len(issues)} issue(s)", file=sys.stderr)
+                for i in issues[:PRINT_ISSUE_LIMIT]:
+                    print(f"  - {i.code}: {i.msg}", file=sys.stderr)
+                if len(issues) > PRINT_ISSUE_LIMIT:
+                    print(f"  ... {len(issues) - PRINT_ISSUE_LIMIT} more", file=sys.stderr)
+
+            rows.append(
+                RunResult(
+                    run_id=run_id,
+                    algorithm=solved_algo_name,
+                    graph=GRAPH_NAME,
+                    n_nodes=n,
+                    n_edges=G.number_of_edges(),
+                    graph_params=str(params),
+                    license_config=LICENSE_CONFIG_NAME,
+                    total_cost=float(solution.total_cost),
+                    time_ms=float(elapsed_ms),
+                    valid=ok,
+                    issues=len(issues),
+                    image_path="",
+                    notes="" if ok else "; ".join(f"{i.code}" for i in issues[:5]),
+                )
+            )
+            successes += 1
+            print(
+                f"[{algo_name}] n={n:4d} | edges={G.number_of_edges():6d} | time={_fmt_ms(elapsed_ms):>10} | "
+                f"cost={'nan' if solution.total_cost != solution.total_cost else f'{solution.total_cost:.2f}':>10} | "
+                f"valid={'yes' if ok else 'no'}"
+            )
+
+        out_csv = write_algo_csv(csv_dir, run_id, algo_name, rows)
+        print(f"[CSV] {out_csv}")
+        print(f"[SUMMARY] {algo_name}: ok={successes} timeout={timeouts} fail={failures}\n")
+
+    print("Benchmark done.")
+
+
+if __name__ == "__main__":
+    main()
