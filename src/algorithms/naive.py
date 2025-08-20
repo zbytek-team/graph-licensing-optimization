@@ -1,122 +1,148 @@
-from src .core import LicenseType ,Solution ,Algorithm ,LicenseGroup 
-from src .utils import SolutionBuilder 
-from typing import Any ,List ,Set ,Tuple ,Iterator 
-import networkx as nx 
-from itertools import product 
+from itertools import product
+from typing import Any, Iterator, List, Sequence, Set, Tuple
+
+import networkx as nx
+
+from src.core import Algorithm, LicenseGroup, LicenseType, Solution
+from src.utils.solution_builder import SolutionBuilder
 
 
-class NaiveAlgorithm (Algorithm ):
-    @property 
-    def name (self )->str :
+Assignment = List[Tuple[LicenseType, Any, Set[Any]]]  # [(license, owner, members_without_owner), ...]
+
+
+class NaiveAlgorithm(Algorithm):
+    @property
+    def name(self) -> str:
         return "naive_algorithm"
 
-    def solve (self ,graph :nx .Graph ,license_types :List [LicenseType ],**kwargs :Any )->Solution :
-        nodes =list (graph .nodes ())
-        n =len (nodes )
+    def solve(
+        self,
+        graph: nx.Graph,
+        license_types: Sequence[LicenseType],
+        **kwargs: Any,
+    ) -> Solution:
+        nodes: List[Any] = list(graph.nodes())
+        n = len(nodes)
 
-        if n >10 :
-            raise ValueError (f"Graph too large for naive algorithm: {n } nodes > 10")
+        if n > 10:
+            raise ValueError(f"graph too large for naive algorithm: {n} nodes > 10")
 
-        if n ==0 :
-            return Solution (groups =[],total_cost =0.0 ,covered_nodes =set ())
+        if n == 0:
+            return Solution(groups=())
 
-        best_solution =None 
-        best_cost =float ("inf")
+        best: Assignment | None = None
+        best_cost: float = float("inf")
 
-        for assignment in self ._generate_all_assignments (nodes ,graph ,license_types ):
-            if assignment and self ._is_valid_assignment (assignment ,nodes ,graph ):
-                cost =self ._calculate_cost (assignment )
-                if cost <best_cost :
-                    best_cost =cost 
-                    best_solution =assignment 
+        for assignment in self._generate_all_assignments(nodes, graph, license_types):
+            if not assignment:
+                continue
+            if self._is_valid_assignment(assignment, nodes, graph):
+                cost = self._calculate_cost(assignment)
+                if cost < best_cost:
+                    best_cost = cost
+                    best = assignment
 
-        if best_solution is None :
-            cheapest_individual =min (license_types ,key =lambda lt :lt .cost if lt .min_capacity <=1 <=lt .max_capacity else float ("inf"))
-            groups =[LicenseGroup (cheapest_individual ,node ,set ())for node in nodes ]
-            return SolutionBuilder .create_solution_from_groups (groups )
+        if best is None:
+            # fallback: cover each node with the cheapest single-capacity license
+            cheapest_single = min(
+                license_types,
+                key=lambda lt: lt.cost if lt.min_capacity <= 1 <= lt.max_capacity else float("inf"),
+            )
+            groups = [LicenseGroup(cheapest_single, node, frozenset()) for node in nodes]
+            return SolutionBuilder.create_solution_from_groups(groups)
 
-        return self ._create_solution_from_assignment (best_solution )
+        return self._create_solution_from_assignment(best)
 
-    def _generate_all_assignments (
-    self ,nodes :List [Any ],graph :nx .Graph ,license_types :List [LicenseType ]
-    )->Iterator [List [Tuple [LicenseType ,Any ,Set [Any ]]]]:
-        for partition in self ._generate_partitions (nodes ):
-            for assignment in self ._generate_assignments_for_partition (partition ,graph ,license_types ):
-                yield assignment 
+    # ----- generation -----
 
-    def _generate_partitions (self ,nodes :List [Any ])->Iterator [List [Set [Any ]]]:
-        n =len (nodes )
+    def _generate_all_assignments(
+        self,
+        nodes: List[Any],
+        graph: nx.Graph,
+        license_types: Sequence[LicenseType],
+    ) -> Iterator[Assignment]:
+        """Yield all license-owner assignments for every set partition of nodes."""
+        for partition in self._generate_partitions(nodes):
+            yield from self._generate_assignments_for_partition(partition, graph, license_types)
 
-        if n ==0 :
+    def _generate_partitions(self, nodes: List[Any]) -> Iterator[List[Set[Any]]]:
+        """All set partitions of 'nodes' as lists of disjoint non-empty sets."""
+        n = len(nodes)
+        if n == 0:
             yield []
-            return 
+            return
+        if n == 1:
+            yield [{nodes[0]}]
+            return
 
-        if n ==1 :
-            yield [{nodes [0 ]}]
-            return 
+        first, rest = nodes[0], nodes[1:]
+        for smaller in self._generate_partitions(rest):
+            # put 'first' as a new singleton block
+            yield [{first}] + smaller
+            # or add 'first' to each existing block
+            for i, block in enumerate(smaller):
+                new_part = list(smaller)
+                new_part[i] = set(block) | {first}
+                yield new_part
 
-        first =nodes [0 ]
-        rest =nodes [1 :]
-
-        for smaller_partition in self ._generate_partitions (rest ):
-            yield [{first }]+smaller_partition 
-
-            for i ,part in enumerate (smaller_partition ):
-                new_partition =smaller_partition .copy ()
-                new_partition [i ]=part |{first }
-                yield new_partition 
-
-    def _generate_assignments_for_partition (
-    self ,partition :List [Set [Any ]],graph :nx .Graph ,license_types :List [LicenseType ]
-    )->Iterator [List [Tuple [LicenseType ,Any ,Set [Any ]]]]:
-        if not partition :
+    def _generate_assignments_for_partition(
+        self,
+        partition: List[Set[Any]],
+        graph: nx.Graph,
+        license_types: Sequence[LicenseType],
+    ) -> Iterator[Assignment]:
+        """For each block in the partition, enumerate all (license, owner, members) choices."""
+        if not partition:
             yield []
-            return 
+            return
 
-        assignments =[]
-        for part in partition :
-            part_assignments =[]
-            for license_type in license_types :
-                if license_type .min_capacity <=len (part )<=license_type .max_capacity :
-                    for owner in part :
-                        if self ._is_valid_group (owner ,part -{owner },graph ):
-                            part_assignments .append ((license_type ,owner ,part -{owner }))
-            assignments .append (part_assignments )
+        per_block: List[List[Tuple[LicenseType, Any, Set[Any]]]] = []
+        for block in partition:
+            block_choices: List[Tuple[LicenseType, Any, Set[Any]]] = []
+            bsize = len(block)
+            for lt in license_types:
+                if not (lt.min_capacity <= bsize <= lt.max_capacity):
+                    continue
+                for owner in block:
+                    members = block - {owner}
+                    if self._is_valid_group(owner, members, graph):
+                        block_choices.append((lt, owner, members))
+            per_block.append(block_choices)
 
-        if all (assignments ):
-            for combination in product (*assignments ):
-                yield list (combination )
+        if all(per_block):  # only if each block has at least one feasible assignment
+            for combo in product(*per_block):
+                yield list(combo)
 
-    def _is_valid_group (self ,owner :Any ,members :Set [Any ],graph :nx .Graph )->bool :
-        owner_neighbors =set (graph .neighbors (owner ))
-        return all (member in owner_neighbors for member in members )
+    # ----- checks / scoring -----
 
-    def _is_valid_assignment (self ,assignment :List [Tuple [LicenseType ,Any ,Set [Any ]]],nodes :List [Any ],graph :nx .Graph )->bool :
-        all_covered =set ()
+    def _is_valid_group(self, owner: Any, members: Set[Any], graph: nx.Graph) -> bool:
+        """All members must be neighbors of owner (closed neighborhood constraint)."""
+        owner_neighbors = set(graph.neighbors(owner))
+        return all(m in owner_neighbors for m in members)
 
-        for license_type ,owner ,members in assignment :
-            group_nodes ={owner }|members 
+    def _is_valid_assignment(self, assignment: Assignment, nodes: List[Any], graph: nx.Graph) -> bool:
+        """No overlaps, each block respects license capacity and neighborhood, full coverage."""
+        covered: Set[Any] = set()
 
-            if not self ._is_valid_group (owner ,members ,graph ):
-                return False 
+        for lt, owner, members in assignment:
+            group_nodes = {owner} | members
 
-            if len (group_nodes )<license_type .min_capacity or len (group_nodes )>license_type .max_capacity :
-                return False 
+            # neighborhood constraint and capacity
+            if not self._is_valid_group(owner, members, graph):
+                return False
+            if not (lt.min_capacity <= len(group_nodes) <= lt.max_capacity):
+                return False
 
-            if group_nodes &all_covered :
-                return False 
+            # disjointness
+            if covered & group_nodes:
+                return False
+            covered.update(group_nodes)
 
-            all_covered .update (group_nodes )
+        return covered == set(nodes)
 
-        return all_covered ==set (nodes )
+    def _calculate_cost(self, assignment: Assignment) -> float:
+        return sum(lt.cost for lt, _, _ in assignment)
 
-    def _calculate_cost (self ,assignment :List [Tuple [LicenseType ,Any ,Set [Any ]]])->float :
-        return sum (license_type .cost for license_type ,_ ,_ in assignment )
-
-    def _create_solution_from_assignment (self ,assignment :List [Tuple [LicenseType ,Any ,Set [Any ]]])->Solution :
-        groups =[]
-        for license_type ,owner ,members in assignment :
-            group =LicenseGroup (license_type ,owner ,members )
-            groups .append (group )
-
-        return SolutionBuilder .create_solution_from_groups (groups )
+    def _create_solution_from_assignment(self, assignment: Assignment) -> Solution:
+        groups = [LicenseGroup(lt, owner, frozenset(members)) for lt, owner, members in assignment]
+        return SolutionBuilder.create_solution_from_groups(groups)

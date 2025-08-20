@@ -1,9 +1,12 @@
+from __future__ import annotations
 import random
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Optional, Set, Tuple
 import networkx as nx
-from src.core import Solution, LicenseGroup, LicenseType, Algorithm
+from src.core import Algorithm, LicenseGroup, LicenseType, Solution
 from src.validation.solution_validator import SolutionValidator
-from src.utils import SolutionBuilder
+from .greedy import GreedyAlgorithm
+
+PKey = Tuple[Any, str]  # (owner, license_name)
 
 
 class AntColonyOptimization(Algorithm):
@@ -11,228 +14,143 @@ class AntColonyOptimization(Algorithm):
     def name(self) -> str:
         return "ant_colony_optimization"
 
-    def __init__(self, alpha=1.0, beta=2.0, evaporation_rate=0.5, q0=0.9, num_ants=20, max_iterations=100):
+    def __init__(self, alpha=1.0, beta=2.0, evaporation=0.5, q0=0.9, num_ants=20, max_iterations=100) -> None:
         self.alpha = alpha
         self.beta = beta
-        self.evaporation_rate = evaporation_rate
+        self.evap = evaporation
         self.q0 = q0
         self.num_ants = num_ants
-        self.max_iterations = max_iterations
-        self.validator = SolutionValidator()
+        self.max_iter = max_iterations
+        self.validator = SolutionValidator(debug=False)
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
-        pheromones = self._initialize_pheromones(graph, license_types)
-        heuristics = self._calculate_heuristics(graph, license_types)
+    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **_: Any) -> Solution:
+        pher = self._init_pher(graph, license_types)
+        heur = self._init_heur(graph, license_types)
 
-        best_solution = self._generate_random_initial_solution(graph, license_types)
-        best_cost = best_solution.total_cost
+        best = GreedyAlgorithm().solve(graph, license_types)
+        ok, _ = self.validator.validate(best, graph)
+        if not ok:
+            # fallback do bardzo taniej konstrukcji
+            best = self._fallback_singletons(graph, license_types)
+        best_cost = best.total_cost
+        self._deposit(pher, best)
 
-        self._deposit_pheromones_for_solution(pheromones, best_solution, graph)
-
-        no_improvement_streak = 0
-        max_no_improvement = 20
-
-        for _ in range(self.max_iterations):
-            current_best_cost = best_cost
-
+        for _ in range(self.max_iter):
+            improved = False
             for _ in range(self.num_ants):
-                solution = self._construct_ant_solution(graph, license_types, pheromones, heuristics)
-                if self.validator.is_valid_solution(solution, graph):
-                    solution = self._local_search(solution, graph, license_types)
-                    if solution.total_cost < best_cost:
-                        best_solution = solution
-                        best_cost = solution.total_cost
+                cand = self._construct(graph, license_types, pher, heur)
+                ok, _ = self.validator.validate(cand, graph)
+                if not ok:
+                    continue
+                if cand.total_cost < best_cost:
+                    best, best_cost, improved = cand, cand.total_cost, True
+            self._evaporate(pher)
+            self._deposit(pher, best)
+            if not improved:
+                continue
+        return best
 
-            self._update_pheromones(pheromones, best_solution, graph)
-
-            if best_cost < current_best_cost:
-                no_improvement_streak = 0
-            else:
-                no_improvement_streak += 1
-
-            if no_improvement_streak >= max_no_improvement:
-                break
-
-        return best_solution
-
-    def _initialize_pheromones(self, graph: nx.Graph, license_types: List[LicenseType]) -> Dict[Tuple, float]:
-        pheromones = {}
-        initial_pheromone = 1.0
-        for node in graph.nodes():
-            for lt in license_types:
-                pheromones[(node, lt.name)] = initial_pheromone
-        for u, v in graph.edges():
-            for lt in license_types:
-                pheromones[tuple(sorted((u, v))) + (lt.name,)] = initial_pheromone
-        return pheromones
-
-    def _calculate_heuristics(self, graph: nx.Graph, license_types: List[LicenseType]) -> Dict[Tuple, float]:
-        heuristics = {}
-        for node in graph.nodes():
-            degree = graph.degree(node)
-            for lt in license_types:
-                efficiency = (lt.max_capacity / lt.cost) if lt.cost > 0 else float("inf")
-                heuristics[(node, lt.name)] = efficiency * (1 + degree / 10.0)
-        for u, v in graph.edges():
-            for lt in license_types:
-                benefit = 1.0 / lt.cost if lt.cost > 0 else float("inf")
-                heuristics[tuple(sorted((u, v))) + (lt.name,)] = benefit
-        return heuristics
-
-    def _construct_ant_solution(self, graph: nx.Graph, license_types: List[LicenseType], pheromones: Dict, heuristics: Dict) -> Solution:
-        uncovered = set(graph.nodes())
-        groups = []
+    # --- core construction ---
+    def _construct(self, G: nx.Graph, lts: List[LicenseType], pher: Dict[PKey, float], heur: Dict[PKey, float]) -> Solution:
+        uncovered: Set[Any] = set(G.nodes())
+        groups: List[LicenseGroup] = []
         while uncovered:
-            start_node = self._select_node(uncovered, license_types, pheromones, heuristics)
-            if start_node is None:
-                start_node = list(uncovered)[0]
+            owner = self._select_owner(uncovered, lts, pher, heur, G)
+            owner = owner if owner is not None else next(iter(uncovered))
+            lt = self._select_license(owner, lts, pher, heur) or min(lts, key=lambda x: x.cost)
 
-            license_type = self._select_license(start_node, license_types, pheromones, heuristics)
+            pool = (set(G.neighbors(owner)) | {owner}) & uncovered
+            if len(pool) < lt.min_capacity:
+                # single jeśli wolno
+                if lt.min_capacity == 1:
+                    groups.append(LicenseGroup(lt, owner, frozenset()))
+                    uncovered.remove(owner)
+                else:
+                    # wybierz najtańszą licencję, która się zmieści w pool
+                    feas = [x for x in lts if x.min_capacity <= len(pool) <= x.max_capacity]
+                    if feas:
+                        lt2 = min(feas, key=lambda x: x.cost)
+                        add_need = max(0, lt2.min_capacity - 1)
+                        add = sorted((pool - {owner}), key=lambda n: G.degree(n), reverse=True)[:add_need]
+                        groups.append(LicenseGroup(lt2, owner, frozenset(add)))
+                        uncovered -= {owner} | set(add)
+                    else:
+                        uncovered.remove(owner)
+                continue
 
-            group_nodes = {start_node}
-            candidates = list(set(graph.neighbors(start_node)) & uncovered - {start_node})
+            # formuj grupę do max_capacity
+            k = max(0, lt.max_capacity - 1)
+            add = sorted((pool - {owner}), key=lambda n: G.degree(n), reverse=True)[:k]
+            groups.append(LicenseGroup(lt, owner, frozenset(add)))
+            uncovered -= {owner} | set(add)
+        return Solution(groups=tuple(groups))
 
-            while len(group_nodes) < license_type.max_capacity and candidates:
-                next_member = self._select_member(start_node, candidates, license_type, pheromones, heuristics)
-                if next_member is None:
-                    break
-                group_nodes.add(next_member)
-                candidates.remove(next_member)
+    # --- selection ---
+    def _select_owner(self, uncovered: Set[Any], lts: List[LicenseType], pher: Dict[PKey, float], heur: Dict[PKey, float], G: nx.Graph) -> Optional[Any]:
+        if not uncovered:
+            return None
+        scores: Dict[Any, float] = {}
+        for n in uncovered:
+            acc = 0.0
+            for lt in lts:
+                tau = pher.get((n, lt.name), 1.0)
+                eta = heur.get((n, lt.name), 1.0)
+                acc += (tau**self.alpha) * (eta**self.beta)
+            scores[n] = acc / max(1, len(lts))
+        return self._roulette_or_best(list(uncovered), scores)
 
-            if len(group_nodes) >= license_type.min_capacity:
-                groups.append(LicenseGroup(license_type, start_node, group_nodes - {start_node}))
-                uncovered -= group_nodes
-            else:
-                cheapest_single = SolutionBuilder.find_cheapest_single_license(license_types)
-                groups.append(LicenseGroup(cheapest_single, start_node, set()))
-                uncovered.remove(start_node)
-        return SolutionBuilder.create_solution_from_groups(groups)
+    def _select_license(self, owner: Any, lts: List[LicenseType], pher: Dict[PKey, float], heur: Dict[PKey, float]) -> Optional[LicenseType]:
+        if not lts:
+            return None
+        scores = {lt: (pher.get((owner, lt.name), 1.0) ** self.alpha) * (heur.get((owner, lt.name), 1.0) ** self.beta) for lt in lts}
+        return self._roulette_or_best(lts, scores)
 
-    def _select_component(self, choices: List[Any], probabilities: Dict[Any, float]) -> Any:
+    def _roulette_or_best(self, choices: List[Any], scores: Dict[Any, float]) -> Any:
         if not choices:
             return None
-
         if random.random() < self.q0:
-            max_prob = -1
-            best_choice = None
-            for choice in choices:
-                if probabilities.get(choice, 0) > max_prob:
-                    max_prob = probabilities[choice]
-                    best_choice = choice
-            return best_choice
-        else:
-            total_prob = sum(probabilities.values())
-            if total_prob == 0:
-                return random.choice(choices) if choices else None
+            return max(choices, key=lambda c: scores.get(c, 0.0))
+        total = sum(max(0.0, scores.get(c, 0.0)) for c in choices)
+        if total <= 0:
+            return random.choice(choices)
+        r = random.uniform(0, total)
+        acc = 0.0
+        for c in choices:
+            acc += max(0.0, scores.get(c, 0.0))
+            if acc >= r:
+                return c
+        return random.choice(choices)
 
-            r = random.uniform(0, total_prob)
-            upto = 0
-            for choice in choices:
-                upto += probabilities.get(choice, 0)
-                if upto >= r:
-                    return choice
-            return random.choice(choices) if choices else None
+    # --- pheromones / heuristics ---
+    def _init_pher(self, G: nx.Graph, lts: List[LicenseType]) -> Dict[PKey, float]:
+        return {(n, lt.name): 1.0 for n in G.nodes() for lt in lts}
 
-    def _get_choice_probabilities(self, choices: List[Any], pheromones: Dict, heuristics: Dict, key_func) -> Dict[Any, float]:
-        probabilities = {}
-        for choice in choices:
-            key = key_func(choice)
-            tau = pheromones.get(key, 1.0)
-            eta = heuristics.get(key, 1.0)
-            probabilities[choice] = (tau**self.alpha) * (eta**self.beta)
-        return probabilities
+    def _init_heur(self, G: nx.Graph, lts: List[LicenseType]) -> Dict[PKey, float]:
+        h: Dict[PKey, float] = {}
+        for n in G.nodes():
+            deg = G.degree(n)
+            for lt in lts:
+                cap_eff = (lt.max_capacity / lt.cost) if lt.cost > 0 else 1e9
+                h[(n, lt.name)] = cap_eff * (1.0 + deg)
+        return h
 
-    def _select_node(self, uncovered: set, license_types: List[LicenseType], pheromones: Dict, heuristics: Dict) -> Any:
-        nodes = list(uncovered)
-        probabilities = {}
-        for node in nodes:
-            avg_prob = (
-                sum((pheromones.get((node, lt.name), 1.0) ** self.alpha) * (heuristics.get((node, lt.name), 1.0) ** self.beta) for lt in license_types)
-                / len(license_types)
-                if license_types
-                else 0
-            )
-            probabilities[node] = avg_prob
-        return self._select_component(nodes, probabilities)
+    def _evaporate(self, pher: Dict[PKey, float]) -> None:
+        f = max(0.0, min(1.0, self.evap))
+        for k in pher:
+            pher[k] *= 1.0 - f
 
-    def _select_license(self, node: Any, license_types: List[LicenseType], pheromones: Dict, heuristics: Dict) -> LicenseType:
-        probabilities = self._get_choice_probabilities(license_types, pheromones, heuristics, lambda lt: (node, lt.name))
-        return self._select_component(license_types, probabilities)
-
-    def _select_member(self, owner: Any, candidates: List[Any], license_type: LicenseType, pheromones: Dict, heuristics: Dict) -> Any:
-        probabilities = self._get_choice_probabilities(candidates, pheromones, heuristics, lambda c: tuple(sorted((owner, c))) + (license_type.name,))
-        return self._select_component(candidates, probabilities)
-
-    def _update_pheromones(self, pheromones: Dict, best_solution: Solution, graph: nx.Graph):
-        for key in pheromones:
-            pheromones[key] *= 1 - self.evaporation_rate
-
-        self._deposit_pheromones_for_solution(pheromones, best_solution, graph)
-
-    def _deposit_pheromones_for_solution(self, pheromones: Dict, solution: Solution, graph: nx.Graph):
-        if solution.total_cost == 0:
+    def _deposit(self, pher: Dict[PKey, float], sol: Solution) -> None:
+        if sol.total_cost <= 0:
             return
-        quality = 1.0 / solution.total_cost
-        for group in solution.groups:
-            for node in group.all_members:
-                key = (node, group.license_type.name)
-                if key in pheromones:
-                    pheromones[key] += quality
+        q = 1.0 / sol.total_cost
+        for g in sol.groups:
+            for n in g.all_members:
+                k = (n, g.license_type.name)
+                if k in pher:
+                    pher[k] += q
 
-            members = list(group.all_members)
-            for i in range(len(members)):
-                for j in range(i + 1, len(members)):
-                    if graph.has_edge(members[i], members[j]):
-                        key = tuple(sorted((members[i], members[j]))) + (group.license_type.name,)
-                        if key in pheromones:
-                            pheromones[key] += quality
-
-    def _local_search(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
-        current_solution = solution
-        for _ in range(3):
-            improved = False
-            groups = list(current_solution.groups)
-
-            for i, group in enumerate(groups):
-                sorted_licenses = sorted(license_types, key=lambda lt: lt.cost)
-                for new_license_type in sorted_licenses:
-                    if (
-                        new_license_type.name != group.license_type.name
-                        and group.size >= new_license_type.min_capacity
-                        and group.size <= new_license_type.max_capacity
-                        and new_license_type.cost < group.license_type.cost
-                    ):
-                        groups[i] = LicenseGroup(new_license_type, group.owner, group.additional_members)
-                        current_solution = SolutionBuilder.create_solution_from_groups(groups)
-                        improved = True
-                        break
-                if improved:
-                    break
-
-            if not improved:
-                break
-
-        return current_solution
-
-    def _generate_random_initial_solution(self, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
-        nodes = list(graph.nodes())
-        random.shuffle(nodes)
-
-        covered_nodes = set()
-        license_groups = []
-
-        while len(covered_nodes) < len(nodes):
-            uncovered = [n for n in nodes if n not in covered_nodes]
-            if not uncovered:
-                break
-
-            center = random.choice(uncovered)
-            license_type = random.choice(license_types)
-
-            neighbors = set(graph.neighbors(center)) | {center}
-
-            additional = neighbors - {center}
-            license_groups.append(LicenseGroup(license_type, center, additional))
-            covered_nodes.update(neighbors)
-
-        return SolutionBuilder.create_solution_from_groups(license_groups)
+    # --- fallback ---
+    def _fallback_singletons(self, G: nx.Graph, lts: List[LicenseType]) -> Solution:
+        lt1 = min([x for x in lts if x.min_capacity <= 1] or lts, key=lambda x: x.cost)
+        groups = [LicenseGroup(lt1, n, frozenset()) for n in G.nodes()]
+        return Solution(groups=tuple(groups))

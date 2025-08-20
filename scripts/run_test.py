@@ -20,8 +20,8 @@ RUN_ID: str | None = None
 
 GRAPH_NAME = [
     # "random",
-    "scale_free",
-    # "small_world",
+    # "scale_free",
+    "small_world",
     # "complete",
     # "star",
     # "path",
@@ -30,10 +30,10 @@ GRAPH_NAME = [
 ][0]
 
 GRAPH_PARAMS: Dict[str, Any] = {
-    "m": 1,
+    "p": 0.05,
     "seed": 42,
 }
-N_NODES = 60
+N_NODES = 100
 
 LICENSE_CONFIG_NAME = [
     # "duolingo_super",
@@ -43,8 +43,15 @@ LICENSE_CONFIG_NAME = [
 
 ALGORITHMS: List[str] = [
     "ILPSolver",
-    # "GreedyAlgorithm",
-    # "TabuSearch",
+    "GreedyAlgorithm",
+    "TabuSearch",
+    "SimulatedAnnealing",
+    # "GeneticAlgorithm",
+    "AntColonyOptimization",
+    # "TreeDynamicProgramming",
+    "NaiveAlgorithm",
+    # "DominatingSetAlgorithm",
+    # "RandomizedAlgorithm",
 ]
 
 PRINT_ISSUE_LIMIT: int | None = 20
