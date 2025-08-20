@@ -136,7 +136,7 @@ class GeneticOperators:
                     efficiency = license_type.cost / max_size
                     if efficiency < best_efficiency:
                         best_efficiency = efficiency
-                        members = list(available)[:max_size]
+                        members = [node] + list(available - {node})[: max_size - 1]
                         additional_members = set(members) - {node}
                         best_group = LicenseGroup(license_type, node, additional_members)
 
@@ -185,7 +185,7 @@ class GeneticOperators:
             max_size = min(len(available), cheapest_license.max_capacity)
 
             if max_size >= cheapest_license.min_capacity:
-                members = list(available)[:max_size]
+                members = [node] + list(available - {node})[: max_size - 1]
                 additional_members = set(members) - {node}
                 group = LicenseGroup(cheapest_license, node, additional_members)
             else:
@@ -215,7 +215,7 @@ class GeneticOperators:
             for license_type in license_types:
                 if license_type != group.license_type:
                     if license_type.min_capacity <= len(group.all_members) <= license_type.max_capacity:
-                        new_groups = solution.groups.copy()
+                        new_groups = list(solution.groups)
                         new_group = LicenseGroup(license_type, group.owner, group.additional_members)
                         new_groups[i] = new_group
                         new_solution = SolutionBuilder.create_solution_from_groups(new_groups)
@@ -256,7 +256,7 @@ class GeneticOperators:
                                 new_other_members = other_group.all_members | {member}
                                 for license_type in license_types:
                                     if license_type.min_capacity <= len(new_other_members) <= license_type.max_capacity:
-                                        new_groups = solution.groups.copy()
+                                        new_groups = list(solution.groups)
                                         new_group1 = LicenseGroup(group.license_type, group.owner, group.additional_members - {member})
                                         new_group2 = LicenseGroup(license_type, other_group.owner, (other_group.additional_members | {member}))
                                         new_groups[i] = new_group1
