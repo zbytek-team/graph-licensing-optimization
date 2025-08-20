@@ -47,7 +47,7 @@ GRAPH_PARAMS: Dict[str, Any] = {
 }
 
 # sizes: 50 → 5000 step 50
-SIZES: List[int] = list(range(50, 5001, 50))
+SIZES: List[int] = list(range(50, 101, 50))
 
 LICENSE_CONFIG_NAME = [
     # "duolingo_super",
@@ -57,9 +57,16 @@ LICENSE_CONFIG_NAME = [
 
 # default: ILP + Greedy enabled
 ALGORITHMS: List[str] = [
-    # "ILPSolver",
+    "ILPSolver",
     "GreedyAlgorithm",
-    # add more if needed
+    "TabuSearch",
+    # "SimulatedAnnealing",
+    # "GeneticAlgorithm",
+    # "AntColonyOptimization",
+    # "TreeDynamicProgramming",
+    # "NaiveAlgorithm",
+    # "DominatingSetAlgorithm",
+    # "RandomizedAlgorithm",
 ]
 
 TIMEOUT_SECONDS = 300  # per-run timeout

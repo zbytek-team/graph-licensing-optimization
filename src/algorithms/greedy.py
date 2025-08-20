@@ -1,87 +1,124 @@
-from src .core import LicenseType ,Solution ,Algorithm ,LicenseGroup 
-from typing import Any ,List 
-import networkx as nx 
+# src/algorithms/greedy.py
+# Python 3.13+
+# Greedy baseline: place large efficient groups first, then cover leftovers cheaply.
+
+from typing import Any, List, Set
+import networkx as nx
+
+from src.core import Algorithm, LicenseGroup, LicenseType, Solution
+from src.utils.solution_builder import SolutionBuilder
 
 
-class GreedyAlgorithm (Algorithm ):
-    @property 
-    def name (self )->str :
+class GreedyAlgorithm(Algorithm):
+    @property
+    def name(self) -> str:
         return "greedy"
 
-    def solve (self ,graph :nx .Graph ,license_types :List [LicenseType ],**kwargs :Any )->Solution :
-        nodes =list (graph .nodes ())
-        uncovered_nodes =set (nodes )
-        groups =[]
-        total_cost =0.0 
-        sorted_license_types =sorted (license_types ,key =lambda lt :lt .max_capacity ,reverse =True )
-        nodes_by_degree =sorted (nodes ,key =lambda n :graph .degree (n ),reverse =True )
-        for node in nodes_by_degree :
-            if node not in uncovered_nodes :
-                continue 
-            neighbors =set (graph .neighbors (node ))|{node }
-            available_neighbors =neighbors &uncovered_nodes 
-            if not available_neighbors :
-                continue 
-            best_group =None 
-            best_efficiency =float ("inf")
-            for license_type in sorted_license_types :
-                potential_members =list (available_neighbors )
-                max_members =min (len (potential_members ),license_type .max_capacity )
-                if max_members <license_type .min_capacity :
-                    continue 
-                potential_members .sort (key =lambda n :graph .degree (n ),reverse =True )
-                group_members =set (potential_members [:max_members ])
-                efficiency =license_type .cost /len (group_members )
-                if efficiency <best_efficiency :
-                    best_efficiency =efficiency 
-                    additional_members =group_members -{node }
-                    best_group =LicenseGroup (
-                    license_type =license_type ,
-                    owner =node ,
-                    additional_members =additional_members ,
-                    )
-            if best_group is not None :
-                groups .append (best_group )
-                total_cost +=best_group .license_type .cost 
-                uncovered_nodes -=best_group .all_members 
-        while uncovered_nodes :
-            node =next (iter (uncovered_nodes ))
-            neighbors =set (graph .neighbors (node ))|{node }
-            available_neighbors =neighbors &uncovered_nodes 
-            best_group =None 
-            best_cost =float ("inf")
-            for license_type in license_types :
-                if len (available_neighbors )>=license_type .min_capacity :
-                    potential_members =list (available_neighbors )
-                    potential_members .sort (key =lambda n :graph .degree (n ),reverse =True )
-                    group_size =min (len (potential_members ),license_type .min_capacity )
-                    group_members =set (potential_members [:group_size ])
-                    if license_type .cost <best_cost :
-                        best_cost =license_type .cost 
-                        additional_members =group_members -{node }
-                        best_group =LicenseGroup (
-                        license_type =license_type ,
-                        owner =node ,
-                        additional_members =additional_members ,
-                        )
-            if best_group is not None :
-                groups .append (best_group )
-                total_cost +=best_group .license_type .cost 
-                uncovered_nodes -=best_group .all_members 
-            else :
-                cheapest_license =min (license_types ,key =lambda lt :lt .cost )
-                if cheapest_license .min_capacity ==1 :
-                    group =LicenseGroup (
-                    license_type =cheapest_license ,
-                    owner =node ,
-                    additional_members =set (),
-                    )
-                    groups .append (group )
-                    total_cost +=cheapest_license .cost 
-                    uncovered_nodes .remove (node )
-                else :
-                    break 
-        covered_nodes =set ()
-        for group in groups :
-            covered_nodes .update (group .all_members )
-        return Solution (groups =groups ,total_cost =total_cost ,covered_nodes =covered_nodes )
+    def solve(
+        self,
+        graph: nx.Graph,
+        license_types: List[LicenseType],
+        **_: Any,
+    ) -> Solution:
+        # Licenses: prefer larger capacity, then lower cost
+        licenses = sorted(license_types, key=lambda lt: (-lt.max_capacity, lt.cost))
+
+        nodes: List[Any] = list(graph.nodes())
+        uncovered: Set[Any] = set(nodes)
+        groups: List[LicenseGroup] = []
+
+        # Pass 1: high-degree owners first
+        for owner in sorted(nodes, key=lambda n: graph.degree(n), reverse=True):
+            if owner not in uncovered:
+                continue
+
+            avail = SolutionBuilder.get_owner_neighbors_with_self(graph, owner) & uncovered
+            if not avail:
+                continue
+
+            best_group = self._best_group_for_owner(owner, avail, graph, licenses)
+            if best_group is None:
+                continue
+
+            groups.append(best_group)
+            uncovered -= best_group.all_members
+
+        # Pass 2: cover remaining nodes with the cheapest feasible groups
+        while uncovered:
+            owner = next(iter(uncovered))
+            avail = SolutionBuilder.get_owner_neighbors_with_self(graph, owner) & uncovered
+
+            fallback = self._cheapest_feasible_group(owner, avail, graph, license_types)
+            if fallback is not None:
+                groups.append(fallback)
+                uncovered -= fallback.all_members
+                continue
+
+            # Fallback to singleton if allowed
+            cheapest = min(license_types, key=lambda lt: lt.cost)
+            if cheapest.min_capacity == 1:
+                groups.append(LicenseGroup(license_type=cheapest, owner=owner, additional_members=frozenset()))
+                uncovered.remove(owner)
+            else:
+                # No feasible license can cover this owner under constraints.
+                break
+
+        return SolutionBuilder.create_solution_from_groups(groups)
+
+    # ---------- helpers ----------
+
+    def _best_group_for_owner(
+        self,
+        owner: Any,
+        avail: Set[Any],
+        graph: nx.Graph,
+        licenses: List[LicenseType],
+    ) -> LicenseGroup | None:
+        """
+        Pick the most efficient group for 'owner' from available neighbors.
+        Efficiency = cost / group_size. Respect license [min, max].
+        """
+        ordered = sorted(avail, key=lambda n: graph.degree(n), reverse=True)
+
+        best: LicenseGroup | None = None
+        best_eff = float("inf")
+
+        for lt in licenses:
+            cap_additional = max(0, lt.max_capacity - 1)
+            pool = [n for n in ordered if n != owner]
+            take = min(len(pool), cap_additional)
+
+            additional = pool[:take]
+            size_with_owner = 1 + len(additional)
+            if size_with_owner < lt.min_capacity:
+                continue
+
+            grp = LicenseGroup(license_type=lt, owner=owner, additional_members=frozenset(additional))
+            eff = lt.cost / grp.size
+            if eff < best_eff:
+                best_eff = eff
+                best = grp
+
+        return best
+
+    def _cheapest_feasible_group(
+        self,
+        owner: Any,
+        avail: Set[Any],
+        graph: nx.Graph,
+        license_types: List[LicenseType],
+    ) -> LicenseGroup | None:
+        """
+        Build the cheapest valid group for 'owner' at exactly min_capacity if possible.
+        """
+        for lt in sorted(license_types, key=lambda x: (x.cost, -x.max_capacity)):
+            if len(avail) < lt.min_capacity:
+                continue
+
+            need_additional = max(0, lt.min_capacity - 1)
+            pool = sorted((n for n in avail if n != owner), key=lambda n: graph.degree(n), reverse=True)
+            chosen = pool[:need_additional]
+
+            return LicenseGroup(license_type=lt, owner=owner, additional_members=frozenset(chosen))
+
+        return None

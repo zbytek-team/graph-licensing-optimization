@@ -1,9 +1,11 @@
-from src.core import LicenseType, Solution, Algorithm
-from .greedy import GreedyAlgorithm
-from src.validation.solution_validator import SolutionValidator
-from src.utils import MutationOperators
-from typing import Any, List
+from collections import deque
+from typing import Any, Deque, List
 import networkx as nx
+
+from src.core import Algorithm, LicenseType, Solution
+from src.validation.solution_validator import SolutionValidator
+from src.utils.mutations import MutationOperators
+from .greedy import GreedyAlgorithm
 
 
 class TabuSearch(Algorithm):
@@ -11,45 +13,65 @@ class TabuSearch(Algorithm):
     def name(self) -> str:
         return "tabu_search"
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
-        self.validator = SolutionValidator()
-        max_iterations = kwargs.get("max_iterations", 1000)
-        tabu_tenure = kwargs.get("tabu_tenure", 20)
-        greedy_solver = GreedyAlgorithm()
-        current_solution = greedy_solver.solve(graph, license_types)
-        best_solution = current_solution
-        tabu_list = set()
+    def solve(
+        self,
+        graph: nx.Graph,
+        license_types: List[LicenseType],
+        **kwargs: Any,
+    ) -> Solution:
+        max_iterations: int = kwargs.get("max_iterations", 1000)
+        tabu_tenure: int = kwargs.get("tabu_tenure", 20)
+        neighbors_per_iter: int = kwargs.get("neighbors_per_iter", 10)
+
+        validator = SolutionValidator(debug=False)
+
+        # seed: greedy solution
+        greedy = GreedyAlgorithm()
+        current = greedy.solve(graph, license_types)
+        best = current
+
+        # FIFO tabu list of solution hashes
+        tabu: Deque[str] = deque(maxlen=max(1, tabu_tenure))
+        tabu.append(self._hash(current))
+
         for _ in range(max_iterations):
-            neighbors = self._generate_neighbors(current_solution, graph, license_types)
-            best_neighbor = None
-            best_neighbor_cost = float("inf")
-            for neighbor in neighbors:
-                neighbor_hash = self._solution_hash(neighbor)
-                if neighbor_hash not in tabu_list or neighbor.total_cost < best_solution.total_cost:
-                    if neighbor.total_cost < best_neighbor_cost:
-                        best_neighbor = neighbor
-                        best_neighbor_cost = neighbor.total_cost
-            if best_neighbor is None:
+            # neighborhood via mutation operators
+            neighborhood: List[Solution] = MutationOperators.generate_neighbors(base=current, graph=graph, license_types=license_types, k=neighbors_per_iter)
+            if not neighborhood:
                 break
-            current_solution = best_neighbor
-            if current_solution.total_cost < best_solution.total_cost:
-                best_solution = current_solution
-            tabu_list.add(self._solution_hash(current_solution))
-            if len(tabu_list) > tabu_tenure:
-                tabu_list.pop()
-        return best_solution
 
-    def _generate_neighbors(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> List[Solution]:
-        neighbors = []
-        for _ in range(10):
-            neighbor = MutationOperators.apply_random_mutation(solution, graph, license_types)
-            if neighbor:
-                neighbors.append(neighbor)
-        return neighbors
+            chosen: Solution | None = None
+            chosen_cost = float("inf")
 
-    def _solution_hash(self, solution: Solution) -> str:
-        groups_repr = []
-        for group in sorted(solution.groups, key=lambda g: (g.owner, g.license_type.name)):
-            members_str = ",".join(map(str, sorted(group.all_members)))
-            groups_repr.append(f"{group.license_type.name}:{group.owner}:{members_str}")
-        return "|".join(groups_repr)
+            for cand in neighborhood:
+                ok, _ = validator.validate(cand, graph)
+                if not ok:
+                    continue
+                h = self._hash(cand)
+
+                # tabu unless it improves global best (aspiration)
+                if h in tabu and cand.total_cost >= best.total_cost:
+                    continue
+
+                if cand.total_cost < chosen_cost:
+                    chosen = cand
+                    chosen_cost = cand.total_cost
+
+            if chosen is None:
+                break
+
+            current = chosen
+            if current.total_cost < best.total_cost:
+                best = current
+
+            tabu.append(self._hash(current))
+
+        return best
+
+    # stable string signature of a solution
+    def _hash(self, solution: Solution) -> str:
+        parts: List[str] = []
+        for g in sorted(solution.groups, key=lambda gg: (str(gg.owner), gg.license_type.name)):
+            members = ",".join(map(str, sorted(g.all_members)))
+            parts.append(f"{g.license_type.name}:{g.owner}:{members}")
+        return "|".join(parts)
