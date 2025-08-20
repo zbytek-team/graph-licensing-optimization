@@ -1,6 +1,7 @@
 import os
 import sys
 from datetime import datetime
+from math import isnan
 from typing import Any, Dict, List
 
 from scripts._common import (
@@ -34,6 +35,31 @@ DEFAULT_GRAPH_PARAMS: Dict[str, Dict[str, Any]] = {
 # ===== END CONFIG =====
 
 
+def _fmt_status(valid: bool) -> str:
+    return "ok" if valid else "invalid"
+
+
+def _print_table(title: str, headers: List[str], rows: List[List[str]]) -> None:
+    widths = [len(h) for h in headers]
+    for row in rows:
+        for i, cell in enumerate(row):
+            widths[i] = max(widths[i], len(cell))
+
+    def line(sep_left: str = "+", sep_mid: str = "+", sep_right: str = "+", fill: str = "-") -> str:
+        return sep_left + sep_mid.join(fill * (w + 2) for w in widths) + sep_right
+
+    def fmt_row(cols: List[str]) -> str:
+        return "| " + " | ".join(c.ljust(w) for c, w in zip(cols, widths)) + " |"
+
+    print(f"\n[LICENSE] {title}")
+    print(line())
+    print(fmt_row(headers))
+    print(line(sep_mid="+"))
+    for r in rows:
+        print(fmt_row(r))
+    print(line())
+
+
 def main() -> None:
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     _, graphs_dir_root, csv_dir = build_paths(run_id)
@@ -51,23 +77,26 @@ def main() -> None:
         except Exception as e:
             print(f"[ERROR] graph generation failed: {graph_name}: {e}", file=sys.stderr)
             continue
-        for lic_name in license_configs:
-            print(f"  [LICENSE] {lic_name}")
 
+        for lic_name in license_configs:
             try:
                 license_types = LicenseConfigFactory.get_config(lic_name)
             except Exception as e:
                 print(f"[ERROR] license config failed: {lic_name}: {e}", file=sys.stderr)
                 continue
+
             g_dir = os.path.join(graphs_dir_root, graph_name, lic_name)
             ensure_dir(g_dir)
+
+            table_rows: List[List[str]] = []
+
             for algo_name in algorithm_names:
-                print(f"    [RUN] {algo_name}")
                 try:
                     algo = instantiate_algorithms([algo_name])[0]
                 except Exception as e:
                     print(f"[ERROR] algorithm setup failed: {algo_name}: {e}", file=sys.stderr)
                     continue
+
                 r = run_once(
                     algo=algo,
                     graph=graph,
@@ -84,8 +113,24 @@ def main() -> None:
                     }
                 )
                 results.append(r)
-                status = "ok" if r.valid else "invalid"
-                print(f"    [DONE] {algo_name}: cost={r.total_cost:.2f}, {status}, {r.time_ms:.2f}ms")
+
+                cost_str = f"{r.total_cost:.2f}" if not isnan(r.total_cost) else "NaN"
+                time_str = f"{r.time_ms:.2f}"
+                table_rows.append([algo_name, cost_str, time_str, _fmt_status(r.valid)])
+
+            def _key(row: List[str]) -> tuple[int, float]:
+                try:
+                    v = float(row[1])
+                    return (0, v)
+                except ValueError:
+                    return (1, float("inf"))
+
+            table_rows.sort(key=_key)
+            _print_table(
+                title=f"{lic_name} on {graph_name}",
+                headers=["algorithm", "cost", "time_ms", "status"],
+                rows=table_rows,
+            )
 
     csv_path = write_csv(csv_dir, run_id, results)
     print_summary(run_id, csv_path, results)
