@@ -1,3 +1,3 @@
-from .main import GeneticAlgorithm
+from .main import GeneticAlgorithm 
 
-__all__ = ["GeneticAlgorithm"]
+__all__ =["GeneticAlgorithm"]
