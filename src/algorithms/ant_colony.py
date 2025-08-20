@@ -233,11 +233,8 @@ class AntColonyOptimization(Algorithm):
             # License covers owner + direct neighbors (range = 1)
             neighbors = set(graph.neighbors(center)) | {center}
 
-            license_group = LicenseGroup(center, license_type, neighbors)
-            license_groups.append(license_group)
+            additional = neighbors - {center}
+            license_groups.append(LicenseGroup(license_type, center, additional))
             covered_nodes.update(neighbors)
 
-        total_cost = sum(lg.license_type.cost for lg in license_groups)
-        all_covered = set().union(*(lg.covered_nodes for lg in license_groups))
-
-        return Solution(license_groups, total_cost, all_covered)
+        return SolutionBuilder.create_solution_from_groups(license_groups)
