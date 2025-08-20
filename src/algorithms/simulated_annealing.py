@@ -1,10 +1,12 @@
-import random
 import math
+import random
 from typing import Any, List, Optional
+
 import networkx as nx
-from src.core import Solution, LicenseGroup, LicenseType, Algorithm
+
+from src.core import Algorithm, LicenseGroup, LicenseType, Solution
 from src.validation.solution_validator import SolutionValidator
-from src.utils import SolutionBuilder
+from src.utils.solution_builder import SolutionBuilder
 
 
 class SimulatedAnnealing(Algorithm):
@@ -17,205 +19,196 @@ class SimulatedAnnealing(Algorithm):
         initial_temperature: float = 100.0,
         cooling_rate: float = 0.995,
         min_temperature: float = 0.001,
-        max_iterations: int = 20000,
-        max_iterations_without_improvement: int = 2000,
-    ):
+        max_iterations: int = 20_000,
+        max_stall: int = 2_000,
+    ) -> None:
         self.initial_temperature = initial_temperature
         self.cooling_rate = cooling_rate
         self.min_temperature = min_temperature
         self.max_iterations = max_iterations
-        self.max_iterations_without_improvement = max_iterations_without_improvement
-        self.validator = SolutionValidator()
+        self.max_stall = max_stall
+        self.validator = SolutionValidator(debug=False)
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
-        current_solution = self._generate_random_initial_solution(graph, license_types)
-        if not self.validator.is_valid_solution(current_solution, graph):
-            from .greedy import GreedyAlgorithm
+    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **_: Any) -> Solution:
+        # seed: greedy; fallback to simple singles if needed
+        from .greedy import GreedyAlgorithm
 
-            current_solution = GreedyAlgorithm().solve(graph, license_types)
-            if not self.validator.is_valid_solution(current_solution, graph):
-                return Solution([], 0.0, set())
+        current = GreedyAlgorithm().solve(graph, license_types)
+        ok, _ = self.validator.validate(current, graph)
+        if not ok:
+            current = self._fallback_singletons(graph, license_types)
 
-        best_solution = current_solution
-        temperature = self.initial_temperature
-        iterations_without_improvement = 0
+        best = current
+        T = self.initial_temperature
+        stall = 0
 
-        for i in range(self.max_iterations):
-            if temperature < self.min_temperature:
+        for _ in range(self.max_iterations):
+            if T < self.min_temperature:
                 break
 
-            neighbor = self._generate_neighbor(current_solution, graph, license_types)
-
-            if neighbor and self.validator.is_valid_solution(neighbor, graph):
-                delta_cost = neighbor.total_cost - current_solution.total_cost
-                if delta_cost < 0 or random.random() < math.exp(-delta_cost / max(temperature, 1e-12)):
-                    current_solution = neighbor
-                    if current_solution.total_cost < best_solution.total_cost:
-                        best_solution = current_solution
-                        iterations_without_improvement = 0
+            neighbor = self._neighbor(current, graph, license_types)
+            if neighbor is None:
+                stall += 1
+            else:
+                d = neighbor.total_cost - current.total_cost
+                if d < 0 or random.random() < math.exp(-d / max(T, 1e-12)):
+                    current = neighbor
+                    if current.total_cost < best.total_cost:
+                        best = current
+                        stall = 0
                     else:
-                        iterations_without_improvement += 1
+                        stall += 1
                 else:
-                    iterations_without_improvement += 1
-            else:
-                iterations_without_improvement += 1
+                    stall += 1
 
-            if iterations_without_improvement >= self.max_iterations_without_improvement:
-                iterations_without_improvement = 0
-                temperature = max(self.min_temperature, temperature * 0.5)
+            if stall >= self.max_stall:
+                stall = 0
+                T = max(self.min_temperature, T * 0.5)
 
-            temperature *= self.cooling_rate
+            T *= self.cooling_rate
 
-        return best_solution
+        return best
 
-    def _generate_random_initial_solution(self, graph: nx.Graph, license_types: List[LicenseType]) -> Solution:
-        nodes = list(graph.nodes())
-        random.shuffle(nodes)
-        uncovered = set(nodes)
-        groups: List[LicenseGroup] = []
+    # --- initialization ---
 
-        while uncovered:
-            owner = random.choice(list(uncovered))
-            neighbors = SolutionBuilder.get_owner_neighbors_with_self(graph, owner) & uncovered
-            available = neighbors | {owner}
+    def _fallback_singletons(self, graph: nx.Graph, lts: List[LicenseType]) -> Solution:
+        lt1 = SolutionBuilder.find_cheapest_single_license(lts)
+        groups = [LicenseGroup(lt1, n, frozenset()) for n in graph.nodes()]
+        return Solution(groups=tuple(groups))
 
-            compatible = [lt for lt in license_types if lt.min_capacity <= len(available) <= lt.max_capacity]
-            if compatible:
-                license_type = random.choice(compatible)
-                members = set(random.sample(list(available), min(len(available), license_type.max_capacity)))
-            else:
-                license_type = SolutionBuilder.find_cheapest_single_license(license_types)
-                members = {owner}
+    # --- neighbor generation ---
 
-            additional = members - {owner}
-            groups.append(LicenseGroup(license_type, owner, additional))
-            uncovered -= members
-
-        return SolutionBuilder.create_solution_from_groups(groups)
-
-    def _generate_neighbor(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Optional[Solution]:
-        strategies = [
-            self._change_license_type,
-            self._move_node,
-            self._swap_nodes,
-            self._merge_groups,
-            self._split_group,
-        ]
-
+    def _neighbor(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
+        moves = [self._mv_change_license, self._mv_move_member, self._mv_swap_members, self._mv_merge_groups, self._mv_split_group]
         for _ in range(12):
-            strategy = random.choice(strategies)
+            mv = random.choice(moves)
             try:
-                candidate = strategy(solution, graph, license_types)
+                cand = mv(solution, graph, lts)
             except Exception:
-                candidate = None
-            if candidate and self.validator.is_valid_solution(candidate, graph):
-                return candidate
+                cand = None
+            if cand:
+                ok, _ = self.validator.validate(cand, graph)
+                if ok:
+                    return cand
         return None
 
-    def _change_license_type(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Optional[Solution]:
-        group = random.choice(solution.groups)
-        new_license = SolutionBuilder.find_cheapest_license_for_size(group.size, license_types)
-        if not new_license or new_license == group.license_type:
+    # 1) change license of one group to a cheaper compatible one
+    def _mv_change_license(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
+        if not solution.groups:
+            return None
+        g = random.choice(solution.groups)
+        compat = SolutionBuilder.get_compatible_license_types(g.size, lts, exclude=g.license_type)
+        cheaper = [lt for lt in compat if lt.cost < g.license_type.cost]
+        if not cheaper:
+            return None
+        new_lt = random.choice(cheaper)
+
+        new_groups = [LicenseGroup(new_lt, g.owner, g.additional_members) if x is g else x for x in solution.groups]
+        return Solution(groups=tuple(new_groups))
+
+    # 2) move a non-owner member from one group to another if both remain within capacity and neighbor rules
+    def _mv_move_member(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
+        donors = [g for g in solution.groups if g.additional_members and g.size > g.license_type.min_capacity]
+        if not donors:
+            return None
+        from_g = random.choice(donors)
+        member = random.choice(list(from_g.additional_members))
+
+        receivers = [g for g in solution.groups if g is not from_g and g.size < g.license_type.max_capacity]
+        if not receivers:
+            return None
+        to_g = random.choice(receivers)
+
+        # neighbor constraint: member must be in receiver owner's closed neighborhood
+        allowed = SolutionBuilder.get_owner_neighbors_with_self(graph, to_g.owner)
+        if member not in allowed:
             return None
 
-        new_groups = [g for g in solution.groups if g is not group]
-        new_groups.append(LicenseGroup(new_license, group.owner, set(group.additional_members)))
-        return SolutionBuilder.create_solution_from_groups(new_groups)
+        new_groups = []
+        for g in solution.groups:
+            if g is from_g:
+                new_groups.append(LicenseGroup(g.license_type, g.owner, g.additional_members - {member}))
+            elif g is to_g:
+                new_groups.append(LicenseGroup(g.license_type, g.owner, g.additional_members | {member}))
+            else:
+                new_groups.append(g)
+        return Solution(groups=tuple(new_groups))
 
-    def _move_node(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Optional[Solution]:
-        source_candidates = [g for g in solution.groups if g.size > g.license_type.min_capacity]
-        if not source_candidates:
-            return None
-        source = random.choice(source_candidates)
-        node = random.choice(list(source.all_members))
-
-        target_candidates = [g for g in solution.groups if g is not source and g.size < g.license_type.max_capacity]
-        if not target_candidates:
-            return None
-        target = random.choice(target_candidates)
-
-        new_src_members = set(source.all_members) - {node}
-        new_tgt_members = set(target.all_members) | {node}
-
-        if not new_src_members or not new_tgt_members:
-            return None
-
-        if not nx.is_connected(graph.subgraph(new_src_members)) or not nx.is_connected(graph.subgraph(new_tgt_members)):
-            return None
-
-        new_src_license = SolutionBuilder.find_cheapest_license_for_size(len(new_src_members), license_types)
-        new_tgt_license = SolutionBuilder.find_cheapest_license_for_size(len(new_tgt_members), license_types)
-        if not new_src_license or not new_tgt_license:
-            return None
-
-        new_groups = [g for g in solution.groups if g not in (source, target)]
-        owner_src = next(iter(new_src_members))
-        owner_tgt = next(iter(new_tgt_members))
-        new_groups.append(LicenseGroup(new_src_license, owner_src, new_src_members - {owner_src}))
-        new_groups.append(LicenseGroup(new_tgt_license, owner_tgt, new_tgt_members - {owner_tgt}))
-        return SolutionBuilder.create_solution_from_groups(new_groups)
-
-    def _swap_nodes(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Optional[Solution]:
+    # 3) swap two members between two groups if both receivers' owners can host them
+    def _mv_swap_members(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
         if len(solution.groups) < 2:
             return None
-        g1, g2 = random.sample(solution.groups, 2)
-        n1 = random.choice(list(g1.all_members))
-        n2 = random.choice(list(g2.all_members))
+        g1, g2 = random.sample(list(solution.groups), 2)
 
-        new_g1 = (set(g1.all_members) - {n1}) | {n2}
-        new_g2 = (set(g2.all_members) - {n2}) | {n1}
+        cand1 = list(g1.all_members)
+        cand2 = list(g2.all_members)
+        if not cand1 or not cand2:
+            return None
+        n1 = random.choice(cand1)
+        n2 = random.choice(cand2)
 
-        if not nx.is_connected(graph.subgraph(new_g1)) or not nx.is_connected(graph.subgraph(new_g2)):
+        # check neighbor constraints for target owners
+        if n1 not in SolutionBuilder.get_owner_neighbors_with_self(graph, g2.owner):
+            return None
+        if n2 not in SolutionBuilder.get_owner_neighbors_with_self(graph, g1.owner):
             return None
 
-        l1 = SolutionBuilder.find_cheapest_license_for_size(len(new_g1), license_types)
-        l2 = SolutionBuilder.find_cheapest_license_for_size(len(new_g2), license_types)
-        if not l1 or not l2:
-            return None
+        # check capacities after swap (sizes unchanged → ok)
+        new_groups: List[LicenseGroup] = []
+        for g in solution.groups:
+            if g is g1:
+                mem = (g.all_members - {n1}) | {n2}
+                owner = g.owner if g.owner in mem else n2  # ensure owner present
+                new_groups.append(LicenseGroup(g.license_type, owner, frozenset(mem - {owner})))
+            elif g is g2:
+                mem = (g.all_members - {n2}) | {n1}
+                owner = g.owner if g.owner in mem else n1
+                new_groups.append(LicenseGroup(g.license_type, owner, frozenset(mem - {owner})))
+            else:
+                new_groups.append(g)
+        return Solution(groups=tuple(new_groups))
 
-        new_groups = [g for g in solution.groups if g not in (g1, g2)]
-        o1 = next(iter(new_g1))
-        o2 = next(iter(new_g2))
-        new_groups.append(LicenseGroup(l1, o1, new_g1 - {o1}))
-        new_groups.append(LicenseGroup(l2, o2, new_g2 - {o2}))
-        return SolutionBuilder.create_solution_from_groups(new_groups)
-
-    def _merge_groups(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Optional[Solution]:
+    # 4) merge two groups if SolutionBuilder can create a valid merged group
+    def _mv_merge_groups(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
         if len(solution.groups) < 2:
             return None
-        g1, g2 = random.sample(solution.groups, 2)
-        merged = set(g1.all_members) | set(g2.all_members)
-        if not nx.is_connected(graph.subgraph(merged)):
-            return None
-        lg = SolutionBuilder.merge_groups(g1, g2, graph, license_types)
-        if not lg:
+        g1, g2 = random.sample(list(solution.groups), 2)
+        merged = SolutionBuilder.merge_groups(g1, g2, graph, lts)
+        if merged is None:
             return None
         new_groups = [g for g in solution.groups if g not in (g1, g2)]
-        new_groups.append(lg)
-        return SolutionBuilder.create_solution_from_groups(new_groups)
+        new_groups.append(merged)
+        return Solution(groups=tuple(new_groups))
 
-    def _split_group(self, solution: Solution, graph: nx.Graph, license_types: List[LicenseType]) -> Optional[Solution]:
-        large = [g for g in solution.groups if g.size >= 3]
-        if not large:
+    # 5) split a group into two valid groups by random bipartition
+    def _mv_split_group(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
+        splittable = [g for g in solution.groups if g.size >= 3]
+        if not splittable:
             return None
-        group = random.choice(large)
-        nodes = list(group.all_members)
-        sub = graph.subgraph(nodes)
-        if not nx.is_connected(sub):
-            return None
-        cut = nx.minimum_edge_cut(sub)
-        if not cut:
-            return None
-        Gp = sub.copy()
-        Gp.remove_edges_from(cut)
-        components = list(nx.connected_components(Gp))
-        if len(components) < 2:
-            return None
-        new_groups: List[LicenseGroup] = [g for g in solution.groups if g != group]
-        for comp in components:
-            lt = SolutionBuilder.find_cheapest_license_for_size(len(comp), license_types)
-            if not lt:
-                return None
-            owner = next(iter(comp))
-            new_groups.append(LicenseGroup(lt, owner, set(comp) - {owner}))
-        return SolutionBuilder.create_solution_from_groups(new_groups)
+        g = random.choice(splittable)
+        members = list(g.all_members)
+
+        for _ in range(4):
+            random.shuffle(members)
+            cut = random.randint(1, len(members) - 1)
+            part1, part2 = members[:cut], members[cut:]
+
+            lt1 = SolutionBuilder.find_cheapest_license_for_size(len(part1), lts)
+            lt2 = SolutionBuilder.find_cheapest_license_for_size(len(part2), lts)
+            if not lt1 or not lt2:
+                continue
+
+            owner1 = random.choice(part1)
+            owner2 = random.choice(part2)
+
+            neigh1 = SolutionBuilder.get_owner_neighbors_with_self(graph, owner1)
+            neigh2 = SolutionBuilder.get_owner_neighbors_with_self(graph, owner2)
+            if not set(part1).issubset(neigh1) or not set(part2).issubset(neigh2):
+                continue
+
+            new_groups = [x for x in solution.groups if x is not g]
+            new_groups.append(LicenseGroup(lt1, owner1, frozenset(set(part1) - {owner1})))
+            new_groups.append(LicenseGroup(lt2, owner2, frozenset(set(part2) - {owner2})))
+            return Solution(groups=tuple(new_groups))
+
+        return None
