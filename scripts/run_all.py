@@ -45,12 +45,15 @@ def main() -> None:
     results: List[RunResult] = []
     for graph_name in graph_names:
         params = DEFAULT_GRAPH_PARAMS.get(graph_name, {})
+        print(f"\n[GRAPH] {graph_name} params={params}")
         try:
             graph = generate_graph(graph_name, N_NODES, params)
         except Exception as e:
             print(f"[ERROR] graph generation failed: {graph_name}: {e}", file=sys.stderr)
             continue
         for lic_name in license_configs:
+            print(f"  [LICENSE] {lic_name}")
+
             try:
                 license_types = LicenseConfigFactory.get_config(lic_name)
             except Exception as e:
@@ -59,6 +62,7 @@ def main() -> None:
             g_dir = os.path.join(graphs_dir_root, graph_name, lic_name)
             ensure_dir(g_dir)
             for algo_name in algorithm_names:
+                print(f"    [RUN] {algo_name}")
                 try:
                     algo = instantiate_algorithms([algo_name])[0]
                 except Exception as e:
@@ -80,6 +84,8 @@ def main() -> None:
                     }
                 )
                 results.append(r)
+                status = "ok" if r.valid else "invalid"
+                print(f"    [DONE] {algo_name}: cost={r.total_cost:.2f}, {status}, {r.time_ms:.2f}ms")
 
     csv_path = write_csv(csv_dir, run_id, results)
     print_summary(run_id, csv_path, results)
