@@ -53,6 +53,7 @@ def main() -> None:
             continue
         for lic_name in license_configs:
             print(f"  [LICENSE] {lic_name}")
+
             try:
                 license_types = LicenseConfigFactory.get_config(lic_name)
             except Exception as e:
