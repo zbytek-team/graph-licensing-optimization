@@ -11,7 +11,6 @@ from scripts._common import (
     instantiate_algorithms,
     run_once,
     write_csv,
-    print_summary,
 )
 
 # ===== CONFIG =====
@@ -109,8 +108,7 @@ def main() -> None:
         results.append(r)
 
     # persist + summary with ranking
-    csv_path = write_csv(csv_dir, run_id, results)
-    print_summary(run_id, csv_path, results)
+    write_csv(csv_dir, run_id, results)
 
 
 if __name__ == "__main__":

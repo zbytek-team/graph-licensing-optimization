@@ -61,8 +61,12 @@ class GraphGeneratorFactory:
 
     @staticmethod
     def _tree(n_nodes: int, *, seed: int | None = None) -> nx.Graph:
+        import networkx as nx
+
         if n_nodes == 1:
             G = nx.Graph()
             G.add_node(0)
             return G
-        return nx.random_tree(n_nodes, seed=seed)
+
+        base = nx.complete_graph(n_nodes)
+        return nx.random_spanning_tree(base, weight=None, seed=seed)
