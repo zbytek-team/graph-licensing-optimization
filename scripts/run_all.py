@@ -1,5 +1,9 @@
+# test_all.py
 import os
 import sys
+import io
+import traceback
+from contextlib import contextmanager
 from datetime import datetime
 from math import isnan
 from typing import Any, Dict, List
@@ -10,7 +14,6 @@ from scripts._common import (
     ensure_dir,
     generate_graph,
     instantiate_algorithms,
-    print_summary,
     run_once,
     write_csv,
 )
@@ -20,7 +23,7 @@ from src.factories.license_config_factory import LicenseConfigFactory
 
 # ===== CONFIG =====
 
-N_NODES = 50
+N_NODES = 100
 DEFAULT_GRAPH_PARAMS: Dict[str, Dict[str, Any]] = {
     "random": {"p": 0.1, "seed": 42},
     "scale_free": {"m": 2, "seed": 42},
@@ -35,21 +38,46 @@ DEFAULT_GRAPH_PARAMS: Dict[str, Dict[str, Any]] = {
 # ===== END CONFIG =====
 
 
+@contextmanager
+def suppress_trace_output():
+    """mute traceback.print_exc and stderr prints inside the block"""
+    orig_print_exc = traceback.print_exc
+    orig_stderr = sys.stderr
+    try:
+        traceback.print_exc = lambda *a, **k: None  # type: ignore[assignment]
+        sys.stderr = io.StringIO()
+        yield
+    finally:
+        traceback.print_exc = orig_print_exc  # type: ignore[assignment]
+        sys.stderr = orig_stderr
+
+
+def _err(msg: str, e: Exception) -> None:
+    brief = "".join(traceback.format_exception_only(type(e), e)).strip()
+    print(f"[ERROR] {msg}: {brief}", file=sys.stderr)
+
+
 def _fmt_status(valid: bool) -> str:
     return "ok" if valid else "invalid"
 
 
 def _print_table(title: str, headers: List[str], rows: List[List[str]]) -> None:
+    if not rows:
+        print(f"\n[LICENSE] {title} (no runs)")
+        return
+
     widths = [len(h) for h in headers]
     for row in rows:
         for i, cell in enumerate(row):
-            widths[i] = max(widths[i], len(cell))
+            if i < len(widths):
+                widths[i] = max(widths[i], len(cell))
 
     def line(sep_left: str = "+", sep_mid: str = "+", sep_right: str = "+", fill: str = "-") -> str:
         return sep_left + sep_mid.join(fill * (w + 2) for w in widths) + sep_right
 
     def fmt_row(cols: List[str]) -> str:
-        return "| " + " | ".join(c.ljust(w) for c, w in zip(cols, widths)) + " |"
+        padded = [c.ljust(w) for c, w in zip(cols, widths)]
+        return "| " + " | ".join(padded) + " |"
 
     print(f"\n[LICENSE] {title}")
     print(line())
@@ -60,33 +88,60 @@ def _print_table(title: str, headers: List[str], rows: List[List[str]]) -> None:
     print(line())
 
 
-def main() -> None:
+def main() -> int:
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     _, graphs_dir_root, csv_dir = build_paths(run_id)
 
-    graph_names = list(GraphGeneratorFactory._GENERATORS.keys())
-    license_configs = list(LicenseConfigFactory._CONFIGS.keys())
-    algorithm_names = list(algorithms.__all__)
+    try:
+        graph_names = list(GraphGeneratorFactory._GENERATORS.keys())
+    except Exception as e:
+        _err("loading graph generators", e)
+        return 2
+
+    try:
+        license_configs = list(LicenseConfigFactory._CONFIGS.keys())
+    except Exception as e:
+        _err("loading license configs", e)
+        return 2
+
+    try:
+        algorithm_names = list(algorithms.__all__)
+    except Exception as e:
+        _err("loading algorithms list", e)
+        return 2
 
     results: List[RunResult] = []
+    had_errors = False
+
     for graph_name in graph_names:
+        if graph_name == "complete" or graph_name == "star":  # graphs that take too much time to compute
+            continue
+
         params = DEFAULT_GRAPH_PARAMS.get(graph_name, {})
         print(f"\n[GRAPH] {graph_name} params={params}")
+
         try:
             graph = generate_graph(graph_name, N_NODES, params)
         except Exception as e:
-            print(f"[ERROR] graph generation failed: {graph_name}: {e}", file=sys.stderr)
+            _err(f"graph generation failed: {graph_name}", e)
+            had_errors = True
             continue
 
         for lic_name in license_configs:
             try:
                 license_types = LicenseConfigFactory.get_config(lic_name)
             except Exception as e:
-                print(f"[ERROR] license config failed: {lic_name}: {e}", file=sys.stderr)
+                _err(f"license config failed: {lic_name}", e)
+                had_errors = True
                 continue
 
             g_dir = os.path.join(graphs_dir_root, graph_name, lic_name)
-            ensure_dir(g_dir)
+            try:
+                ensure_dir(g_dir)
+            except Exception as e:
+                _err(f"ensure_dir failed: {g_dir}", e)
+                had_errors = True
+                continue
 
             table_rows: List[List[str]] = []
 
@@ -94,16 +149,26 @@ def main() -> None:
                 try:
                     algo = instantiate_algorithms([algo_name])[0]
                 except Exception as e:
-                    print(f"[ERROR] algorithm setup failed: {algo_name}: {e}", file=sys.stderr)
+                    _err(f"algorithm setup failed: {algo_name}", e)
+                    had_errors = True
                     continue
 
-                r = run_once(
-                    algo=algo,
-                    graph=graph,
-                    license_types=license_types,
-                    run_id=run_id,
-                    graphs_dir=g_dir,
-                )
+                try:
+                    # zagłuszamy długie tracebacks generowane w run_once lub w solverze
+                    with suppress_trace_output():
+                        r = run_once(
+                            algo=algo,
+                            graph=graph,
+                            license_types=license_types,
+                            run_id=run_id,
+                            graphs_dir=g_dir,
+                        )
+                except Exception as e:
+                    _err(f"run failed: algo={algo_name} graph={graph_name} lic={lic_name}", e)
+                    had_errors = True
+                    continue
+
+                # enrich result
                 r = RunResult(
                     **{
                         **r.__dict__,
@@ -118,6 +183,7 @@ def main() -> None:
                 time_str = f"{r.time_ms:.2f}"
                 table_rows.append([algo_name, cost_str, time_str, _fmt_status(r.valid)])
 
+            # sort by cost asc, NaN last
             def _key(row: List[str]) -> tuple[int, float]:
                 try:
                     v = float(row[1])
@@ -132,9 +198,14 @@ def main() -> None:
                 rows=table_rows,
             )
 
-    csv_path = write_csv(csv_dir, run_id, results)
-    print_summary(run_id, csv_path, results)
+    try:
+        write_csv(csv_dir, run_id, results)
+    except Exception as e:
+        _err("writing CSV failed", e)
+        had_errors = True
+
+    return 1 if had_errors else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

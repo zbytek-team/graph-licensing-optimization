@@ -178,21 +178,6 @@ def run_once(
 # ---------- reporting ----------
 
 
-def _rel(p: str) -> str:
-    try:
-        return os.path.relpath(p)
-    except Exception:
-        return p
-
-
-def _fmt_cost(v: float) -> str:
-    return "nan" if v != v else f"{v:.2f}"
-
-
-def _fmt_ms(v: float) -> str:
-    return f"{v:.2f} ms"
-
-
 def rank_results(results: List[RunResult]) -> List[tuple[int, RunResult, float]]:
     """Return list of (rank, result, gap_percent). ILP valid used as baseline if present, else min(valid cost)."""
     valid = [r for r in results if r.valid]
@@ -206,21 +191,3 @@ def rank_results(results: List[RunResult]) -> List[tuple[int, RunResult, float]]
         gap = float("nan") if not r.valid or best_cost == 0 else (r.total_cost - best_cost) / best_cost * 100.0
         out.append((idx, r, gap))
     return out
-
-
-def print_summary(run_id: str, csv_path: str, results: List[RunResult]) -> None:
-    print("\n=== RUN SUMMARY ===")
-    print(f"run_id : {run_id}")
-    print(f"csv    : {_rel(csv_path)}\n")
-    for rank, r, gap in rank_results(results):
-        status = "OK" if r.valid else "FAIL"
-        gap_str = "-" if gap != gap else f"{gap:.2f}%"
-        print(f"[{rank}] {r.algorithm} [{status}]")
-        print(f"  cost : {_fmt_cost(r.total_cost)}   gap_vs_best: {gap_str}")
-        print(f"  time : {_fmt_ms(r.time_ms)}")
-        print(f"  png  : {_rel(r.image_path) if r.image_path else '-'}")
-        if not r.valid:
-            print(f"  issues: {r.issues}")
-            if r.notes:
-                print(f"  note  : {r.notes}")
-        print("")

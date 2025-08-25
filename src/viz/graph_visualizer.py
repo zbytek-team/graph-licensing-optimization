@@ -1,15 +1,10 @@
-# src/viz/graph_visualizer.py
-# Python 3.13+
-# Stable layout across frames for GIFs. Positions are computed once and then reused.
-# New nodes get positions near a random neighbor; removed nodes are dropped from pos.
-
 import os
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Any
 
 import matplotlib
 
-matplotlib.use("Agg")  # headless backend
+matplotlib.use("Agg") 
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -32,10 +27,7 @@ class GraphVisualizer:
         self.member_size = 300
         self.solo_size = 400
 
-        # persistent node positions for stable animations
         self._pos: Dict[Any, Tuple[float, float]] | None = None
-
-    # ---- public API ----
 
     def visualize_solution(
         self,
@@ -153,11 +145,9 @@ class GraphVisualizer:
         ax.legend(handles=elems, loc="upper right", bbox_to_anchor=(0.98, 0.98))
 
 
-# --- tiny utilities (local, to avoid extra imports) ---
 
 
 def jitter(scale: float = 0.08) -> float:
-    # small symmetric noise to avoid exact overlap
     import random as _r
 
     return (_r.random() - 0.5) * 2.0 * scale
