@@ -1,0 +1,62 @@
+"""Run a basic dynamic network simulation."""
+
+from __future__ import annotations
+
+import os
+import sys
+import traceback
+from datetime import datetime
+
+from scripts._common import build_paths, ensure_dir
+from src.graph_generator import GraphGeneratorFactory
+from src.license_config import LicenseConfigFactory
+from src.dynamic_simulator import DynamicNetworkSimulator
+
+
+# Default parameters for a small demo run
+GRAPH_NAME = "small_world"
+GRAPH_PARAMS = {"k": 4, "p": 0.1, "seed": 42}
+N_NODES = 30
+LICENSE_CONFIG = "roman_domination"
+NUM_STEPS = 5
+
+
+def main() -> int:
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    _, _, csv_dir = build_paths(run_id)
+
+    try:
+        gen = GraphGeneratorFactory.get(GRAPH_NAME)
+        graph = gen(n_nodes=N_NODES, **GRAPH_PARAMS)
+    except Exception as e:
+        print(f"[ERROR] graph generation failed: {GRAPH_NAME}: {e}", file=sys.stderr)
+        traceback.print_exc(limit=10, file=sys.stderr)
+        return 2
+
+    try:
+        license_types = LicenseConfigFactory.get_config(LICENSE_CONFIG)
+    except Exception as e:
+        print(f"[ERROR] license config failed: {LICENSE_CONFIG}: {e}", file=sys.stderr)
+        traceback.print_exc(limit=10, file=sys.stderr)
+        return 2
+
+    simulator = DynamicNetworkSimulator()
+    simulator.simulate(graph, license_types, num_steps=NUM_STEPS)
+
+    try:
+        ensure_dir(csv_dir)
+        out_path = os.path.join(csv_dir, f"{run_id}_dynamic.csv")
+        simulator.export_history_to_csv(out_path)
+        print(f"[DYNAMIC] history saved to {out_path}")
+    except Exception as e:
+        print(f"[ERROR] exporting history failed: {e}", file=sys.stderr)
+        traceback.print_exc(limit=10, file=sys.stderr)
+        return 2
+
+    summary = simulator.get_simulation_summary()
+    print(f"[DYNAMIC] summary: {summary}")
+    return 0
+
+
+if __name__ == "__main__":  # pragma: no cover - CLI entry
+    raise SystemExit(main())
