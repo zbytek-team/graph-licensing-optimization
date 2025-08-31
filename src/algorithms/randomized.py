@@ -2,8 +2,8 @@ from typing import Any, List, Optional, Set, Tuple
 import networkx as nx
 import random
 
-from src.core import Algorithm, LicenseGroup, LicenseType, Solution
-from src.utils import SolutionBuilder
+from src import Algorithm, LicenseGroup, LicenseType, Solution
+from src.solution_builder import SolutionBuilder
 
 
 class RandomizedAlgorithm(Algorithm):

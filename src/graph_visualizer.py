@@ -4,11 +4,11 @@ from typing import Dict, List, Optional, Tuple, Any
 
 import matplotlib
 
-matplotlib.use("Agg") 
+matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import networkx as nx
-from src.core import Solution
+from src import Solution
 
 
 class GraphVisualizer:
@@ -143,8 +143,6 @@ class GraphVisualizer:
         elems = [plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=lt.color, markersize=10, label=lt.name) for lt in license_types]
         elems.append(plt.Line2D([0], [0], color=self.default_edge_color, linewidth=2, label="Other Edges"))
         ax.legend(handles=elems, loc="upper right", bbox_to_anchor=(0.98, 0.98))
-
-
 
 
 def jitter(scale: float = 0.08) -> float:
