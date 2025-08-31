@@ -4,9 +4,9 @@ from typing import Any, List, Optional
 
 import networkx as nx
 
-from src import Algorithm, LicenseGroup, LicenseType, Solution
-from src.solution_validator import SolutionValidator
-from src.solution_builder import SolutionBuilder
+from ..core import Algorithm, LicenseGroup, LicenseType, Solution
+from ..core.solution_validator import SolutionValidator
+from ..core.solution_builder import SolutionBuilder
 
 
 class SimulatedAnnealing(Algorithm):
