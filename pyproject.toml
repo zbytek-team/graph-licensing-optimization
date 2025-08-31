@@ -1,7 +1,6 @@
 [project]
-name = "graph-licensing-optimization"
+name = "glopt"
 version = "0.1.0"
-description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -13,9 +12,15 @@ dependencies = [
     "scipy>=1.16.1",
 ]
 
+[project.scripts]
+glopt-all = "glopt.cli.all:main"
+glopt-benchmark = "glopt.cli.benchmark:main"
+glopt-dynamic = "glopt.cli.dynamic:main"
+glopt-test = "glopt.cli.test:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["glopt*"]
+
 [dependency-groups]
-dev = [
-    "black>=25.1.0",
-    "pytest>=8.4.1",
-    "ruff>=0.12.4",
-]
+dev = ["black>=25.1.0", "pytest>=8.4.1", "ruff>=0.12.4"]
