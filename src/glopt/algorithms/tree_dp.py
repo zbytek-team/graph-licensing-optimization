@@ -108,7 +108,6 @@ class TreeDynamicProgramming(Algorithm):
         grandchildren = [gc for gc in graph.neighbors(child) if gc != parent]
 
         if not grandchildren:
-
             return (0.0, [])
 
         total_cost = 0.0

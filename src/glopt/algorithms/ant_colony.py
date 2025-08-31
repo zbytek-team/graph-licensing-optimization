@@ -6,7 +6,7 @@ from ..core import Algorithm, LicenseGroup, LicenseType, Solution
 from ..core.solution_validator import SolutionValidator
 from .greedy import GreedyAlgorithm
 
-PKey = Tuple[Any, str]  # (owner, license_name)
+PKey = Tuple[Any, str]
 
 
 class AntColonyOptimization(Algorithm):
@@ -30,7 +30,6 @@ class AntColonyOptimization(Algorithm):
         best = GreedyAlgorithm().solve(graph, license_types)
         ok, _ = self.validator.validate(best, graph)
         if not ok:
-            # fallback do bardzo taniej konstrukcji
             best = self._fallback_singletons(graph, license_types)
         best_cost = best.total_cost
         self._deposit(pher, best)
@@ -50,7 +49,6 @@ class AntColonyOptimization(Algorithm):
                 continue
         return best
 
-    # --- core construction ---
     def _construct(self, G: nx.Graph, lts: List[LicenseType], pher: Dict[PKey, float], heur: Dict[PKey, float]) -> Solution:
         uncovered: Set[Any] = set(G.nodes())
         groups: List[LicenseGroup] = []
@@ -61,12 +59,10 @@ class AntColonyOptimization(Algorithm):
 
             pool = (set(G.neighbors(owner)) | {owner}) & uncovered
             if len(pool) < lt.min_capacity:
-                # single jeśli wolno
                 if lt.min_capacity == 1:
                     groups.append(LicenseGroup(lt, owner, frozenset()))
                     uncovered.remove(owner)
                 else:
-                    # wybierz najtańszą licencję, która się zmieści w pool
                     feas = [x for x in lts if x.min_capacity <= len(pool) <= x.max_capacity]
                     if feas:
                         lt2 = min(feas, key=lambda x: x.cost)
@@ -78,14 +74,12 @@ class AntColonyOptimization(Algorithm):
                         uncovered.remove(owner)
                 continue
 
-            # formuj grupę do max_capacity
             k = max(0, lt.max_capacity - 1)
             add = sorted((pool - {owner}), key=lambda n: G.degree(n), reverse=True)[:k]
             groups.append(LicenseGroup(lt, owner, frozenset(add)))
             uncovered -= {owner} | set(add)
         return Solution(groups=tuple(groups))
 
-    # --- selection ---
     def _select_owner(self, uncovered: Set[Any], lts: List[LicenseType], pher: Dict[PKey, float], heur: Dict[PKey, float], G: nx.Graph) -> Optional[Any]:
         if not uncovered:
             return None
@@ -121,7 +115,6 @@ class AntColonyOptimization(Algorithm):
                 return c
         return random.choice(choices)
 
-    # --- pheromones / heuristics ---
     def _init_pher(self, G: nx.Graph, lts: List[LicenseType]) -> Dict[PKey, float]:
         return {(n, lt.name): 1.0 for n in G.nodes() for lt in lts}
 
@@ -149,7 +142,6 @@ class AntColonyOptimization(Algorithm):
                 if k in pher:
                     pher[k] += q
 
-    # --- fallback ---
     def _fallback_singletons(self, G: nx.Graph, lts: List[LicenseType]) -> Solution:
         lt1 = min([x for x in lts if x.min_capacity <= 1] or lts, key=lambda x: x.cost)
         groups = [LicenseGroup(lt1, n, frozenset()) for n in G.nodes()]

@@ -47,8 +47,6 @@ class SolutionValidator:
         ok, _ = self.validate(solution, graph, all_nodes)
         return ok
 
-    # ---- individual checks ----
-
     def _check_group_members(self, groups: Tuple[LicenseGroup[N], ...], nodes: Set[N]) -> List[ValidationIssue]:
         issues: List[ValidationIssue] = []
         for idx, g in enumerate(groups):

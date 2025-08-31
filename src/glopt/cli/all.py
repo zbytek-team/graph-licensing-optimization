@@ -1,4 +1,3 @@
-# test_all.py
 import os
 import sys
 import io
@@ -14,7 +13,6 @@ from glopt import algorithms
 from glopt.io.graph_generator import GraphGeneratorFactory
 from glopt.license_config import LicenseConfigFactory
 
-# ===== CONFIG =====
 
 N_NODES = 100
 DEFAULT_GRAPH_PARAMS: Dict[str, Dict[str, Any]] = {
@@ -28,8 +26,6 @@ DEFAULT_GRAPH_PARAMS: Dict[str, Dict[str, Any]] = {
     "tree": {"seed": 42},
 }
 
-# ===== END CONFIG =====
-
 
 @contextmanager
 def suppress_trace_output():
@@ -37,11 +33,11 @@ def suppress_trace_output():
     orig_print_exc = traceback.print_exc
     orig_stderr = sys.stderr
     try:
-        traceback.print_exc = lambda *a, **k: None  # type: ignore[assignment]
+        traceback.print_exc = lambda *a, **k: None
         sys.stderr = io.StringIO()
         yield
     finally:
-        traceback.print_exc = orig_print_exc  # type: ignore[assignment]
+        traceback.print_exc = orig_print_exc
         sys.stderr = orig_stderr
 
 
@@ -121,7 +117,7 @@ def main() -> int:
     had_errors = False
 
     for graph_name in graph_names:
-        if graph_name == "complete" or graph_name == "star":  # graphs that take too much time to compute
+        if graph_name == "complete" or graph_name == "star":
             continue
 
         params = DEFAULT_GRAPH_PARAMS.get(graph_name, {})
@@ -161,7 +157,6 @@ def main() -> int:
                     continue
 
                 try:
-                    # zagłuszamy długie tracebacks generowane w run_once lub w solverze
                     with suppress_trace_output():
                         r = run_once(
                             algo=algo,
@@ -175,7 +170,6 @@ def main() -> int:
                     had_errors = True
                     continue
 
-                # enrich result
                 r = RunResult(
                     **{
                         **r.__dict__,
@@ -190,7 +184,6 @@ def main() -> int:
                 time_str = f"{r.time_ms:.2f}"
                 table_rows.append([algo_name, cost_str, time_str, _fmt_status(r.valid)])
 
-            # sort by cost asc, NaN last
             def _key(row: List[str]) -> tuple[int, float]:
                 try:
                     v = float(row[1])
