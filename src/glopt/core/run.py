@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sys
-import traceback
 from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
@@ -74,36 +72,12 @@ def run_once(
     validator = SolutionValidator(debug=False)
     visualizer = GraphVisualizer(figsize=(12, 8))
 
-    try:
-        t0 = perf_counter()
-        solution: Solution = algo.solve(graph=graph, license_types=license_types)
-        elapsed_ms = (perf_counter() - t0) * 1000.0
-    except Exception as e:
-        algo_name = getattr(algo, "name", algo.__class__.__name__)
-        traceback.print_exc(limit=20, file=sys.stderr)
-        return RunResult(
-            run_id=run_id,
-            algorithm=algo_name,
-            graph="?",
-            n_nodes=graph.number_of_nodes(),
-            n_edges=graph.number_of_edges(),
-            graph_params="{}",
-            license_config="?",
-            total_cost=float("nan"),
-            time_ms=0.0,
-            valid=False,
-            issues=1,
-            image_path="",
-            notes=f"solver_error: {e}",
-        )
+    t0 = perf_counter()
+    solution: Solution = algo.solve(graph=graph, license_types=license_types)
+    elapsed_ms = (perf_counter() - t0) * 1000.0
 
     ok, issues = validator.validate(solution, graph)
-    if not ok:
-        to_show = issues if print_issue_limit is None else issues[:print_issue_limit]
-        for _i in to_show:
-            pass
-        if print_issue_limit is not None and len(issues) > print_issue_limit:
-            pass
+    # Keep validation but avoid noisy prints; leave issues count in the result.
 
     img_name = f"{algo.name}_{graph.number_of_nodes()}n_{graph.number_of_edges()}e.png"
     img_path = str(Path(graphs_dir) / img_name)
@@ -116,7 +90,6 @@ def run_once(
             save_path=img_path,
         )
     except Exception:
-        traceback.print_exc(limit=10, file=sys.stderr)
         img_path = ""
 
     return RunResult(
@@ -132,5 +105,5 @@ def run_once(
         valid=ok,
         issues=len(issues),
         image_path=img_path,
-        notes="" if ok else "; ".join(f"{i.code}" for i in issues[:5]),
+        notes="",
     )
