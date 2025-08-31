@@ -24,12 +24,12 @@ LICENSE_CONFIG_NAME = [
 ][0]
 
 ALGORITHMS: list[str] = [
-    "ILPSolver",
+    # "ILPSolver",
     "GreedyAlgorithm",
-    "TabuSearch",
+    # "TabuSearch",
     "SimulatedAnnealing",
     "AntColonyOptimization",
-    "NaiveAlgorithm",
+    # "NaiveAlgorithm",
 ]
 
 PRINT_ISSUE_LIMIT: int | None = 20
@@ -81,6 +81,7 @@ def main() -> None:
         results.append(r)
 
     write_csv(csv_dir, run_id, results)
+    print("OK")
 
 
 if __name__ == "__main__":
