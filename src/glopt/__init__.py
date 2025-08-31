@@ -1,5 +1,3 @@
-"""Graph licensing optimization library."""
-
 from .core import (
     Algorithm,
     LicenseGroup,

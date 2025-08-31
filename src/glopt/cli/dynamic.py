@@ -1,5 +1,3 @@
-"""Run a basic dynamic network simulation."""
-
 from __future__ import annotations
 
 import os

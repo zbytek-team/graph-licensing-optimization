@@ -58,12 +58,10 @@ class NaiveAlgorithm(Algorithm):
         graph: nx.Graph,
         license_types: Sequence[LicenseType],
     ) -> Iterator[Assignment]:
-        """Yield all license-owner assignments for every set partition of nodes."""
         for partition in self._generate_partitions(nodes):
             yield from self._generate_assignments_for_partition(partition, graph, license_types)
 
     def _generate_partitions(self, nodes: List[Any]) -> Iterator[List[Set[Any]]]:
-        """All set partitions of 'nodes' as lists of disjoint non-empty sets."""
         n = len(nodes)
         if n == 0:
             yield []
@@ -87,7 +85,6 @@ class NaiveAlgorithm(Algorithm):
         graph: nx.Graph,
         license_types: Sequence[LicenseType],
     ) -> Iterator[Assignment]:
-        """For each block in the partition, enumerate all (license, owner, members) choices."""
         if not partition:
             yield []
             return
@@ -110,12 +107,10 @@ class NaiveAlgorithm(Algorithm):
                 yield list(combo)
 
     def _is_valid_group(self, owner: Any, members: Set[Any], graph: nx.Graph) -> bool:
-        """All members must be neighbors of owner (closed neighborhood constraint)."""
         owner_neighbors = set(graph.neighbors(owner))
         return all(m in owner_neighbors for m in members)
 
     def _is_valid_assignment(self, assignment: Assignment, nodes: List[Any], graph: nx.Graph) -> bool:
-        """No overlaps, each block respects license capacity and neighborhood, full coverage."""
         covered: Set[Any] = set()
 
         for lt, owner, members in assignment:

@@ -6,7 +6,6 @@ from ..core.solution_builder import SolutionBuilder
 
 
 class TreeDynamicProgramming(Algorithm):
-    """Dynamic programming algorithm optimized for tree graphs."""
 
     @property
     def name(self) -> str:
@@ -103,7 +102,6 @@ class TreeDynamicProgramming(Algorithm):
         return result
 
     def _solve_child_subtree(self, graph: nx.Graph, child: Any, parent: Any, license_types: List[LicenseType], memo: Dict) -> Tuple[float, List[LicenseGroup]]:
-        """Solve the subtree rooted at child, where child is already covered by parent's license."""
 
         grandchildren = [gc for gc in graph.neighbors(child) if gc != parent]
 
