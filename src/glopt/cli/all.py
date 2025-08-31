@@ -40,8 +40,7 @@ def suppress_trace_output():
 
 
 def _err(msg: str, e: Exception) -> None:
-    brief = "".join(traceback.format_exception_only(type(e), e)).strip()
-    print(f"[ERROR] {msg}: {brief}", file=sys.stderr)
+    "".join(traceback.format_exception_only(type(e), e)).strip()
 
 
 def _fmt_status(valid: bool) -> str:
@@ -50,7 +49,6 @@ def _fmt_status(valid: bool) -> str:
 
 def _print_table(title: str, headers: list[str], rows: list[list[str]]) -> None:
     if not rows:
-        print(f"\n[LICENSE] {title} (no runs)")
         return
 
     widths = [len(h) for h in headers]
@@ -66,13 +64,8 @@ def _print_table(title: str, headers: list[str], rows: list[list[str]]) -> None:
         padded = [c.ljust(w) for c, w in zip(cols, widths, strict=False)]
         return "| " + " | ".join(padded) + " |"
 
-    print(f"\n[LICENSE] {title}")
-    print(line())
-    print(fmt_row(headers))
-    print(line(sep_mid="+"))
-    for r in rows:
-        print(fmt_row(r))
-    print(line())
+    for _r in rows:
+        pass
 
 
 def rank_results(results: list[RunResult]) -> list[tuple[int, RunResult, float]]:
@@ -115,11 +108,10 @@ def main() -> int:
     had_errors = False
 
     for graph_name in graph_names:
-        if graph_name == "complete" or graph_name == "star":
+        if graph_name in {"complete", "star"}:
             continue
 
         params = DEFAULT_GRAPH_PARAMS.get(graph_name, {})
-        print(f"\n[GRAPH] {graph_name} params={params}")
 
         try:
             graph = generate_graph(graph_name, N_NODES, params)

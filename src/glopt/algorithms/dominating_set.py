@@ -2,8 +2,8 @@ from typing import Any
 
 import networkx as nx
 
-from ..core import Algorithm, LicenseGroup, LicenseType, Solution
-from ..core.solution_builder import SolutionBuilder
+from glopt.core import Algorithm, LicenseGroup, LicenseType, Solution
+from glopt.core.solution_builder import SolutionBuilder
 
 
 class DominatingSetAlgorithm(Algorithm):
@@ -84,10 +84,7 @@ class DominatingSetAlgorithm(Algorithm):
 
                 min_cost_per_node = self._calculate_min_cost_per_node(len(coverage), license_types)
 
-                if min_cost_per_node > 0:
-                    score = len(coverage) / min_cost_per_node
-                else:
-                    score = len(coverage)
+                score = len(coverage) / min_cost_per_node if min_cost_per_node > 0 else len(coverage)
 
                 if score > best_score:
                     best_score = score
@@ -113,9 +110,7 @@ class DominatingSetAlgorithm(Algorithm):
 
         return min_cost if min_cost != float("inf") else 0
 
-    def _find_best_cost_assignment(
-        self, owner: Any, available_nodes: set[Any], license_types: list[LicenseType]
-    ) -> tuple[LicenseType, set[Any]]:
+    def _find_best_cost_assignment(self, owner: Any, available_nodes: set[Any], license_types: list[LicenseType]) -> tuple[LicenseType, set[Any]]:
         best_assignment = None
         best_efficiency = float("inf")
 
@@ -149,7 +144,7 @@ class DominatingSetAlgorithm(Algorithm):
 
         candidates = list(available_nodes - {owner})
 
-        candidates.sort(key=lambda n: len(available_nodes), reverse=True)
+        candidates.sort(key=lambda _: len(available_nodes), reverse=True)
 
         group_members.update(candidates[:remaining_slots])
 

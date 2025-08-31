@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import random
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import networkx as nx
+from glopt.algorithms.greedy import GreedyAlgorithm
+from glopt.core import Algorithm, LicenseGroup, LicenseType, Solution
+from glopt.core.solution_validator import SolutionValidator
 
-from ..core import Algorithm, LicenseGroup, LicenseType, Solution
-from ..core.solution_validator import SolutionValidator
-from .greedy import GreedyAlgorithm
+if TYPE_CHECKING:
+    import networkx as nx
 
 PKey = tuple[Any, str]
 
@@ -17,7 +18,15 @@ class AntColonyOptimization(Algorithm):
     def name(self) -> str:
         return "ant_colony_optimization"
 
-    def __init__(self, alpha=1.0, beta=2.0, evaporation=0.5, q0=0.9, num_ants=20, max_iterations=100) -> None:
+    def __init__(
+        self,
+        alpha: float = 1.0,
+        beta: float = 2.0,
+        evaporation: float = 0.5,
+        q0: float = 0.9,
+        num_ants: int = 20,
+        max_iterations: int = 100,
+    ) -> None:
         self.alpha = alpha
         self.beta = beta
         self.evap = evaporation
@@ -52,17 +61,15 @@ class AntColonyOptimization(Algorithm):
                 continue
         return best
 
-    def _construct(
-        self, G: nx.Graph, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]
-    ) -> Solution:
-        uncovered: set[Any] = set(G.nodes())
+    def _construct(self, graph: nx.Graph, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> Solution:
+        uncovered: set[Any] = set(graph.nodes())
         groups: list[LicenseGroup] = []
         while uncovered:
-            owner = self._select_owner(uncovered, lts, pher, heur, G)
+            owner = self._select_owner(uncovered, lts, pher, heur)
             owner = owner if owner is not None else next(iter(uncovered))
             lt = self._select_license(owner, lts, pher, heur) or min(lts, key=lambda x: x.cost)
 
-            pool = (set(G.neighbors(owner)) | {owner}) & uncovered
+            pool = (set(graph.neighbors(owner)) | {owner}) & uncovered
             if len(pool) < lt.min_capacity:
                 if lt.min_capacity == 1:
                     groups.append(LicenseGroup(lt, owner, frozenset()))
@@ -72,7 +79,7 @@ class AntColonyOptimization(Algorithm):
                     if feas:
                         lt2 = min(feas, key=lambda x: x.cost)
                         add_need = max(0, lt2.min_capacity - 1)
-                        add = sorted((pool - {owner}), key=lambda n: G.degree(n), reverse=True)[:add_need]
+                        add = sorted((pool - {owner}), key=lambda n: graph.degree(n), reverse=True)[:add_need]
                         groups.append(LicenseGroup(lt2, owner, frozenset(add)))
                         uncovered -= {owner} | set(add)
                     else:
@@ -80,14 +87,12 @@ class AntColonyOptimization(Algorithm):
                 continue
 
             k = max(0, lt.max_capacity - 1)
-            add = sorted((pool - {owner}), key=lambda n: G.degree(n), reverse=True)[:k]
+            add = sorted((pool - {owner}), key=lambda n: graph.degree(n), reverse=True)[:k]
             groups.append(LicenseGroup(lt, owner, frozenset(add)))
             uncovered -= {owner} | set(add)
         return Solution(groups=tuple(groups))
 
-    def _select_owner(
-        self, uncovered: set[Any], lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float], G: nx.Graph
-    ) -> Any | None:
+    def _select_owner(self, uncovered: set[Any], lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> Any | None:
         if not uncovered:
             return None
         scores: dict[Any, float] = {}
@@ -100,15 +105,10 @@ class AntColonyOptimization(Algorithm):
             scores[n] = acc / max(1, len(lts))
         return self._roulette_or_best(list(uncovered), scores)
 
-    def _select_license(
-        self, owner: Any, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]
-    ) -> LicenseType | None:
+    def _select_license(self, owner: Any, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> LicenseType | None:
         if not lts:
             return None
-        scores = {
-            lt: (pher.get((owner, lt.name), 1.0) ** self.alpha) * (heur.get((owner, lt.name), 1.0) ** self.beta)
-            for lt in lts
-        }
+        scores = {lt: (pher.get((owner, lt.name), 1.0) ** self.alpha) * (heur.get((owner, lt.name), 1.0) ** self.beta) for lt in lts}
         return self._roulette_or_best(lts, scores)
 
     def _roulette_or_best(self, choices: list[Any], scores: dict[Any, float]) -> Any:
@@ -127,13 +127,13 @@ class AntColonyOptimization(Algorithm):
                 return c
         return random.choice(choices)
 
-    def _init_pher(self, G: nx.Graph, lts: list[LicenseType]) -> dict[PKey, float]:
-        return {(n, lt.name): 1.0 for n in G.nodes() for lt in lts}
+    def _init_pher(self, graph: nx.Graph, lts: list[LicenseType]) -> dict[PKey, float]:
+        return {(n, lt.name): 1.0 for n in graph.nodes() for lt in lts}
 
-    def _init_heur(self, G: nx.Graph, lts: list[LicenseType]) -> dict[PKey, float]:
+    def _init_heur(self, graph: nx.Graph, lts: list[LicenseType]) -> dict[PKey, float]:
         h: dict[PKey, float] = {}
-        for n in G.nodes():
-            deg = G.degree(n)
+        for n in graph.nodes():
+            deg = graph.degree(n)
             for lt in lts:
                 cap_eff = (lt.max_capacity / lt.cost) if lt.cost > 0 else 1e9
                 h[n, lt.name] = cap_eff * (1.0 + deg)
@@ -154,7 +154,7 @@ class AntColonyOptimization(Algorithm):
                 if k in pher:
                     pher[k] += q
 
-    def _fallback_singletons(self, G: nx.Graph, lts: list[LicenseType]) -> Solution:
+    def _fallback_singletons(self, graph: nx.Graph, lts: list[LicenseType]) -> Solution:
         lt1 = min([x for x in lts if x.min_capacity <= 1] or lts, key=lambda x: x.cost)
-        groups = [LicenseGroup(lt1, n, frozenset()) for n in G.nodes()]
+        groups = [LicenseGroup(lt1, n, frozenset()) for n in graph.nodes()]
         return Solution(groups=tuple(groups))

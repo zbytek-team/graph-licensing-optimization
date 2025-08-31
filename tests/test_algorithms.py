@@ -48,8 +48,8 @@ def generate_graph(name: str, n: int) -> nx.Graph:
 
 @pytest.mark.parametrize("license_cfg", LICENSE_CFGS)
 @pytest.mark.parametrize("graph_name", list(GRAPH_SPECS.keys()))
-@pytest.mark.parametrize("algo_id,algo_factory,algo_kwargs,n_nodes", ALGOS, ids=[a[0] for a in ALGOS])
-def test_algorithms_validity(graph_name: str, license_cfg: str, algo_id, algo_factory, algo_kwargs, n_nodes: int):
+@pytest.mark.parametrize(("algo_id", "algo_factory", "algo_kwargs", "n_nodes"), ALGOS, ids=[a[0] for a in ALGOS])
+def test_algorithms_validity(graph_name: str, license_cfg: str, algo_id, algo_factory, algo_kwargs, n_nodes: int) -> None:
     license_types = LicenseConfigFactory.get_config(license_cfg)
     graph = generate_graph(graph_name, n_nodes)
     algo = algo_factory()

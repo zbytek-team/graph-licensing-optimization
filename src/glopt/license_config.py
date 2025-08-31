@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from typing import ClassVar
 
 from .core import LicenseType
 
@@ -8,7 +9,7 @@ class LicenseConfigFactory:
     GOLD = "#cb8a35"
     GREEN = "#5d9f49"
 
-    _CONFIGS: dict[str, Callable[[], list[LicenseType]]] = {
+    _CONFIGS: ClassVar[dict[str, Callable[[], list[LicenseType]]]] = {
         "duolingo_super": lambda: [
             LicenseType("Individual", 13.99, 1, 1, LicenseConfigFactory.PURPLE),
             LicenseType("Family", 29.17, 2, 6, LicenseConfigFactory.GOLD),
@@ -30,4 +31,5 @@ class LicenseConfigFactory:
             return cls._CONFIGS[name]()
         except KeyError:
             available = ", ".join(cls._CONFIGS.keys())
-            raise ValueError(f"Unsupported license config: {name}. Available: {available}")
+            msg = f"Unsupported license config: {name}. Available: {available}"
+            raise ValueError(msg) from None
