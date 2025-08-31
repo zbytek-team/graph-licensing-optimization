@@ -13,7 +13,6 @@ from glopt.license_config import LicenseConfigFactory
 from glopt.dynamic_simulator import DynamicNetworkSimulator
 
 
-# Default parameters for a small demo run
 GRAPH_NAME = "small_world"
 GRAPH_PARAMS = {"k": 4, "p": 0.1, "seed": 42}
 N_NODES = 30
@@ -58,5 +57,5 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":  # pragma: no cover - CLI entry
+if __name__ == "__main__":
     raise SystemExit(main())

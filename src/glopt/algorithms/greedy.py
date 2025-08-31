@@ -1,7 +1,3 @@
-# src/algorithms/greedy.py
-# Python 3.13+
-# Greedy baseline: place large efficient groups first, then cover leftovers cheaply.
-
 from typing import Any, List, Set
 import networkx as nx
 
@@ -20,14 +16,12 @@ class GreedyAlgorithm(Algorithm):
         license_types: List[LicenseType],
         **_: Any,
     ) -> Solution:
-        # Licenses: prefer larger capacity, then lower cost
         licenses = sorted(license_types, key=lambda lt: (-lt.max_capacity, lt.cost))
 
         nodes: List[Any] = list(graph.nodes())
         uncovered: Set[Any] = set(nodes)
         groups: List[LicenseGroup] = []
 
-        # Pass 1: high-degree owners first
         for owner in sorted(nodes, key=lambda n: graph.degree(n), reverse=True):
             if owner not in uncovered:
                 continue
@@ -43,7 +37,6 @@ class GreedyAlgorithm(Algorithm):
             groups.append(best_group)
             uncovered -= best_group.all_members
 
-        # Pass 2: cover remaining nodes with the cheapest feasible groups
         while uncovered:
             owner = next(iter(uncovered))
             avail = SolutionBuilder.get_owner_neighbors_with_self(graph, owner) & uncovered
@@ -54,18 +47,14 @@ class GreedyAlgorithm(Algorithm):
                 uncovered -= fallback.all_members
                 continue
 
-            # Fallback to singleton if allowed
             cheapest = min(license_types, key=lambda lt: lt.cost)
             if cheapest.min_capacity == 1:
                 groups.append(LicenseGroup(license_type=cheapest, owner=owner, additional_members=frozenset()))
                 uncovered.remove(owner)
             else:
-                # No feasible license can cover this owner under constraints.
                 break
 
         return SolutionBuilder.create_solution_from_groups(groups)
-
-    # ---------- helpers ----------
 
     def _best_group_for_owner(
         self,

@@ -121,7 +121,7 @@ def run_once(
     return RunResult(
         run_id=run_id,
         algorithm=algo.name,
-        graph="?",  # caller fills
+        graph="?",
         n_nodes=graph.number_of_nodes(),
         n_edges=graph.number_of_edges(),
         graph_params="{}",

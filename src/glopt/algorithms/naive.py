@@ -7,7 +7,7 @@ from ..core import Algorithm, LicenseGroup, LicenseType, Solution
 from ..core.solution_builder import SolutionBuilder
 
 
-Assignment = List[Tuple[LicenseType, Any, Set[Any]]]  # [(license, owner, members_without_owner), ...]
+Assignment = List[Tuple[LicenseType, Any, Set[Any]]]
 
 
 class NaiveAlgorithm(Algorithm):
@@ -43,7 +43,6 @@ class NaiveAlgorithm(Algorithm):
                     best = assignment
 
         if best is None:
-            # fallback: cover each node with the cheapest single-capacity license
             cheapest_single = min(
                 license_types,
                 key=lambda lt: lt.cost if lt.min_capacity <= 1 <= lt.max_capacity else float("inf"),
@@ -52,8 +51,6 @@ class NaiveAlgorithm(Algorithm):
             return SolutionBuilder.create_solution_from_groups(groups)
 
         return self._create_solution_from_assignment(best)
-
-    # ----- generation -----
 
     def _generate_all_assignments(
         self,
@@ -77,9 +74,8 @@ class NaiveAlgorithm(Algorithm):
 
         first, rest = nodes[0], nodes[1:]
         for smaller in self._generate_partitions(rest):
-            # put 'first' as a new singleton block
             yield [{first}] + smaller
-            # or add 'first' to each existing block
+
             for i, block in enumerate(smaller):
                 new_part = list(smaller)
                 new_part[i] = set(block) | {first}
@@ -109,11 +105,9 @@ class NaiveAlgorithm(Algorithm):
                         block_choices.append((lt, owner, members))
             per_block.append(block_choices)
 
-        if all(per_block):  # only if each block has at least one feasible assignment
+        if all(per_block):
             for combo in product(*per_block):
                 yield list(combo)
-
-    # ----- checks / scoring -----
 
     def _is_valid_group(self, owner: Any, members: Set[Any], graph: nx.Graph) -> bool:
         """All members must be neighbors of owner (closed neighborhood constraint)."""
@@ -127,13 +121,11 @@ class NaiveAlgorithm(Algorithm):
         for lt, owner, members in assignment:
             group_nodes = {owner} | members
 
-            # neighborhood constraint and capacity
             if not self._is_valid_group(owner, members, graph):
                 return False
             if not (lt.min_capacity <= len(group_nodes) <= lt.max_capacity):
                 return False
 
-            # disjointness
             if covered & group_nodes:
                 return False
             covered.update(group_nodes)

@@ -106,7 +106,6 @@ class RandomizedAlgorithm(Algorithm):
         compatible_licenses = [lt for lt in license_types if lt.min_capacity <= len(available_nodes)]
 
         if not compatible_licenses:
-
             return self._greedy_assignment(node, uncovered_nodes, graph, license_types)
 
         random.shuffle(compatible_licenses)
