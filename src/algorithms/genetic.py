@@ -4,10 +4,10 @@ import random
 from typing import Any, List, Sequence, Optional
 import networkx as nx
 
-from src.core import Algorithm, LicenseType, Solution
-from src.utils.mutations import MutationOperators
+from src import Algorithm, LicenseType, Solution
+from src.mutations import MutationOperators
 from .randomized import RandomizedAlgorithm
-from src.validation.solution_validator import SolutionValidator
+from src.solution_validator import SolutionValidator
 
 
 class GeneticAlgorithm(Algorithm):
@@ -61,9 +61,7 @@ class GeneticAlgorithm(Algorithm):
 
         return best
 
-    def _init_population(
-        self, graph: nx.Graph, license_types: Sequence[LicenseType]
-    ) -> List[Solution]:
+    def _init_population(self, graph: nx.Graph, license_types: Sequence[LicenseType]) -> List[Solution]:
         rand_algo = RandomizedAlgorithm()
         return [rand_algo.solve(graph, list(license_types)) for _ in range(self.population_size)]
 
@@ -77,12 +75,8 @@ class GeneticAlgorithm(Algorithm):
         graph: nx.Graph,
         license_types: Sequence[LicenseType],
     ) -> Solution:
-        neighbors = MutationOperators.generate_neighbors(
-            solution, graph, license_types, k=5
-        )
-        valid_neighbors = [
-            s for s in neighbors if self.validator.is_valid_solution(s, graph)
-        ]
+        neighbors = MutationOperators.generate_neighbors(solution, graph, license_types, k=5)
+        valid_neighbors = [s for s in neighbors if self.validator.is_valid_solution(s, graph)]
         if not valid_neighbors:
             return solution
         return min(valid_neighbors, key=lambda s: s.total_cost)
