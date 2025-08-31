@@ -13,17 +13,12 @@ import multiprocessing as mp
 from multiprocessing.connection import Connection
 import networkx as nx
 
-from src.license_config import LicenseConfigFactory
-from src.solution_validator import SolutionValidator
-from src import Solution, LicenseType, Algorithm
-from scripts._common import (
-    RunResult,
-    build_paths,
-    ensure_dir,
-    generate_graph,
-)
+from glopt.license_config import LicenseConfigFactory
+from glopt.core.solution_validator import SolutionValidator
+from glopt.core import Solution, LicenseType, Algorithm, RunResult, generate_graph
+from glopt.io import build_paths, ensure_dir
 
-from src import algorithms  # class lookup in child process
+from glopt import algorithms  # class lookup in child process
 
 
 # ===== CONFIG =====
