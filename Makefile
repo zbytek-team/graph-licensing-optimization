@@ -1,22 +1,22 @@
 .PHONY: test all benchmark dynamic format lint install
 
 test:
-	PYTHONPATH=. uv run --with pytest pytest -vv --durations=0 --durations-min=0 | grep "call"
+	PYTHONPATH=src uv run --with pytest pytest -vv -q
 
 all:
-	uv run -m scripts.run_all
+	PYTHONPATH=src uv run -m glopt.cli.all
 
 benchmark:
-	uv run -m scripts.run_benchmark
+	PYTHONPATH=src uv run -m glopt.cli.benchmark
 
 dynamic:
-	uv run -m scripts.run_dynamic
+	PYTHONPATH=src uv run -m glopt.cli.dynamic
 
 format:
-	uv run --with black black --line-length 160 src scripts
+	uv run --with black black --line-length 160 src tests
 
 lint:
-	uv run --with ruff ruff check --fix src scripts
+	uv run --with ruff ruff check --fix src tests
 
 install:
 	uv sync

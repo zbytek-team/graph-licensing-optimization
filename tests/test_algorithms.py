@@ -1,8 +1,10 @@
 import pytest
 import networkx as nx
 
-from src import GraphGeneratorFactory, LicenseConfigFactory, SolutionValidator
-from src.algorithms import (
+from glopt.io.graph_generator import GraphGeneratorFactory
+from glopt.license_config import LicenseConfigFactory
+from glopt.core.solution_validator import SolutionValidator
+from glopt.algorithms import (
     ILPSolver,
     GreedyAlgorithm,
     DominatingSetAlgorithm,

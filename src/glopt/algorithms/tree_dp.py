@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Tuple
 import networkx as nx
 
-from src import Algorithm, LicenseGroup, LicenseType, Solution
-from src.solution_builder import SolutionBuilder
+from ..core import Algorithm, LicenseGroup, LicenseType, Solution
+from ..core.solution_builder import SolutionBuilder
 
 
 class TreeDynamicProgramming(Algorithm):
