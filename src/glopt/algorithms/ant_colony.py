@@ -52,7 +52,9 @@ class AntColonyOptimization(Algorithm):
                 continue
         return best
 
-    def _construct(self, G: nx.Graph, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> Solution:
+    def _construct(
+        self, G: nx.Graph, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]
+    ) -> Solution:
         uncovered: set[Any] = set(G.nodes())
         groups: list[LicenseGroup] = []
         while uncovered:
@@ -83,7 +85,9 @@ class AntColonyOptimization(Algorithm):
             uncovered -= {owner} | set(add)
         return Solution(groups=tuple(groups))
 
-    def _select_owner(self, uncovered: set[Any], lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float], G: nx.Graph) -> Any | None:
+    def _select_owner(
+        self, uncovered: set[Any], lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float], G: nx.Graph
+    ) -> Any | None:
         if not uncovered:
             return None
         scores: dict[Any, float] = {}
@@ -96,10 +100,15 @@ class AntColonyOptimization(Algorithm):
             scores[n] = acc / max(1, len(lts))
         return self._roulette_or_best(list(uncovered), scores)
 
-    def _select_license(self, owner: Any, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> LicenseType | None:
+    def _select_license(
+        self, owner: Any, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]
+    ) -> LicenseType | None:
         if not lts:
             return None
-        scores = {lt: (pher.get((owner, lt.name), 1.0) ** self.alpha) * (heur.get((owner, lt.name), 1.0) ** self.beta) for lt in lts}
+        scores = {
+            lt: (pher.get((owner, lt.name), 1.0) ** self.alpha) * (heur.get((owner, lt.name), 1.0) ** self.beta)
+            for lt in lts
+        }
         return self._roulette_or_best(lts, scores)
 
     def _roulette_or_best(self, choices: list[Any], scores: dict[Any, float]) -> Any:

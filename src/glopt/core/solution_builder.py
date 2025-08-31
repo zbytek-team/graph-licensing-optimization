@@ -8,7 +8,6 @@ N = Hashable
 
 
 class SolutionBuilder:
-
     @staticmethod
     def create_solution_from_groups(groups: list[LicenseGroup]) -> Solution:
         return Solution(groups=tuple(groups))

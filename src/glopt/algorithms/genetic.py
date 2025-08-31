@@ -13,7 +13,6 @@ from .randomized import RandomizedAlgorithm
 
 
 class GeneticAlgorithm(Algorithm):
-
     def __init__(
         self,
         population_size: int = 30,

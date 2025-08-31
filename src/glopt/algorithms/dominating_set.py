@@ -113,7 +113,9 @@ class DominatingSetAlgorithm(Algorithm):
 
         return min_cost if min_cost != float("inf") else 0
 
-    def _find_best_cost_assignment(self, owner: Any, available_nodes: set[Any], license_types: list[LicenseType]) -> tuple[LicenseType, set[Any]]:
+    def _find_best_cost_assignment(
+        self, owner: Any, available_nodes: set[Any], license_types: list[LicenseType]
+    ) -> tuple[LicenseType, set[Any]]:
         best_assignment = None
         best_efficiency = float("inf")
 
