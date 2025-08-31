@@ -44,7 +44,9 @@ class LicenseGroup(Generic[N]):
     def __post_init__(self) -> None:
         s = self.size
         if not (self.license_type.min_capacity <= s <= self.license_type.max_capacity):
-            raise ValueError(f"group size {s} violates [{self.license_type.min_capacity}, {self.license_type.max_capacity}] for {self.license_type.name}")
+            raise ValueError(
+                f"group size {s} violates [{self.license_type.min_capacity}, {self.license_type.max_capacity}] for {self.license_type.name}"
+            )
 
 
 @dataclass(slots=True)

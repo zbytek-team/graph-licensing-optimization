@@ -59,7 +59,11 @@ class RandomizedAlgorithm(Algorithm):
         return SolutionBuilder.create_solution_from_groups(groups)
 
     def _greedy_assignment(
-        self, node: Any, uncovered_nodes: set[Any], graph: nx.Graph, license_types: list[LicenseType],
+        self,
+        node: Any,
+        uncovered_nodes: set[Any],
+        graph: nx.Graph,
+        license_types: list[LicenseType],
     ) -> tuple[LicenseType, set[Any]] | None:
         neighbors = set(graph.neighbors(node)) & uncovered_nodes
         available_nodes = neighbors | {node}
@@ -86,7 +90,11 @@ class RandomizedAlgorithm(Algorithm):
         return best_assignment
 
     def _random_assignment(
-        self, node: Any, uncovered_nodes: set[Any], graph: nx.Graph, license_types: list[LicenseType],
+        self,
+        node: Any,
+        uncovered_nodes: set[Any],
+        graph: nx.Graph,
+        license_types: list[LicenseType],
     ) -> tuple[LicenseType, set[Any]] | None:
         neighbors = set(graph.neighbors(node)) & uncovered_nodes
         available_nodes = neighbors | {node}
@@ -113,7 +121,9 @@ class RandomizedAlgorithm(Algorithm):
 
         return self._greedy_assignment(node, uncovered_nodes, graph, license_types)
 
-    def _select_greedy_group_members(self, owner: Any, available_nodes: set[Any], target_size: int, graph: nx.Graph) -> set[Any]:
+    def _select_greedy_group_members(
+        self, owner: Any, available_nodes: set[Any], target_size: int, graph: nx.Graph
+    ) -> set[Any]:
         if target_size <= 0:
             return set()
 

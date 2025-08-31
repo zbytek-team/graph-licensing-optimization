@@ -132,7 +132,10 @@ class GraphVisualizer:
         license_types = sorted({g.license_type for g in solution.groups}, key=lambda lt: lt.name)
         if not license_types:
             return
-        elems = [plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=lt.color, markersize=10, label=lt.name) for lt in license_types]
+        elems = [
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=lt.color, markersize=10, label=lt.name)
+            for lt in license_types
+        ]
         elems.append(plt.Line2D([0], [0], color=self.default_edge_color, linewidth=2, label="Other Edges"))
         ax.legend(handles=elems, loc="upper right", bbox_to_anchor=(0.98, 0.98))
 
