@@ -1,12 +1,11 @@
 import sys
 import traceback
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
-from glopt.license_config import LicenseConfigFactory
 from glopt.core import RunResult, generate_graph, instantiate_algorithms, run_once
 from glopt.io import build_paths, write_csv
-
+from glopt.license_config import LicenseConfigFactory
 
 RUN_ID: str | None = None
 
@@ -14,7 +13,7 @@ GRAPH_NAME = [
     "small_world",
 ][0]
 
-GRAPH_PARAMS: Dict[str, Any] = {
+GRAPH_PARAMS: dict[str, Any] = {
     "p": 0.05,
     "seed": 42,
 }
@@ -24,7 +23,7 @@ LICENSE_CONFIG_NAME = [
     "spotify",
 ][0]
 
-ALGORITHMS: List[str] = [
+ALGORITHMS: list[str] = [
     "ILPSolver",
     "GreedyAlgorithm",
     "TabuSearch",
@@ -61,7 +60,7 @@ def main() -> None:
         traceback.print_exc(limit=10, file=sys.stderr)
         sys.exit(2)
 
-    results: List[RunResult] = []
+    results: list[RunResult] = []
     for algo in algos:
         r = run_once(
             algo=algo,
@@ -77,7 +76,7 @@ def main() -> None:
                 "graph": GRAPH_NAME,
                 "graph_params": str(GRAPH_PARAMS),
                 "license_config": LICENSE_CONFIG_NAME,
-            }
+            },
         )
         results.append(r)
 

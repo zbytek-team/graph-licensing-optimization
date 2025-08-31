@@ -1,10 +1,11 @@
 from collections import deque
-from typing import Any, Deque, List
+from typing import Any
+
 import networkx as nx
 
 from ..core import Algorithm, LicenseType, Solution
-from ..core.solution_validator import SolutionValidator
 from ..core.mutations import MutationOperators
+from ..core.solution_validator import SolutionValidator
 from .greedy import GreedyAlgorithm
 
 
@@ -16,7 +17,7 @@ class TabuSearch(Algorithm):
     def solve(
         self,
         graph: nx.Graph,
-        license_types: List[LicenseType],
+        license_types: list[LicenseType],
         **kwargs: Any,
     ) -> Solution:
         max_iterations: int = kwargs.get("max_iterations", 1000)
@@ -29,11 +30,11 @@ class TabuSearch(Algorithm):
         current = greedy.solve(graph, license_types)
         best = current
 
-        tabu: Deque[str] = deque(maxlen=max(1, tabu_tenure))
+        tabu: deque[str] = deque(maxlen=max(1, tabu_tenure))
         tabu.append(self._hash(current))
 
         for _ in range(max_iterations):
-            neighborhood: List[Solution] = MutationOperators.generate_neighbors(base=current, graph=graph, license_types=license_types, k=neighbors_per_iter)
+            neighborhood: list[Solution] = MutationOperators.generate_neighbors(base=current, graph=graph, license_types=license_types, k=neighbors_per_iter)
             if not neighborhood:
                 break
 
@@ -65,7 +66,7 @@ class TabuSearch(Algorithm):
         return best
 
     def _hash(self, solution: Solution) -> str:
-        parts: List[str] = []
+        parts: list[str] = []
         for g in sorted(solution.groups, key=lambda gg: (str(gg.owner), gg.license_type.name)):
             members = ",".join(map(str, sorted(g.all_members)))
             parts.append(f"{g.license_type.name}:{g.owner}:{members}")

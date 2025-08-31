@@ -1,45 +1,44 @@
+import multiprocessing as mp
 import os
 import sys
 import traceback
+from collections.abc import Iterable
 from dataclasses import asdict
 from datetime import datetime
-from typing import Any, Dict, List, Iterable, Tuple
-
-import multiprocessing as mp
 from multiprocessing.connection import Connection
+from typing import Any
+
 import networkx as nx
 
-from glopt.license_config import LicenseConfigFactory
-from glopt.core.solution_validator import SolutionValidator
-from glopt.core import Solution, LicenseType, Algorithm, RunResult, generate_graph
-from glopt.io import build_paths, ensure_dir
-
 from glopt import algorithms
-
+from glopt.core import Algorithm, LicenseType, RunResult, Solution, generate_graph
+from glopt.core.solution_validator import SolutionValidator
+from glopt.io import build_paths, ensure_dir
+from glopt.license_config import LicenseConfigFactory
 
 RUN_ID: str | None = None
 
 
-GRAPH_NAMES: List[str] = [
+GRAPH_NAMES: list[str] = [
     "random",
     "scale_free",
     "small_world",
 ]
 
 
-GRAPH_PARAMS_OVERRIDES: Dict[str, Dict[str, Any]] = {}
+GRAPH_PARAMS_OVERRIDES: dict[str, dict[str, Any]] = {}
 
 
-SIZES: List[int] = list(range(10, 1001, 20))
+SIZES: list[int] = list(range(10, 1001, 20))
 
 
-LICENSE_CONFIG_NAMES: List[str] = [
+LICENSE_CONFIG_NAMES: list[str] = [
     "spotify",
     "duolingo_super",
     "roman_domination",
 ]
 
-ALGORITHMS: List[str] = [
+ALGORITHMS: list[str] = [
     "ILPSolver",
     "GreedyAlgorithm",
     "TabuSearch",
@@ -54,7 +53,7 @@ TIMEOUT_SECONDS = 90
 PRINT_ISSUE_LIMIT: int | None = 5
 
 
-_GRAPH_DEFAULTS: Dict[str, Dict[str, Any]] = {
+_GRAPH_DEFAULTS: dict[str, dict[str, Any]] = {
     "random": {"p": 0.10, "seed": 42},
     "scale_free": {"m": 2, "seed": 42},
     "small_world": {"k": 6, "p": 0.05, "seed": 42},
@@ -66,7 +65,7 @@ _GRAPH_DEFAULTS: Dict[str, Dict[str, Any]] = {
 }
 
 
-def resolve_graph_params(name: str, n_nodes: int, overrides: Dict[str, Any] | None) -> Dict[str, Any]:
+def resolve_graph_params(name: str, n_nodes: int, overrides: dict[str, Any] | None) -> dict[str, Any]:
     p = dict(_GRAPH_DEFAULTS.get(name, {}))
     if overrides:
         p.update(overrides)
@@ -91,7 +90,7 @@ def resolve_graph_params(name: str, n_nodes: int, overrides: Dict[str, Any] | No
         p["p"] = max(0.0, min(1.0, float(p.get("p", 0.05))))
 
     elif name in {"complete", "star", "path", "cycle"}:
-        p = {k: v for k, v in p.items() if k in {"seed"}}
+        p = {k: v for k, v in p.items() if k == "seed"}
 
     elif name == "tree":
         pass
@@ -102,7 +101,7 @@ def resolve_graph_params(name: str, n_nodes: int, overrides: Dict[str, Any] | No
 def _solve_child(
     algo_class_name: str,
     graph: nx.Graph,
-    license_types: List[LicenseType],
+    license_types: list[LicenseType],
     conn: Connection,
 ) -> None:
     from time import perf_counter
@@ -123,9 +122,9 @@ def _solve_child(
 def solve_with_timeout(
     algo_class_name: str,
     graph: nx.Graph,
-    license_types: List[LicenseType],
+    license_types: list[LicenseType],
     timeout_s: int,
-) -> Tuple[str, float, Solution] | None:
+) -> tuple[str, float, Solution] | None:
     parent_conn, child_conn = mp.Pipe(duplex=False)
     p = mp.Process(target=_solve_child, args=(algo_class_name, graph, license_types, child_conn))
     p.start()
@@ -136,12 +135,10 @@ def solve_with_timeout(
             if ok:
                 algo_name, elapsed_ms, solution = payload
                 return algo_name, float(elapsed_ms), solution
-            else:
-                raise RuntimeError(f"solver error: {payload}")
-        else:
-            p.terminate()
-            p.join(1)
-            return None
+            raise RuntimeError(f"solver error: {payload}")
+        p.terminate()
+        p.join(1)
+        return None
     finally:
         try:
             parent_conn.close()
@@ -207,7 +204,7 @@ def main() -> None:
 
         for algo_name in ALGORITHMS:
             print(f"-- algo={algo_name} --")
-            rows_all_graphs: List[RunResult] = []
+            rows_all_graphs: list[RunResult] = []
             total_timeouts = total_failures = total_successes = 0
 
             for graph_name in GRAPH_NAMES:
@@ -241,7 +238,7 @@ def main() -> None:
                                 issues=1,
                                 image_path="",
                                 notes="graph_gen_error",
-                            )
+                            ),
                         )
                         continue
 
@@ -265,7 +262,7 @@ def main() -> None:
                                 issues=1,
                                 image_path="",
                                 notes="solver_error",
-                            )
+                            ),
                         )
                         continue
 
@@ -287,7 +284,7 @@ def main() -> None:
                                 issues=0,
                                 image_path="",
                                 notes="timeout",
-                            )
+                            ),
                         )
                         break
 
@@ -316,14 +313,14 @@ def main() -> None:
                             issues=len(issues),
                             image_path="",
                             notes="" if ok else "; ".join(f"{i.code}" for i in issues[:5]),
-                        )
+                        ),
                     )
                     successes += 1
                     print(
                         f"[{license_name}][{algo_name}][{graph_name}] n={n:4d} | edges={G.number_of_edges():6d} | "
                         f"time={_fmt_ms(elapsed_ms):>10} | "
                         f"cost={'nan' if solution.total_cost != solution.total_cost else f'{solution.total_cost:.2f}':>10} | "
-                        f"valid={'yes' if ok else 'no'}"
+                        f"valid={'yes' if ok else 'no'}",
                     )
 
                 print(f"[SUMMARY graph] {license_name} {algo_name} on {graph_name}: ok={successes} timeout={timeouts} fail={failures}\n")
