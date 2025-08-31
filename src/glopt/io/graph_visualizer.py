@@ -8,7 +8,7 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import networkx as nx
-from src import Solution
+from ..core import Solution
 
 
 class GraphVisualizer:
@@ -59,7 +59,7 @@ class GraphVisualizer:
             if timestamp_folder is None:
                 timestamp_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
             n_nodes, n_edges = graph.number_of_nodes(), graph.number_of_edges()
-            save_path = f"results/graphs/{timestamp_folder}/{solver_name}_{n_nodes}n_{n_edges}e.png"
+            save_path = f"runs/graphs/{timestamp_folder}/{solver_name}_{n_nodes}n_{n_edges}e.png"
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
         plt.tight_layout()

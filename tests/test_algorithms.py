@@ -1,8 +1,10 @@
 import pytest
 import networkx as nx
 
-from src import GraphGeneratorFactory, LicenseConfigFactory, SolutionValidator
-from src.algorithms import (
+from glopt.io.graph_generator import GraphGeneratorFactory
+from glopt.license_config import LicenseConfigFactory
+from glopt.core.solution_validator import SolutionValidator
+from glopt.algorithms import (
     ILPSolver,
     GreedyAlgorithm,
     DominatingSetAlgorithm,
@@ -24,16 +26,19 @@ LICENSE_CFG = "roman_domination"
 
 validator = SolutionValidator(debug=False)
 
+
 def generate_graph(name: str, n: int) -> nx.Graph:
     params = GRAPH_SPECS[name]
     gen = GraphGeneratorFactory.get(name)
     return gen(n_nodes=n, **params)
+
 
 def solve_cost(algo, graph: nx.Graph, license_types, **kwargs):
     solution = algo.solve(graph=graph, license_types=license_types, **kwargs)
     ok, issues = validator.validate(solution, graph)
     assert ok, f"{algo.name} invalid: {issues}"
     return float(solution.total_cost)
+
 
 @pytest.mark.parametrize("graph_name", list(GRAPH_SPECS.keys()))
 def test_algorithms_against_baselines(graph_name: str):
@@ -58,6 +63,7 @@ def test_algorithms_against_baselines(graph_name: str):
         assert cost >= ilp_cost
         if not isinstance(algo, RandomizedAlgorithm):
             assert cost <= greedy_cost
+
 
 @pytest.mark.parametrize("graph_name", list(GRAPH_SPECS.keys()))
 def test_naive_against_baselines(graph_name: str):
