@@ -1,156 +1,56 @@
-import io
-import os
-import sys
-import traceback
-from contextlib import contextmanager
 from datetime import datetime
-from math import isnan
 from typing import Any
 
 from glopt import algorithms
 from glopt.core import RunResult, generate_graph, instantiate_algorithms, run_once
 from glopt.io import build_paths, ensure_dir, write_csv
-from glopt.io.graph_generator import GraphGeneratorFactory
 from glopt.license_config import LicenseConfigFactory
 
-N_NODES = 100
+# Configuration
+N_NODES: int = 100
+GRAPH_NAMES: list[str] = ["random", "scale_free", "small_world"]
 DEFAULT_GRAPH_PARAMS: dict[str, dict[str, Any]] = {
     "random": {"p": 0.1, "seed": 42},
     "scale_free": {"m": 2, "seed": 42},
     "small_world": {"k": 4, "p": 0.1, "seed": 42},
-    # "complete": {},
-    # "star": {},
-    # "path": {},
-    # "cycle": {},
-    # "tree": {"seed": 42},
 }
-
-
-@contextmanager
-def suppress_trace_output():
-    orig_print_exc = traceback.print_exc
-    orig_stderr = sys.stderr
-    try:
-        traceback.print_exc = lambda *a, **k: None
-        sys.stderr = io.StringIO()
-        yield
-    finally:
-        traceback.print_exc = orig_print_exc
-        sys.stderr = orig_stderr
-
-
-def _err(msg: str, e: Exception) -> None:
-    "".join(traceback.format_exception_only(type(e), e)).strip()
-
-
-def _fmt_status(valid: bool) -> str:
-    return "ok" if valid else "invalid"
-
-
-def _print_table(title: str, headers: list[str], rows: list[list[str]]) -> None:
-    if not rows:
-        return
-
-    widths = [len(h) for h in headers]
-    for row in rows:
-        for i, cell in enumerate(row):
-            if i < len(widths):
-                widths[i] = max(widths[i], len(cell))
-
-    def line(sep_left: str = "+", sep_mid: str = "+", sep_right: str = "+", fill: str = "-") -> str:
-        return sep_left + sep_mid.join(fill * (w + 2) for w in widths) + sep_right
-
-    def fmt_row(cols: list[str]) -> str:
-        padded = [c.ljust(w) for c, w in zip(cols, widths, strict=False)]
-        return "| " + " | ".join(padded) + " |"
-
-    print(title)
-    print(line("+", "+", "+", "-"))
-    print(fmt_row(headers))
-    print(line("+", "+", "+", "-"))
-    for r in rows:
-        print(fmt_row(r))
-    print(line("+", "+", "+", "-"))
+LICENSE_CONFIGS: list[str] = ["spotify", "duolingo_super", "roman_domination"]
+ALGORITHMS: list[str] = list(algorithms.__all__)
 
 
 def main() -> int:
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     _, graphs_dir_root, csv_dir = build_paths(run_id)
 
-    try:
-        graph_names = list(GraphGeneratorFactory._GENERATORS.keys())
-    except Exception as e:
-        _err("loading graph generators", e)
-        return 2
-
-    try:
-        license_configs = list(LicenseConfigFactory._CONFIGS.keys())
-    except Exception as e:
-        _err("loading license configs", e)
-        return 2
-
-    try:
-        algorithm_names = list(algorithms.__all__)
-    except Exception as e:
-        _err("loading algorithms list", e)
-        return 2
+    print("== glopt all ==")
+    print(f"run_id: {run_id}")
+    print(f"graphs: {', '.join(GRAPH_NAMES)} n={N_NODES}")
+    print(f"licenses: {', '.join(LICENSE_CONFIGS)}")
+    print(f"algorithms: {', '.join(ALGORITHMS)}")
 
     results: list[RunResult] = []
-    had_errors = False
-
-    for graph_name in graph_names:
-        if graph_name in {"complete", "star"}:
-            continue
-
+    for graph_name in GRAPH_NAMES:
         params = DEFAULT_GRAPH_PARAMS.get(graph_name, {})
+        graph = generate_graph(graph_name, N_NODES, params)
 
-        try:
-            graph = generate_graph(graph_name, N_NODES, params)
-        except Exception as e:
-            _err(f"graph generation failed: {graph_name}", e)
-            had_errors = True
-            continue
+        for lic_name in LICENSE_CONFIGS:
+            license_types = LicenseConfigFactory.get_config(lic_name)
+            g_dir = f"{graphs_dir_root}/{graph_name}/{lic_name}"
+            ensure_dir(g_dir)
+            print(f"-> {graph_name} {lic_name}")
 
-        for lic_name in license_configs:
-            try:
-                license_types = LicenseConfigFactory.get_config(lic_name)
-            except Exception as e:
-                _err(f"license config failed: {lic_name}", e)
-                had_errors = True
-                continue
-
-            g_dir = os.path.join(graphs_dir_root, graph_name, lic_name)
-            try:
-                ensure_dir(g_dir)
-            except Exception as e:
-                _err(f"ensure_dir failed: {g_dir}", e)
-                had_errors = True
-                continue
-
-            table_rows: list[list[str]] = []
-
-            for algo_name in algorithm_names:
-                try:
-                    algo = instantiate_algorithms([algo_name])[0]
-                except Exception as e:
-                    _err(f"algorithm setup failed: {algo_name}", e)
-                    had_errors = True
-                    continue
-
-                try:
-                    with suppress_trace_output():
-                        r = run_once(
-                            algo=algo,
-                            graph=graph,
-                            license_types=license_types,
-                            run_id=run_id,
-                            graphs_dir=g_dir,
-                        )
-                except Exception as e:
-                    _err(f"run failed: algo={algo_name} graph={graph_name} lic={lic_name}", e)
-                    had_errors = True
-                    continue
-
+            for algo_name in ALGORITHMS:
+                algo = instantiate_algorithms([algo_name])[0]
+                print(f"   running {algo.name}...")
+                r = run_once(
+                    algo=algo,
+                    graph=graph,
+                    license_types=license_types,
+                    run_id=run_id,
+                    graphs_dir=g_dir,
+                    print_issue_limit=10,
+                )
+                print(f"     cost={r.total_cost:.2f} time_ms={r.time_ms:.2f} valid={r.valid} issues={r.issues}")
                 r = RunResult(
                     **{
                         **r.__dict__,
@@ -161,32 +61,12 @@ def main() -> int:
                 )
                 results.append(r)
 
-                cost_str = f"{r.total_cost:.2f}" if not isnan(r.total_cost) else "NaN"
-                time_str = f"{r.time_ms:.2f}"
-                table_rows.append([algo_name, cost_str, time_str, _fmt_status(r.valid)])
-
-            def _key(row: list[str]) -> tuple[int, float]:
-                try:
-                    v = float(row[1])
-                    return (0, v)
-                except ValueError:
-                    return (1, float("inf"))
-
-            table_rows.sort(key=_key)
-            _print_table(
-                title=f"{lic_name} on {graph_name}",
-                headers=["algorithm", "cost", "time_ms", "status"],
-                rows=table_rows,
-            )
-
-    try:
-        write_csv(csv_dir, run_id, results)
-    except Exception as e:
-        _err("writing CSV failed", e)
-        had_errors = True
-
-    return 1 if had_errors else 0
+    csv_path = write_csv(csv_dir, run_id, results)
+    print("== summary ==")
+    print(f"runs: {len(results)}")
+    print(f"csv: {csv_path}")
+    return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

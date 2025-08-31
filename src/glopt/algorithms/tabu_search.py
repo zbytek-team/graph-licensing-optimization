@@ -35,9 +35,7 @@ class TabuSearch(Algorithm):
         tabu.append(self._hash(current))
 
         for _ in range(max_iterations):
-            neighborhood: list[Solution] = MutationOperators.generate_neighbors(
-                base=current, graph=graph, license_types=license_types, k=neighbors_per_iter
-            )
+            neighborhood: list[Solution] = MutationOperators.generate_neighbors(base=current, graph=graph, license_types=license_types, k=neighbors_per_iter)
             if not neighborhood:
                 break
 
