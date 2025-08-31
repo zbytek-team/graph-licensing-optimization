@@ -1,20 +1,19 @@
-import csv
+from __future__ import annotations
+
 import os
 import sys
 import traceback
-from dataclasses import asdict, dataclass
-from typing import Any, Dict, Iterable, List, Tuple
+from dataclasses import dataclass
+from time import perf_counter
+from typing import Any, Dict, List
 
 import networkx as nx
 
-from src import Solution, LicenseType, Algorithm
-from src.graph_generator import GraphGeneratorFactory
-from src.solution_validator import SolutionValidator
-from src.graph_visualizer import GraphVisualizer
-from src import algorithms
-
-
-# ---------- data ----------
+from .models import Algorithm, LicenseType, Solution
+from .solution_validator import SolutionValidator
+from ..io.graph_visualizer import GraphVisualizer
+from ..io.graph_generator import GraphGeneratorFactory
+from .. import algorithms
 
 
 @dataclass(frozen=True)
@@ -32,40 +31,6 @@ class RunResult:
     issues: int
     image_path: str
     notes: str = ""
-
-
-# ---------- fs / io ----------
-
-
-def ensure_dir(path: str) -> None:
-    os.makedirs(path, exist_ok=True)
-
-
-def build_paths(run_id: str) -> Tuple[str, str, str]:
-    base = os.path.join("results", run_id)
-    graphs_dir = os.path.join(base, "graphs")
-    csv_dir = os.path.join(base, "csv")
-    ensure_dir(graphs_dir)
-    ensure_dir(csv_dir)
-    return base, graphs_dir, csv_dir
-
-
-def write_csv(csv_dir: str, run_id: str, rows: Iterable[RunResult]) -> str:
-    out_path = os.path.join(csv_dir, f"{run_id}.csv")
-    first = True
-    with open(out_path, "w", newline="", encoding="utf-8") as f:
-        writer = None
-        for r in rows:
-            d = asdict(r)
-            if first:
-                writer = csv.DictWriter(f, fieldnames=list(d.keys()))
-                writer.writeheader()
-                first = False
-            writer.writerow(d)  # type: ignore[union-attr]
-    return out_path
-
-
-# ---------- core helpers ----------
 
 
 def generate_graph(name: str, n_nodes: int, params: Dict[str, Any]) -> nx.Graph:
@@ -102,12 +67,9 @@ def run_once(
     graphs_dir: str,
     print_issue_limit: int | None = 20,
 ) -> RunResult:
-    from time import perf_counter
-
     validator = SolutionValidator(debug=False)
     visualizer = GraphVisualizer(figsize=(12, 8))
 
-    # solve + timing
     try:
         t0 = perf_counter()
         solution: Solution = algo.solve(graph=graph, license_types=license_types)
@@ -132,7 +94,6 @@ def run_once(
             notes=f"solver_error: {e}",
         )
 
-    # validate
     ok, issues = validator.validate(solution, graph)
     if not ok:
         print(f"[VALIDATION] {algo.name}: {len(issues)} issue(s):", file=sys.stderr)
@@ -142,7 +103,6 @@ def run_once(
         if print_issue_limit is not None and len(issues) > print_issue_limit:
             print(f"  ... {len(issues) - print_issue_limit} more", file=sys.stderr)
 
-    # render image (best-effort)
     img_name = f"{algo.name}_{graph.number_of_nodes()}n_{graph.number_of_edges()}e.png"
     img_path = os.path.join(graphs_dir, img_name)
     try:
@@ -161,7 +121,7 @@ def run_once(
     return RunResult(
         run_id=run_id,
         algorithm=algo.name,
-        graph="?",  # caller nadpisze
+        graph="?",  # caller fills
         n_nodes=graph.number_of_nodes(),
         n_edges=graph.number_of_edges(),
         graph_params="{}",
@@ -173,21 +133,3 @@ def run_once(
         image_path=img_path,
         notes="" if ok else "; ".join(f"{i.code}" for i in issues[:5]),
     )
-
-
-# ---------- reporting ----------
-
-
-def rank_results(results: List[RunResult]) -> List[tuple[int, RunResult, float]]:
-    """Return list of (rank, result, gap_percent). ILP valid used as baseline if present, else min(valid cost)."""
-    valid = [r for r in results if r.valid]
-    if not valid:
-        return [(i + 1, r, float("nan")) for i, r in enumerate(results)]
-    ilp = next((r for r in valid if r.algorithm.lower() in {"ilp", "ilpsolver"}), None)
-    best_cost = ilp.total_cost if ilp else min(r.total_cost for r in valid)
-    ranked = sorted(results, key=lambda r: (not r.valid, r.total_cost))
-    out: List[tuple[int, RunResult, float]] = []
-    for idx, r in enumerate(ranked, start=1):
-        gap = float("nan") if not r.valid or best_cost == 0 else (r.total_cost - best_cost) / best_cost * 100.0
-        out.append((idx, r, gap))
-    return out
