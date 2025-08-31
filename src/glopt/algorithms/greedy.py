@@ -63,10 +63,6 @@ class GreedyAlgorithm(Algorithm):
         graph: nx.Graph,
         licenses: List[LicenseType],
     ) -> LicenseGroup | None:
-        """
-        Pick the most efficient group for 'owner' from available neighbors.
-        Efficiency = cost / group_size. Respect license [min, max].
-        """
         ordered = sorted(avail, key=lambda n: graph.degree(n), reverse=True)
 
         best: LicenseGroup | None = None
@@ -97,9 +93,6 @@ class GreedyAlgorithm(Algorithm):
         graph: nx.Graph,
         license_types: List[LicenseType],
     ) -> LicenseGroup | None:
-        """
-        Build the cheapest valid group for 'owner' at exactly min_capacity if possible.
-        """
         for lt in sorted(license_types, key=lambda x: (x.cost, -x.max_capacity)):
             if len(avail) < lt.min_capacity:
                 continue

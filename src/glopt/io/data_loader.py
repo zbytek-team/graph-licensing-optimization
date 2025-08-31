@@ -106,7 +106,6 @@ class RealWorldDataLoader:
         return combined_graph
 
     def _load_node_features(self, graph: nx.Graph, data_dir: Path, ego_id: str) -> None:
-        """Wczytuje cechy węzłów z plików .feat i .egofeat."""
         feat_file = data_dir / f"{ego_id}.feat"
         egofeat_file = data_dir / f"{ego_id}.egofeat"
         featnames_file = data_dir / f"{ego_id}.featnames"
@@ -145,7 +144,6 @@ class RealWorldDataLoader:
                     graph.nodes[ego_node]["feature_count"] = sum(features)
 
     def _load_circles(self, graph: nx.Graph, data_dir: Path, ego_id: str) -> None:
-        """Wczytuje informacje o kręgach społecznych."""
         circles_file = data_dir / f"{ego_id}.circles"
 
         if not circles_file.exists():
@@ -172,7 +170,6 @@ class RealWorldDataLoader:
         graph.graph["circles"] = circles
 
     def _get_circles_info(self, data_dir: Path, ego_id: str) -> Optional[Dict[str, Any]]:
-        """Pobiera informacje o kręgach bez ładowania całego grafu."""
         circles_file = data_dir / f"{ego_id}.circles"
 
         if not circles_file.exists():
@@ -197,16 +194,6 @@ class RealWorldDataLoader:
         }
 
     def get_suitable_networks_for_testing(self, min_nodes: int = 20, max_nodes: int = 200) -> List[str]:
-        """
-        Znajdź sieci odpowiednie do testowania algorytmów (nie za małe, nie za duże).
-
-        Args:
-            min_nodes: Minimalna liczba węzłów
-            max_nodes: Maksymalna liczba węzłów
-
-        Returns:
-            Lista ID sieci odpowiednich do testowania
-        """
         stats = self.get_facebook_network_stats()
         suitable_networks = []
 

@@ -11,7 +11,6 @@ from ..core.solution_validator import SolutionValidator
 
 
 class GeneticAlgorithm(Algorithm):
-    """Simple genetic algorithm using mutation operators."""
 
     def __init__(
         self,

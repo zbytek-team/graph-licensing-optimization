@@ -63,10 +63,6 @@ class DominatingSetAlgorithm(Algorithm):
         return SolutionBuilder.create_solution_from_groups(groups)
 
     def _find_cost_effective_dominating_set(self, graph: nx.Graph, license_types: List[LicenseType]) -> Set[Any]:
-        """
-        Znajduje zbiór dominujący uwzględniając efektywność kosztową.
-        Używa heurystyki zachłannej wybierającej węzły o najlepszym współczynniku pokrycia/koszt.
-        """
         nodes = set(graph.nodes())
         uncovered = nodes.copy()
         dominating_set = set()
@@ -107,7 +103,6 @@ class DominatingSetAlgorithm(Algorithm):
         return dominating_set
 
     def _calculate_min_cost_per_node(self, group_size: int, license_types: List[LicenseType]) -> float:
-        """Oblicza minimalny koszt na osobę dla grupy danego rozmiaru."""
         min_cost = float("inf")
 
         for license_type in license_types:
@@ -118,10 +113,6 @@ class DominatingSetAlgorithm(Algorithm):
         return min_cost if min_cost != float("inf") else 0
 
     def _find_best_cost_assignment(self, owner: Any, available_nodes: Set[Any], license_types: List[LicenseType]) -> Tuple[LicenseType, Set[Any]]:
-        """
-        Znajduje najlepsze przypisanie licencji dla danego właściciela i dostępnych węzłów.
-        Zwraca (license_type, group_members) lub None jeśli nie można przypisać.
-        """
         best_assignment = None
         best_efficiency = float("inf")
 
@@ -144,10 +135,6 @@ class DominatingSetAlgorithm(Algorithm):
         return best_assignment
 
     def _select_best_group_members(self, owner: Any, available_nodes: Set[Any], target_size: int) -> Set[Any]:
-        """
-        Wybiera najlepszych członków grupy dla danego właściciela.
-        Priorytet dla węzłów o wysokim stopniu (więcej połączeń).
-        """
         if target_size <= 0:
             return set()
 
@@ -167,7 +154,6 @@ class DominatingSetAlgorithm(Algorithm):
         return group_members
 
     def _find_cheapest_single_license(self, license_types: List[LicenseType]) -> LicenseType:
-        """Znajduje najtańszą licencję dla pojedynczego użytkownika."""
         single_licenses = [lt for lt in license_types if lt.min_capacity <= 1 <= lt.max_capacity]
 
         if not single_licenses:

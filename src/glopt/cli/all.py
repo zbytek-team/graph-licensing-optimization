@@ -29,7 +29,6 @@ DEFAULT_GRAPH_PARAMS: Dict[str, Dict[str, Any]] = {
 
 @contextmanager
 def suppress_trace_output():
-    """mute traceback.print_exc and stderr prints inside the block"""
     orig_print_exc = traceback.print_exc
     orig_stderr = sys.stderr
     try:
