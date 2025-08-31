@@ -1,13 +1,13 @@
+from collections.abc import Iterator, Sequence
 from itertools import product
-from typing import Any, Iterator, List, Sequence, Set, Tuple
+from typing import Any
 
 import networkx as nx
 
 from ..core import Algorithm, LicenseGroup, LicenseType, Solution
 from ..core.solution_builder import SolutionBuilder
 
-
-Assignment = List[Tuple[LicenseType, Any, Set[Any]]]
+Assignment = list[tuple[LicenseType, Any, set[Any]]]
 
 
 class NaiveAlgorithm(Algorithm):
@@ -21,7 +21,7 @@ class NaiveAlgorithm(Algorithm):
         license_types: Sequence[LicenseType],
         **kwargs: Any,
     ) -> Solution:
-        nodes: List[Any] = list(graph.nodes())
+        nodes: list[Any] = list(graph.nodes())
         n = len(nodes)
 
         if n > 10:
@@ -54,14 +54,14 @@ class NaiveAlgorithm(Algorithm):
 
     def _generate_all_assignments(
         self,
-        nodes: List[Any],
+        nodes: list[Any],
         graph: nx.Graph,
         license_types: Sequence[LicenseType],
     ) -> Iterator[Assignment]:
         for partition in self._generate_partitions(nodes):
             yield from self._generate_assignments_for_partition(partition, graph, license_types)
 
-    def _generate_partitions(self, nodes: List[Any]) -> Iterator[List[Set[Any]]]:
+    def _generate_partitions(self, nodes: list[Any]) -> Iterator[list[set[Any]]]:
         n = len(nodes)
         if n == 0:
             yield []
@@ -81,7 +81,7 @@ class NaiveAlgorithm(Algorithm):
 
     def _generate_assignments_for_partition(
         self,
-        partition: List[Set[Any]],
+        partition: list[set[Any]],
         graph: nx.Graph,
         license_types: Sequence[LicenseType],
     ) -> Iterator[Assignment]:
@@ -89,9 +89,9 @@ class NaiveAlgorithm(Algorithm):
             yield []
             return
 
-        per_block: List[List[Tuple[LicenseType, Any, Set[Any]]]] = []
+        per_block: list[list[tuple[LicenseType, Any, set[Any]]]] = []
         for block in partition:
-            block_choices: List[Tuple[LicenseType, Any, Set[Any]]] = []
+            block_choices: list[tuple[LicenseType, Any, set[Any]]] = []
             bsize = len(block)
             for lt in license_types:
                 if not (lt.min_capacity <= bsize <= lt.max_capacity):
@@ -106,12 +106,12 @@ class NaiveAlgorithm(Algorithm):
             for combo in product(*per_block):
                 yield list(combo)
 
-    def _is_valid_group(self, owner: Any, members: Set[Any], graph: nx.Graph) -> bool:
+    def _is_valid_group(self, owner: Any, members: set[Any], graph: nx.Graph) -> bool:
         owner_neighbors = set(graph.neighbors(owner))
         return all(m in owner_neighbors for m in members)
 
-    def _is_valid_assignment(self, assignment: Assignment, nodes: List[Any], graph: nx.Graph) -> bool:
-        covered: Set[Any] = set()
+    def _is_valid_assignment(self, assignment: Assignment, nodes: list[Any], graph: nx.Graph) -> bool:
+        covered: set[Any] = set()
 
         for lt, owner, members in assignment:
             group_nodes = {owner} | members

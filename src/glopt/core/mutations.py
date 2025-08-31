@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import random
-from typing import List, Optional, Sequence
+from collections.abc import Sequence
+
 import networkx as nx
 
-from .models import Solution, LicenseGroup, LicenseType
+from .models import LicenseGroup, LicenseType, Solution
 from .solution_builder import SolutionBuilder
 
 
@@ -15,7 +16,7 @@ class MutationOperators:
         graph: nx.Graph,
         license_types: Sequence[LicenseType],
         k: int = 10,
-    ) -> List[Solution]:
+    ) -> list[Solution]:
         ops = (
             MutationOperators.change_license_type,
             MutationOperators.reassign_member,
@@ -23,7 +24,7 @@ class MutationOperators:
             MutationOperators.split_group,
         )
         weights = (0.30, 0.30, 0.20, 0.20)
-        out: List[Solution] = []
+        out: list[Solution] = []
         attempts = 0
         while len(out) < k and attempts < k * 10:
             attempts += 1
@@ -40,8 +41,8 @@ class MutationOperators:
     def change_license_type(
         solution: Solution,
         graph: nx.Graph,
-        license_types: List[LicenseType],
-    ) -> Optional[Solution]:
+        license_types: list[LicenseType],
+    ) -> Solution | None:
         if not solution.groups:
             return None
         group = random.choice(solution.groups)
@@ -62,8 +63,8 @@ class MutationOperators:
     def reassign_member(
         solution: Solution,
         graph: nx.Graph,
-        license_types: List[LicenseType],
-    ) -> Optional[Solution]:
+        license_types: list[LicenseType],
+    ) -> Solution | None:
         if len(solution.groups) < 2:
             return None
 
@@ -97,8 +98,8 @@ class MutationOperators:
     def merge_groups(
         solution: Solution,
         graph: nx.Graph,
-        license_types: List[LicenseType],
-    ) -> Optional[Solution]:
+        license_types: list[LicenseType],
+    ) -> Solution | None:
         if len(solution.groups) < 2:
             return None
         g1, g2 = random.sample(list(solution.groups), 2)
@@ -114,8 +115,8 @@ class MutationOperators:
     def split_group(
         solution: Solution,
         graph: nx.Graph,
-        license_types: List[LicenseType],
-    ) -> Optional[Solution]:
+        license_types: list[LicenseType],
+    ) -> Solution | None:
         if not solution.groups:
             return None
 

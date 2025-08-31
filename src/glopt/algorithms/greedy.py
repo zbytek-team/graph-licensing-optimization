@@ -1,4 +1,5 @@
-from typing import Any, List, Set
+from typing import Any
+
 import networkx as nx
 
 from ..core import Algorithm, LicenseGroup, LicenseType, Solution
@@ -13,14 +14,14 @@ class GreedyAlgorithm(Algorithm):
     def solve(
         self,
         graph: nx.Graph,
-        license_types: List[LicenseType],
+        license_types: list[LicenseType],
         **_: Any,
     ) -> Solution:
         licenses = sorted(license_types, key=lambda lt: (-lt.max_capacity, lt.cost))
 
-        nodes: List[Any] = list(graph.nodes())
-        uncovered: Set[Any] = set(nodes)
-        groups: List[LicenseGroup] = []
+        nodes: list[Any] = list(graph.nodes())
+        uncovered: set[Any] = set(nodes)
+        groups: list[LicenseGroup] = []
 
         for owner in sorted(nodes, key=lambda n: graph.degree(n), reverse=True):
             if owner not in uncovered:
@@ -59,9 +60,9 @@ class GreedyAlgorithm(Algorithm):
     def _best_group_for_owner(
         self,
         owner: Any,
-        avail: Set[Any],
+        avail: set[Any],
         graph: nx.Graph,
-        licenses: List[LicenseType],
+        licenses: list[LicenseType],
     ) -> LicenseGroup | None:
         ordered = sorted(avail, key=lambda n: graph.degree(n), reverse=True)
 
@@ -89,9 +90,9 @@ class GreedyAlgorithm(Algorithm):
     def _cheapest_feasible_group(
         self,
         owner: Any,
-        avail: Set[Any],
+        avail: set[Any],
         graph: nx.Graph,
-        license_types: List[LicenseType],
+        license_types: list[LicenseType],
     ) -> LicenseGroup | None:
         for lt in sorted(license_types, key=lambda x: (x.cost, -x.max_capacity)):
             if len(avail) < lt.min_capacity:

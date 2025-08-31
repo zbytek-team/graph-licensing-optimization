@@ -1,21 +1,20 @@
+import io
 import os
 import sys
-import io
 import traceback
 from contextlib import contextmanager
 from datetime import datetime
 from math import isnan
-from typing import Any, Dict, List
+from typing import Any
 
+from glopt import algorithms
 from glopt.core import RunResult, generate_graph, instantiate_algorithms, run_once
 from glopt.io import build_paths, ensure_dir, write_csv
-from glopt import algorithms
 from glopt.io.graph_generator import GraphGeneratorFactory
 from glopt.license_config import LicenseConfigFactory
 
-
 N_NODES = 100
-DEFAULT_GRAPH_PARAMS: Dict[str, Dict[str, Any]] = {
+DEFAULT_GRAPH_PARAMS: dict[str, dict[str, Any]] = {
     "random": {"p": 0.1, "seed": 42},
     "scale_free": {"m": 2, "seed": 42},
     "small_world": {"k": 4, "p": 0.1, "seed": 42},
@@ -49,7 +48,7 @@ def _fmt_status(valid: bool) -> str:
     return "ok" if valid else "invalid"
 
 
-def _print_table(title: str, headers: List[str], rows: List[List[str]]) -> None:
+def _print_table(title: str, headers: list[str], rows: list[list[str]]) -> None:
     if not rows:
         print(f"\n[LICENSE] {title} (no runs)")
         return
@@ -63,8 +62,8 @@ def _print_table(title: str, headers: List[str], rows: List[List[str]]) -> None:
     def line(sep_left: str = "+", sep_mid: str = "+", sep_right: str = "+", fill: str = "-") -> str:
         return sep_left + sep_mid.join(fill * (w + 2) for w in widths) + sep_right
 
-    def fmt_row(cols: List[str]) -> str:
-        padded = [c.ljust(w) for c, w in zip(cols, widths)]
+    def fmt_row(cols: list[str]) -> str:
+        padded = [c.ljust(w) for c, w in zip(cols, widths, strict=False)]
         return "| " + " | ".join(padded) + " |"
 
     print(f"\n[LICENSE] {title}")
@@ -76,14 +75,14 @@ def _print_table(title: str, headers: List[str], rows: List[List[str]]) -> None:
     print(line())
 
 
-def rank_results(results: List[RunResult]) -> List[tuple[int, RunResult, float]]:
+def rank_results(results: list[RunResult]) -> list[tuple[int, RunResult, float]]:
     valid = [r for r in results if r.valid]
     if not valid:
         return [(i + 1, r, float("nan")) for i, r in enumerate(results)]
     ilp = next((r for r in valid if r.algorithm.lower() in {"ilp", "ilpsolver"}), None)
     best_cost = ilp.total_cost if ilp else min(r.total_cost for r in valid)
     ranked = sorted(results, key=lambda r: (not r.valid, r.total_cost))
-    out: List[tuple[int, RunResult, float]] = []
+    out: list[tuple[int, RunResult, float]] = []
     for idx, r in enumerate(ranked, start=1):
         gap = float("nan") if not r.valid or best_cost == 0 else (r.total_cost - best_cost) / best_cost * 100.0
         out.append((idx, r, gap))
@@ -112,7 +111,7 @@ def main() -> int:
         _err("loading algorithms list", e)
         return 2
 
-    results: List[RunResult] = []
+    results: list[RunResult] = []
     had_errors = False
 
     for graph_name in graph_names:
@@ -145,7 +144,7 @@ def main() -> int:
                 had_errors = True
                 continue
 
-            table_rows: List[List[str]] = []
+            table_rows: list[list[str]] = []
 
             for algo_name in algorithm_names:
                 try:
@@ -175,7 +174,7 @@ def main() -> int:
                         "graph": graph_name,
                         "graph_params": str(params),
                         "license_config": lic_name,
-                    }
+                    },
                 )
                 results.append(r)
 
@@ -183,7 +182,7 @@ def main() -> int:
                 time_str = f"{r.time_ms:.2f}"
                 table_rows.append([algo_name, cost_str, time_str, _fmt_status(r.valid)])
 
-            def _key(row: List[str]) -> tuple[int, float]:
+            def _key(row: list[str]) -> tuple[int, float]:
                 try:
                     v = float(row[1])
                     return (0, v)

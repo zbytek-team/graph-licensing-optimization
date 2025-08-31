@@ -5,11 +5,10 @@ import sys
 import traceback
 from datetime import datetime
 
+from glopt.dynamic_simulator import DynamicNetworkSimulator
 from glopt.io import build_paths, ensure_dir
 from glopt.io.graph_generator import GraphGeneratorFactory
 from glopt.license_config import LicenseConfigFactory
-from glopt.dynamic_simulator import DynamicNetworkSimulator
-
 
 GRAPH_NAME = "small_world"
 GRAPH_PARAMS = {"k": 4, "p": 0.1, "seed": 42}

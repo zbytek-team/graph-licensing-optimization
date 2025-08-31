@@ -1,8 +1,10 @@
 import csv
 import os
+import pathlib
+from collections.abc import Iterable
 from dataclasses import asdict
 from datetime import datetime
-from typing import Any, Dict, Iterable
+from typing import Any
 
 
 def write_csv(csv_dir: str, run_id: str, rows: Iterable[Any]) -> str:
@@ -23,7 +25,7 @@ def write_csv(csv_dir: str, run_id: str, rows: Iterable[Any]) -> str:
 class BenchmarkCSVWriter:
     def __init__(self, output_dir: str = "runs/stats"):
         self.output_dir = output_dir
-        os.makedirs(output_dir, exist_ok=True)
+        pathlib.Path(output_dir).mkdir(exist_ok=True, parents=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.csv_path = os.path.join(output_dir, f"{timestamp}.csv")
         self.fieldnames = [
@@ -45,7 +47,7 @@ class BenchmarkCSVWriter:
             writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
             writer.writeheader()
 
-    def write_result(self, result: Dict[str, Any]):
+    def write_result(self, result: dict[str, Any]):
         with open(self.csv_path, "a", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
             writer.writerow(result)

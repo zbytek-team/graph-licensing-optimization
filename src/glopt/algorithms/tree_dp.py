@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any
+
 import networkx as nx
 
 from ..core import Algorithm, LicenseGroup, LicenseType, Solution
@@ -14,7 +15,7 @@ class TreeDynamicProgramming(Algorithm):
     def solve(
         self,
         graph: nx.Graph,
-        license_types: List[LicenseType],
+        license_types: list[LicenseType],
         **_: Any,
     ) -> Solution:
         if not nx.is_tree(graph):
@@ -34,7 +35,7 @@ class TreeDynamicProgramming(Algorithm):
         cost, groups = self._solve_subtree(graph, root, None, license_types, memo)
         return SolutionBuilder.create_solution_from_groups(groups)
 
-    def _solve_subtree(self, graph: nx.Graph, node: Any, parent: Any, license_types: List[LicenseType], memo: Dict) -> Tuple[float, List[LicenseGroup]]:
+    def _solve_subtree(self, graph: nx.Graph, node: Any, parent: Any, license_types: list[LicenseType], memo: dict) -> tuple[float, list[LicenseGroup]]:
         children = [child for child in graph.neighbors(node) if child != parent]
 
         state_key = (node, tuple(sorted(children)))
@@ -101,7 +102,7 @@ class TreeDynamicProgramming(Algorithm):
         memo[state_key] = result
         return result
 
-    def _solve_child_subtree(self, graph: nx.Graph, child: Any, parent: Any, license_types: List[LicenseType], memo: Dict) -> Tuple[float, List[LicenseGroup]]:
+    def _solve_child_subtree(self, graph: nx.Graph, child: Any, parent: Any, license_types: list[LicenseType], memo: dict) -> tuple[float, list[LicenseGroup]]:
 
         grandchildren = [gc for gc in graph.neighbors(child) if gc != parent]
 

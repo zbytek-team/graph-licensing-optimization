@@ -1,6 +1,7 @@
-from typing import Any, List, Optional, Set, Tuple
-import networkx as nx
 import random
+from typing import Any
+
+import networkx as nx
 
 from ..core import Algorithm, LicenseGroup, LicenseType, Solution
 from ..core.solution_builder import SolutionBuilder
@@ -11,13 +12,13 @@ class RandomizedAlgorithm(Algorithm):
     def name(self) -> str:
         return "randomized_algorithm"
 
-    def __init__(self, greedy_probability: float = 0.7, seed: Optional[int] = None):
+    def __init__(self, greedy_probability: float = 0.7, seed: int | None = None):
         self.greedy_probability = max(0.0, min(1.0, greedy_probability))
         self.seed = seed
         if seed is not None:
             random.seed(seed)
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **kwargs: Any) -> Solution:
+    def solve(self, graph: nx.Graph, license_types: list[LicenseType], **kwargs: Any) -> Solution:
         if len(graph.nodes()) == 0:
             return Solution(groups=())
 
@@ -58,8 +59,8 @@ class RandomizedAlgorithm(Algorithm):
         return SolutionBuilder.create_solution_from_groups(groups)
 
     def _greedy_assignment(
-        self, node: Any, uncovered_nodes: Set[Any], graph: nx.Graph, license_types: List[LicenseType]
-    ) -> Optional[Tuple[LicenseType, Set[Any]]]:
+        self, node: Any, uncovered_nodes: set[Any], graph: nx.Graph, license_types: list[LicenseType],
+    ) -> tuple[LicenseType, set[Any]] | None:
         neighbors = set(graph.neighbors(node)) & uncovered_nodes
         available_nodes = neighbors | {node}
 
@@ -85,8 +86,8 @@ class RandomizedAlgorithm(Algorithm):
         return best_assignment
 
     def _random_assignment(
-        self, node: Any, uncovered_nodes: Set[Any], graph: nx.Graph, license_types: List[LicenseType]
-    ) -> Optional[Tuple[LicenseType, Set[Any]]]:
+        self, node: Any, uncovered_nodes: set[Any], graph: nx.Graph, license_types: list[LicenseType],
+    ) -> tuple[LicenseType, set[Any]] | None:
         neighbors = set(graph.neighbors(node)) & uncovered_nodes
         available_nodes = neighbors | {node}
 
@@ -112,7 +113,7 @@ class RandomizedAlgorithm(Algorithm):
 
         return self._greedy_assignment(node, uncovered_nodes, graph, license_types)
 
-    def _select_greedy_group_members(self, owner: Any, available_nodes: Set[Any], target_size: int, graph: nx.Graph) -> Set[Any]:
+    def _select_greedy_group_members(self, owner: Any, available_nodes: set[Any], target_size: int, graph: nx.Graph) -> set[Any]:
         if target_size <= 0:
             return set()
 
@@ -125,12 +126,11 @@ class RandomizedAlgorithm(Algorithm):
         candidates = list(available_nodes - {owner})
         candidates.sort(key=lambda n: graph.degree(n), reverse=True)
 
-        for candidate in candidates[:remaining_slots]:
-            group_members.add(candidate)
+        group_members.update(candidates[:remaining_slots])
 
         return group_members
 
-    def _select_random_group_members(self, owner: Any, available_nodes: Set[Any], target_size: int) -> Set[Any]:
+    def _select_random_group_members(self, owner: Any, available_nodes: set[Any], target_size: int) -> set[Any]:
         if target_size <= 0:
             return set()
 
@@ -150,7 +150,7 @@ class RandomizedAlgorithm(Algorithm):
 
         return group_members
 
-    def _find_cheapest_single_license(self, license_types: List[LicenseType]) -> LicenseType:
+    def _find_cheapest_single_license(self, license_types: list[LicenseType]) -> LicenseType:
         single_licenses = [lt for lt in license_types if lt.min_capacity <= 1 <= lt.max_capacity]
 
         if not single_licenses:

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import random
-from typing import Any, List, Sequence, Optional
+from collections.abc import Sequence
+from typing import Any
+
 import networkx as nx
 
 from ..core import Algorithm, LicenseType, Solution
 from ..core.mutations import MutationOperators
-from .randomized import RandomizedAlgorithm
 from ..core.solution_validator import SolutionValidator
+from .randomized import RandomizedAlgorithm
 
 
 class GeneticAlgorithm(Algorithm):
@@ -17,7 +19,7 @@ class GeneticAlgorithm(Algorithm):
         population_size: int = 30,
         generations: int = 40,
         elite_fraction: float = 0.2,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ) -> None:
         self.population_size = max(2, population_size)
         self.generations = max(1, generations)
@@ -46,7 +48,7 @@ class GeneticAlgorithm(Algorithm):
         for _ in range(self.generations):
             population.sort(key=lambda s: s.total_cost)
             elite_count = max(1, int(self.elite_fraction * self.population_size))
-            new_pop: List[Solution] = population[:elite_count]
+            new_pop: list[Solution] = population[:elite_count]
 
             while len(new_pop) < self.population_size:
                 parent = self._tournament_selection(population)
@@ -60,11 +62,11 @@ class GeneticAlgorithm(Algorithm):
 
         return best
 
-    def _init_population(self, graph: nx.Graph, license_types: Sequence[LicenseType]) -> List[Solution]:
+    def _init_population(self, graph: nx.Graph, license_types: Sequence[LicenseType]) -> list[Solution]:
         rand_algo = RandomizedAlgorithm()
         return [rand_algo.solve(graph, list(license_types)) for _ in range(self.population_size)]
 
-    def _tournament_selection(self, population: List[Solution], k: int = 3) -> Solution:
+    def _tournament_selection(self, population: list[Solution], k: int = 3) -> Solution:
         contenders = random.sample(population, k)
         return min(contenders, key=lambda s: s.total_cost)
 

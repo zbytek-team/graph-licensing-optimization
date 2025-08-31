@@ -1,20 +1,22 @@
-import os
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any
 
 import matplotlib
 
 matplotlib.use("Agg")
 
+import pathlib
+
 import matplotlib.pyplot as plt
 import networkx as nx
+
 from ..core import Solution
 
 
 class GraphVisualizer:
     def __init__(
         self,
-        figsize: Tuple[int, int] = (12, 8),
+        figsize: tuple[int, int] = (12, 8),
         layout_seed: int = 42,
         reuse_layout: bool = True,
     ):
@@ -27,15 +29,15 @@ class GraphVisualizer:
         self.member_size = 300
         self.solo_size = 400
 
-        self._pos: Dict[Any, Tuple[float, float]] | None = None
+        self._pos: dict[Any, tuple[float, float]] | None = None
 
     def visualize_solution(
         self,
         graph: nx.Graph,
         solution: Solution,
         solver_name: str,
-        timestamp_folder: Optional[str] = None,
-        save_path: Optional[str] = None,
+        timestamp_folder: str | None = None,
+        save_path: str | None = None,
     ) -> str:
         if not self.reuse_layout or self._pos is None:
             self._pos = nx.spring_layout(graph, seed=self.layout_seed)
@@ -58,7 +60,7 @@ class GraphVisualizer:
                 timestamp_folder = datetime.now().strftime("%Y%m%d_%H%M%S")
             n_nodes, n_edges = graph.number_of_nodes(), graph.number_of_edges()
             save_path = f"runs/graphs/{timestamp_folder}/{solver_name}_{n_nodes}n_{n_edges}e.png"
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        pathlib.Path(pathlib.Path(save_path).parent).mkdir(exist_ok=True, parents=True)
 
         plt.tight_layout()
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
@@ -68,7 +70,7 @@ class GraphVisualizer:
     def reset_layout(self) -> None:
         self._pos = None
 
-    def set_layout(self, pos: Dict[Any, Tuple[float, float]]) -> None:
+    def set_layout(self, pos: dict[Any, tuple[float, float]]) -> None:
         self._pos = dict(pos)
 
     def _update_positions_for_graph(self, graph: nx.Graph) -> None:
@@ -93,16 +95,16 @@ class GraphVisualizer:
             else:
                 self._pos[n] = (jitter(scale=0.25), jitter(scale=0.25))
 
-    def _map_nodes_to_groups(self, solution: Solution) -> Dict[Any, Any]:
-        mapping: Dict[Any, Any] = {}
+    def _map_nodes_to_groups(self, solution: Solution) -> dict[Any, Any]:
+        mapping: dict[Any, Any] = {}
         for group in solution.groups:
             for member in group.all_members:
                 mapping[member] = group
         return mapping
 
-    def _get_node_properties(self, graph: nx.Graph, node_to_group: Dict[Any, Any]) -> Tuple[List[str], List[int]]:
-        colors: List[str] = []
-        sizes: List[int] = []
+    def _get_node_properties(self, graph: nx.Graph, node_to_group: dict[Any, Any]) -> tuple[list[str], list[int]]:
+        colors: list[str] = []
+        sizes: list[int] = []
         owners = {g.owner for g in node_to_group.values()}
 
         for node in graph.nodes():
@@ -115,8 +117,8 @@ class GraphVisualizer:
                 sizes.append(self.owner_size if node in owners else self.member_size)
         return colors, sizes
 
-    def _get_edge_colors(self, graph: nx.Graph, node_to_group: Dict[Any, Any]) -> List[str]:
-        colors: List[str] = []
+    def _get_edge_colors(self, graph: nx.Graph, node_to_group: dict[Any, Any]) -> list[str]:
+        colors: list[str] = []
         for u, v in graph.edges():
             g1 = node_to_group.get(u)
             g2 = node_to_group.get(v)

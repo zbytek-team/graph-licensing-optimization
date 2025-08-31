@@ -24,3 +24,9 @@ include = ["glopt*"]
 
 [dependency-groups]
 dev = ["black>=25.1.0", "pytest>=8.4.1", "ruff>=0.12.4"]
+
+[tool.ruff]
+select = ["ALL"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "E501", "E402"]
+line-length = 120
+target-version = "py312"

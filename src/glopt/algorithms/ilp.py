@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any
+
 import networkx as nx
 import pulp
 
@@ -13,22 +14,22 @@ class ILPSolver(Algorithm):
     def solve(
         self,
         graph: nx.Graph,
-        license_types: List[LicenseType],
+        license_types: list[LicenseType],
         **kwargs: Any,
     ) -> Solution:
         time_limit: int | None = kwargs.get("time_limit")
 
-        nodes: List[Any] = list(graph.nodes())
+        nodes: list[Any] = list(graph.nodes())
         model = pulp.LpProblem("graph_licensing_optimization", pulp.LpMinimize)
 
-        assign_vars: Dict[Tuple[Any, Any, int], pulp.LpVariable] = {}
+        assign_vars: dict[tuple[Any, Any, int], pulp.LpVariable] = {}
         for i in nodes:
-            neighborhood_i: Set[Any] = set(graph.neighbors(i)) | {i}
+            neighborhood_i: set[Any] = set(graph.neighbors(i)) | {i}
             for j in neighborhood_i:
                 for t_idx, _lt in enumerate(license_types):
                     assign_vars[i, j, t_idx] = pulp.LpVariable(f"x_{i}_{j}_{t_idx}", cat="Binary")
 
-        active_vars: Dict[Tuple[Any, int], pulp.LpVariable] = {}
+        active_vars: dict[tuple[Any, int], pulp.LpVariable] = {}
         for i in nodes:
             for t_idx, _lt in enumerate(license_types):
                 active_vars[i, t_idx] = pulp.LpVariable(f"group_active_{i}_{t_idx}", cat="Binary")
@@ -36,7 +37,7 @@ class ILPSolver(Algorithm):
         model += pulp.lpSum(active_vars[i, t_idx] * lt.cost for i in nodes for t_idx, lt in enumerate(license_types))
 
         for j in nodes:
-            neighborhood_j: Set[Any] = set(graph.neighbors(j)) | {j}
+            neighborhood_j: set[Any] = set(graph.neighbors(j)) | {j}
             model += pulp.lpSum(assign_vars.get((i, j, t_idx), 0) for i in neighborhood_j for t_idx in range(len(license_types))) == 1
 
         for i in nodes:
@@ -58,11 +59,11 @@ class ILPSolver(Algorithm):
         if model.status != pulp.LpStatusOptimal:
             raise RuntimeError(f"ilp solver failed with status {pulp.LpStatus[model.status]}")
 
-        groups: List[LicenseGroup] = []
+        groups: list[LicenseGroup] = []
         for i in nodes:
             for t_idx, lt in enumerate(license_types):
                 if active_vars[i, t_idx].varValue and active_vars[i, t_idx].varValue > 0.5:
-                    members: Set[Any] = set()
+                    members: set[Any] = set()
                     for j in set(graph.neighbors(i)) | {i}:
                         var = assign_vars.get((i, j, t_idx))
                         if var and var.varValue and var.varValue > 0.5:
@@ -73,7 +74,7 @@ class ILPSolver(Algorithm):
                                 license_type=lt,
                                 owner=i,
                                 additional_members=frozenset(members - {i}),
-                            )
+                            ),
                         )
 
         return Solution(groups=tuple(groups))

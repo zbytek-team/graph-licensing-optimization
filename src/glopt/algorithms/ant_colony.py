@@ -1,12 +1,15 @@
 from __future__ import annotations
+
 import random
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
+
 import networkx as nx
+
 from ..core import Algorithm, LicenseGroup, LicenseType, Solution
 from ..core.solution_validator import SolutionValidator
 from .greedy import GreedyAlgorithm
 
-PKey = Tuple[Any, str]
+PKey = tuple[Any, str]
 
 
 class AntColonyOptimization(Algorithm):
@@ -23,7 +26,7 @@ class AntColonyOptimization(Algorithm):
         self.max_iter = max_iterations
         self.validator = SolutionValidator(debug=False)
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **_: Any) -> Solution:
+    def solve(self, graph: nx.Graph, license_types: list[LicenseType], **_: Any) -> Solution:
         pher = self._init_pher(graph, license_types)
         heur = self._init_heur(graph, license_types)
 
@@ -49,9 +52,9 @@ class AntColonyOptimization(Algorithm):
                 continue
         return best
 
-    def _construct(self, G: nx.Graph, lts: List[LicenseType], pher: Dict[PKey, float], heur: Dict[PKey, float]) -> Solution:
-        uncovered: Set[Any] = set(G.nodes())
-        groups: List[LicenseGroup] = []
+    def _construct(self, G: nx.Graph, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> Solution:
+        uncovered: set[Any] = set(G.nodes())
+        groups: list[LicenseGroup] = []
         while uncovered:
             owner = self._select_owner(uncovered, lts, pher, heur, G)
             owner = owner if owner is not None else next(iter(uncovered))
@@ -80,10 +83,10 @@ class AntColonyOptimization(Algorithm):
             uncovered -= {owner} | set(add)
         return Solution(groups=tuple(groups))
 
-    def _select_owner(self, uncovered: Set[Any], lts: List[LicenseType], pher: Dict[PKey, float], heur: Dict[PKey, float], G: nx.Graph) -> Optional[Any]:
+    def _select_owner(self, uncovered: set[Any], lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float], G: nx.Graph) -> Any | None:
         if not uncovered:
             return None
-        scores: Dict[Any, float] = {}
+        scores: dict[Any, float] = {}
         for n in uncovered:
             acc = 0.0
             for lt in lts:
@@ -93,13 +96,13 @@ class AntColonyOptimization(Algorithm):
             scores[n] = acc / max(1, len(lts))
         return self._roulette_or_best(list(uncovered), scores)
 
-    def _select_license(self, owner: Any, lts: List[LicenseType], pher: Dict[PKey, float], heur: Dict[PKey, float]) -> Optional[LicenseType]:
+    def _select_license(self, owner: Any, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> LicenseType | None:
         if not lts:
             return None
         scores = {lt: (pher.get((owner, lt.name), 1.0) ** self.alpha) * (heur.get((owner, lt.name), 1.0) ** self.beta) for lt in lts}
         return self._roulette_or_best(lts, scores)
 
-    def _roulette_or_best(self, choices: List[Any], scores: Dict[Any, float]) -> Any:
+    def _roulette_or_best(self, choices: list[Any], scores: dict[Any, float]) -> Any:
         if not choices:
             return None
         if random.random() < self.q0:
@@ -115,24 +118,24 @@ class AntColonyOptimization(Algorithm):
                 return c
         return random.choice(choices)
 
-    def _init_pher(self, G: nx.Graph, lts: List[LicenseType]) -> Dict[PKey, float]:
+    def _init_pher(self, G: nx.Graph, lts: list[LicenseType]) -> dict[PKey, float]:
         return {(n, lt.name): 1.0 for n in G.nodes() for lt in lts}
 
-    def _init_heur(self, G: nx.Graph, lts: List[LicenseType]) -> Dict[PKey, float]:
-        h: Dict[PKey, float] = {}
+    def _init_heur(self, G: nx.Graph, lts: list[LicenseType]) -> dict[PKey, float]:
+        h: dict[PKey, float] = {}
         for n in G.nodes():
             deg = G.degree(n)
             for lt in lts:
                 cap_eff = (lt.max_capacity / lt.cost) if lt.cost > 0 else 1e9
-                h[(n, lt.name)] = cap_eff * (1.0 + deg)
+                h[n, lt.name] = cap_eff * (1.0 + deg)
         return h
 
-    def _evaporate(self, pher: Dict[PKey, float]) -> None:
+    def _evaporate(self, pher: dict[PKey, float]) -> None:
         f = max(0.0, min(1.0, self.evap))
         for k in pher:
             pher[k] *= 1.0 - f
 
-    def _deposit(self, pher: Dict[PKey, float], sol: Solution) -> None:
+    def _deposit(self, pher: dict[PKey, float], sol: Solution) -> None:
         if sol.total_cost <= 0:
             return
         q = 1.0 / sol.total_cost
@@ -142,7 +145,7 @@ class AntColonyOptimization(Algorithm):
                 if k in pher:
                     pher[k] += q
 
-    def _fallback_singletons(self, G: nx.Graph, lts: List[LicenseType]) -> Solution:
+    def _fallback_singletons(self, G: nx.Graph, lts: list[LicenseType]) -> Solution:
         lt1 = min([x for x in lts if x.min_capacity <= 1] or lts, key=lambda x: x.cost)
         groups = [LicenseGroup(lt1, n, frozenset()) for n in G.nodes()]
         return Solution(groups=tuple(groups))
