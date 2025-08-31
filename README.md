@@ -12,7 +12,7 @@ Simple application for exploring cost-efficient license allocation in social net
 
 ```sh
 make install      # create virtual environment and install dependencies
-make test         # run a small benchmark of algorithms
+make test         # execute unit tests verifying algorithm quality
 make dynamic      # execute dynamic network simulation
 ```
 
