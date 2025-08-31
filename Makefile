@@ -1,7 +1,7 @@
 .PHONY: test all benchmark dynamic format lint install
 
 test:
-	uv run -m scripts.run_test
+	PYTHONPATH=. uv run --with pytest pytest
 
 all:
 	uv run -m scripts.run_all
