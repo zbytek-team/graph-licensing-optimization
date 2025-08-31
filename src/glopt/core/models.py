@@ -61,12 +61,7 @@ class Solution[N: Hashable]:
     def total_cost(self) -> float:
         return sum(g.license_type.cost for g in self.groups)
 
-    @property
-    def covered_nodes(self) -> set[N]:
-        covered: set[N] = set()
-        for g in self.groups:
-            covered.update(g.all_members)
-        return covered
+
 
 
 class Algorithm[N: Hashable](ABC):

@@ -167,8 +167,7 @@ def write_algo_csv(csv_dir: str, run_id: str, license_name: str, algo_name: str,
     return out_path
 
 
-def _fmt_ms(ms: float) -> str:
-    return f"{ms:.2f} ms"
+# _fmt_ms was unused; removed
 
 
 def main() -> None:
@@ -195,7 +194,6 @@ def main() -> None:
 
         for algo_name in ALGORITHMS:
             rows_all_graphs: list[RunResult] = []
-            total_timeouts = total_failures = total_successes = 0
 
             for graph_name in GRAPH_NAMES:
                 timeouts = failures = successes = 0
@@ -302,9 +300,7 @@ def main() -> None:
                     )
                     successes += 1
 
-                total_successes += successes
-                total_timeouts += timeouts
-                total_failures += failures
+                # summarize per-graph loop only; aggregate totals were unused
 
             write_algo_csv(csv_dir, run_id, license_name, algo_name, rows_all_graphs)
 

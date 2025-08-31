@@ -67,11 +67,7 @@ class GraphVisualizer:
         plt.close()
         return save_path
 
-    def reset_layout(self) -> None:
-        self._pos = None
-
-    def set_layout(self, pos: dict[Any, tuple[float, float]]) -> None:
-        self._pos = dict(pos)
+    # reset_layout and set_layout were unused; removed
 
     def _update_positions_for_graph(self, graph: nx.Graph) -> None:
         assert self._pos is not None

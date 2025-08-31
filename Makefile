@@ -1,4 +1,4 @@
-.PHONY: test all benchmark dynamic format lint install test-cli
+.PHONY: test all benchmark dynamic format lint install run_custom
 
 test:
 	PYTHONPATH=src uv run --with pytest pytest -vv -q
@@ -30,8 +30,8 @@ install:
 #   ALGOS   - comma-separated algorithms or pass multiple --algo via spaces (e.g., "GreedyAlgorithm,SimulatedAnnealing")
 #   RUN_ID  - custom run id
 #   LIMIT   - print issue limit (0 to suppress)
-test-cli:
-	PYTHONPATH=src uv run -m glopt.cli.test \
+run-custom:
+	PYTHONPATH=src uv run -m glopt.cli.run_custom \
 		$(if $(GRAPH),--graph-name $(GRAPH),) \
 		$(if $(N),--n-nodes $(N),) \
 		$(foreach p,$(PARAMS),--param $(p) ) \
