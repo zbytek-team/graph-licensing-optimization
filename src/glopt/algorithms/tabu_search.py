@@ -3,9 +3,10 @@ from typing import Any
 
 import networkx as nx
 
-from ..core import Algorithm, LicenseType, Solution
-from ..core.mutations import MutationOperators
-from ..core.solution_validator import SolutionValidator
+from glopt.core import Algorithm, LicenseType, Solution
+from glopt.core.mutations import MutationOperators
+from glopt.core.solution_validator import SolutionValidator
+
 from .greedy import GreedyAlgorithm
 
 

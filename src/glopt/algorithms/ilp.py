@@ -3,7 +3,9 @@ from typing import Any
 import networkx as nx
 import pulp
 
-from ..core import Algorithm, LicenseGroup, LicenseType, Solution
+from glopt.core import Algorithm, LicenseGroup, LicenseType, Solution
+
+VAR_TRUE_THRESHOLD = 0.5
 
 
 class ILPSolver(Algorithm):
@@ -38,12 +40,7 @@ class ILPSolver(Algorithm):
 
         for j in nodes:
             neighborhood_j: set[Any] = set(graph.neighbors(j)) | {j}
-            model += (
-                pulp.lpSum(
-                    assign_vars.get((i, j, t_idx), 0) for i in neighborhood_j for t_idx in range(len(license_types))
-                )
-                == 1
-            )
+            model += pulp.lpSum(assign_vars.get((i, j, t_idx), 0) for i in neighborhood_j for t_idx in range(len(license_types))) == 1
 
         for i in nodes:
             neighborhood_i = set(graph.neighbors(i)) | {i}
@@ -62,16 +59,17 @@ class ILPSolver(Algorithm):
         model.solve(solver)
 
         if model.status != pulp.LpStatusOptimal:
-            raise RuntimeError(f"ilp solver failed with status {pulp.LpStatus[model.status]}")
+            msg = f"ilp solver failed with status {pulp.LpStatus[model.status]}"
+            raise RuntimeError(msg)
 
         groups: list[LicenseGroup] = []
         for i in nodes:
             for t_idx, lt in enumerate(license_types):
-                if active_vars[i, t_idx].varValue and active_vars[i, t_idx].varValue > 0.5:
+                if active_vars[i, t_idx].varValue and active_vars[i, t_idx].varValue > VAR_TRUE_THRESHOLD:
                     members: set[Any] = set()
                     for j in set(graph.neighbors(i)) | {i}:
                         var = assign_vars.get((i, j, t_idx))
-                        if var and var.varValue and var.varValue > 0.5:
+                        if var and var.varValue and var.varValue > VAR_TRUE_THRESHOLD:
                             members.add(j)
                     if members:
                         groups.append(

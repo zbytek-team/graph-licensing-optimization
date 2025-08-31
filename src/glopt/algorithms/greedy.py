@@ -2,8 +2,8 @@ from typing import Any
 
 import networkx as nx
 
-from ..core import Algorithm, LicenseGroup, LicenseType, Solution
-from ..core.solution_builder import SolutionBuilder
+from glopt.core import Algorithm, LicenseGroup, LicenseType, Solution
+from glopt.core.solution_builder import SolutionBuilder
 
 
 class GreedyAlgorithm(Algorithm):

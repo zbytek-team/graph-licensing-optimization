@@ -1,3 +1,4 @@
+import csv
 import random
 from dataclasses import dataclass
 from typing import Any
@@ -36,7 +37,7 @@ class DynamicNetworkSimulator:
         rebalance_algorithm: Algorithm | None = None,
         mutation_params: MutationParams | None = None,
         seed: int | None = None,
-    ):
+    ) -> None:
         self.rebalance_algorithm = rebalance_algorithm or GreedyAlgorithm()
         self.mutation_params = mutation_params or MutationParams()
         self.seed = seed
@@ -171,9 +172,7 @@ class DynamicNetworkSimulator:
 
         return edges_to_remove
 
-    def _rebalance_licenses(
-        self, graph: nx.Graph, license_types: list[LicenseType], old_solution: Solution
-    ) -> Solution:
+    def _rebalance_licenses(self, graph: nx.Graph, license_types: list[LicenseType], old_solution: Solution) -> Solution:
         existing_nodes = set(graph.nodes())
 
         valid_groups = []
@@ -246,10 +245,12 @@ class DynamicNetworkSimulator:
         }
 
     def export_history_to_csv(self, filename: str) -> None:
-        import csv
+        fieldnames = ["step", "nodes", "edges", "cost", "groups", "cost_change", "mutations"]
+        from pathlib import Path
 
-        with open(filename, "w", newline="") as csvfile:
-            fieldnames = ["step", "nodes", "edges", "cost", "groups", "cost_change", "mutations"]
+        path = Path(filename)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
 
@@ -263,7 +264,7 @@ class DynamicNetworkSimulator:
                         "groups": len(step.solution.groups),
                         "cost_change": step.rebalance_cost_change,
                         "mutations": "; ".join(step.mutations_applied),
-                    },
+                    }
                 )
 
 

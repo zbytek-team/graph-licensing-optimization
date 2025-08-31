@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import random
-from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import networkx as nx
+from glopt.algorithms.randomized import RandomizedAlgorithm
+from glopt.core import Algorithm, LicenseType, Solution
+from glopt.core.mutations import MutationOperators
+from glopt.core.solution_validator import SolutionValidator
 
-from ..core import Algorithm, LicenseType, Solution
-from ..core.mutations import MutationOperators
-from ..core.solution_validator import SolutionValidator
-from .randomized import RandomizedAlgorithm
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    import networkx as nx
 
 
 class GeneticAlgorithm(Algorithm):

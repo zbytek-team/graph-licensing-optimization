@@ -3,8 +3,8 @@ from typing import Any
 
 import networkx as nx
 
-from ..core import Algorithm, LicenseGroup, LicenseType, Solution
-from ..core.solution_builder import SolutionBuilder
+from glopt.core import Algorithm, LicenseGroup, LicenseType, Solution
+from glopt.core.solution_builder import SolutionBuilder
 
 
 class RandomizedAlgorithm(Algorithm):
@@ -12,7 +12,7 @@ class RandomizedAlgorithm(Algorithm):
     def name(self) -> str:
         return "randomized_algorithm"
 
-    def __init__(self, greedy_probability: float = 0.7, seed: int | None = None):
+    def __init__(self, greedy_probability: float = 0.7, seed: int | None = None) -> None:
         self.greedy_probability = max(0.0, min(1.0, greedy_probability))
         self.seed = seed
         if seed is not None:
@@ -121,9 +121,7 @@ class RandomizedAlgorithm(Algorithm):
 
         return self._greedy_assignment(node, uncovered_nodes, graph, license_types)
 
-    def _select_greedy_group_members(
-        self, owner: Any, available_nodes: set[Any], target_size: int, graph: nx.Graph
-    ) -> set[Any]:
+    def _select_greedy_group_members(self, owner: Any, available_nodes: set[Any], target_size: int, graph: nx.Graph) -> set[Any]:
         if target_size <= 0:
             return set()
 

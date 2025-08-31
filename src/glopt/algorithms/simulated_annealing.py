@@ -4,9 +4,11 @@ from typing import Any
 
 import networkx as nx
 
-from ..core import Algorithm, LicenseGroup, LicenseType, Solution
-from ..core.solution_builder import SolutionBuilder
-from ..core.solution_validator import SolutionValidator
+from glopt.core import Algorithm, LicenseGroup, LicenseType, Solution
+from glopt.core.solution_builder import SolutionBuilder
+from glopt.core.solution_validator import SolutionValidator
+
+from .greedy import GreedyAlgorithm
 
 
 class SimulatedAnnealing(Algorithm):
@@ -30,19 +32,17 @@ class SimulatedAnnealing(Algorithm):
         self.validator = SolutionValidator(debug=False)
 
     def solve(self, graph: nx.Graph, license_types: list[LicenseType], **_: Any) -> Solution:
-        from .greedy import GreedyAlgorithm
-
         current = GreedyAlgorithm().solve(graph, license_types)
         ok, _ = self.validator.validate(current, graph)
         if not ok:
             current = self._fallback_singletons(graph, license_types)
 
         best = current
-        T = self.initial_temperature
+        temperature = self.initial_temperature
         stall = 0
 
         for _ in range(self.max_iterations):
-            if self.min_temperature > T:
+            if self.min_temperature > temperature:
                 break
 
             neighbor = self._neighbor(current, graph, license_types)
@@ -50,7 +50,7 @@ class SimulatedAnnealing(Algorithm):
                 stall += 1
             else:
                 d = neighbor.total_cost - current.total_cost
-                if d < 0 or random.random() < math.exp(-d / max(T, 1e-12)):
+                if d < 0 or random.random() < math.exp(-d / max(temperature, 1e-12)):
                     current = neighbor
                     if current.total_cost < best.total_cost:
                         best = current
@@ -62,9 +62,9 @@ class SimulatedAnnealing(Algorithm):
 
             if stall >= self.max_stall:
                 stall = 0
-                T = max(self.min_temperature, T * 0.5)
+                temperature = max(self.min_temperature, temperature * 0.5)
 
-            T *= self.cooling_rate
+            temperature *= self.cooling_rate
 
         return best
 

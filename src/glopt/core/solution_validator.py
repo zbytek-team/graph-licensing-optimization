@@ -16,7 +16,7 @@ class ValidationIssue:
 
 
 class SolutionValidator:
-    def __init__(self, debug: bool = False):
+    def __init__(self, debug: bool = False) -> None:
         self.debug = debug
 
     def validate(
@@ -36,8 +36,8 @@ class SolutionValidator:
         issues += self._check_coverage(groups, nodes)
 
         if self.debug and issues:
-            for i in issues:
-                print(f"    {i.code}: {i.msg}")
+            for _i in issues:
+                pass
 
         return (not issues, issues)
 

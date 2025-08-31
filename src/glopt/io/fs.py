@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-import os
-import pathlib
+from pathlib import Path
 
 
 def ensure_dir(path: str) -> None:
-    pathlib.Path(path).mkdir(exist_ok=True, parents=True)
+    Path(path).mkdir(exist_ok=True, parents=True)
 
 
 def build_paths(run_id: str) -> tuple[str, str, str]:
-    base = os.path.join("runs", run_id)
-    graphs_dir = os.path.join(base, "graphs")
-    csv_dir = os.path.join(base, "csv")
-    ensure_dir(graphs_dir)
-    ensure_dir(csv_dir)
-    return base, graphs_dir, csv_dir
+    base = Path("runs") / run_id
+    graphs_dir = base / "graphs"
+    csv_dir = base / "csv"
+    ensure_dir(str(graphs_dir))
+    ensure_dir(str(csv_dir))
+    return str(base), str(graphs_dir), str(csv_dir)

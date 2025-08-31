@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Hashable, Sequence
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import Any, TypeVar
 
 import networkx as nx
 
@@ -18,15 +18,18 @@ class LicenseType:
 
     def __post_init__(self) -> None:
         if self.cost < 0:
-            raise ValueError("cost must be >= 0")
+            msg = "cost must be >= 0"
+            raise ValueError(msg)
         if self.min_capacity < 1:
-            raise ValueError("min_capacity must be >= 1")
+            msg = "min_capacity must be >= 1"
+            raise ValueError(msg)
         if self.max_capacity < self.min_capacity:
-            raise ValueError("max_capacity must be >= min_capacity")
+            msg = "max_capacity must be >= min_capacity"
+            raise ValueError(msg)
 
 
 @dataclass(frozen=True, slots=True)
-class LicenseGroup(Generic[N]):
+class LicenseGroup[N: Hashable]:
     license_type: LicenseType
     owner: N
     additional_members: frozenset[N] = frozenset()
@@ -44,13 +47,14 @@ class LicenseGroup(Generic[N]):
     def __post_init__(self) -> None:
         s = self.size
         if not (self.license_type.min_capacity <= s <= self.license_type.max_capacity):
+            msg = f"group size {s} violates [{self.license_type.min_capacity}, {self.license_type.max_capacity}] for {self.license_type.name}"
             raise ValueError(
-                f"group size {s} violates [{self.license_type.min_capacity}, {self.license_type.max_capacity}] for {self.license_type.name}"
+                msg
             )
 
 
 @dataclass(slots=True)
-class Solution(Generic[N]):
+class Solution[N: Hashable]:
     groups: tuple[LicenseGroup[N], ...] = ()
 
     @property
@@ -65,9 +69,9 @@ class Solution(Generic[N]):
         return covered
 
 
-class Algorithm(ABC, Generic[N]):
+class Algorithm[N: Hashable](ABC):
     @abstractmethod
-    def solve(self, graph: nx.Graph, license_types: Sequence[LicenseType], **kwargs) -> Solution[N]: ...
+    def solve(self, graph: nx.Graph, license_types: Sequence[LicenseType], **kwargs: Any) -> Solution[N]: ...
 
     @property
     @abstractmethod
