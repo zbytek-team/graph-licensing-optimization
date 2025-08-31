@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
+from collections.abc import Hashable, Sequence
 from dataclasses import dataclass
-from typing import FrozenSet, Generic, Hashable, Sequence, Tuple, TypeVar, Set
+from typing import Generic, TypeVar
+
 import networkx as nx
 
 N = TypeVar("N", bound=Hashable)
@@ -27,10 +29,10 @@ class LicenseType:
 class LicenseGroup(Generic[N]):
     license_type: LicenseType
     owner: N
-    additional_members: FrozenSet[N] = frozenset()
+    additional_members: frozenset[N] = frozenset()
 
     @property
-    def all_members(self) -> FrozenSet[N]:
+    def all_members(self) -> frozenset[N]:
         if self.owner in self.additional_members:
             return self.additional_members
         return frozenset({self.owner, *self.additional_members})
@@ -47,15 +49,15 @@ class LicenseGroup(Generic[N]):
 
 @dataclass(slots=True)
 class Solution(Generic[N]):
-    groups: Tuple[LicenseGroup[N], ...] = ()
+    groups: tuple[LicenseGroup[N], ...] = ()
 
     @property
     def total_cost(self) -> float:
         return sum(g.license_type.cost for g in self.groups)
 
     @property
-    def covered_nodes(self) -> Set[N]:
-        covered: Set[N] = set()
+    def covered_nodes(self) -> set[N]:
+        covered: set[N] = set()
         for g in self.groups:
             covered.update(g.all_members)
         return covered

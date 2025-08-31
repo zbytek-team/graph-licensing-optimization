@@ -1,7 +1,10 @@
+from collections.abc import Hashable
 from dataclasses import dataclass
-from typing import Hashable, List, Set, Tuple, TypeVar
+from typing import TypeVar
+
 import networkx as nx
-from .models import Solution, LicenseGroup
+
+from .models import LicenseGroup, Solution
 
 N = TypeVar("N", bound=Hashable)
 
@@ -20,11 +23,11 @@ class SolutionValidator:
         self,
         solution: Solution[N],
         graph: nx.Graph,
-        all_nodes: Set[N] | None = None,
-    ) -> Tuple[bool, List[ValidationIssue]]:
-        issues: List[ValidationIssue] = []
-        nodes: Set[N] = set(graph.nodes()) if all_nodes is None else set(all_nodes)
-        groups: Tuple[LicenseGroup[N], ...] = tuple(solution.groups)
+        all_nodes: set[N] | None = None,
+    ) -> tuple[bool, list[ValidationIssue]]:
+        issues: list[ValidationIssue] = []
+        nodes: set[N] = set(graph.nodes()) if all_nodes is None else set(all_nodes)
+        groups: tuple[LicenseGroup[N], ...] = tuple(solution.groups)
 
         issues += self._check_group_members(groups, nodes)
         issues += self._check_group_capacity(groups)
@@ -42,13 +45,13 @@ class SolutionValidator:
         self,
         solution: Solution[N],
         graph: nx.Graph,
-        all_nodes: Set[N] | None = None,
+        all_nodes: set[N] | None = None,
     ) -> bool:
         ok, _ = self.validate(solution, graph, all_nodes)
         return ok
 
-    def _check_group_members(self, groups: Tuple[LicenseGroup[N], ...], nodes: Set[N]) -> List[ValidationIssue]:
-        issues: List[ValidationIssue] = []
+    def _check_group_members(self, groups: tuple[LicenseGroup[N], ...], nodes: set[N]) -> list[ValidationIssue]:
+        issues: list[ValidationIssue] = []
         for idx, g in enumerate(groups):
             outside = g.all_members - nodes
             if outside:
@@ -57,18 +60,18 @@ class SolutionValidator:
                 issues.append(ValidationIssue("OWNER_NOT_IN_GROUP", f"group#{idx} owner {g.owner!r} not included in its members"))
         return issues
 
-    def _check_group_capacity(self, groups: Tuple[LicenseGroup[N], ...]) -> List[ValidationIssue]:
-        issues: List[ValidationIssue] = []
+    def _check_group_capacity(self, groups: tuple[LicenseGroup[N], ...]) -> list[ValidationIssue]:
+        issues: list[ValidationIssue] = []
         for idx, g in enumerate(groups):
             mn, mx, sz = g.license_type.min_capacity, g.license_type.max_capacity, g.size
             if not (mn <= sz <= mx):
                 issues.append(
-                    ValidationIssue("CAPACITY_VIOLATION", f"group#{idx} owner {g.owner!r} size={sz} not in [{mn}, {mx}] for license '{g.license_type.name}'")
+                    ValidationIssue("CAPACITY_VIOLATION", f"group#{idx} owner {g.owner!r} size={sz} not in [{mn}, {mx}] for license '{g.license_type.name}'"),
                 )
         return issues
 
-    def _check_neighbors(self, groups: Tuple[LicenseGroup[N], ...], graph: nx.Graph, nodes: Set[N]) -> List[ValidationIssue]:
-        issues: List[ValidationIssue] = []
+    def _check_neighbors(self, groups: tuple[LicenseGroup[N], ...], graph: nx.Graph, nodes: set[N]) -> list[ValidationIssue]:
+        issues: list[ValidationIssue] = []
         for idx, g in enumerate(groups):
             if g.owner not in nodes:
                 issues.append(ValidationIssue("OWNER_NOT_IN_GRAPH", f"group#{idx} owner {g.owner!r} not in graph"))
@@ -79,9 +82,9 @@ class SolutionValidator:
                 issues.append(ValidationIssue("DISCONNECTED_MEMBER", f"group#{idx} owner {g.owner!r} has non-neighbor members: {sorted(not_neighbors)!r}"))
         return issues
 
-    def _check_no_overlap(self, groups: Tuple[LicenseGroup[N], ...]) -> List[ValidationIssue]:
-        issues: List[ValidationIssue] = []
-        seen: Set[N] = set()
+    def _check_no_overlap(self, groups: tuple[LicenseGroup[N], ...]) -> list[ValidationIssue]:
+        issues: list[ValidationIssue] = []
+        seen: set[N] = set()
         for idx, g in enumerate(groups):
             overlap = seen & g.all_members
             if overlap:
@@ -89,8 +92,8 @@ class SolutionValidator:
             seen.update(g.all_members)
         return issues
 
-    def _check_coverage(self, groups: Tuple[LicenseGroup[N], ...], nodes: Set[N]) -> List[ValidationIssue]:
-        issues: List[ValidationIssue] = []
+    def _check_coverage(self, groups: tuple[LicenseGroup[N], ...], nodes: set[N]) -> list[ValidationIssue]:
+        issues: list[ValidationIssue] = []
         covered = set().union(*(g.all_members for g in groups)) if groups else set()
         missing = nodes - covered
         extra = covered - nodes

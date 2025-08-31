@@ -1,7 +1,8 @@
-from typing import Dict, List, Optional, Any
-import networkx as nx
-from pathlib import Path
 import logging
+from pathlib import Path
+from typing import Any
+
+import networkx as nx
 
 
 class RealWorldDataLoader:
@@ -21,7 +22,7 @@ class RealWorldDataLoader:
         ego_node = int(ego_id)
         graph.add_node(ego_node, is_ego=True)
 
-        with open(edges_file, "r") as f:
+        with open(edges_file) as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -41,7 +42,7 @@ class RealWorldDataLoader:
 
         return graph
 
-    def load_all_facebook_networks(self) -> Dict[str, nx.Graph]:
+    def load_all_facebook_networks(self) -> dict[str, nx.Graph]:
         facebook_dir = self.data_dir / "facebook"
         networks = {}
 
@@ -56,12 +57,12 @@ class RealWorldDataLoader:
                 network = self.load_facebook_ego_network(ego_id)
                 networks[ego_id] = network
             except Exception as e:
-                self.logger.warning(f"Nie udało się załadować network {ego_id}: {e}")
+                self.logger.warning("Nie udało się załadować network %s: %s", ego_id, e)
 
         self.logger.info(f"Załadowano {len(networks)} Facebook ego networks")
         return networks
 
-    def get_facebook_network_stats(self) -> Dict[str, Dict[str, Any]]:
+    def get_facebook_network_stats(self) -> dict[str, dict[str, Any]]:
         networks = self.load_all_facebook_networks()
         stats = {}
 
@@ -82,7 +83,7 @@ class RealWorldDataLoader:
 
         return stats
 
-    def create_combined_facebook_network(self, max_networks: Optional[int] = None) -> nx.Graph:
+    def create_combined_facebook_network(self, max_networks: int | None = None) -> nx.Graph:
         networks = self.load_all_facebook_networks()
 
         if max_networks:
@@ -112,7 +113,7 @@ class RealWorldDataLoader:
 
         feature_names = []
         if featnames_file.exists():
-            with open(featnames_file, "r") as f:
+            with open(featnames_file) as f:
                 for line in f:
                     line = line.strip()
                     if line:
@@ -121,7 +122,7 @@ class RealWorldDataLoader:
                             feature_names.append(parts[1])
 
         if feat_file.exists():
-            with open(feat_file, "r") as f:
+            with open(feat_file) as f:
                 for line in f:
                     line = line.strip()
                     if line:
@@ -136,7 +137,7 @@ class RealWorldDataLoader:
 
         ego_node = int(ego_id)
         if egofeat_file.exists() and ego_node in graph.nodes():
-            with open(egofeat_file, "r") as f:
+            with open(egofeat_file) as f:
                 line = f.readline().strip()
                 if line:
                     features = [int(x) for x in line.split()]
@@ -150,7 +151,7 @@ class RealWorldDataLoader:
             return
 
         circles = []
-        with open(circles_file, "r") as f:
+        with open(circles_file) as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -169,14 +170,14 @@ class RealWorldDataLoader:
 
         graph.graph["circles"] = circles
 
-    def _get_circles_info(self, data_dir: Path, ego_id: str) -> Optional[Dict[str, Any]]:
+    def _get_circles_info(self, data_dir: Path, ego_id: str) -> dict[str, Any] | None:
         circles_file = data_dir / f"{ego_id}.circles"
 
         if not circles_file.exists():
             return None
 
         circles = []
-        with open(circles_file, "r") as f:
+        with open(circles_file) as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -193,7 +194,7 @@ class RealWorldDataLoader:
             "min_circle_size": min((c["size"] for c in circles), default=0),
         }
 
-    def get_suitable_networks_for_testing(self, min_nodes: int = 20, max_nodes: int = 200) -> List[str]:
+    def get_suitable_networks_for_testing(self, min_nodes: int = 20, max_nodes: int = 200) -> list[str]:
         stats = self.get_facebook_network_stats()
         suitable_networks = []
 

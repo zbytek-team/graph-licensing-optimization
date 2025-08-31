@@ -1,4 +1,5 @@
-from typing import Callable, Dict
+from collections.abc import Callable
+
 import networkx as nx
 
 GeneratorFn = Callable[..., nx.Graph]
@@ -6,7 +7,7 @@ GeneratorFn = Callable[..., nx.Graph]
 
 class GraphGeneratorFactory:
 
-    _GENERATORS: Dict[str, GeneratorFn] = {
+    _GENERATORS: dict[str, GeneratorFn] = {
         "random": lambda *, n_nodes, **p: GraphGeneratorFactory._random(n_nodes, **p),
         "scale_free": lambda *, n_nodes, **p: GraphGeneratorFactory._scale_free(n_nodes, **p),
         "small_world": lambda *, n_nodes, **p: GraphGeneratorFactory._small_world(n_nodes, **p),

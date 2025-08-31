@@ -1,12 +1,12 @@
 import math
 import random
-from typing import Any, List, Optional
+from typing import Any
 
 import networkx as nx
 
 from ..core import Algorithm, LicenseGroup, LicenseType, Solution
-from ..core.solution_validator import SolutionValidator
 from ..core.solution_builder import SolutionBuilder
+from ..core.solution_validator import SolutionValidator
 
 
 class SimulatedAnnealing(Algorithm):
@@ -29,7 +29,7 @@ class SimulatedAnnealing(Algorithm):
         self.max_stall = max_stall
         self.validator = SolutionValidator(debug=False)
 
-    def solve(self, graph: nx.Graph, license_types: List[LicenseType], **_: Any) -> Solution:
+    def solve(self, graph: nx.Graph, license_types: list[LicenseType], **_: Any) -> Solution:
         from .greedy import GreedyAlgorithm
 
         current = GreedyAlgorithm().solve(graph, license_types)
@@ -42,7 +42,7 @@ class SimulatedAnnealing(Algorithm):
         stall = 0
 
         for _ in range(self.max_iterations):
-            if T < self.min_temperature:
+            if self.min_temperature > T:
                 break
 
             neighbor = self._neighbor(current, graph, license_types)
@@ -68,12 +68,12 @@ class SimulatedAnnealing(Algorithm):
 
         return best
 
-    def _fallback_singletons(self, graph: nx.Graph, lts: List[LicenseType]) -> Solution:
+    def _fallback_singletons(self, graph: nx.Graph, lts: list[LicenseType]) -> Solution:
         lt1 = SolutionBuilder.find_cheapest_single_license(lts)
         groups = [LicenseGroup(lt1, n, frozenset()) for n in graph.nodes()]
         return Solution(groups=tuple(groups))
 
-    def _neighbor(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
+    def _neighbor(self, solution: Solution, graph: nx.Graph, lts: list[LicenseType]) -> Solution | None:
         moves = [self._mv_change_license, self._mv_move_member, self._mv_swap_members, self._mv_merge_groups, self._mv_split_group]
         for _ in range(12):
             mv = random.choice(moves)
@@ -87,7 +87,7 @@ class SimulatedAnnealing(Algorithm):
                     return cand
         return None
 
-    def _mv_change_license(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
+    def _mv_change_license(self, solution: Solution, graph: nx.Graph, lts: list[LicenseType]) -> Solution | None:
         if not solution.groups:
             return None
         g = random.choice(solution.groups)
@@ -100,7 +100,7 @@ class SimulatedAnnealing(Algorithm):
         new_groups = [LicenseGroup(new_lt, g.owner, g.additional_members) if x is g else x for x in solution.groups]
         return Solution(groups=tuple(new_groups))
 
-    def _mv_move_member(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
+    def _mv_move_member(self, solution: Solution, graph: nx.Graph, lts: list[LicenseType]) -> Solution | None:
         donors = [g for g in solution.groups if g.additional_members and g.size > g.license_type.min_capacity]
         if not donors:
             return None
@@ -126,7 +126,7 @@ class SimulatedAnnealing(Algorithm):
                 new_groups.append(g)
         return Solution(groups=tuple(new_groups))
 
-    def _mv_swap_members(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
+    def _mv_swap_members(self, solution: Solution, graph: nx.Graph, lts: list[LicenseType]) -> Solution | None:
         if len(solution.groups) < 2:
             return None
         g1, g2 = random.sample(list(solution.groups), 2)
@@ -143,7 +143,7 @@ class SimulatedAnnealing(Algorithm):
         if n2 not in SolutionBuilder.get_owner_neighbors_with_self(graph, g1.owner):
             return None
 
-        new_groups: List[LicenseGroup] = []
+        new_groups: list[LicenseGroup] = []
         for g in solution.groups:
             if g is g1:
                 mem = (g.all_members - {n1}) | {n2}
@@ -157,7 +157,7 @@ class SimulatedAnnealing(Algorithm):
                 new_groups.append(g)
         return Solution(groups=tuple(new_groups))
 
-    def _mv_merge_groups(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
+    def _mv_merge_groups(self, solution: Solution, graph: nx.Graph, lts: list[LicenseType]) -> Solution | None:
         if len(solution.groups) < 2:
             return None
         g1, g2 = random.sample(list(solution.groups), 2)
@@ -168,7 +168,7 @@ class SimulatedAnnealing(Algorithm):
         new_groups.append(merged)
         return Solution(groups=tuple(new_groups))
 
-    def _mv_split_group(self, solution: Solution, graph: nx.Graph, lts: List[LicenseType]) -> Optional[Solution]:
+    def _mv_split_group(self, solution: Solution, graph: nx.Graph, lts: list[LicenseType]) -> Solution | None:
         splittable = [g for g in solution.groups if g.size >= 3]
         if not splittable:
             return None

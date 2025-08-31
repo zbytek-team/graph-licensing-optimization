@@ -5,15 +5,15 @@ import sys
 import traceback
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Any, Dict, List
+from typing import Any
 
 import networkx as nx
 
+from .. import algorithms
+from ..io.graph_generator import GraphGeneratorFactory
+from ..io.graph_visualizer import GraphVisualizer
 from .models import Algorithm, LicenseType, Solution
 from .solution_validator import SolutionValidator
-from ..io.graph_visualizer import GraphVisualizer
-from ..io.graph_generator import GraphGeneratorFactory
-from .. import algorithms
 
 
 @dataclass(frozen=True)
@@ -33,7 +33,7 @@ class RunResult:
     notes: str = ""
 
 
-def generate_graph(name: str, n_nodes: int, params: Dict[str, Any]) -> nx.Graph:
+def generate_graph(name: str, n_nodes: int, params: dict[str, Any]) -> nx.Graph:
     gen = GraphGeneratorFactory.get(name)
     G = gen(n_nodes=n_nodes, **params)
     if not all(isinstance(v, int) for v in G.nodes()):
@@ -42,9 +42,9 @@ def generate_graph(name: str, n_nodes: int, params: Dict[str, Any]) -> nx.Graph:
     return G
 
 
-def instantiate_algorithms(names: List[str]) -> List[Algorithm]:
-    loaded: List[Algorithm] = []
-    missing: List[str] = []
+def instantiate_algorithms(names: list[str]) -> list[Algorithm]:
+    loaded: list[Algorithm] = []
+    missing: list[str] = []
     for name in names:
         cls = getattr(algorithms, name, None)
         if cls is None:
@@ -62,7 +62,7 @@ def instantiate_algorithms(names: List[str]) -> List[Algorithm]:
 def run_once(
     algo: Algorithm,
     graph: nx.Graph,
-    license_types: List[LicenseType],
+    license_types: list[LicenseType],
     run_id: str,
     graphs_dir: str,
     print_issue_limit: int | None = 20,

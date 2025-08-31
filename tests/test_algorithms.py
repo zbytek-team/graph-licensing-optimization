@@ -1,20 +1,20 @@
-import pytest
 import networkx as nx
+import pytest
 
-from glopt.io.graph_generator import GraphGeneratorFactory
-from glopt.license_config import LicenseConfigFactory
-from glopt.core.solution_validator import SolutionValidator
 from glopt.algorithms import (
-    ILPSolver,
-    GreedyAlgorithm,
+    AntColonyOptimization,
     DominatingSetAlgorithm,
-    RandomizedAlgorithm,
     GeneticAlgorithm,
+    GreedyAlgorithm,
+    ILPSolver,
+    NaiveAlgorithm,
+    RandomizedAlgorithm,
     SimulatedAnnealing,
     TabuSearch,
-    AntColonyOptimization,
-    NaiveAlgorithm,
 )
+from glopt.core.solution_validator import SolutionValidator
+from glopt.io.graph_generator import GraphGeneratorFactory
+from glopt.license_config import LicenseConfigFactory
 
 GRAPH_SPECS = {
     "random": {"p": 0.1, "seed": 42},

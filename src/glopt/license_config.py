@@ -1,4 +1,5 @@
-from typing import List, Callable, Dict
+from collections.abc import Callable
+
 from .core import LicenseType
 
 
@@ -7,7 +8,7 @@ class LicenseConfigFactory:
     GOLD = "#cb8a35"
     GREEN = "#5d9f49"
 
-    _CONFIGS: Dict[str, Callable[[], List[LicenseType]]] = {
+    _CONFIGS: dict[str, Callable[[], list[LicenseType]]] = {
         "duolingo_super": lambda: [
             LicenseType("Individual", 13.99, 1, 1, LicenseConfigFactory.PURPLE),
             LicenseType("Family", 29.17, 2, 6, LicenseConfigFactory.GOLD),
@@ -24,7 +25,7 @@ class LicenseConfigFactory:
     }
 
     @classmethod
-    def get_config(cls, name: str) -> List[LicenseType]:
+    def get_config(cls, name: str) -> list[LicenseType]:
         try:
             return cls._CONFIGS[name]()
         except KeyError:

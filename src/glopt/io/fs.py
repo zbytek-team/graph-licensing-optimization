@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import os
-from typing import Tuple
+import pathlib
 
 
 def ensure_dir(path: str) -> None:
-    os.makedirs(path, exist_ok=True)
+    pathlib.Path(path).mkdir(exist_ok=True, parents=True)
 
 
-def build_paths(run_id: str) -> Tuple[str, str, str]:
+def build_paths(run_id: str) -> tuple[str, str, str]:
     base = os.path.join("runs", run_id)
     graphs_dir = os.path.join(base, "graphs")
     csv_dir = os.path.join(base, "csv")

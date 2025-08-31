@@ -1,6 +1,8 @@
-from typing import List, Optional, Set, Sequence, Hashable
+from collections.abc import Hashable, Sequence
+
 import networkx as nx
-from .models import Solution, LicenseGroup, LicenseType
+
+from .models import LicenseGroup, LicenseType, Solution
 
 N = Hashable
 
@@ -8,16 +10,16 @@ N = Hashable
 class SolutionBuilder:
 
     @staticmethod
-    def create_solution_from_groups(groups: List[LicenseGroup]) -> Solution:
+    def create_solution_from_groups(groups: list[LicenseGroup]) -> Solution:
         return Solution(groups=tuple(groups))
 
     @staticmethod
     def get_compatible_license_types(
         group_size: int,
         license_types: Sequence[LicenseType],
-        exclude: Optional[LicenseType] = None,
-    ) -> List[LicenseType]:
-        out: List[LicenseType] = []
+        exclude: LicenseType | None = None,
+    ) -> list[LicenseType]:
+        out: list[LicenseType] = []
         for lt in license_types:
             if exclude and lt == exclude:
                 continue
@@ -26,7 +28,7 @@ class SolutionBuilder:
         return out
 
     @staticmethod
-    def get_owner_neighbors_with_self(graph: nx.Graph, owner: N) -> Set[N]:
+    def get_owner_neighbors_with_self(graph: nx.Graph, owner: N) -> set[N]:
         return set(graph.neighbors(owner)) | {owner}
 
     @staticmethod
@@ -35,7 +37,7 @@ class SolutionBuilder:
         group2: LicenseGroup,
         graph: nx.Graph,
         license_types: Sequence[LicenseType],
-    ) -> Optional[LicenseGroup]:
+    ) -> LicenseGroup | None:
         members = group1.all_members | group2.all_members
         size = len(members)
 
@@ -53,6 +55,6 @@ class SolutionBuilder:
         return min(singles or list(license_types), key=lambda lt: lt.cost)
 
     @staticmethod
-    def find_cheapest_license_for_size(size: int, license_types: Sequence[LicenseType]) -> Optional[LicenseType]:
+    def find_cheapest_license_for_size(size: int, license_types: Sequence[LicenseType]) -> LicenseType | None:
         compat = [lt for lt in license_types if lt.min_capacity <= size <= lt.max_capacity]
         return min(compat, key=lambda lt: lt.cost) if compat else None
