@@ -3,15 +3,9 @@ import traceback
 from datetime import datetime
 from typing import Any, Dict, List
 
-from src.license_config import LicenseConfigFactory
-from scripts._common import (
-    RunResult,
-    build_paths,
-    generate_graph,
-    instantiate_algorithms,
-    run_once,
-    write_csv,
-)
+from glopt.license_config import LicenseConfigFactory
+from glopt.core import RunResult, generate_graph, instantiate_algorithms, run_once
+from glopt.io import build_paths, write_csv
 
 # ===== CONFIG =====
 

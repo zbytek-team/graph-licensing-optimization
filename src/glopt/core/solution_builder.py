@@ -1,7 +1,7 @@
 # src/algorithms/solution_builder.py
 from typing import List, Optional, Set, Sequence, Hashable
 import networkx as nx
-from src import Solution, LicenseGroup, LicenseType
+from .models import Solution, LicenseGroup, LicenseType
 
 N = Hashable  # alias dla czytelności
 
