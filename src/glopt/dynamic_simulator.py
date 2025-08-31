@@ -9,7 +9,6 @@ from .algorithms import GreedyAlgorithm
 
 @dataclass
 class MutationParams:
-    """Parametry mutacji grafu."""
 
     add_nodes_prob: float = 0.1
     remove_nodes_prob: float = 0.05
@@ -23,7 +22,6 @@ class MutationParams:
 
 @dataclass
 class DynamicStep:
-    """Pojedynczy krok w symulacji dynamicznej."""
 
     step_number: int
     graph: nx.Graph
@@ -33,23 +31,8 @@ class DynamicStep:
 
 
 class DynamicNetworkSimulator:
-    """
-    Symulator scenariuszy dynamicznych dla sieci społecznościowych.
-
-    Proces:
-    1. Utworzenie grafu początkowego
-    2. Przypisanie licencji
-    3. Mutacje grafu (dodanie/usunięcie węzłów i krawędzi)
-    4. Rebalansowanie licencji
-    """
 
     def __init__(self, rebalance_algorithm: Optional[Algorithm] = None, mutation_params: Optional[MutationParams] = None, seed: Optional[int] = None):
-        """
-        Args:
-            rebalance_algorithm: Algorytm do rebalansowania (domyślnie GreedyAlgorithm)
-            mutation_params: Parametry mutacji grafu
-            seed: Ziarno dla generatora liczb losowych
-        """
         self.rebalance_algorithm = rebalance_algorithm or GreedyAlgorithm()
         self.mutation_params = mutation_params or MutationParams()
         self.seed = seed
@@ -62,18 +45,6 @@ class DynamicNetworkSimulator:
     def simulate(
         self, initial_graph: nx.Graph, license_types: List[LicenseType], num_steps: int = 10, initial_algorithm: Optional[Algorithm] = None
     ) -> List[DynamicStep]:
-        """
-        Przeprowadza symulację dynamiczną.
-
-        Args:
-            initial_graph: Graf początkowy
-            license_types: Dostępne typy licencji
-            num_steps: Liczba kroków symulacji
-            initial_algorithm: Algorytm do pierwszego przypisania
-
-        Returns:
-            Historia kroków symulacji
-        """
         self.history.clear()
         current_graph = initial_graph.copy()
         self.next_node_id = max(current_graph.nodes()) + 1 if current_graph.nodes() else 0
@@ -109,7 +80,6 @@ class DynamicNetworkSimulator:
         return self.history
 
     def _apply_mutations(self, graph: nx.Graph) -> Tuple[nx.Graph, List[str]]:
-        """Zastosuj losowe mutacje do grafu."""
         mutations = []
 
         if random.random() < self.mutation_params.add_nodes_prob:
@@ -135,7 +105,6 @@ class DynamicNetworkSimulator:
         return graph, mutations
 
     def _add_nodes(self, graph: nx.Graph, num_nodes: int) -> List[int]:
-        """Dodaj nowe węzły z losowymi połączeniami."""
         new_nodes = []
         existing_nodes = list(graph.nodes())
 
@@ -154,7 +123,6 @@ class DynamicNetworkSimulator:
         return new_nodes
 
     def _remove_nodes(self, graph: nx.Graph, num_nodes: int) -> List[int]:
-        """Usuń losowe węzły z grafu."""
         nodes_to_remove = random.sample(list(graph.nodes()), num_nodes)
 
         for node in nodes_to_remove:
@@ -163,7 +131,6 @@ class DynamicNetworkSimulator:
         return nodes_to_remove
 
     def _add_edges(self, graph: nx.Graph, num_edges: int) -> List[Tuple[int, int]]:
-        """Dodaj losowe krawędzie między istniejącymi węzłami."""
         nodes = list(graph.nodes())
         added_edges = []
 
@@ -181,7 +148,6 @@ class DynamicNetworkSimulator:
         return added_edges
 
     def _remove_edges(self, graph: nx.Graph, num_edges: int) -> List[Tuple[int, int]]:
-        """Usuń losowe krawędzie z grafu."""
         edges_to_remove = random.sample(list(graph.edges()), num_edges)
 
         for edge in edges_to_remove:
@@ -190,14 +156,6 @@ class DynamicNetworkSimulator:
         return edges_to_remove
 
     def _rebalance_licenses(self, graph: nx.Graph, license_types: List[LicenseType], old_solution: Solution) -> Solution:
-        """
-        Rebalansowanie licencji po mutacjach grafu.
-
-        Strategia:
-        1. Sprawdź które grupy są nadal valid
-        2. Zachowaj valid grupy
-        3. Dla invalid grup i niepokrytych węzłów znajdź nowe przypisania
-        """
 
         existing_nodes = set(graph.nodes())
 
@@ -224,7 +182,6 @@ class DynamicNetworkSimulator:
         return SolutionBuilder.create_solution_from_groups(valid_groups)
 
     def _is_group_valid(self, graph: nx.Graph, group: LicenseGroup) -> bool:
-        """Sprawdź czy grupa jest nadal valid w kontekście grafu."""
         owner = group.owner
         additional_members = group.additional_members
 
@@ -243,7 +200,6 @@ class DynamicNetworkSimulator:
         return license_type.min_capacity <= group_size <= license_type.max_capacity
 
     def get_simulation_summary(self) -> Dict[str, Any]:
-        """Zwróć podsumowanie symulacji."""
         if not self.history:
             return {}
 
@@ -273,7 +229,6 @@ class DynamicNetworkSimulator:
         }
 
     def export_history_to_csv(self, filename: str) -> None:
-        """Eksportuj historię symulacji do pliku CSV."""
         import csv
 
         with open(filename, "w", newline="") as csvfile:
@@ -296,11 +251,9 @@ class DynamicNetworkSimulator:
 
 
 class DynamicScenarioFactory:
-    """Factory do tworzenia różnych scenariuszy dynamicznych."""
 
     @staticmethod
     def create_growth_scenario(seed: Optional[int] = None) -> MutationParams:
-        """Scenariusz wzrostu sieci - głównie dodawanie węzłów i krawędzi."""
         return MutationParams(
             add_nodes_prob=0.3,
             remove_nodes_prob=0.05,
@@ -314,7 +267,6 @@ class DynamicScenarioFactory:
 
     @staticmethod
     def create_churn_scenario(seed: Optional[int] = None) -> MutationParams:
-        """Scenariusz churn - użytkownicy odchodzą i przychodzą."""
         return MutationParams(
             add_nodes_prob=0.2,
             remove_nodes_prob=0.25,
@@ -328,7 +280,6 @@ class DynamicScenarioFactory:
 
     @staticmethod
     def create_stable_scenario(seed: Optional[int] = None) -> MutationParams:
-        """Scenariusz stabilny - małe zmiany."""
         return MutationParams(
             add_nodes_prob=0.1,
             remove_nodes_prob=0.05,

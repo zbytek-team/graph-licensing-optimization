@@ -66,11 +66,9 @@ class GraphVisualizer:
         return save_path
 
     def reset_layout(self) -> None:
-        """Forget cached positions. Next call will recompute layout from scratch."""
         self._pos = None
 
     def set_layout(self, pos: Dict[Any, Tuple[float, float]]) -> None:
-        """Manually set positions if you computed them elsewhere."""
         self._pos = dict(pos)
 
     def _update_positions_for_graph(self, graph: nx.Graph) -> None:

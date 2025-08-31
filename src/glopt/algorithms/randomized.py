@@ -12,13 +12,6 @@ class RandomizedAlgorithm(Algorithm):
         return "randomized_algorithm"
 
     def __init__(self, greedy_probability: float = 0.7, seed: Optional[int] = None):
-        """
-        Algorytm losowy łączący strategię zachłanną z losową.
-
-        Args:
-            greedy_probability: Prawdopodobieństwo p wyboru strategii zachłannej (0.0 - 1.0)
-            seed: Ziarno dla generatora liczb losowych (dla reprodukowalności)
-        """
         self.greedy_probability = max(0.0, min(1.0, greedy_probability))
         self.seed = seed
         if seed is not None:
@@ -67,9 +60,6 @@ class RandomizedAlgorithm(Algorithm):
     def _greedy_assignment(
         self, node: Any, uncovered_nodes: Set[Any], graph: nx.Graph, license_types: List[LicenseType]
     ) -> Optional[Tuple[LicenseType, Set[Any]]]:
-        """
-        Strategia zachłanna: wybiera przypisanie minimalizujące koszt na osobę.
-        """
         neighbors = set(graph.neighbors(node)) & uncovered_nodes
         available_nodes = neighbors | {node}
 
@@ -97,9 +87,6 @@ class RandomizedAlgorithm(Algorithm):
     def _random_assignment(
         self, node: Any, uncovered_nodes: Set[Any], graph: nx.Graph, license_types: List[LicenseType]
     ) -> Optional[Tuple[LicenseType, Set[Any]]]:
-        """
-        Strategia losowa: losowy wybór typu licencji i członków grupy.
-        """
         neighbors = set(graph.neighbors(node)) & uncovered_nodes
         available_nodes = neighbors | {node}
 
@@ -126,9 +113,6 @@ class RandomizedAlgorithm(Algorithm):
         return self._greedy_assignment(node, uncovered_nodes, graph, license_types)
 
     def _select_greedy_group_members(self, owner: Any, available_nodes: Set[Any], target_size: int, graph: nx.Graph) -> Set[Any]:
-        """
-        Wybiera członków grupy zachłannie (według stopnia w grafie).
-        """
         if target_size <= 0:
             return set()
 
@@ -147,9 +131,6 @@ class RandomizedAlgorithm(Algorithm):
         return group_members
 
     def _select_random_group_members(self, owner: Any, available_nodes: Set[Any], target_size: int) -> Set[Any]:
-        """
-        Losowo wybiera członków grupy.
-        """
         if target_size <= 0:
             return set()
 
@@ -170,7 +151,6 @@ class RandomizedAlgorithm(Algorithm):
         return group_members
 
     def _find_cheapest_single_license(self, license_types: List[LicenseType]) -> LicenseType:
-        """Znajduje najtańszą licencję dla pojedynczego użytkownika."""
         single_licenses = [lt for lt in license_types if lt.min_capacity <= 1 <= lt.max_capacity]
 
         if not single_licenses:

@@ -5,12 +5,6 @@ GeneratorFn = Callable[..., nx.Graph]
 
 
 class GraphGeneratorFactory:
-    """
-    Unified access to named graph generators.
-    Usage:
-        gen = GraphGeneratorFactory.get("small_world")
-        G = gen(n_nodes=100, k=6, p=0.05, seed=42)
-    """
 
     _GENERATORS: Dict[str, GeneratorFn] = {
         "random": lambda *, n_nodes, **p: GraphGeneratorFactory._random(n_nodes, **p),
