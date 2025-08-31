@@ -3,7 +3,7 @@ import traceback
 from datetime import datetime
 from typing import Any, Dict, List
 
-from src.factories.license_config_factory import LicenseConfigFactory
+from src.license_config import LicenseConfigFactory
 from scripts._common import (
     RunResult,
     build_paths,

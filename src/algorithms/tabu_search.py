@@ -2,9 +2,9 @@ from collections import deque
 from typing import Any, Deque, List
 import networkx as nx
 
-from src.core import Algorithm, LicenseType, Solution
-from src.validation.solution_validator import SolutionValidator
-from src.utils.mutations import MutationOperators
+from src import Algorithm, LicenseType, Solution
+from src.solution_validator import SolutionValidator
+from src.mutations import MutationOperators
 from .greedy import GreedyAlgorithm
 
 
