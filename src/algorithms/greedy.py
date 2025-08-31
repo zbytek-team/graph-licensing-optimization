@@ -5,8 +5,8 @@
 from typing import Any, List, Set
 import networkx as nx
 
-from src.core import Algorithm, LicenseGroup, LicenseType, Solution
-from src.utils.solution_builder import SolutionBuilder
+from src import Algorithm, LicenseGroup, LicenseType, Solution
+from src.solution_builder import SolutionBuilder
 
 
 class GreedyAlgorithm(Algorithm):

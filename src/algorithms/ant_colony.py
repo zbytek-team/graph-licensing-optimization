@@ -2,8 +2,8 @@ from __future__ import annotations
 import random
 from typing import Any, Dict, List, Optional, Set, Tuple
 import networkx as nx
-from src.core import Algorithm, LicenseGroup, LicenseType, Solution
-from src.validation.solution_validator import SolutionValidator
+from src import Algorithm, LicenseGroup, LicenseType, Solution
+from src.solution_validator import SolutionValidator
 from .greedy import GreedyAlgorithm
 
 PKey = Tuple[Any, str]  # (owner, license_name)
