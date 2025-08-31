@@ -55,7 +55,6 @@ class DominatingSetAlgorithm(Algorithm):
                 groups.append(group)
                 remaining_nodes -= group_members
             else:
-
                 cheapest_single = self._find_cheapest_single_license(license_types)
                 group = LicenseGroup(cheapest_single, node, frozenset())
                 groups.append(group)
@@ -98,7 +97,6 @@ class DominatingSetAlgorithm(Algorithm):
                     best_node = node
 
             if best_node is None:
-
                 best_node = next(iter(uncovered))
 
             dominating_set.add(best_node)
@@ -128,7 +126,6 @@ class DominatingSetAlgorithm(Algorithm):
         best_efficiency = float("inf")
 
         for license_type in license_types:
-
             max_possible_size = min(len(available_nodes), license_type.max_capacity)
 
             for group_size in range(license_type.min_capacity, max_possible_size + 1):
@@ -174,7 +171,6 @@ class DominatingSetAlgorithm(Algorithm):
         single_licenses = [lt for lt in license_types if lt.min_capacity <= 1 <= lt.max_capacity]
 
         if not single_licenses:
-
             return min(license_types, key=lambda lt: lt.cost)
 
         return min(single_licenses, key=lambda lt: lt.cost)

@@ -1,7 +1,3 @@
-# scripts/run_benchmark.py
-# python 3.13+
-# Benchmark: sizes 50..5000 step 50, timeout per (algo, graph, size). CSV per algorithm and license. No images.
-
 import os
 import sys
 import traceback
@@ -18,37 +14,25 @@ from glopt.core.solution_validator import SolutionValidator
 from glopt.core import Solution, LicenseType, Algorithm, RunResult, generate_graph
 from glopt.io import build_paths, ensure_dir
 
-from glopt import algorithms  # class lookup in child process
+from glopt import algorithms
 
-
-# ===== CONFIG =====
 
 RUN_ID: str | None = None
 
-# wiele generatorów w jednej sesji
+
 GRAPH_NAMES: List[str] = [
     "random",
     "scale_free",
     "small_world",
-    # "complete",
-    # "star",
-    # "path",
-    # "cycle",
-    # "tree",
 ]
 
-# per generator opcjonalne nadpisania
-GRAPH_PARAMS_OVERRIDES: Dict[str, Dict[str, Any]] = {
-    # "random": {"p": 0.08, "seed": 42},
-    # "scale_free": {"m": 3, "seed": 42},
-    # "small_world": {"k": 8, "p": 0.1, "seed": 42},
-    # "tree": {"seed": 123},
-}
 
-# sizes: 10 → 5000 step 20
+GRAPH_PARAMS_OVERRIDES: Dict[str, Dict[str, Any]] = {}
+
+
 SIZES: List[int] = list(range(10, 1001, 20))
 
-# wiele konfiguracji licencji
+
 LICENSE_CONFIG_NAMES: List[str] = [
     "spotify",
     "duolingo_super",
@@ -62,19 +46,13 @@ ALGORITHMS: List[str] = [
     "SimulatedAnnealing",
     "GeneticAlgorithm",
     "AntColonyOptimization",
-    # "TreeDynamicProgramming",
-    # "NaiveAlgorithm",
     "DominatingSetAlgorithm",
     "RandomizedAlgorithm",
 ]
 
-TIMEOUT_SECONDS = 90  # per-run timeout
+TIMEOUT_SECONDS = 90
 PRINT_ISSUE_LIMIT: int | None = 5
 
-# ===== END CONFIG =====
-
-
-# ===== PARAM RESOLVER =====
 
 _GRAPH_DEFAULTS: Dict[str, Dict[str, Any]] = {
     "random": {"p": 0.10, "seed": 42},
@@ -121,9 +99,6 @@ def resolve_graph_params(name: str, n_nodes: int, overrides: Dict[str, Any] | No
     return p
 
 
-# ===== SOLVER HELPERS =====
-
-
 def _solve_child(
     algo_class_name: str,
     graph: nx.Graph,
@@ -159,7 +134,7 @@ def solve_with_timeout(
         if parent_conn.poll(timeout_s):
             ok, payload = parent_conn.recv()
             if ok:
-                algo_name, elapsed_ms, solution = payload  # type: ignore[misc]
+                algo_name, elapsed_ms, solution = payload
                 return algo_name, float(elapsed_ms), solution
             else:
                 raise RuntimeError(f"solver error: {payload}")
@@ -191,15 +166,12 @@ def write_algo_csv(csv_dir: str, run_id: str, license_name: str, algo_name: str,
                 writer = csv.DictWriter(f, fieldnames=list(d.keys()))
                 writer.writeheader()
                 first = False
-            writer.writerow(d)  # type: ignore[union-attr]
+            writer.writerow(d)
     return out_path
 
 
 def _fmt_ms(ms: float) -> str:
     return f"{ms:.2f} ms"
-
-
-# ===== MAIN =====
 
 
 def main() -> None:
@@ -223,7 +195,6 @@ def main() -> None:
     print(f"Algorithms={ALGORITHMS}")
     print(f"Timeout={TIMEOUT_SECONDS}s\n")
 
-    # pętla po konfiguracjach licencji
     for license_name in LICENSE_CONFIG_NAMES:
         try:
             license_types = LicenseConfigFactory.get_config(license_name)
@@ -234,7 +205,6 @@ def main() -> None:
 
         print(f"=== LICENSE={license_name} ===")
 
-        # CSV per algorithm, wiersze ze wszystkich grafów
         for algo_name in ALGORITHMS:
             print(f"-- algo={algo_name} --")
             rows_all_graphs: List[RunResult] = []

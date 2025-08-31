@@ -25,17 +25,14 @@ class TabuSearch(Algorithm):
 
         validator = SolutionValidator(debug=False)
 
-        # seed: greedy solution
         greedy = GreedyAlgorithm()
         current = greedy.solve(graph, license_types)
         best = current
 
-        # FIFO tabu list of solution hashes
         tabu: Deque[str] = deque(maxlen=max(1, tabu_tenure))
         tabu.append(self._hash(current))
 
         for _ in range(max_iterations):
-            # neighborhood via mutation operators
             neighborhood: List[Solution] = MutationOperators.generate_neighbors(base=current, graph=graph, license_types=license_types, k=neighbors_per_iter)
             if not neighborhood:
                 break
@@ -49,7 +46,6 @@ class TabuSearch(Algorithm):
                     continue
                 h = self._hash(cand)
 
-                # tabu unless it improves global best (aspiration)
                 if h in tabu and cand.total_cost >= best.total_cost:
                     continue
 
@@ -68,7 +64,6 @@ class TabuSearch(Algorithm):
 
         return best
 
-    # stable string signature of a solution
     def _hash(self, solution: Solution) -> str:
         parts: List[str] = []
         for g in sorted(solution.groups, key=lambda gg: (str(gg.owner), gg.license_type.name)):

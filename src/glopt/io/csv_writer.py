@@ -16,7 +16,7 @@ def write_csv(csv_dir: str, run_id: str, rows: Iterable[Any]) -> str:
                 writer = csv.DictWriter(f, fieldnames=list(d.keys()))
                 writer.writeheader()
                 first = False
-            writer.writerow(d)  # type: ignore[union-attr]
+            writer.writerow(d)
     return out_path
 
 
@@ -25,7 +25,7 @@ class BenchmarkCSVWriter:
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.csv_path = os.path.join(output_dir, f"{timestamp }.csv")
+        self.csv_path = os.path.join(output_dir, f"{timestamp}.csv")
         self.fieldnames = [
             "algorithm",
             "graph_type",

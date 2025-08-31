@@ -1,7 +1,3 @@
-# src/algorithms/mutations.py
-# Python 3.13+
-# Neighborhood mutation operators. No local search function.
-
 from __future__ import annotations
 
 import random

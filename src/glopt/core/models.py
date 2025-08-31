@@ -32,7 +32,6 @@ class LicenseGroup(Generic[N]):
     @property
     def all_members(self) -> FrozenSet[N]:
         if self.owner in self.additional_members:
-            # dont duplicate owner
             return self.additional_members
         return frozenset({self.owner, *self.additional_members})
 

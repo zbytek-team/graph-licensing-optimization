@@ -38,10 +38,8 @@ class GraphVisualizer:
         save_path: Optional[str] = None,
     ) -> str:
         if not self.reuse_layout or self._pos is None:
-            # first frame or forced recompute
             self._pos = nx.spring_layout(graph, seed=self.layout_seed)
         else:
-            # keep existing positions, only add new nodes and drop removed
             self._update_positions_for_graph(graph)
 
         node_to_group = self._map_nodes_to_groups(solution)
@@ -75,32 +73,26 @@ class GraphVisualizer:
         """Manually set positions if you computed them elsewhere."""
         self._pos = dict(pos)
 
-    # ---- internal helpers ----
-
     def _update_positions_for_graph(self, graph: nx.Graph) -> None:
         assert self._pos is not None
         g_nodes = set(graph.nodes())
         pos_nodes = set(self._pos.keys())
 
-        # drop positions of removed nodes
         for n in pos_nodes - g_nodes:
             self._pos.pop(n, None)
 
-        # add positions for new nodes near a neighbor if possible
         new_nodes = g_nodes - pos_nodes
         if not new_nodes:
             return
 
         for n in new_nodes:
-            # try to place near a neighbor that already has coordinates
             neigh = [v for v in graph.neighbors(n) if v in self._pos]
             if neigh:
                 anchor = random_choice(neigh)
                 ax, ay = self._pos[anchor]
-                # small jitter around anchor
+
                 self._pos[n] = (ax + jitter(), ay + jitter())
             else:
-                # no positioned neighbor yet: place near origin with small jitter
                 self._pos[n] = (jitter(scale=0.25), jitter(scale=0.25))
 
     def _map_nodes_to_groups(self, solution: Solution) -> Dict[Any, Any]:
