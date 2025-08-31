@@ -8,18 +8,11 @@ from datetime import datetime
 from math import isnan
 from typing import Any, Dict, List
 
-from scripts._common import (
-    RunResult,
-    build_paths,
-    ensure_dir,
-    generate_graph,
-    instantiate_algorithms,
-    run_once,
-    write_csv,
-)
-from src import algorithms
-from src.graph_generator import GraphGeneratorFactory
-from src.license_config import LicenseConfigFactory
+from glopt.core import RunResult, generate_graph, instantiate_algorithms, run_once
+from glopt.io import build_paths, ensure_dir, write_csv
+from glopt import algorithms
+from glopt.io.graph_generator import GraphGeneratorFactory
+from glopt.license_config import LicenseConfigFactory
 
 # ===== CONFIG =====
 
@@ -86,6 +79,20 @@ def _print_table(title: str, headers: List[str], rows: List[List[str]]) -> None:
     for r in rows:
         print(fmt_row(r))
     print(line())
+
+
+def rank_results(results: List[RunResult]) -> List[tuple[int, RunResult, float]]:
+    valid = [r for r in results if r.valid]
+    if not valid:
+        return [(i + 1, r, float("nan")) for i, r in enumerate(results)]
+    ilp = next((r for r in valid if r.algorithm.lower() in {"ilp", "ilpsolver"}), None)
+    best_cost = ilp.total_cost if ilp else min(r.total_cost for r in valid)
+    ranked = sorted(results, key=lambda r: (not r.valid, r.total_cost))
+    out: List[tuple[int, RunResult, float]] = []
+    for idx, r in enumerate(ranked, start=1):
+        gap = float("nan") if not r.valid or best_cost == 0 else (r.total_cost - best_cost) / best_cost * 100.0
+        out.append((idx, r, gap))
+    return out
 
 
 def main() -> int:

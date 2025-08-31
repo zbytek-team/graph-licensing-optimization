@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Set, Tuple
 import networkx as nx
 import pulp
 
-from src import Algorithm, LicenseGroup, LicenseType, Solution
+from ..core import Algorithm, LicenseGroup, LicenseType, Solution
 
 
 class ILPSolver(Algorithm):

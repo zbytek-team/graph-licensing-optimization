@@ -7,10 +7,10 @@ import sys
 import traceback
 from datetime import datetime
 
-from scripts._common import build_paths, ensure_dir
-from src.graph_generator import GraphGeneratorFactory
-from src.license_config import LicenseConfigFactory
-from src.dynamic_simulator import DynamicNetworkSimulator
+from glopt.io import build_paths, ensure_dir
+from glopt.io.graph_generator import GraphGeneratorFactory
+from glopt.license_config import LicenseConfigFactory
+from glopt.dynamic_simulator import DynamicNetworkSimulator
 
 
 # Default parameters for a small demo run
