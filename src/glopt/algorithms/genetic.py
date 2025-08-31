@@ -4,10 +4,10 @@ import random
 from typing import Any, List, Sequence, Optional
 import networkx as nx
 
-from src import Algorithm, LicenseType, Solution
-from src.mutations import MutationOperators
+from ..core import Algorithm, LicenseType, Solution
+from ..core.mutations import MutationOperators
 from .randomized import RandomizedAlgorithm
-from src.solution_validator import SolutionValidator
+from ..core.solution_validator import SolutionValidator
 
 
 class GeneticAlgorithm(Algorithm):

@@ -2,9 +2,9 @@ from typing import List, Dict, Any, Optional, Tuple
 import networkx as nx
 import random
 from dataclasses import dataclass
-from src import LicenseType, Solution, LicenseGroup, Algorithm
-from src.solution_builder import SolutionBuilder
-from src.algorithms import GreedyAlgorithm
+from .core import LicenseType, Solution, LicenseGroup, Algorithm
+from .core.solution_builder import SolutionBuilder
+from .algorithms import GreedyAlgorithm
 
 
 @dataclass
