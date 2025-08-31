@@ -1,5 +1,5 @@
 from typing import List, Callable, Dict
-from ..core.models import LicenseType
+from .models import LicenseType
 
 
 class LicenseConfigFactory:

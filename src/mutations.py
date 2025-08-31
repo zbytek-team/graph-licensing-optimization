@@ -8,7 +8,7 @@ import random
 from typing import List, Optional, Sequence
 import networkx as nx
 
-from src.core import Solution, LicenseGroup, LicenseType
+from src import Solution, LicenseGroup, LicenseType
 from .solution_builder import SolutionBuilder
 
 
