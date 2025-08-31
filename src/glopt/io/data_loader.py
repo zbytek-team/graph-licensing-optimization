@@ -39,9 +39,7 @@ class RealWorldDataLoader:
 
         self._load_circles(graph, facebook_dir, ego_id)
 
-        self.logger.info(
-            f"Załadowano Facebook ego network {ego_id}: {len(graph.nodes())} węzłów, {len(graph.edges())} krawędzi"
-        )
+        self.logger.info(f"Załadowano Facebook ego network {ego_id}: {len(graph.nodes())} węzłów, {len(graph.edges())} krawędzi")
 
         return graph
 

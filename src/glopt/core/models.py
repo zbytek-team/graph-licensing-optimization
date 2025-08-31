@@ -48,9 +48,7 @@ class LicenseGroup[N: Hashable]:
         s = self.size
         if not (self.license_type.min_capacity <= s <= self.license_type.max_capacity):
             msg = f"group size {s} violates [{self.license_type.min_capacity}, {self.license_type.max_capacity}] for {self.license_type.name}"
-            raise ValueError(
-                msg
-            )
+            raise ValueError(msg)
 
 
 @dataclass(slots=True)
@@ -60,8 +58,6 @@ class Solution[N: Hashable]:
     @property
     def total_cost(self) -> float:
         return sum(g.license_type.cost for g in self.groups)
-
-
 
 
 class Algorithm[N: Hashable](ABC):

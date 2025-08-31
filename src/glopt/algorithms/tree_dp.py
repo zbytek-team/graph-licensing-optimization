@@ -27,9 +27,7 @@ class TreeDynamicProgramming(Algorithm):
 
         if len(graph.nodes()) == 1:
             node = next(iter(graph.nodes()))
-            cheapest = min(
-                license_types, key=lambda lt: lt.cost if lt.min_capacity <= 1 <= lt.max_capacity else float("inf")
-            )
+            cheapest = min(license_types, key=lambda lt: lt.cost if lt.min_capacity <= 1 <= lt.max_capacity else float("inf"))
             group = LicenseGroup(cheapest, node, frozenset())
             return SolutionBuilder.create_solution_from_groups([group])
 
@@ -38,9 +36,7 @@ class TreeDynamicProgramming(Algorithm):
         cost, groups = self._solve_subtree(graph, root, None, license_types, memo)
         return SolutionBuilder.create_solution_from_groups(groups)
 
-    def _solve_subtree(
-        self, graph: nx.Graph, node: Any, parent: Any, license_types: list[LicenseType], memo: dict
-    ) -> tuple[float, list[LicenseGroup]]:
+    def _solve_subtree(self, graph: nx.Graph, node: Any, parent: Any, license_types: list[LicenseType], memo: dict) -> tuple[float, list[LicenseGroup]]:
         children = [child for child in graph.neighbors(node) if child != parent]
 
         state_key = (node, tuple(sorted(children)))
@@ -102,9 +98,7 @@ class TreeDynamicProgramming(Algorithm):
         memo[state_key] = result
         return result
 
-    def _solve_child_subtree(
-        self, graph: nx.Graph, child: Any, parent: Any, license_types: list[LicenseType], memo: dict
-    ) -> tuple[float, list[LicenseGroup]]:
+    def _solve_child_subtree(self, graph: nx.Graph, child: Any, parent: Any, license_types: list[LicenseType], memo: dict) -> tuple[float, list[LicenseGroup]]:
         grandchildren = [gc for gc in graph.neighbors(child) if gc != parent]
 
         if not grandchildren:

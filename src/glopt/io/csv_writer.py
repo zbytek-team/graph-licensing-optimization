@@ -46,4 +46,5 @@ class BenchmarkCSVWriter:
         with Path(self.csv_path).open("w", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
             writer.writeheader()
+
     # write_result and get_csv_path were unused; removed
