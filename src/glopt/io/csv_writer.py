@@ -46,11 +46,4 @@ class BenchmarkCSVWriter:
         with Path(self.csv_path).open("w", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
             writer.writeheader()
-
-    def write_result(self, result: dict[str, Any]) -> None:
-        with Path(self.csv_path).open("a", newline="") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
-            writer.writerow(result)
-
-    def get_csv_path(self) -> str:
-        return self.csv_path
+    # write_result and get_csv_path were unused; removed
