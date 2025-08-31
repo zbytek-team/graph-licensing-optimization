@@ -1,9 +1,10 @@
+from itertools import combinations
 from typing import Any
 
 import networkx as nx
 
-from ..core import Algorithm, LicenseGroup, LicenseType, Solution
-from ..core.solution_builder import SolutionBuilder
+from glopt.core import Algorithm, LicenseGroup, LicenseType, Solution
+from glopt.core.solution_builder import SolutionBuilder
 
 
 class TreeDynamicProgramming(Algorithm):
@@ -18,20 +19,21 @@ class TreeDynamicProgramming(Algorithm):
         **_: Any,
     ) -> Solution:
         if not nx.is_tree(graph):
-            raise ValueError("TreeDynamicProgramming requires a tree graph")
+            msg = "TreeDynamicProgramming requires a tree graph"
+            raise ValueError(msg)
 
         if len(graph.nodes()) == 0:
             return Solution(groups=())
 
         if len(graph.nodes()) == 1:
-            node = list(graph.nodes())[0]
+            node = next(iter(graph.nodes()))
             cheapest = min(
                 license_types, key=lambda lt: lt.cost if lt.min_capacity <= 1 <= lt.max_capacity else float("inf")
             )
             group = LicenseGroup(cheapest, node, frozenset())
             return SolutionBuilder.create_solution_from_groups([group])
 
-        root = list(graph.nodes())[0]
+        root = next(iter(graph.nodes()))
         memo = {}
         cost, groups = self._solve_subtree(graph, root, None, license_types, memo)
         return SolutionBuilder.create_solution_from_groups(groups)
@@ -73,12 +75,7 @@ class TreeDynamicProgramming(Algorithm):
                 if min_capacity > num_children + 1:
                     continue
 
-                from itertools import combinations
-
-                if num_children == 0:
-                    child_combinations = [()]
-                else:
-                    child_combinations = combinations(children, num_children)
+                child_combinations = [()] if num_children == 0 else combinations(children, num_children)
 
                 for child_combination in child_combinations:
                     included_children = set(child_combination)

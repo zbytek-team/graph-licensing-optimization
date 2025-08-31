@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import random
-from collections.abc import Sequence
-
-import networkx as nx
+from typing import TYPE_CHECKING
 
 from .models import LicenseGroup, LicenseType, Solution
 from .solution_builder import SolutionBuilder
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    import networkx as nx
 
 
 class MutationOperators:

@@ -6,7 +6,7 @@ import networkx as nx
 
 
 class RealWorldDataLoader:
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = "data") -> None:
         self.data_dir = Path(data_dir)
         self.logger = logging.getLogger(__name__)
 
@@ -15,14 +15,15 @@ class RealWorldDataLoader:
 
         edges_file = facebook_dir / f"{ego_id}.edges"
         if not edges_file.exists():
-            raise FileNotFoundError(f"Plik edges nie istnieje: {edges_file}")
+            msg = f"Plik edges nie istnieje: {edges_file}"
+            raise FileNotFoundError(msg)
 
         graph = nx.Graph()
 
         ego_node = int(ego_id)
         graph.add_node(ego_node, is_ego=True)
 
-        with open(edges_file) as f:
+        with edges_file.open() as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -49,7 +50,8 @@ class RealWorldDataLoader:
         networks = {}
 
         if not facebook_dir.exists():
-            raise FileNotFoundError(f"Katalog Facebook nie istnieje: {facebook_dir}")
+            msg = f"Katalog Facebook nie istnieje: {facebook_dir}"
+            raise FileNotFoundError(msg)
 
         edge_files = list(facebook_dir.glob("*.edges"))
 
@@ -58,10 +60,10 @@ class RealWorldDataLoader:
             try:
                 network = self.load_facebook_ego_network(ego_id)
                 networks[ego_id] = network
-            except Exception as e:
-                self.logger.warning("Nie udało się załadować network %s: %s", ego_id, e)
+            except Exception:
+                self.logger.warning("Nie udało się załadować network %s", ego_id)
 
-        self.logger.info(f"Załadowano {len(networks)} Facebook ego networks")
+        self.logger.info("Załadowano %d Facebook ego networks", len(networks))
         return networks
 
     def get_facebook_network_stats(self) -> dict[str, dict[str, Any]]:
@@ -96,7 +98,7 @@ class RealWorldDataLoader:
         combined_graph = nx.Graph()
         node_offset = 0
 
-        for ego_id, graph in networks.items():
+        for graph in networks.values():
             mapping = {old_id: old_id + node_offset for old_id in graph.nodes()}
             shifted_graph = nx.relabel_nodes(graph, mapping)
 
@@ -117,7 +119,7 @@ class RealWorldDataLoader:
 
         feature_names = []
         if featnames_file.exists():
-            with open(featnames_file) as f:
+            with featnames_file.open() as f:
                 for line in f:
                     line = line.strip()
                     if line:
@@ -126,7 +128,7 @@ class RealWorldDataLoader:
                             feature_names.append(parts[1])
 
         if feat_file.exists():
-            with open(feat_file) as f:
+            with feat_file.open() as f:
                 for line in f:
                     line = line.strip()
                     if line:
@@ -141,7 +143,7 @@ class RealWorldDataLoader:
 
         ego_node = int(ego_id)
         if egofeat_file.exists() and ego_node in graph.nodes():
-            with open(egofeat_file) as f:
+            with egofeat_file.open() as f:
                 line = f.readline().strip()
                 if line:
                     features = [int(x) for x in line.split()]
@@ -155,7 +157,7 @@ class RealWorldDataLoader:
             return
 
         circles = []
-        with open(circles_file) as f:
+        with circles_file.open() as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -181,7 +183,7 @@ class RealWorldDataLoader:
             return None
 
         circles = []
-        with open(circles_file) as f:
+        with circles_file.open() as f:
             for line in f:
                 line = line.strip()
                 if line:

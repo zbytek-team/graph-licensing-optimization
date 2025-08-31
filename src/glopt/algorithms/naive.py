@@ -4,8 +4,8 @@ from typing import Any
 
 import networkx as nx
 
-from ..core import Algorithm, LicenseGroup, LicenseType, Solution
-from ..core.solution_builder import SolutionBuilder
+from glopt.core import Algorithm, LicenseGroup, LicenseType, Solution
+from glopt.core.solution_builder import SolutionBuilder
 
 Assignment = list[tuple[LicenseType, Any, set[Any]]]
 
@@ -24,8 +24,10 @@ class NaiveAlgorithm(Algorithm):
         nodes: list[Any] = list(graph.nodes())
         n = len(nodes)
 
-        if n > 10:
-            raise ValueError(f"graph too large for naive algorithm: {n} nodes > 10")
+        max_n = 10
+        if n > max_n:
+            msg = f"graph too large for naive algorithm: {n} nodes > {max_n}"
+            raise ValueError(msg)
 
         if n == 0:
             return Solution(groups=())
@@ -72,7 +74,7 @@ class NaiveAlgorithm(Algorithm):
 
         first, rest = nodes[0], nodes[1:]
         for smaller in self._generate_partitions(rest):
-            yield [{first}] + smaller
+            yield [{first}, *smaller]
 
             for i, block in enumerate(smaller):
                 new_part = list(smaller)

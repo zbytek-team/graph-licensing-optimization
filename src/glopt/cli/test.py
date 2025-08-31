@@ -41,22 +41,19 @@ def main() -> None:
 
     try:
         graph = generate_graph(GRAPH_NAME, N_NODES, GRAPH_PARAMS)
-    except Exception as e:
-        print(f"[ERROR] graph generation failed: {GRAPH_NAME}: {e}", file=sys.stderr)
+    except Exception:
         traceback.print_exc(limit=10, file=sys.stderr)
         sys.exit(2)
 
     try:
         license_types = LicenseConfigFactory.get_config(LICENSE_CONFIG_NAME)
-    except Exception as e:
-        print(f"[ERROR] license config failed: {LICENSE_CONFIG_NAME}: {e}", file=sys.stderr)
+    except Exception:
         traceback.print_exc(limit=10, file=sys.stderr)
         sys.exit(2)
 
     try:
         algos = instantiate_algorithms(ALGORITHMS)
-    except Exception as e:
-        print(f"[ERROR] algorithm setup failed: {e}", file=sys.stderr)
+    except Exception:
         traceback.print_exc(limit=10, file=sys.stderr)
         sys.exit(2)
 
@@ -81,7 +78,6 @@ def main() -> None:
         results.append(r)
 
     write_csv(csv_dir, run_id, results)
-    print("OK")
 
 
 if __name__ == "__main__":

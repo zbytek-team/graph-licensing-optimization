@@ -1,16 +1,16 @@
 from datetime import datetime
 from typing import Any
 
-import matplotlib
+import matplotlib as mpl
 
-matplotlib.use("Agg")
+mpl.use("Agg")
 
 import pathlib
 
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from ..core import Solution
+from glopt.core import Solution
 
 
 class GraphVisualizer:
@@ -19,7 +19,7 @@ class GraphVisualizer:
         figsize: tuple[int, int] = (12, 8),
         layout_seed: int = 42,
         reuse_layout: bool = True,
-    ):
+    ) -> None:
         self.figsize = figsize
         self.layout_seed = layout_seed
         self.reuse_layout = reuse_layout

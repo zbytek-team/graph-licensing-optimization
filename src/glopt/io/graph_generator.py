@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from typing import ClassVar
 
 import networkx as nx
 
@@ -6,7 +7,7 @@ GeneratorFn = Callable[..., nx.Graph]
 
 
 class GraphGeneratorFactory:
-    _GENERATORS: dict[str, GeneratorFn] = {
+    _GENERATORS: ClassVar[dict[str, GeneratorFn]] = {
         "random": lambda *, n_nodes, **p: GraphGeneratorFactory._random(n_nodes, **p),
         "scale_free": lambda *, n_nodes, **p: GraphGeneratorFactory._scale_free(n_nodes, **p),
         "small_world": lambda *, n_nodes, **p: GraphGeneratorFactory._small_world(n_nodes, **p),
@@ -23,7 +24,8 @@ class GraphGeneratorFactory:
             return cls._GENERATORS[name]
         except KeyError:
             available = ", ".join(cls._GENERATORS.keys())
-            raise ValueError(f"unknown graph generator '{name}'. available: {available}")
+            msg = f"unknown graph generator '{name}'. available: {available}"
+            raise ValueError(msg) from None
 
     @staticmethod
     def _random(n_nodes: int, *, p: float = 0.1, seed: int | None = None) -> nx.Graph:
@@ -55,12 +57,10 @@ class GraphGeneratorFactory:
 
     @staticmethod
     def _tree(n_nodes: int, *, seed: int | None = None) -> nx.Graph:
-        import networkx as nx
-
         if n_nodes == 1:
-            G = nx.Graph()
-            G.add_node(0)
-            return G
+            graph = nx.Graph()
+            graph.add_node(0)
+            return graph
 
         base = nx.complete_graph(n_nodes)
         return nx.random_spanning_tree(base, weight=None, seed=seed)

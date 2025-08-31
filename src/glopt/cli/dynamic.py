@@ -24,15 +24,13 @@ def main() -> int:
     try:
         gen = GraphGeneratorFactory.get(GRAPH_NAME)
         graph = gen(n_nodes=N_NODES, **GRAPH_PARAMS)
-    except Exception as e:
-        print(f"[ERROR] graph generation failed: {GRAPH_NAME}: {e}", file=sys.stderr)
+    except Exception:
         traceback.print_exc(limit=10, file=sys.stderr)
         return 2
 
     try:
         license_types = LicenseConfigFactory.get_config(LICENSE_CONFIG)
-    except Exception as e:
-        print(f"[ERROR] license config failed: {LICENSE_CONFIG}: {e}", file=sys.stderr)
+    except Exception:
         traceback.print_exc(limit=10, file=sys.stderr)
         return 2
 
@@ -43,14 +41,11 @@ def main() -> int:
         ensure_dir(csv_dir)
         out_path = os.path.join(csv_dir, f"{run_id}_dynamic.csv")
         simulator.export_history_to_csv(out_path)
-        print(f"[DYNAMIC] history saved to {out_path}")
-    except Exception as e:
-        print(f"[ERROR] exporting history failed: {e}", file=sys.stderr)
+    except Exception:
         traceback.print_exc(limit=10, file=sys.stderr)
         return 2
 
-    summary = simulator.get_simulation_summary()
-    print(f"[DYNAMIC] summary: {summary}")
+    simulator.get_simulation_summary()
     return 0
 
 

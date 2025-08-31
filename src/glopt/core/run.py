@@ -1,19 +1,21 @@
 from __future__ import annotations
 
-import os
 import sys
 import traceback
 from dataclasses import dataclass
+from pathlib import Path
 from time import perf_counter
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import networkx as nx
 
-from .. import algorithms
-from ..io.graph_generator import GraphGeneratorFactory
-from ..io.graph_visualizer import GraphVisualizer
-from .models import Algorithm, LicenseType, Solution
-from .solution_validator import SolutionValidator
+from glopt import algorithms
+from glopt.core.solution_validator import SolutionValidator
+from glopt.io.graph_generator import GraphGeneratorFactory
+from glopt.io.graph_visualizer import GraphVisualizer
+
+if TYPE_CHECKING:
+    from glopt.core.models import Algorithm, LicenseType, Solution
 
 
 @dataclass(frozen=True)
@@ -35,11 +37,11 @@ class RunResult:
 
 def generate_graph(name: str, n_nodes: int, params: dict[str, Any]) -> nx.Graph:
     gen = GraphGeneratorFactory.get(name)
-    G = gen(n_nodes=n_nodes, **params)
-    if not all(isinstance(v, int) for v in G.nodes()):
-        mapping = {v: i for i, v in enumerate(G.nodes())}
-        G = nx.relabel_nodes(G, mapping, copy=True)
-    return G
+    g = gen(n_nodes=n_nodes, **params)
+    if not all(isinstance(v, int) for v in g.nodes()):
+        mapping = {v: i for i, v in enumerate(g.nodes())}
+        g = nx.relabel_nodes(g, mapping, copy=True)
+    return g
 
 
 def instantiate_algorithms(names: list[str]) -> list[Algorithm]:
@@ -53,9 +55,11 @@ def instantiate_algorithms(names: list[str]) -> list[Algorithm]:
             loaded.append(cls())
     if missing:
         avail = ", ".join(getattr(algorithms, "__all__", []))
-        raise ValueError(f"unknown algorithms: {', '.join(missing)}; available: {avail}")
+        msg = f"unknown algorithms: {', '.join(missing)}; available: {avail}"
+        raise ValueError(msg)
     if not loaded:
-        raise ValueError("no algorithms selected")
+        msg = "no algorithms selected"
+        raise ValueError(msg)
     return loaded
 
 
@@ -76,7 +80,6 @@ def run_once(
         elapsed_ms = (perf_counter() - t0) * 1000.0
     except Exception as e:
         algo_name = getattr(algo, "name", algo.__class__.__name__)
-        print(f"[ERROR] solver crashed: {algo_name}: {e}", file=sys.stderr)
         traceback.print_exc(limit=20, file=sys.stderr)
         return RunResult(
             run_id=run_id,
@@ -96,15 +99,14 @@ def run_once(
 
     ok, issues = validator.validate(solution, graph)
     if not ok:
-        print(f"[VALIDATION] {algo.name}: {len(issues)} issue(s):", file=sys.stderr)
         to_show = issues if print_issue_limit is None else issues[:print_issue_limit]
-        for i in to_show:
-            print(f"  - {i.code}: {i.msg}", file=sys.stderr)
+        for _i in to_show:
+            pass
         if print_issue_limit is not None and len(issues) > print_issue_limit:
-            print(f"  ... {len(issues) - print_issue_limit} more", file=sys.stderr)
+            pass
 
     img_name = f"{algo.name}_{graph.number_of_nodes()}n_{graph.number_of_edges()}e.png"
-    img_path = os.path.join(graphs_dir, img_name)
+    img_path = str(Path(graphs_dir) / img_name)
     try:
         visualizer.visualize_solution(
             graph=graph,
@@ -113,8 +115,7 @@ def run_once(
             timestamp_folder=run_id,
             save_path=img_path,
         )
-    except Exception as e:
-        print(f"[WARN] failed to save image for {algo.name}: {e}", file=sys.stderr)
+    except Exception:
         traceback.print_exc(limit=10, file=sys.stderr)
         img_path = ""
 

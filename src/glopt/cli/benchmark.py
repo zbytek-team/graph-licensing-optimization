@@ -1,3 +1,4 @@
+import contextlib
 import multiprocessing as mp
 import os
 import sys
@@ -135,15 +136,14 @@ def solve_with_timeout(
             if ok:
                 algo_name, elapsed_ms, solution = payload
                 return algo_name, float(elapsed_ms), solution
-            raise RuntimeError(f"solver error: {payload}")
+            msg = f"solver error: {payload}"
+            raise RuntimeError(msg)
         p.terminate()
         p.join(1)
         return None
     finally:
-        try:
+        with contextlib.suppress(Exception):
             parent_conn.close()
-        except Exception:
-            pass
         if p.is_alive():
             p.terminate()
         p.join()
@@ -180,35 +180,24 @@ def main() -> None:
 
     missing = [n for n in ALGORITHMS if not hasattr(algorithms, n)]
     if missing:
-        avail = ", ".join(getattr(algorithms, "__all__", []))
-        print(f"[ERROR] unknown algorithms: {', '.join(missing)}; available: {avail}", file=sys.stderr)
+        ", ".join(getattr(algorithms, "__all__", []))
         sys.exit(2)
 
-    step = SIZES[1] - SIZES[0] if len(SIZES) >= 2 else 0
-    print(f"Benchmark run_id={run_id}")
-    print(f"Graphs={GRAPH_NAMES}")
-    print(f"Sizes={SIZES[0]}..{SIZES[-1]} step={step}")
-    print(f"Param overrides={GRAPH_PARAMS_OVERRIDES or '{}'}")
-    print(f"Algorithms={ALGORITHMS}")
-    print(f"Timeout={TIMEOUT_SECONDS}s\n")
+    SIZES[1] - SIZES[0] if len(SIZES) >= 2 else 0
 
     for license_name in LICENSE_CONFIG_NAMES:
         try:
             license_types = LicenseConfigFactory.get_config(license_name)
-        except Exception as e:
-            print(f"[ERROR] license config failed: {license_name}: {e}", file=sys.stderr)
+        except Exception:
             traceback.print_exc(limit=10, file=sys.stderr)
             continue
 
-        print(f"=== LICENSE={license_name} ===")
 
         for algo_name in ALGORITHMS:
-            print(f"-- algo={algo_name} --")
             rows_all_graphs: list[RunResult] = []
             total_timeouts = total_failures = total_successes = 0
 
             for graph_name in GRAPH_NAMES:
-                print(f"[graph={graph_name}]")
                 timeouts = failures = successes = 0
 
                 for n in SIZES:
@@ -220,9 +209,8 @@ def main() -> None:
 
                     try:
                         G = generate_graph(graph_name, n, params)
-                    except Exception as e:
+                    except Exception:
                         failures += 1
-                        print(f"[{license_name}][{algo_name}][{graph_name}] n={n} GEN-ERROR: {e}", file=sys.stderr)
                         rows_all_graphs.append(
                             RunResult(
                                 run_id=run_id,
@@ -244,9 +232,8 @@ def main() -> None:
 
                     try:
                         solved = solve_with_timeout(algo_name, G, license_types, TIMEOUT_SECONDS)
-                    except Exception as e:
+                    except Exception:
                         failures += 1
-                        print(f"[{license_name}][{algo_name}][{graph_name}] n={n} SOLVER-ERROR: {e}", file=sys.stderr)
                         rows_all_graphs.append(
                             RunResult(
                                 run_id=run_id,
@@ -268,9 +255,6 @@ def main() -> None:
 
                     if solved is None:
                         timeouts += 1
-                        print(
-                            f"[{license_name}][{algo_name}][{graph_name}] n={n} TIMEOUT {TIMEOUT_SECONDS}s → stop sizes for this graph"
-                        )
                         rows_all_graphs.append(
                             RunResult(
                                 run_id=run_id,
@@ -294,14 +278,10 @@ def main() -> None:
                     ok, issues = SolutionValidator(debug=False).validate(solution, G)
 
                     if not ok and PRINT_ISSUE_LIMIT is not None:
-                        print(
-                            f"[{license_name}][{algo_name}][{graph_name}] n={n} VALIDATION {len(issues)} issue(s)",
-                            file=sys.stderr,
-                        )
-                        for i in issues[:PRINT_ISSUE_LIMIT]:
-                            print(f"  - {i.code}: {i.msg}", file=sys.stderr)
+                        for _i in issues[:PRINT_ISSUE_LIMIT]:
+                            pass
                         if len(issues) > PRINT_ISSUE_LIMIT:
-                            print(f"  ... {len(issues) - PRINT_ISSUE_LIMIT} more", file=sys.stderr)
+                            pass
 
                     rows_all_graphs.append(
                         RunResult(
@@ -321,27 +301,13 @@ def main() -> None:
                         ),
                     )
                     successes += 1
-                    print(
-                        f"[{license_name}][{algo_name}][{graph_name}] n={n:4d} | edges={G.number_of_edges():6d} | "
-                        f"time={_fmt_ms(elapsed_ms):>10} | "
-                        f"cost={'nan' if solution.total_cost != solution.total_cost else f'{solution.total_cost:.2f}':>10} | "
-                        f"valid={'yes' if ok else 'no'}",
-                    )
 
-                print(
-                    f"[SUMMARY graph] {license_name} {algo_name} on {graph_name}: ok={successes} timeout={timeouts} fail={failures}\n"
-                )
                 total_successes += successes
                 total_timeouts += timeouts
                 total_failures += failures
 
-            out_csv = write_algo_csv(csv_dir, run_id, license_name, algo_name, rows_all_graphs)
-            print(f"[CSV] {out_csv}")
-            print(
-                f"[SUMMARY algo] {license_name} {algo_name}: ok={total_successes} timeout={total_timeouts} fail={total_failures}\n"
-            )
+            write_algo_csv(csv_dir, run_id, license_name, algo_name, rows_all_graphs)
 
-    print("Benchmark done.")
 
 
 if __name__ == "__main__":
