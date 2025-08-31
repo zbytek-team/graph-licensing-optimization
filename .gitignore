@@ -114,3 +114,5 @@ results/
 filtered_results/
 real.csv
 uv.lock
+runs/
+.ruff_cache/
