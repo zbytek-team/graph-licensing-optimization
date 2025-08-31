@@ -18,11 +18,11 @@ DEFAULT_GRAPH_PARAMS: dict[str, dict[str, Any]] = {
     "random": {"p": 0.1, "seed": 42},
     "scale_free": {"m": 2, "seed": 42},
     "small_world": {"k": 4, "p": 0.1, "seed": 42},
-    "complete": {},
-    "star": {},
-    "path": {},
-    "cycle": {},
-    "tree": {"seed": 42},
+    # "complete": {},
+    # "star": {},
+    # "path": {},
+    # "cycle": {},
+    # "tree": {"seed": 42},
 }
 
 
@@ -64,22 +64,13 @@ def _print_table(title: str, headers: list[str], rows: list[list[str]]) -> None:
         padded = [c.ljust(w) for c, w in zip(cols, widths, strict=False)]
         return "| " + " | ".join(padded) + " |"
 
-    for _r in rows:
-        pass
-
-
-def rank_results(results: list[RunResult]) -> list[tuple[int, RunResult, float]]:
-    valid = [r for r in results if r.valid]
-    if not valid:
-        return [(i + 1, r, float("nan")) for i, r in enumerate(results)]
-    ilp = next((r for r in valid if r.algorithm.lower() in {"ilp", "ilpsolver"}), None)
-    best_cost = ilp.total_cost if ilp else min(r.total_cost for r in valid)
-    ranked = sorted(results, key=lambda r: (not r.valid, r.total_cost))
-    out: list[tuple[int, RunResult, float]] = []
-    for idx, r in enumerate(ranked, start=1):
-        gap = float("nan") if not r.valid or best_cost == 0 else (r.total_cost - best_cost) / best_cost * 100.0
-        out.append((idx, r, gap))
-    return out
+    print(title)
+    print(line("+", "+", "+", "-"))
+    print(fmt_row(headers))
+    print(line("+", "+", "+", "-"))
+    for r in rows:
+        print(fmt_row(r))
+    print(line("+", "+", "+", "-"))
 
 
 def main() -> int:

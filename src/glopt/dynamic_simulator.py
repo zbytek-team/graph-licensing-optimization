@@ -268,42 +268,4 @@ class DynamicNetworkSimulator:
                 )
 
 
-class DynamicScenarioFactory:
-    @staticmethod
-    def create_growth_scenario(seed: int | None = None) -> MutationParams:
-        return MutationParams(
-            add_nodes_prob=0.3,
-            remove_nodes_prob=0.05,
-            add_edges_prob=0.4,
-            remove_edges_prob=0.1,
-            max_nodes_add=5,
-            max_nodes_remove=1,
-            max_edges_add=8,
-            max_edges_remove=2,
-        )
-
-    @staticmethod
-    def create_churn_scenario(seed: int | None = None) -> MutationParams:
-        return MutationParams(
-            add_nodes_prob=0.2,
-            remove_nodes_prob=0.25,
-            add_edges_prob=0.2,
-            remove_edges_prob=0.3,
-            max_nodes_add=3,
-            max_nodes_remove=4,
-            max_edges_add=4,
-            max_edges_remove=6,
-        )
-
-    @staticmethod
-    def create_stable_scenario(seed: int | None = None) -> MutationParams:
-        return MutationParams(
-            add_nodes_prob=0.1,
-            remove_nodes_prob=0.05,
-            add_edges_prob=0.15,
-            remove_edges_prob=0.1,
-            max_nodes_add=2,
-            max_nodes_remove=1,
-            max_edges_add=3,
-            max_edges_remove=2,
-        )
+    # DynamicScenarioFactory was unused; removed

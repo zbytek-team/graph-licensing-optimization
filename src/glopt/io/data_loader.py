@@ -87,30 +87,7 @@ class RealWorldDataLoader:
 
         return stats
 
-    def create_combined_facebook_network(self, max_networks: int | None = None) -> nx.Graph:
-        networks = self.load_all_facebook_networks()
-
-        if max_networks:
-            network_items = list(networks.items())
-            network_items.sort(key=lambda x: len(x[1].nodes()), reverse=True)
-            networks = dict(network_items[:max_networks])
-
-        combined_graph = nx.Graph()
-        node_offset = 0
-
-        for graph in networks.values():
-            mapping = {old_id: old_id + node_offset for old_id in graph.nodes()}
-            shifted_graph = nx.relabel_nodes(graph, mapping)
-
-            combined_graph = nx.compose(combined_graph, shifted_graph)
-
-            node_offset += max(graph.nodes()) + 1000
-
-        self.logger.info(
-            f"Utworzono połączony graf Facebook: {len(combined_graph.nodes())} węzłów, {len(combined_graph.edges())} krawędzi"
-        )
-
-        return combined_graph
+    # create_combined_facebook_network was unused; removed to keep loader slim
 
     def _load_node_features(self, graph: nx.Graph, data_dir: Path, ego_id: str) -> None:
         feat_file = data_dir / f"{ego_id}.feat"
@@ -200,14 +177,4 @@ class RealWorldDataLoader:
             "min_circle_size": min((c["size"] for c in circles), default=0),
         }
 
-    def get_suitable_networks_for_testing(self, min_nodes: int = 20, max_nodes: int = 200) -> list[str]:
-        stats = self.get_facebook_network_stats()
-        suitable_networks = []
-
-        for ego_id, stat in stats.items():
-            if min_nodes <= stat["nodes"] <= max_nodes:
-                suitable_networks.append(ego_id)
-
-        suitable_networks.sort(key=lambda x: stats[x]["nodes"])
-
-        return suitable_networks
+    # get_suitable_networks_for_testing was unused; removed
