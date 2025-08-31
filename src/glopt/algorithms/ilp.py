@@ -38,7 +38,12 @@ class ILPSolver(Algorithm):
 
         for j in nodes:
             neighborhood_j: set[Any] = set(graph.neighbors(j)) | {j}
-            model += pulp.lpSum(assign_vars.get((i, j, t_idx), 0) for i in neighborhood_j for t_idx in range(len(license_types))) == 1
+            model += (
+                pulp.lpSum(
+                    assign_vars.get((i, j, t_idx), 0) for i in neighborhood_j for t_idx in range(len(license_types))
+                )
+                == 1
+            )
 
         for i in nodes:
             neighborhood_i = set(graph.neighbors(i)) | {i}

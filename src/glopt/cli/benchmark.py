@@ -268,7 +268,9 @@ def main() -> None:
 
                     if solved is None:
                         timeouts += 1
-                        print(f"[{license_name}][{algo_name}][{graph_name}] n={n} TIMEOUT {TIMEOUT_SECONDS}s → stop sizes for this graph")
+                        print(
+                            f"[{license_name}][{algo_name}][{graph_name}] n={n} TIMEOUT {TIMEOUT_SECONDS}s → stop sizes for this graph"
+                        )
                         rows_all_graphs.append(
                             RunResult(
                                 run_id=run_id,
@@ -292,7 +294,10 @@ def main() -> None:
                     ok, issues = SolutionValidator(debug=False).validate(solution, G)
 
                     if not ok and PRINT_ISSUE_LIMIT is not None:
-                        print(f"[{license_name}][{algo_name}][{graph_name}] n={n} VALIDATION {len(issues)} issue(s)", file=sys.stderr)
+                        print(
+                            f"[{license_name}][{algo_name}][{graph_name}] n={n} VALIDATION {len(issues)} issue(s)",
+                            file=sys.stderr,
+                        )
                         for i in issues[:PRINT_ISSUE_LIMIT]:
                             print(f"  - {i.code}: {i.msg}", file=sys.stderr)
                         if len(issues) > PRINT_ISSUE_LIMIT:
@@ -323,14 +328,18 @@ def main() -> None:
                         f"valid={'yes' if ok else 'no'}",
                     )
 
-                print(f"[SUMMARY graph] {license_name} {algo_name} on {graph_name}: ok={successes} timeout={timeouts} fail={failures}\n")
+                print(
+                    f"[SUMMARY graph] {license_name} {algo_name} on {graph_name}: ok={successes} timeout={timeouts} fail={failures}\n"
+                )
                 total_successes += successes
                 total_timeouts += timeouts
                 total_failures += failures
 
             out_csv = write_algo_csv(csv_dir, run_id, license_name, algo_name, rows_all_graphs)
             print(f"[CSV] {out_csv}")
-            print(f"[SUMMARY algo] {license_name} {algo_name}: ok={total_successes} timeout={total_timeouts} fail={total_failures}\n")
+            print(
+                f"[SUMMARY algo] {license_name} {algo_name}: ok={total_successes} timeout={total_timeouts} fail={total_failures}\n"
+            )
 
     print("Benchmark done.")
 

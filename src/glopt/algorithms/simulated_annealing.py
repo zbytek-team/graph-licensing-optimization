@@ -74,7 +74,13 @@ class SimulatedAnnealing(Algorithm):
         return Solution(groups=tuple(groups))
 
     def _neighbor(self, solution: Solution, graph: nx.Graph, lts: list[LicenseType]) -> Solution | None:
-        moves = [self._mv_change_license, self._mv_move_member, self._mv_swap_members, self._mv_merge_groups, self._mv_split_group]
+        moves = [
+            self._mv_change_license,
+            self._mv_move_member,
+            self._mv_swap_members,
+            self._mv_merge_groups,
+            self._mv_split_group,
+        ]
         for _ in range(12):
             mv = random.choice(moves)
             try:

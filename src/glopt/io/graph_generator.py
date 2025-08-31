@@ -6,7 +6,6 @@ GeneratorFn = Callable[..., nx.Graph]
 
 
 class GraphGeneratorFactory:
-
     _GENERATORS: dict[str, GeneratorFn] = {
         "random": lambda *, n_nodes, **p: GraphGeneratorFactory._random(n_nodes, **p),
         "scale_free": lambda *, n_nodes, **p: GraphGeneratorFactory._scale_free(n_nodes, **p),

@@ -11,7 +11,6 @@ from .core.solution_builder import SolutionBuilder
 
 @dataclass
 class MutationParams:
-
     add_nodes_prob: float = 0.1
     remove_nodes_prob: float = 0.05
     add_edges_prob: float = 0.15
@@ -24,7 +23,6 @@ class MutationParams:
 
 @dataclass
 class DynamicStep:
-
     step_number: int
     graph: nx.Graph
     solution: Solution
@@ -33,8 +31,12 @@ class DynamicStep:
 
 
 class DynamicNetworkSimulator:
-
-    def __init__(self, rebalance_algorithm: Algorithm | None = None, mutation_params: MutationParams | None = None, seed: int | None = None):
+    def __init__(
+        self,
+        rebalance_algorithm: Algorithm | None = None,
+        mutation_params: MutationParams | None = None,
+        seed: int | None = None,
+    ):
         self.rebalance_algorithm = rebalance_algorithm or GreedyAlgorithm()
         self.mutation_params = mutation_params or MutationParams()
         self.seed = seed
@@ -45,7 +47,11 @@ class DynamicNetworkSimulator:
             random.seed(seed)
 
     def simulate(
-        self, initial_graph: nx.Graph, license_types: list[LicenseType], num_steps: int = 10, initial_algorithm: Algorithm | None = None,
+        self,
+        initial_graph: nx.Graph,
+        license_types: list[LicenseType],
+        num_steps: int = 10,
+        initial_algorithm: Algorithm | None = None,
     ) -> list[DynamicStep]:
         self.history.clear()
         current_graph = initial_graph.copy()
@@ -56,7 +62,15 @@ class DynamicNetworkSimulator:
 
         current_solution = initial_algorithm.solve(current_graph, license_types)
 
-        self.history.append(DynamicStep(step_number=0, graph=current_graph.copy(), solution=current_solution, mutations_applied=[], rebalance_cost_change=0.0))
+        self.history.append(
+            DynamicStep(
+                step_number=0,
+                graph=current_graph.copy(),
+                solution=current_solution,
+                mutations_applied=[],
+                rebalance_cost_change=0.0,
+            )
+        )
 
         for step in range(1, num_steps + 1):
             mutations_applied = []
@@ -157,8 +171,9 @@ class DynamicNetworkSimulator:
 
         return edges_to_remove
 
-    def _rebalance_licenses(self, graph: nx.Graph, license_types: list[LicenseType], old_solution: Solution) -> Solution:
-
+    def _rebalance_licenses(
+        self, graph: nx.Graph, license_types: list[LicenseType], old_solution: Solution
+    ) -> Solution:
         existing_nodes = set(graph.nodes())
 
         valid_groups = []
@@ -253,7 +268,6 @@ class DynamicNetworkSimulator:
 
 
 class DynamicScenarioFactory:
-
     @staticmethod
     def create_growth_scenario(seed: int | None = None) -> MutationParams:
         return MutationParams(
