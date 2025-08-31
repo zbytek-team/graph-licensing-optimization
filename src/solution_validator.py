@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Hashable, List, Set, Tuple, TypeVar
 import networkx as nx
-from src.core import Solution, LicenseGroup
+from src import Solution, LicenseGroup
 
 N = TypeVar("N", bound=Hashable)
 

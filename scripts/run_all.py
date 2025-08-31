@@ -18,8 +18,8 @@ from scripts._common import (
     write_csv,
 )
 from src import algorithms
-from src.factories.graph_generator_factory import GraphGeneratorFactory
-from src.factories.license_config_factory import LicenseConfigFactory
+from src.graph_generator import GraphGeneratorFactory
+from src.license_config import LicenseConfigFactory
 
 # ===== CONFIG =====
 
