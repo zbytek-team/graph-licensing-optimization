@@ -13,9 +13,9 @@ import multiprocessing as mp
 from multiprocessing.connection import Connection
 import networkx as nx
 
-from src.factories.license_config_factory import LicenseConfigFactory
-from src.validation.solution_validator import SolutionValidator
-from src.core import Solution, LicenseType, Algorithm
+from src.license_config import LicenseConfigFactory
+from src.solution_validator import SolutionValidator
+from src import Solution, LicenseType, Algorithm
 from scripts._common import (
     RunResult,
     build_paths,

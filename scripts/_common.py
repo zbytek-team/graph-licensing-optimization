@@ -7,10 +7,10 @@ from typing import Any, Dict, Iterable, List, Tuple
 
 import networkx as nx
 
-from src.core import Solution, LicenseType, Algorithm
-from src.factories.graph_generator_factory import GraphGeneratorFactory
-from src.validation.solution_validator import SolutionValidator
-from src.viz.graph_visualizer import GraphVisualizer
+from src import Solution, LicenseType, Algorithm
+from src.graph_generator import GraphGeneratorFactory
+from src.solution_validator import SolutionValidator
+from src.graph_visualizer import GraphVisualizer
 from src import algorithms
 
 
