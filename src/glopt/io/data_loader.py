@@ -76,7 +76,7 @@ class RealWorldDataLoader:
                 "avg_clustering": nx.average_clustering(graph),
                 "is_connected": nx.is_connected(graph),
                 "components": nx.number_connected_components(graph),
-                "avg_degree": sum(dict(graph.degree()).values()) / len(graph.nodes()) if len(graph.nodes()) > 0 else 0,
+                "avg_degree": (sum(dict(graph.degree()).values()) / len(graph.nodes()) if len(graph.nodes()) > 0 else 0),
             }
 
             circles_info = self._get_circles_info(self.data_dir / "facebook", ego_id)
@@ -140,7 +140,13 @@ class RealWorldDataLoader:
                     if len(parts) >= 2:
                         circle_name = parts[0]
                         circle_members = [int(x) for x in parts[1:] if x.isdigit()]
-                        circles.append({"name": circle_name, "members": circle_members, "size": len(circle_members)})
+                        circles.append(
+                            {
+                                "name": circle_name,
+                                "members": circle_members,
+                                "size": len(circle_members),
+                            }
+                        )
 
         for node_id in graph.nodes():
             node_circles = []

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from collections import defaultdict
 from pathlib import Path
-from statistics import mean, stdev, pstdev
+from statistics import mean, pstdev, stdev
 from typing import Any
 
 import matplotlib.pyplot as plt
 
-from .commons import ensure_dir, GENERATE_PDF, group_cost_by_n
+from .commons import GENERATE_PDF, ensure_dir, group_cost_by_n
 
 
 def plot_cost_vs_n(rows: list[dict[str, Any]], title: str, out_path: Path) -> None:
@@ -44,7 +44,7 @@ def plot_time_vs_n(rows: list[dict[str, Any]], title: str, out_path: Path) -> No
     for alg, dn in series_t.items():
         xs = sorted(dn.keys())
         means = [mean(dn[n]) for n in xs]
-        cis = [1.96 * ((pstdev(dn[n]) if len(dn[n]) <= 1 else stdev(dn[n])) / (len(dn[n]) ** 0.5)) if len(dn[n]) > 1 else 0.0 for n in xs]
+        cis = [(1.96 * ((pstdev(dn[n]) if len(dn[n]) <= 1 else stdev(dn[n])) / (len(dn[n]) ** 0.5)) if len(dn[n]) > 1 else 0.0) for n in xs]
         if xs:
             plt.plot(xs, means, marker="o", label=alg)
             lower = [m - ci for m, ci in zip(means, cis)]

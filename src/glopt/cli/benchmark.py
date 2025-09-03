@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+import multiprocessing as mp
+import pickle
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -7,15 +10,12 @@ from time import perf_counter
 from typing import Any
 
 import networkx as nx
-import json
-import pickle
-import multiprocessing as mp
 
+from glopt.algorithms.greedy import GreedyAlgorithm
 from glopt.core import generate_graph, instantiate_algorithms
 from glopt.core.solution_validator import SolutionValidator
 from glopt.io import ensure_dir
 from glopt.license_config import LicenseConfigFactory
-from glopt.algorithms.greedy import GreedyAlgorithm
 
 # ==============================================
 # Simple, tweakable configuration (no CLI/env)
@@ -169,7 +169,12 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         deadline = perf_counter() + (TIMEOUT_SECONDS * 0.98)
         kwargs: dict[str, Any] = {"seed": seed, "deadline": deadline}
         # Warm-start metaheuristics with greedy
-        warm_names = {"GeneticAlgorithm", "SimulatedAnnealing", "TabuSearch", "AntColonyOptimization"}
+        warm_names = {
+            "GeneticAlgorithm",
+            "SimulatedAnnealing",
+            "TabuSearch",
+            "AntColonyOptimization",
+        }
         if algo_name in warm_names:
             greedy_sol = GreedyAlgorithm().solve(graph, lts)
             kwargs["initial_solution"] = greedy_sol
@@ -198,7 +203,7 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         lic_counts = Counter(g.license_type.name for g in sol.groups)
         # Serialize algo params (including ILP diagnostics if exposed)
         try:
-            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v, (int, float, str, bool))})
+            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v | (int, float, str, bool))})
         except Exception:
             params_json = "{}"
         res = {
@@ -260,7 +265,7 @@ def _run_one(
         else:
             res = {
                 "total_cost": float("nan"),
-                "time_ms": float(0.0),
+                "time_ms": 0.0,
                 "valid": False,
                 "issues": 0,
                 "groups": 0,
@@ -335,7 +340,7 @@ def main() -> None:
                         density = (2.0 * n_edges) / (n_nodes * (n_nodes - 1)) if n_nodes > 1 else 0.0
                         avg_deg = (2.0 * n_edges) / n_nodes if n_nodes > 0 else 0.0
                         # Avoid expensive clustering for very large graphs
-                        clustering = nx.average_clustering(G) if (n_nodes > 1 and n_nodes <= 1500) else float('nan')
+                        clustering = nx.average_clustering(G) if (n_nodes > 1 and n_nodes <= 1500) else float("nan")
                         components = nx.number_connected_components(G)
 
                         over_here = False
@@ -367,9 +372,7 @@ def main() -> None:
                                 status = "TIMEOUT"
                             elif row.get("notes") == "error":
                                 status = "ERROR"
-                            print(
-                                f"   {gname:12s} n={n:4d} s={s_idx} rep={rep} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}"
-                            )
+                            print(f"   {gname:12s} n={n:4d} s={s_idx} rep={rep} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}")
                             if is_over:
                                 over_here = True
                         if over_here:

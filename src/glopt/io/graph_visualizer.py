@@ -114,12 +114,22 @@ class GraphVisualizer:
         return colors, sizes
 
     def _get_edge_colors(self, graph: nx.Graph, node_to_group: dict[Any, Any]) -> list[str]:
+        """Color only owner–member edges within the same group.
+
+        Edges connecting two members (neither endpoint is the owner) remain default color.
+        """
         colors: list[str] = []
         for u, v in graph.edges():
-            g1 = node_to_group.get(u)
-            g2 = node_to_group.get(v)
-            if g1 is not None and g1 == g2:
-                colors.append(g1.license_type.color)
+            g_u = node_to_group.get(u)
+            g_v = node_to_group.get(v)
+
+            if g_u is None or g_v is None or g_u != g_v:
+                colors.append(self.default_edge_color)
+                continue
+
+            g = g_u
+            if (u == g.owner and v != g.owner and v in g.all_members) or (v == g.owner and u != g.owner and u in g.all_members):
+                colors.append(g.license_type.color)
             else:
                 colors.append(self.default_edge_color)
         return colors
@@ -128,7 +138,18 @@ class GraphVisualizer:
         license_types = sorted({g.license_type for g in solution.groups}, key=lambda lt: lt.name)
         if not license_types:
             return
-        elems = [plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=lt.color, markersize=10, label=lt.name) for lt in license_types]
+        elems = [
+            plt.Line2D(
+                [0],
+                [0],
+                marker="o",
+                color="w",
+                markerfacecolor=lt.color,
+                markersize=10,
+                label=lt.name,
+            )
+            for lt in license_types
+        ]
         elems.append(plt.Line2D([0], [0], color=self.default_edge_color, linewidth=2, label="Other Edges"))
         ax.legend(handles=elems, loc="upper right", bbox_to_anchor=(0.98, 0.98))
 

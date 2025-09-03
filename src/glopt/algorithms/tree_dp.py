@@ -27,7 +27,10 @@ class TreeDynamicProgramming(Algorithm):
 
         if len(graph.nodes()) == 1:
             node = next(iter(graph.nodes()))
-            cheapest = min(license_types, key=lambda lt: lt.cost if lt.min_capacity <= 1 <= lt.max_capacity else float("inf"))
+            cheapest = min(
+                license_types,
+                key=lambda lt: lt.cost if lt.min_capacity <= 1 <= lt.max_capacity else float("inf"),
+            )
             group = LicenseGroup(cheapest, node, frozenset())
             return SolutionBuilder.create_solution_from_groups([group])
 

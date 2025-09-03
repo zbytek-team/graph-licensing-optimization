@@ -22,6 +22,7 @@ class TabuSearch(Algorithm):
         **kwargs: Any,
     ) -> Solution:
         import random
+
         seed = kwargs.get("seed")
         if isinstance(seed, int):
             random.seed(seed)
@@ -45,6 +46,7 @@ class TabuSearch(Algorithm):
         tabu.append(self._hash(current))
 
         from time import perf_counter as _pc
+
         for _ in range(max_iterations):
             if deadline is not None and _pc() >= float(deadline):
                 break

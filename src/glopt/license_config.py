@@ -5,23 +5,25 @@ from .core import LicenseType
 
 
 class LicenseConfigFactory:
-    PURPLE = "#542f82"
-    GOLD = "#cb8a35"
-    GREEN = "#5d9f49"
+    # Dark, high-contrast palette mapped by license type
+    # Individual = Red, Family = Blue, Duo = Green
+    RED = "#B91C1C"  # Individual
+    BLUE = "#1E3A8A"  # Family
+    GREEN = "#065F46"  # Duo
 
     _CONFIGS: ClassVar[dict[str, Callable[[], list[LicenseType]]]] = {
         "duolingo_super": lambda: [
-            LicenseType("Individual", 13.99, 1, 1, LicenseConfigFactory.PURPLE),
-            LicenseType("Family", 29.17, 2, 6, LicenseConfigFactory.GOLD),
+            LicenseType("Individual", 13.99, 1, 1, LicenseConfigFactory.RED),
+            LicenseType("Family", 29.17, 2, 6, LicenseConfigFactory.BLUE),
         ],
         "spotify": lambda: [
-            LicenseType("Individual", 23.99, 1, 1, LicenseConfigFactory.PURPLE),
+            LicenseType("Individual", 23.99, 1, 1, LicenseConfigFactory.RED),
             LicenseType("Duo", 30.99, 2, 2, LicenseConfigFactory.GREEN),
-            LicenseType("Family", 37.99, 2, 6, LicenseConfigFactory.GOLD),
+            LicenseType("Family", 37.99, 2, 6, LicenseConfigFactory.BLUE),
         ],
         "roman_domination": lambda: [
-            LicenseType("Solo", 1.0, 1, 1, LicenseConfigFactory.PURPLE),
-            LicenseType("Group", 2.0, 2, 99999, LicenseConfigFactory.GOLD),
+            LicenseType("Solo", 1.0, 1, 1, LicenseConfigFactory.BLUE),
+            LicenseType("Group", 2.0, 2, 99999, LicenseConfigFactory.RED),
         ],
     }
 
@@ -35,12 +37,10 @@ class LicenseConfigFactory:
                 p_val = float(p_str)
             except Exception:
                 available = ", ".join(cls._CONFIGS.keys())
-                raise ValueError(
-                    f"Invalid roman price '{name}'. Available: {available} or roman_p_<x_y>/roman_p:<x.y>"
-                )
+                raise ValueError(f"Invalid roman price '{name}'. Available: {available} or roman_p_<x_y>/roman_p:<x.y>")
             return [
-                LicenseType("Solo", 1.0, 1, 1, cls.PURPLE),
-                LicenseType("Group", p_val, 2, 99999, cls.GOLD),
+                LicenseType("Solo", 1.0, 1, 1, cls.BLUE),
+                LicenseType("Group", p_val, 2, 99999, cls.RED),
             ]
         try:
             return cls._CONFIGS[name]()
