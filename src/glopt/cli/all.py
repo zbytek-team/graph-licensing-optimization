@@ -19,7 +19,7 @@ ALGORITHMS: list[str] = list(algorithms.__all__)
 
 
 def main() -> int:
-    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S") + "_all"
     _, graphs_dir_root, csv_dir = build_paths(run_id)
 
     print("== glopt all ==")

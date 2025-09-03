@@ -1,26 +1,51 @@
-.PHONY: test all benchmark dynamic custom format lint install
+.PHONY: install test lint format clean \
+	benchmark benchmark_real dynamic dynamic_real analyze \
+	all
 
-test:
-	PYTHONPATH=src uv run --with pytest pytest -vv -q
+# ------------------------------------------------------------
+# Environment
+# ------------------------------------------------------------
+PYTHON := python3
+PYPATH := PYTHONPATH=src
 
-
-all:
-	PYTHONPATH=src uv run -m glopt.cli.all
-
-benchmark:
-	PYTHONPATH=src uv run -m glopt.cli.benchmark
-
-dynamic:
-	PYTHONPATH=src uv run -m glopt.cli.dynamic
-
-custom:
-	PYTHONPATH=src uv run -m glopt.cli.custom
-
-format:
-	uv run --with black black --line-length 160 src tests
-
-lint:
-	uv run --with ruff ruff check --fix src tests
-
+# ------------------------------------------------------------
+# Setup & QA
+# ------------------------------------------------------------
 install:
 	uv sync
+
+test:
+	$(PYPATH) uv run --with pytest pytest -q -vv
+
+lint:
+	uv run --with ruff ruff check --fix src scripts
+
+format:
+	uv run --with black black --line-length 160 src scripts
+
+clean:
+	rm -rf .pytest_cache .ruff_cache .venv __pycache__
+
+# ------------------------------------------------------------
+# Benchmarks
+# ------------------------------------------------------------
+benchmark:
+	$(PYPATH) uv run -m glopt.cli.benchmark
+
+benchmark_real:
+	$(PYPATH) uv run -m glopt.cli.benchmark_real
+
+dynamic:
+	$(PYPATH) uv run -m glopt.cli.dynamic
+
+dynamic_real:
+	$(PYPATH) uv run -m glopt.cli.dynamic_real
+
+# ------------------------------------------------------------
+# Analysis
+# ------------------------------------------------------------
+analyze:
+	$(PYTHON) scripts/analysis/main.py
+
+# Convenience
+all: install lint test benchmark analyze

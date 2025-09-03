@@ -31,8 +31,21 @@ class SimulatedAnnealing(Algorithm):
         self.max_stall = max_stall
         self.validator = SolutionValidator(debug=False)
 
-    def solve(self, graph: nx.Graph, license_types: list[LicenseType], **_: Any) -> Solution:
-        current = GreedyAlgorithm().solve(graph, license_types)
+    def solve(self, graph: nx.Graph, license_types: list[LicenseType], **kwargs: Any) -> Solution:
+        # Optional controls
+        seed = kwargs.get("seed")
+        if isinstance(seed, int):
+            random.seed(seed)
+        deadline = kwargs.get("deadline")
+        initial: Solution | None = kwargs.get("initial_solution")
+        max_iterations = int(kwargs.get("max_iterations", self.max_iterations))
+        max_stall = int(kwargs.get("max_stall", self.max_stall))
+
+        # Warm start if available and valid; otherwise greedy baseline
+        if initial is not None and self.validator.is_valid_solution(initial, graph):
+            current = initial
+        else:
+            current = GreedyAlgorithm().solve(graph, license_types)
         ok, _ = self.validator.validate(current, graph)
         if not ok:
             current = self._fallback_singletons(graph, license_types)
@@ -41,7 +54,10 @@ class SimulatedAnnealing(Algorithm):
         temperature = self.initial_temperature
         stall = 0
 
-        for _ in range(self.max_iterations):
+        from time import perf_counter as _pc
+        for _ in range(max_iterations):
+            if deadline is not None and _pc() >= float(deadline):
+                break
             if self.min_temperature > temperature:
                 break
 
@@ -60,7 +76,7 @@ class SimulatedAnnealing(Algorithm):
                 else:
                     stall += 1
 
-            if stall >= self.max_stall:
+            if stall >= max_stall:
                 stall = 0
                 temperature = max(self.min_temperature, temperature * 0.5)
 

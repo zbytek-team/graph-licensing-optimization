@@ -38,6 +38,10 @@ class ILPSolver(Algorithm):
 
         model += pulp.lpSum(active_vars[i, t_idx] * lt.cost for i in nodes for t_idx, lt in enumerate(license_types))
 
+        # Each owner can activate at most one license type
+        for i in nodes:
+            model += pulp.lpSum(active_vars[i, t_idx] for t_idx in range(len(license_types))) <= 1
+
         for j in nodes:
             neighborhood_j: set[Any] = set(graph.neighbors(j)) | {j}
             model += pulp.lpSum(assign_vars.get((i, j, t_idx), 0) for i in neighborhood_j for t_idx in range(len(license_types))) == 1
@@ -46,6 +50,7 @@ class ILPSolver(Algorithm):
             neighborhood_i = set(graph.neighbors(i)) | {i}
             for t_idx, lt in enumerate(license_types):
                 group_size = pulp.lpSum(assign_vars.get((i, j, t_idx), 0) for j in neighborhood_i)
+                # Capacity bounds bind only when the group is active
                 model += group_size <= active_vars[i, t_idx] * lt.max_capacity
                 model += group_size >= active_vars[i, t_idx] * lt.min_capacity
 
