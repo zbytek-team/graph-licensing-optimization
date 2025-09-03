@@ -143,8 +143,8 @@ class DominatingSetAlgorithm(Algorithm):
             return group_members
 
         candidates = list(available_nodes - {owner})
-
-        candidates.sort(key=lambda _: len(available_nodes), reverse=True)
+        # Prefer high-degree neighbors to maximize coverage per group
+        candidates.sort(key=lambda n: graph.degree(n), reverse=True)
 
         group_members.update(candidates[:remaining_slots])
 

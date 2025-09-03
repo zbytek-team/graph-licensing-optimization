@@ -21,7 +21,7 @@ lint:
 	uv run --with ruff ruff check --fix src scripts
 
 format:
-	uv run --with black black --line-length 160 src scripts
+	uv run --with black black src scripts
 
 clean:
 	rm -rf .pytest_cache .ruff_cache .venv __pycache__
