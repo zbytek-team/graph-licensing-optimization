@@ -15,6 +15,7 @@ from glopt.core import generate_graph, instantiate_algorithms
 from glopt.core.solution_validator import SolutionValidator
 from glopt.io import ensure_dir
 from glopt.license_config import LicenseConfigFactory
+from glopt.algorithms.greedy import GreedyAlgorithm
 
 # ==============================================
 # Simple, tweakable configuration (no CLI/env)
@@ -164,8 +165,19 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
         lts = LicenseConfigFactory.get_config(license_config)
+        # Soft deadline for graceful stop inside algorithms
+        deadline = perf_counter() + (TIMEOUT_SECONDS * 0.98)
+        kwargs: dict[str, Any] = {"seed": seed, "deadline": deadline}
+        # Warm-start metaheuristics with greedy
+        warm_names = {"GeneticAlgorithm", "SimulatedAnnealing", "TabuSearch", "AntColonyOptimization"}
+        if algo_name in warm_names:
+            greedy_sol = GreedyAlgorithm().solve(graph, lts)
+            kwargs["initial_solution"] = greedy_sol
+        # ILP time limit
+        if algo_name == "ILPSolver":
+            kwargs["time_limit"] = int(max(1, TIMEOUT_SECONDS - 1))
         t0 = perf_counter()
-        sol = algo.solve(graph, lts, seed=seed)
+        sol = algo.solve(graph, lts, **kwargs)
         elapsed_ms = (perf_counter() - t0) * 1000.0
 
         ok, issues = validator.validate(sol, graph)
@@ -184,6 +196,11 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
             median_sz = 0.0
             p90 = 0.0
         lic_counts = Counter(g.license_type.name for g in sol.groups)
+        # Serialize algo params (including ILP diagnostics if exposed)
+        try:
+            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v, (int, float, str, bool))})
+        except Exception:
+            params_json = "{}"
         res = {
             "success": True,
             "total_cost": float(sol.total_cost),
@@ -196,6 +213,8 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
             "group_size_p90": float(p90),
             "license_counts_json": _json_dumps(lic_counts),
             "cost_per_node": float(sol.total_cost) / max(1, graph.number_of_nodes()),
+            "algo_params_json": params_json,
+            "warm_start": bool(algo_name in warm_names),
         }
     except Exception as e:  # defensive: return error to parent instead of crashing worker
         res = {"success": False, "error": str(e)}
@@ -233,6 +252,8 @@ def _run_one(
                 "group_size_median": float(msg.get("group_size_median", 0.0)),
                 "group_size_p90": float(msg.get("group_size_p90", 0.0)),
                 "license_counts_json": str(msg.get("license_counts_json", "{}")),
+                "algo_params_json": str(msg.get("algo_params_json", "{}")),
+                "warm_start": bool(msg.get("warm_start", False)),
                 "cost_per_node": float(msg.get("cost_per_node", 0.0)),
                 "notes": "",
             }
@@ -313,7 +334,8 @@ def main() -> None:
                         n_edges = G.number_of_edges()
                         density = (2.0 * n_edges) / (n_nodes * (n_nodes - 1)) if n_nodes > 1 else 0.0
                         avg_deg = (2.0 * n_edges) / n_nodes if n_nodes > 0 else 0.0
-                        clustering = nx.average_clustering(G) if n_nodes > 1 else 0.0
+                        # Avoid expensive clustering for very large graphs
+                        clustering = nx.average_clustering(G) if (n_nodes > 1 and n_nodes <= 1500) else float('nan')
                         components = nx.number_connected_components(G)
 
                         over_here = False

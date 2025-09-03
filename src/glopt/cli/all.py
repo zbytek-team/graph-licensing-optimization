@@ -15,7 +15,17 @@ DEFAULT_GRAPH_PARAMS: dict[str, dict[str, Any]] = {
     "small_world": {"k": 4, "p": 0.1, "seed": 42},
 }
 LICENSE_CONFIGS: list[str] = ["spotify", "duolingo_super", "roman_domination"]
-ALGORITHMS: list[str] = list(algorithms.__all__)
+# Use only generally applicable algorithms here (avoid Naive/TreeDP on general graphs)
+ALGORITHMS: list[str] = [
+    "ILPSolver",
+    "GreedyAlgorithm",
+    "RandomizedAlgorithm",
+    "DominatingSetAlgorithm",
+    "AntColonyOptimization",
+    "SimulatedAnnealing",
+    "TabuSearch",
+    "GeneticAlgorithm",
+]
 
 
 def main() -> int:
@@ -40,26 +50,29 @@ def main() -> int:
             print(f"-> {graph_name} {lic_name}")
 
             for algo_name in ALGORITHMS:
-                algo = instantiate_algorithms([algo_name])[0]
-                print(f"   running {algo.name}...")
-                r = run_once(
-                    algo=algo,
-                    graph=graph,
-                    license_types=license_types,
-                    run_id=run_id,
-                    graphs_dir=g_dir,
-                    print_issue_limit=10,
-                )
-                print(f"     cost={r.total_cost:.2f} time_ms={r.time_ms:.2f} valid={r.valid} issues={r.issues}")
-                r = RunResult(
-                    **{
-                        **r.__dict__,
-                        "graph": graph_name,
-                        "graph_params": str(params),
-                        "license_config": lic_name,
-                    },
-                )
-                results.append(r)
+                try:
+                    algo = instantiate_algorithms([algo_name])[0]
+                    print(f"   running {algo.name}...")
+                    r = run_once(
+                        algo=algo,
+                        graph=graph,
+                        license_types=license_types,
+                        run_id=run_id,
+                        graphs_dir=g_dir,
+                        print_issue_limit=10,
+                    )
+                    print(f"     cost={r.total_cost:.2f} time_ms={r.time_ms:.2f} valid={r.valid} issues={r.issues}")
+                    r = RunResult(
+                        **{
+                            **r.__dict__,
+                            "graph": graph_name,
+                            "graph_params": str(params),
+                            "license_config": lic_name,
+                        },
+                    )
+                    results.append(r)
+                except Exception as e:
+                    print(f"     skipped {algo_name}: {e}")
 
     csv_path = write_csv(csv_dir, run_id, results)
     print("== summary ==")

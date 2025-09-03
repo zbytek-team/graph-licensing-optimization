@@ -17,6 +17,16 @@ def plot_pareto(rows: list[dict[str, Any]], title: str, out_path: Path) -> None:
         except Exception:  # robust parsing
             continue
         pts.append((t, c, alg, d))
+    # Deduplicate identical (time, cost, algorithm) points to reduce O(n^2) effort
+    seen = set()
+    uniq = []
+    for t, c, alg, d in pts:
+        key = (round(t, 6), round(c, 6), alg)
+        if key in seen:
+            continue
+        seen.add(key)
+        uniq.append((t, c, alg, d))
+    pts = uniq
     pareto = []
     for i, (ti, ci, *_ ) in enumerate(pts):
         dominated = False

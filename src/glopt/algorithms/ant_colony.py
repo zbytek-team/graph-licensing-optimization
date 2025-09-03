@@ -90,29 +90,18 @@ class AntColonyOptimization(Algorithm):
 
             pool = (set(graph.neighbors(owner)) | {owner}) & uncovered
             if len(pool) < lt.min_capacity:
-                # Try to place a feasible group anyway. Prefer singles if available; otherwise, pick
-                # the cheapest compatible license for the available pool size.
-                if lt.min_capacity == 1:
-                    groups.append(LicenseGroup(lt, owner, frozenset()))
+                # Not enough neighbors for this license. Prefer singles; otherwise, use cheapest single-like fallback.
+                singles = [x for x in lts if x.min_capacity <= 1 <= x.max_capacity]
+                if singles:
+                    lt1 = min(singles, key=lambda x: x.cost)
+                    groups.append(LicenseGroup(lt1, owner, frozenset()))
                     uncovered.remove(owner)
                 else:
-                    feas = [x for x in lts if x.min_capacity <= len(pool) <= x.max_capacity]
-                    if not feas:
-                        # Explicitly try singles if license set supports them.
-                        singles = [x for x in lts if x.min_capacity <= 1 <= x.max_capacity]
-                        if singles:
-                            lt1 = min(singles, key=lambda x: x.cost)
-                            groups.append(LicenseGroup(lt1, owner, frozenset()))
-                            uncovered.remove(owner)
-                        else:
-                            # No feasible assignment for this owner with current license set; skip covering here.
-                            uncovered.remove(owner)
-                    else:
-                        lt2 = min(feas, key=lambda x: x.cost)
-                        add_need = max(0, lt2.min_capacity - 1)
-                        add = sorted((pool - {owner}), key=lambda n: graph.degree(n), reverse=True)[:add_need]
-                        groups.append(LicenseGroup(lt2, owner, frozenset(add)))
-                        uncovered -= {owner} | set(add)
+                    # Fallback: use the globally cheapest license and place owner alone; validator may later reject,
+                    # but we guarantee progress (and final safety check will repair via fallback).
+                    lt1 = min(lts, key=lambda x: x.cost)
+                    groups.append(LicenseGroup(lt1, owner, frozenset()))
+                    uncovered.remove(owner)
                 continue
 
             k = max(0, lt.max_capacity - 1)

@@ -13,6 +13,7 @@ from glopt.core.solution_validator import SolutionValidator
 from glopt.io import ensure_dir
 from glopt.license_config import LicenseConfigFactory
 from glopt.io.data_loader import RealWorldDataLoader
+from glopt.algorithms.greedy import GreedyAlgorithm
 
 # Configuration
 RUN_ID: str | None = None
@@ -47,8 +48,17 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
         lts = LicenseConfigFactory.get_config(license_config)
+        deadline = perf_counter() + (TIMEOUT_SECONDS * 0.98)
+        kwargs: dict[str, Any] = {"seed": seed, "deadline": deadline}
+        # Warm-start for metaheuristics
+        warm_names = {"GeneticAlgorithm", "SimulatedAnnealing", "TabuSearch", "AntColonyOptimization"}
+        if algo_name in warm_names:
+            greedy_sol = GreedyAlgorithm().solve(graph, lts)
+            kwargs["initial_solution"] = greedy_sol
+        if algo_name == "ILPSolver":
+            kwargs["time_limit"] = int(max(1, TIMEOUT_SECONDS - 1))
         t0 = perf_counter()
-        sol = algo.solve(graph, lts, seed=seed)
+        sol = algo.solve(graph, lts, **kwargs)
         elapsed_ms = (perf_counter() - t0) * 1000.0
 
         ok, issues = validator.validate(sol, graph)
@@ -57,6 +67,11 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         mean_sz = (sum(sizes) / groups) if groups else 0.0
         med_sz = float(sorted(sizes)[groups // 2]) if groups else 0.0
         p90 = float(sorted(sizes)[min(groups - 1, int(0.9 * (groups - 1)))]) if groups else 0.0
+        # Algo params
+        try:
+            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v, (int, float, str, bool))})
+        except Exception:
+            params_json = "{}"
         res = {
             "success": True,
             "total_cost": float(sol.total_cost),
@@ -68,6 +83,8 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
             "group_size_median": float(med_sz),
             "group_size_p90": float(p90),
             "cost_per_node": float(sol.total_cost) / max(1, graph.number_of_nodes()),
+            "algo_params_json": params_json,
+            "warm_start": bool(algo_name in warm_names),
         }
     except Exception as e:  # defensive: return error to parent instead of crashing worker
         res = {"success": False, "error": str(e)}
@@ -152,6 +169,8 @@ def main() -> None:
                 "total_cost",
                 "cost_per_node",
                 "time_ms",
+                "algo_params_json",
+                "warm_start",
                 "valid",
                 "issues",
                 "groups",
@@ -169,7 +188,7 @@ def main() -> None:
             n_edges = G.number_of_edges()
             density = (2.0 * n_edges) / (n_nodes * (n_nodes - 1)) if n_nodes > 1 else 0.0
             avg_deg = (2.0 * n_edges) / n_nodes if n_nodes > 0 else 0.0
-            clustering = nx.average_clustering(G) if n_nodes > 1 else 0.0
+            clustering = nx.average_clustering(G) if (n_nodes > 1 and n_nodes <= 1500) else float('nan')
             components = nx.number_connected_components(G)
 
             for lic in LICENSE_CONFIG_NAMES:

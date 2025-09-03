@@ -63,9 +63,14 @@ class ILPSolver(Algorithm):
         solver = pulp.PULP_CBC_CMD(msg=0, timeLimit=time_limit) if time_limit else pulp.PULP_CBC_CMD(msg=0)
         model.solve(solver)
 
-        if model.status != pulp.LpStatusOptimal:
-            msg = f"ilp solver failed with status {pulp.LpStatus[model.status]}"
-            raise RuntimeError(msg)
+        # Expose diagnostics for logging
+        try:
+            # Save as instance attributes for external logging
+            self.last_status = pulp.LpStatus[model.status]
+            self.last_objective = float(pulp.value(model.objective)) if model.objective is not None else float("nan")
+        except Exception:
+            self.last_status = "UNKNOWN"
+            self.last_objective = float("nan")
 
         groups: list[LicenseGroup] = []
         for i in nodes:
