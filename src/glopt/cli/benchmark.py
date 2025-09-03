@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections import Counter
 from datetime import datetime
-import argparse
 from pathlib import Path
 from time import perf_counter
 from typing import Any
@@ -295,18 +294,6 @@ def _run_one(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="GLOPT benchmark (synthetic graphs)")
-    parser.add_argument("--timeout", type=float, default=TIMEOUT_SECONDS, help="per-run timeout seconds")
-    parser.add_argument("--workers", type=int, default=0, help="parallel workers (0=no pool)")
-    parser.add_argument("--samples", type=int, default=SAMPLES_PER_SIZE, help="samples per (graph,n)")
-    parser.add_argument("--repeats", type=int, default=REPEATS_PER_GRAPH, help="repeats per graph")
-    args = parser.parse_args()
-
-    timeout = float(args.timeout)
-    workers = int(args.workers)
-    samples = int(args.samples)
-    repeats = int(args.repeats)
-
     run_id = (RUN_ID or datetime.now().strftime("%Y%m%d_%H%M%S")) + "_benchmark"
     base = Path("runs") / run_id
     csv_dir = base / "csv"
@@ -317,10 +304,10 @@ def main() -> None:
     print(f"run_id: {run_id}")
     print(f"graphs: {', '.join(GRAPH_NAMES)}")
     print(f"sizes: {SIZES[0]}..{SIZES[-1]} ({len(SIZES)} points)")
-    print(f"samples/size: {samples} repeats/graph: {repeats}")
+    print(f"samples/size: {SAMPLES_PER_SIZE} repeats/graph: {REPEATS_PER_GRAPH}")
     print(f"licenses: {', '.join(LICENSE_CONFIG_NAMES)}")
     print(f"algorithms: {', '.join(ALGORITHM_CLASSES)}")
-    print(f"timeout limit: {timeout:.0f}s (soft deadline + kill fallback in single-run mode)")
+    print(f"timeout limit: {TIMEOUT_SECONDS:.0f}s (kills run and stops larger sizes)")
     print("warming up graph cache …")
     _ensure_cache_for_all()
 
@@ -338,7 +325,7 @@ def main() -> None:
                         break
 
                     # Load graph instances from cache
-                    for s_idx in range(samples):
+                    for s_idx in range(SAMPLES_PER_SIZE):
                         G, params = _load_cached_graph(gname, n, s_idx)
                         graph_seed = int(params.get("seed", 0) or 0)
 
@@ -352,86 +339,7 @@ def main() -> None:
                         components = nx.number_connected_components(G)
 
                         over_here = False
-                        # Optional: simple pool using soft deadlines (no hard kill)
-                        if workers > 0:
-                            import multiprocessing as _mp
-                            from functools import partial as _partial
-                            def _pool_solve(rep: int) -> dict[str, object]:
-                                algo_seed = 12345 + s_idx * 1000 + rep
-                                # mimic _run_one without nested process; soft deadline & time_limit
-                                validator = SolutionValidator(debug=False)
-                                algo = instantiate_algorithms([algo_name])[0]
-                                lts = LicenseConfigFactory.get_config(lic_name)
-                                deadline = perf_counter() + (timeout * 0.98)
-                                kwargs: dict[str, Any] = {"seed": algo_seed, "deadline": deadline}
-                                warm_names = {"GeneticAlgorithm", "SimulatedAnnealing", "TabuSearch", "AntColonyOptimization"}
-                                if algo_name in warm_names:
-                                    kwargs["initial_solution"] = GreedyAlgorithm().solve(G, lts)
-                                if algo_name == "ILPSolver":
-                                    kwargs["time_limit"] = int(max(1, timeout - 1))
-                                t0 = perf_counter()
-                                sol = algo.solve(G, lts, **kwargs)
-                                elapsed = (perf_counter() - t0) * 1000.0
-                                ok, issues = validator.validate(sol, G)
-                                sizes = [g.size for g in sol.groups]
-                                sizes_sorted = sorted(sizes)
-                                groups = len(sizes)
-                                mean_sz = (sum(sizes) / groups) if groups else 0.0
-                                if groups:
-                                    mid = groups // 2
-                                    med = float(sizes_sorted[mid]) if groups % 2 == 1 else (sizes_sorted[mid - 1] + sizes_sorted[mid]) / 2.0
-                                    p90v = float(sizes_sorted[min(groups - 1, int(0.9 * (groups - 1)))])
-                                else:
-                                    med = 0.0 ; p90v = 0.0
-                                return {
-                                    "total_cost": float(sol.total_cost),
-                                    "time_ms": float(elapsed),
-                                    "valid": bool(ok),
-                                    "issues": int(len(issues)),
-                                    "groups": int(groups),
-                                    "group_size_mean": float(mean_sz),
-                                    "group_size_median": float(med),
-                                    "group_size_p90": float(p90v),
-                                    "warm_start": bool(algo_name in {"GeneticAlgorithm","SimulatedAnnealing","TabuSearch","AntColonyOptimization"}),
-                                    "algo_params_json": _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v,(int,float,str,bool))}),
-                                }
-                            with _mp.Pool(processes=workers) as pool:
-                                results = list(pool.imap_unordered(_pool_solve, range(repeats)))
-                            # consume results
-                            for rep, out in enumerate(results):
-                                row = {
-                                    "run_id": run_id,
-                                    "algorithm": algo_name,
-                                    "graph": gname,
-                                    "n_nodes": n_nodes,
-                                    "n_edges": n_edges,
-                                    "graph_params": str(params),
-                                    "license_config": lic_name,
-                                    "rep": rep,
-                                    "seed": 12345 + s_idx * 1000 + rep,
-                                    "sample": s_idx,
-                                    "graph_seed": int(graph_seed),
-                                    "density": float(density),
-                                    "avg_degree": float(avg_deg),
-                                    "clustering": float(clustering),
-                                    "components": int(components),
-                                    "image_path": "",
-                                    **out,
-                                }
-                                _write_row(out_path, row)
-                                status = "OK"
-                                if row.get("time_ms", 0.0) > timeout * 1000.0:
-                                    status = ">timeout"
-                                    over_here = True
-                                print(f"   {gname:12s} n={n:4d} s={row['sample']} rep={row['rep']} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}")
-                            if over_here:
-                                print(f"   {gname:12s} n={n:4d} timeout — stopping {algo_name} for this graph; next graph from smallest n")
-                                stop_sizes = True
-                                break
-                            continue
-
-                        # Single-process (with hard kill) fallback
-                        for rep in range(repeats):
+                        for rep in range(REPEATS_PER_GRAPH):
                             algo_seed = 12345 + s_idx * 1000 + rep
                             result, is_over = _run_one(algo_name, G, lic_name, algo_seed)
                             row = {
