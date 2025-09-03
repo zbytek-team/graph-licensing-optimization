@@ -28,7 +28,7 @@ ALGORITHMS: list[str] = [
 
 
 def main() -> None:
-    run_id = RUN_ID or datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_id = (RUN_ID or datetime.now().strftime("%Y%m%d_%H%M%S")) + "_custom"
     _, graphs_dir, csv_dir = build_paths(run_id)
 
     # Print header config
