@@ -59,6 +59,7 @@ class AntColonyOptimization(Algorithm):
         self._deposit(pher, best)
 
         from time import perf_counter as _pc
+
         for _ in range(max_iter):
             if deadline is not None and _pc() >= float(deadline):
                 break
@@ -80,7 +81,13 @@ class AntColonyOptimization(Algorithm):
             return self._fallback_singletons(graph, license_types)
         return best
 
-    def _construct(self, graph: nx.Graph, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> Solution:
+    def _construct(
+        self,
+        graph: nx.Graph,
+        lts: list[LicenseType],
+        pher: dict[PKey, float],
+        heur: dict[PKey, float],
+    ) -> Solution:
         uncovered: set[Any] = set(graph.nodes())
         groups: list[LicenseGroup] = []
         while uncovered:
@@ -110,7 +117,13 @@ class AntColonyOptimization(Algorithm):
             uncovered -= {owner} | set(add)
         return Solution(groups=tuple(groups))
 
-    def _select_owner(self, uncovered: set[Any], lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> Any | None:
+    def _select_owner(
+        self,
+        uncovered: set[Any],
+        lts: list[LicenseType],
+        pher: dict[PKey, float],
+        heur: dict[PKey, float],
+    ) -> Any | None:
         if not uncovered:
             return None
         scores: dict[Any, float] = {}

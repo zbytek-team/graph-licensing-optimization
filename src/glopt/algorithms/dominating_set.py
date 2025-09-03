@@ -29,7 +29,7 @@ class DominatingSetAlgorithm(Algorithm):
             neighbors = set(graph.neighbors(dominator)) & remaining_nodes
             available_nodes = neighbors | {dominator}
 
-            best_assignment = self._find_best_cost_assignment(dominator, available_nodes, license_types)
+            best_assignment = self._find_best_cost_assignment(graph, dominator, available_nodes, license_types)
 
             if best_assignment:
                 license_type, group_members = best_assignment
@@ -47,7 +47,7 @@ class DominatingSetAlgorithm(Algorithm):
             neighbors = set(graph.neighbors(node)) & remaining_nodes
             available_nodes = neighbors | {node}
 
-            best_assignment = self._find_best_cost_assignment(node, available_nodes, license_types)
+            best_assignment = self._find_best_cost_assignment(graph, node, available_nodes, license_types)
 
             if best_assignment:
                 license_type, group_members = best_assignment
@@ -110,7 +110,18 @@ class DominatingSetAlgorithm(Algorithm):
 
         return min_cost if min_cost != float("inf") else 0
 
-    def _find_best_cost_assignment(self, owner: Any, available_nodes: set[Any], license_types: list[LicenseType]) -> tuple[LicenseType, set[Any]]:
+    def _find_best_cost_assignment(self, graph: nx.Graph, owner: Any, available_nodes: set[Any], license_types: list[LicenseType]) -> tuple[LicenseType, set[Any]] | None:
+        """Find the best (lowest cost-per-node) assignment for an owner.
+
+        Args:
+            graph: The social graph.
+            owner: The potential license owner.
+            available_nodes: Nodes available to join the owner's group (including owner).
+            license_types: Candidate license types to consider.
+
+        Returns:
+            A tuple of (chosen license type, selected group members) or None if no valid assignment.
+        """
         best_assignment = None
         best_efficiency = float("inf")
 
@@ -121,7 +132,7 @@ class DominatingSetAlgorithm(Algorithm):
                 if group_size > len(available_nodes):
                     break
 
-                group_members = self._select_best_group_members(owner, available_nodes, group_size)
+                group_members = self._select_best_group_members(graph, owner, available_nodes, group_size)
 
                 if len(group_members) == group_size:
                     cost_per_node = license_type.cost / group_size
@@ -132,7 +143,7 @@ class DominatingSetAlgorithm(Algorithm):
 
         return best_assignment
 
-    def _select_best_group_members(self, owner: Any, available_nodes: set[Any], target_size: int) -> set[Any]:
+    def _select_best_group_members(self, graph: nx.Graph, owner: Any, available_nodes: set[Any], target_size: int) -> set[Any]:
         if target_size <= 0:
             return set()
 

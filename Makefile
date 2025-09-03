@@ -1,6 +1,7 @@
 .PHONY: install test lint format clean \
-	benchmark benchmark_real dynamic dynamic_real analyze \
-	all
+    benchmark benchmark_real dynamic dynamic_real \
+    custom all_cli analyze \
+    all
 
 # ------------------------------------------------------------
 # Environment
@@ -40,6 +41,17 @@ dynamic:
 
 dynamic_real:
 	$(PYPATH) uv run -m glopt.cli.dynamic_real
+
+# ------------------------------------------------------------
+# CLI (single-run helpers)
+# ------------------------------------------------------------
+custom:
+	$(PYPATH) uv run -m glopt.cli.custom
+
+# Note: target name is 'all_cli' to avoid conflict with the
+# convenience 'all' target defined at the bottom.
+all_cli:
+	$(PYPATH) uv run -m glopt.cli.all
 
 # ------------------------------------------------------------
 # Analysis

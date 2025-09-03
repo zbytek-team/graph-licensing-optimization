@@ -94,8 +94,8 @@ Poniższe zasady są inspirowane stylem Google i dotyczą całej implementacji w
 
 1. Ogólne zasady
 
-- Uruchamiaj pylint i poprawiaj ostrzeżenia lub świadomie je wyłączaj z uzasadnieniem w komentarzu.
-- Używaj autoformatowania (Black / Pyink) aby uniknąć sporów o styl.
+- Lint: ruff (obowiązkowo) — `make lint`. Pylint opcjonalnie; jeśli wyłączasz ostrzeżenie, dodaj uzasadnienie w komentarzu.
+- Format: Black (konfiguracja w `pyproject.toml`, line-length 200) — `make format`.
 - Pisz kod czytelny, a nie najkrótszy.
 
 2. Język i konstrukcje
@@ -119,7 +119,7 @@ Poniższe zasady są inspirowane stylem Google i dotyczą całej implementacji w
 
 3. Styl kodu
 
-- Długość linii: max 100 znaków (wyjątki: importy, URL-e, `# noqa`, disable-komentarze).
+- Długość linii: max 200 znaków (wyjątki: importy, URL-e, `# noqa`, disable-komentarze).
 - Wcięcia: 4 spacje. Bez tabów.
 - Nawiasy: tylko gdy konieczne.
 - Puste linie: 2 między funkcjami/klasami, 1 między metodami.
@@ -143,6 +143,11 @@ Nazewnictwo:
 - Pliki wykonywalne: `if __name__ == "__main__": main()`.
 - Funkcje krótkie, ≤ 40 linii gdy możliwe.
 - Konsystencja lokalna ważniejsza niż globalna perfekcja.
+
+5. CLI i konfiguracja
+
+- CLI bez parametrów w linii poleceń. Konfiguracja wyłącznie przez stałe na górze plików (np. timeout, listy algorytmów, rozmiary grafów itp.).
+- Benchmarki używają „soft deadline” przekazywanego do algorytmów oraz „hard kill” procesu w razie przekroczenia limitu.
 
 ---
 

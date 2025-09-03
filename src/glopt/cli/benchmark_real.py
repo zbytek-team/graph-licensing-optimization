@@ -1,19 +1,19 @@
 from __future__ import annotations
 
+import multiprocessing as mp
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
 from typing import Any
 
 import networkx as nx
-import multiprocessing as mp
 
+from glopt.algorithms.greedy import GreedyAlgorithm
 from glopt.core import instantiate_algorithms
 from glopt.core.solution_validator import SolutionValidator
 from glopt.io import ensure_dir
-from glopt.license_config import LicenseConfigFactory
 from glopt.io.data_loader import RealWorldDataLoader
-from glopt.algorithms.greedy import GreedyAlgorithm
+from glopt.license_config import LicenseConfigFactory
 
 # Configuration
 RUN_ID: str | None = None
@@ -51,7 +51,12 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         deadline = perf_counter() + (TIMEOUT_SECONDS * 0.98)
         kwargs: dict[str, Any] = {"seed": seed, "deadline": deadline}
         # Warm-start for metaheuristics
-        warm_names = {"GeneticAlgorithm", "SimulatedAnnealing", "TabuSearch", "AntColonyOptimization"}
+        warm_names = {
+            "GeneticAlgorithm",
+            "SimulatedAnnealing",
+            "TabuSearch",
+            "AntColonyOptimization",
+        }
         if algo_name in warm_names:
             greedy_sol = GreedyAlgorithm().solve(graph, lts)
             kwargs["initial_solution"] = greedy_sol
@@ -69,7 +74,7 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         p90 = float(sorted(sizes)[min(groups - 1, int(0.9 * (groups - 1)))]) if groups else 0.0
         # Algo params
         try:
-            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v, (int, float, str, bool))})
+            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v | (int, float, str, bool))})
         except Exception:
             params_json = "{}"
         res = {
@@ -119,14 +124,36 @@ def _run_one(algo: str, graph: nx.Graph, lic: str, seed: int) -> tuple[dict[str,
                 "notes": "",
             }
         else:
-            res = {"total_cost": float("nan"), "time_ms": 0.0, "valid": False, "issues": 0, "groups": 0, "group_size_mean": 0.0, "group_size_median": 0.0, "group_size_p90": 0.0, "cost_per_node": 0.0, "notes": "error"}
+            res = {
+                "total_cost": float("nan"),
+                "time_ms": 0.0,
+                "valid": False,
+                "issues": 0,
+                "groups": 0,
+                "group_size_mean": 0.0,
+                "group_size_median": 0.0,
+                "group_size_p90": 0.0,
+                "cost_per_node": 0.0,
+                "notes": "error",
+            }
     else:
         timed_out = True
         try:
             p.terminate()
         finally:
             p.join()
-        res = {"total_cost": float("nan"), "time_ms": float(TIMEOUT_SECONDS * 1000.0), "valid": False, "issues": 0, "groups": 0, "group_size_mean": 0.0, "group_size_median": 0.0, "group_size_p90": 0.0, "cost_per_node": 0.0, "notes": "timeout"}
+        res = {
+            "total_cost": float("nan"),
+            "time_ms": float(TIMEOUT_SECONDS * 1000.0),
+            "valid": False,
+            "issues": 0,
+            "groups": 0,
+            "group_size_mean": 0.0,
+            "group_size_median": 0.0,
+            "group_size_p90": 0.0,
+            "cost_per_node": 0.0,
+            "notes": "timeout",
+        }
     return res, timed_out or (res.get("notes") == "error")
 
 
@@ -150,6 +177,7 @@ def main() -> None:
 
     # Write CSV header
     import csv as _csv
+
     with out_path.open("w", encoding="utf-8", newline="") as f:
         w = _csv.DictWriter(
             f,
@@ -188,7 +216,7 @@ def main() -> None:
             n_edges = G.number_of_edges()
             density = (2.0 * n_edges) / (n_nodes * (n_nodes - 1)) if n_nodes > 1 else 0.0
             avg_deg = (2.0 * n_edges) / n_nodes if n_nodes > 0 else 0.0
-            clustering = nx.average_clustering(G) if (n_nodes > 1 and n_nodes <= 1500) else float('nan')
+            clustering = nx.average_clustering(G) if (n_nodes > 1 and n_nodes <= 1500) else float("nan")
             components = nx.number_connected_components(G)
 
             for lic in LICENSE_CONFIG_NAMES:

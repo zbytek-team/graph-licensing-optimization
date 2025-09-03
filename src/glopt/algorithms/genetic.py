@@ -3,11 +3,11 @@ from __future__ import annotations
 import random
 from typing import TYPE_CHECKING, Any
 
-from glopt.algorithms.randomized import RandomizedAlgorithm
 from glopt.algorithms.greedy import GreedyAlgorithm
+from glopt.algorithms.randomized import RandomizedAlgorithm
 from glopt.core import Algorithm, LicenseType, Solution
-from glopt.core.solution_builder import SolutionBuilder
 from glopt.core.mutations import MutationOperators
+from glopt.core.solution_builder import SolutionBuilder
 from glopt.core.solution_validator import SolutionValidator
 
 if TYPE_CHECKING:
@@ -55,6 +55,7 @@ class GeneticAlgorithm(Algorithm):
         best = min(population, key=lambda s: s.total_cost)
 
         from time import perf_counter as _pc
+
         for _ in range(generations):
             if deadline is not None and _pc() >= float(deadline):
                 break

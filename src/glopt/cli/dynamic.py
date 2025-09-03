@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
@@ -8,15 +7,14 @@ from typing import Any
 
 import networkx as nx
 
+from glopt.algorithms.greedy import GreedyAlgorithm
 from glopt.core import instantiate_algorithms
+from glopt.core.solution_builder import SolutionBuilder
 from glopt.core.solution_validator import SolutionValidator
 from glopt.dynamic_simulator import DynamicNetworkSimulator, MutationParams
 from glopt.io import build_paths, ensure_dir
 from glopt.io.graph_generator import GraphGeneratorFactory
 from glopt.license_config import LicenseConfigFactory
-from glopt.algorithms.greedy import GreedyAlgorithm
-from glopt.core.solution_builder import SolutionBuilder
-
 
 # ==============================================
 # Simple, tweakable configuration
@@ -208,6 +206,7 @@ def main() -> int:
                 delta_stats[key] = (0.0, 0.0, 0)
                 print(f"init -> {gname} / {lic} / {algo.name:<24s} cold   cost={sol0.total_cost:.2f} time_ms={elapsed:.2f} valid={ok} groups={len(sol0.groups)}")
                 import json as _json
+
                 _append_csv_row(
                     out_path,
                     [
@@ -238,9 +237,7 @@ def main() -> int:
             for step in range(1, NUM_STEPS + 1):
                 Gs = graphs[step]
                 muts = "; ".join(mutations_per_step[step])
-                print(
-                    f"step {step:02d} -> graph={gname} lic={lic} nodes={Gs.number_of_nodes()} edges={Gs.number_of_edges()} mutations=[{muts}]"
-                )
+                print(f"step {step:02d} -> graph={gname} lic={lic} nodes={Gs.number_of_nodes()} edges={Gs.number_of_edges()} mutations=[{muts}]")
 
                 # Warm-start algorithms (warm and cold variants)
                 for algo in warm_algos:
@@ -254,10 +251,12 @@ def main() -> int:
                     elapsed = (perf_counter() - t0) * 1000.0
                     ok, issues = validator.validate(sol, Gs)
                     key_w = (algo.name, True)
-                    prev_cost = float(prev_solutions.get(key_w, sol).total_cost) if isinstance(prev_solutions.get(key_w), type(sol)) else (
-                        float(prev_solutions.get((algo.name, False), sol).total_cost) if isinstance(prev_solutions.get((algo.name, False)), type(sol)) else float('nan')
+                    prev_cost = (
+                        float(prev_solutions.get(key_w, sol).total_cost)
+                        if isinstance(prev_solutions.get(key_w), type(sol))
+                        else (float(prev_solutions.get((algo.name, False), sol).total_cost) if isinstance(prev_solutions.get((algo.name, False)), type(sol)) else float("nan"))
                     )
-                    delta = float(sol.total_cost) - (prev_cost if prev_cost == prev_cost else float('nan'))
+                    delta = float(sol.total_cost) - (prev_cost if prev_cost == prev_cost else float("nan"))
                     # update accumulators
                     tot, cnt = time_accum.get(key_w, (0.0, 0))
                     avg = (tot + elapsed) / (cnt + 1)
@@ -271,9 +270,7 @@ def main() -> int:
                     m2_new = m2_d + d * (x - mean_new)
                     delta_stats[key_w] = (mean_new, m2_new, k1)
                     prev_solutions[key_w] = sol
-                    print(
-                        f"   warm  {algo.name:<24s} cost={sol.total_cost:.2f} time_ms={elapsed:.2f} dCost={delta if delta==delta else 0.0:+.2f} valid={ok} groups={len(sol.groups)}"
-                    )
+                    print(f"   warm  {algo.name:<24s} cost={sol.total_cost:.2f} time_ms={elapsed:.2f} dCost={delta if delta==delta else 0.0:+.2f} valid={ok} groups={len(sol.groups)}")
                     _append_csv_row(
                         out_path,
                         [
@@ -291,7 +288,7 @@ def main() -> int:
                             float(delta if delta == delta else 0.0),
                             float(avg),
                             float(abs(delta) if delta == delta else 0.0),
-                            float(((delta_stats[key_w][1] / max(1, delta_stats[key_w][2]-1)) ** 0.5) if delta_stats[key_w][2] > 1 else 0.0),
+                            float(((delta_stats[key_w][1] / max(1, delta_stats[key_w][2] - 1)) ** 0.5) if delta_stats[key_w][2] > 1 else 0.0),
                             _json.dumps(mut_params.__dict__),
                             bool(ok),
                             int(len(issues)),
@@ -306,8 +303,8 @@ def main() -> int:
                     elapsed_c = (perf_counter() - t0) * 1000.0
                     ok_c, issues_c = validator.validate(sol_cold, Gs)
                     key_c = (algo.name, False)
-                    prev_cost_c = float(prev_solutions.get(key_c, sol_cold).total_cost) if isinstance(prev_solutions.get(key_c), type(sol_cold)) else float('nan')
-                    delta_c = float(sol_cold.total_cost) - (prev_cost_c if prev_cost_c == prev_cost_c else float('nan'))
+                    prev_cost_c = float(prev_solutions.get(key_c, sol_cold).total_cost) if isinstance(prev_solutions.get(key_c), type(sol_cold)) else float("nan")
+                    delta_c = float(sol_cold.total_cost) - (prev_cost_c if prev_cost_c == prev_cost_c else float("nan"))
                     tot_c, cnt_c = time_accum.get(key_c, (0.0, 0))
                     avg_c = (tot_c + elapsed_c) / (cnt_c + 1)
                     time_accum[key_c] = (tot_c + elapsed_c, cnt_c + 1)
@@ -319,9 +316,7 @@ def main() -> int:
                     m2_new = m2_d + d * (x - mean_new)
                     delta_stats[key_c] = (mean_new, m2_new, k1)
                     prev_solutions[key_c] = sol_cold
-                    print(
-                        f"   cold  {algo.name:<24s} cost={sol_cold.total_cost:.2f} time_ms={elapsed_c:.2f} dCost={delta_c if delta_c==delta_c else 0.0:+.2f} valid={ok_c} groups={len(sol_cold.groups)}"
-                    )
+                    print(f"   cold  {algo.name:<24s} cost={sol_cold.total_cost:.2f} time_ms={elapsed_c:.2f} dCost={delta_c if delta_c==delta_c else 0.0:+.2f} valid={ok_c} groups={len(sol_cold.groups)}")
                     _append_csv_row(
                         out_path,
                         [
@@ -339,7 +334,7 @@ def main() -> int:
                             float(delta_c if delta_c == delta_c else 0.0),
                             float(avg_c),
                             float(abs(delta_c) if delta_c == delta_c else 0.0),
-                            float(((delta_stats[key_c][1] / max(1, delta_stats[key_c][2]-1)) ** 0.5) if delta_stats[key_c][2] > 1 else 0.0),
+                            float(((delta_stats[key_c][1] / max(1, delta_stats[key_c][2] - 1)) ** 0.5) if delta_stats[key_c][2] > 1 else 0.0),
                             _json.dumps(mut_params.__dict__),
                             bool(ok_c),
                             int(len(issues_c)),
@@ -355,8 +350,8 @@ def main() -> int:
                     elapsed = (perf_counter() - t0) * 1000.0
                     ok, issues = validator.validate(sol, Gs)
                     key_b = (algo.name, False)
-                    prev_cost_b = float(prev_solutions.get(key_b, sol).total_cost) if isinstance(prev_solutions.get(key_b), type(sol)) else float('nan')
-                    delta_b = float(sol.total_cost) - (prev_cost_b if prev_cost_b == prev_cost_b else float('nan'))
+                    prev_cost_b = float(prev_solutions.get(key_b, sol).total_cost) if isinstance(prev_solutions.get(key_b), type(sol)) else float("nan")
+                    delta_b = float(sol.total_cost) - (prev_cost_b if prev_cost_b == prev_cost_b else float("nan"))
                     tot_b, cnt_b = time_accum.get(key_b, (0.0, 0))
                     avg_b = (tot_b + elapsed) / (cnt_b + 1)
                     time_accum[key_b] = (tot_b + elapsed, cnt_b + 1)
@@ -368,9 +363,7 @@ def main() -> int:
                     m2_new = m2_d + d * (x - mean_new)
                     delta_stats[key_b] = (mean_new, m2_new, k1)
                     prev_solutions[key_b] = sol
-                    print(
-                        f"   base  {algo.name:<24s} cost={sol.total_cost:.2f} time_ms={elapsed:.2f} dCost={delta_b if delta_b==delta_b else 0.0:+.2f} valid={ok} groups={len(sol.groups)}"
-                    )
+                    print(f"   base  {algo.name:<24s} cost={sol.total_cost:.2f} time_ms={elapsed:.2f} dCost={delta_b if delta_b==delta_b else 0.0:+.2f} valid={ok} groups={len(sol.groups)}")
                     _append_csv_row(
                         out_path,
                         [
@@ -388,7 +381,7 @@ def main() -> int:
                             float(delta_b if delta_b == delta_b else 0.0),
                             float(avg_b),
                             float(abs(delta_b) if delta_b == delta_b else 0.0),
-                            float(((delta_stats[key_b][1] / max(1, delta_stats[key_b][2]-1)) ** 0.5) if delta_stats[key_b][2] > 1 else 0.0),
+                            float(((delta_stats[key_b][1] / max(1, delta_stats[key_b][2] - 1)) ** 0.5) if delta_stats[key_b][2] > 1 else 0.0),
                             _json.dumps(mut_params.__dict__),
                             bool(ok),
                             int(len(issues)),
