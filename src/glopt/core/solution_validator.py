@@ -62,7 +62,12 @@ class SolutionValidator:
                     )
                 )
             if g.owner not in g.all_members:
-                issues.append(ValidationIssue("OWNER_NOT_IN_GROUP", f"group#{idx} owner {g.owner!r} not included in its members"))
+                issues.append(
+                    ValidationIssue(
+                        "OWNER_NOT_IN_GROUP",
+                        f"group#{idx} owner {g.owner!r} not included in its members",
+                    )
+                )
         return issues
 
     def _check_group_capacity(self, groups: tuple[LicenseGroup[N], ...]) -> list[ValidationIssue]:
@@ -101,7 +106,12 @@ class SolutionValidator:
         for idx, g in enumerate(groups):
             overlap = seen & g.all_members
             if overlap:
-                issues.append(ValidationIssue("OVERLAP", f"group#{idx} owner {g.owner!r} overlaps members {sorted(overlap)!r}"))
+                issues.append(
+                    ValidationIssue(
+                        "OVERLAP",
+                        f"group#{idx} owner {g.owner!r} overlaps members {sorted(overlap)!r}",
+                    )
+                )
             seen.update(g.all_members)
         return issues
 
