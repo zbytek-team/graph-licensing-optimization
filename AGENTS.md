@@ -85,3 +85,89 @@ C = |I| + p·|G|.
 * Heurystyki (greedy, dominujące) dają szybkie i dobre wyniki.
 * Metaheurystyki (ACO, SA, Tabu, GA) zapewniają lepsze koszty, kosztem dłuższego czasu.
 * Struktura grafu (huby, clustering, komponenty) silnie wpływa na wynik optymalizacji.
+
+---
+
+# Zasady implementacyjne (styl kodu)
+
+Poniższe zasady są inspirowane stylem Google i dotyczą całej implementacji w repozytorium. Stosujemy je w miarę możliwości, zachowując lokalną spójność istniejącego kodu.
+
+1. Ogólne zasady
+
+- Uruchamiaj pylint i poprawiaj ostrzeżenia lub świadomie je wyłączaj z uzasadnieniem w komentarzu.
+- Używaj autoformatowania (Black / Pyink) aby uniknąć sporów o styl.
+- Pisz kod czytelny, a nie najkrótszy.
+
+2. Język i konstrukcje
+
+- Importy: tylko moduły/pakiety (`import x`, `from x import y`). Bez importów względnych.
+- Wyjątki: używaj klas wbudowanych (`ValueError`, `TypeError`). Nie łap wszystkiego (`except:`). Używaj `finally` do sprzątania.
+- Globalne mutable: unikać. Stałe pisz `ALL_CAPS_WITH_UNDER`.
+- Funkcje zagnieżdżone: tylko jeśli zamykają nad zmienną.
+- Comprehensions: proste OK, wielu zagnieżdżonych `for` unikaj.
+- Iteratory: używaj `for x in dict`, `for line in file`. Nie `dict.keys()` ani `file.readlines()`.
+- Generatory: w docstringach sekcja `Yields:`.
+- Lambda: tylko krótkie (< 80 znaków).
+- Wyrażenia warunkowe: krótkie w jednej linii; dłuższe → zwykłe `if`.
+- Argumenty domyślne: nie mutowalne (np. `None` zamiast `[]`).
+- Właściwości (`@property`): tylko gdy logika prosta i „oczywista”.
+- Prawda/fałsz: używaj „implicit false” (`if not users:`). Dla `None` zawsze `is None`.
+- Dekoratory: oszczędnie. `staticmethod` – unikać, `classmethod` tylko dla konstruktorów nazwanych.
+- Wątki/procesy: nie polegaj na atomowości typów wbudowanych; używaj `queue.Queue`/`multiprocessing` i jawnych timeoutów.
+- „Power features” (metaklasy, hacki importowe itp.): unikać.
+- Type hints: dodawaj w API publicznym, w razie potrzeby sprawdzaj pytype/mypy.
+
+3. Styl kodu
+
+- Długość linii: max 80 znaków (wyjątki: importy, URL-e, `# noqa`, disable-komentarze).
+- Wcięcia: 4 spacje. Bez tabów.
+- Nawiasy: tylko gdy konieczne.
+- Puste linie: 2 między funkcjami/klasami, 1 między metodami.
+- Białe znaki: brak spacji wewnątrz nawiasów; spacje wokół operatorów binarnych.
+- Komentarze i docstringi: `"""..."""`, pełne zdania. Sekcje: `Args:`, `Returns:`, `Raises:` (dla generatorów: `Yields:`). Krótkie komentarze inline → po dwóch spacjach `# ...`.
+- Cudzysłowy: jednolity wybór `'` lub `"`; docstringi zawsze `"""`.
+- Łączenie stringów: f-string, `%`, `.format()`. Nie `+` w pętli.
+- Zamykanie zasobów: zawsze `with open(...) as f:`.
+- TODO: format `# TODO: <link> - <opis>`. Nie używać nazw osób.
+- Importy porządkuj blokami: future, stdlib, third-party, project. Sortowane leksykograficznie.
+
+Nazewnictwo:
+
+- moduły/pakiety → `lower_with_under`
+- klasy/wyjątki → `CapWords`
+- funkcje, metody, zmienne → `lower_with_under`
+- stałe → `ALL_CAPS`
+
+4. Organizacja
+
+- Pliki wykonywalne: `if __name__ == "__main__": main()`.
+- Funkcje krótkie, ≤ 40 linii gdy możliwe.
+- Konsystencja lokalna ważniejsza niż globalna perfekcja.
+
+---
+
+# Kontekst pracy dyplomowej i spójność implementacji
+
+- Numer dyplomu: —
+- Imię i nazwisko: Marcin Połajdowicz
+- Stopień/Tytuł: mgr inż.
+- Kierunek: Informatyka (WETI), II stopnia, stacjonarne, 2023/2024 (sem. 3)
+- Temat: „Modelowanie optymalnych sposobów zakupu licencji oprogramowania w sieciach społecznościowych za pomocą dominowania w grafach”
+- English: “Modeling optimal ways to purchase software licenses in social networks via graph domination”
+- Język pracy: polski
+- Promotor: dr inż. Joanna Raczek
+
+Cele badawcze (mapowane na repo):
+
+- Pokazanie równoważności z dominacją rzymską → konfiguracja `roman_domination` oraz sweep cen `roman_p_*` w benchmarkach.
+- Analiza metod: ILP (dokładny), heurystyki (Greedy, DominatingSet, Randomized), metaheurystyki (GA/SA/Tabu/ACO) → CLI `benchmark`/`benchmark_real` i analiza w `scripts/analysis`.
+- Wersje cen/licencji i ograniczeń → `glopt/license_config.py` + sweep `p` + metryki (mix licencji, cost_per_node).
+- Wersja dynamiczna → `glopt/cli/dynamic(.py|_real.py)` (warm vs cold), metryki delta kosztu i czasu.
+
+Uruchamianie eksperymentów (skrót):
+
+- `make install` – instalacja zależności (uv)
+- `make benchmark` – syntetyczne grafy + cache + timeout 60 s
+- `make benchmark_real` – ego-sieci Facebooka (folder `data/facebook`)
+- `make dynamic` / `make dynamic_real` – mini-benchmark dynamiczny warm vs cold
+- `make analyze` – generacja wykresów i tabel w `runs/<run_id>/analysis`
