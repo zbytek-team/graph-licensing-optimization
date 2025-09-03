@@ -21,20 +21,33 @@ class TabuSearch(Algorithm):
         license_types: list[LicenseType],
         **kwargs: Any,
     ) -> Solution:
+        import random
+        seed = kwargs.get("seed")
+        if isinstance(seed, int):
+            random.seed(seed)
         max_iterations: int = kwargs.get("max_iterations", 1000)
         tabu_tenure: int = kwargs.get("tabu_tenure", 20)
         neighbors_per_iter: int = kwargs.get("neighbors_per_iter", 10)
+        deadline = kwargs.get("deadline")
+        initial: Solution | None = kwargs.get("initial_solution")
 
         validator = SolutionValidator(debug=False)
 
+        # Warm start if provided and valid; else greedy baseline
         greedy = GreedyAlgorithm()
-        current = greedy.solve(graph, license_types)
+        if initial is not None and validator.is_valid_solution(initial, graph):
+            current = initial
+        else:
+            current = greedy.solve(graph, license_types)
         best = current
 
         tabu: deque[str] = deque(maxlen=max(1, tabu_tenure))
         tabu.append(self._hash(current))
 
+        from time import perf_counter as _pc
         for _ in range(max_iterations):
+            if deadline is not None and _pc() >= float(deadline):
+                break
             neighborhood: list[Solution] = MutationOperators.generate_neighbors(base=current, graph=graph, license_types=license_types, k=neighbors_per_iter)
             if not neighborhood:
                 break

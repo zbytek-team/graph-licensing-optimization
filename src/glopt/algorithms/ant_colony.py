@@ -35,20 +35,35 @@ class AntColonyOptimization(Algorithm):
         self.max_iter = max_iterations
         self.validator = SolutionValidator(debug=False)
 
-    def solve(self, graph: nx.Graph, license_types: list[LicenseType], **_: Any) -> Solution:
+    def solve(self, graph: nx.Graph, license_types: list[LicenseType], **kwargs: Any) -> Solution:
+        seed = kwargs.get("seed")
+        if isinstance(seed, int):
+            random.seed(seed)
+        deadline = kwargs.get("deadline")
+        max_iter = int(kwargs.get("max_iterations", self.max_iter))
+        num_ants = int(kwargs.get("num_ants", self.num_ants))
+        initial: Solution | None = kwargs.get("initial_solution")
+
         pher = self._init_pher(graph, license_types)
         heur = self._init_heur(graph, license_types)
 
-        best = GreedyAlgorithm().solve(graph, license_types)
-        ok, _ = self.validator.validate(best, graph)
-        if not ok:
-            best = self._fallback_singletons(graph, license_types)
+        # Warm start or greedy baseline
+        if initial is not None and self.validator.is_valid_solution(initial, graph):
+            best = initial
+        else:
+            best = GreedyAlgorithm().solve(graph, license_types)
+            ok, _ = self.validator.validate(best, graph)
+            if not ok:
+                best = self._fallback_singletons(graph, license_types)
         best_cost = best.total_cost
         self._deposit(pher, best)
 
-        for _ in range(self.max_iter):
+        from time import perf_counter as _pc
+        for _ in range(max_iter):
+            if deadline is not None and _pc() >= float(deadline):
+                break
             improved = False
-            for _ in range(self.num_ants):
+            for _ in range(num_ants):
                 cand = self._construct(graph, license_types, pher, heur)
                 ok, _ = self.validator.validate(cand, graph)
                 if not ok:
@@ -59,6 +74,10 @@ class AntColonyOptimization(Algorithm):
             self._deposit(pher, best)
             if not improved:
                 continue
+        # Final safety: ensure we never return an invalid solution.
+        ok, _ = self.validator.validate(best, graph)
+        if not ok:
+            return self._fallback_singletons(graph, license_types)
         return best
 
     def _construct(self, graph: nx.Graph, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> Solution:
@@ -71,19 +90,29 @@ class AntColonyOptimization(Algorithm):
 
             pool = (set(graph.neighbors(owner)) | {owner}) & uncovered
             if len(pool) < lt.min_capacity:
+                # Try to place a feasible group anyway. Prefer singles if available; otherwise, pick
+                # the cheapest compatible license for the available pool size.
                 if lt.min_capacity == 1:
                     groups.append(LicenseGroup(lt, owner, frozenset()))
                     uncovered.remove(owner)
                 else:
                     feas = [x for x in lts if x.min_capacity <= len(pool) <= x.max_capacity]
-                    if feas:
+                    if not feas:
+                        # Explicitly try singles if license set supports them.
+                        singles = [x for x in lts if x.min_capacity <= 1 <= x.max_capacity]
+                        if singles:
+                            lt1 = min(singles, key=lambda x: x.cost)
+                            groups.append(LicenseGroup(lt1, owner, frozenset()))
+                            uncovered.remove(owner)
+                        else:
+                            # No feasible assignment for this owner with current license set; skip covering here.
+                            uncovered.remove(owner)
+                    else:
                         lt2 = min(feas, key=lambda x: x.cost)
                         add_need = max(0, lt2.min_capacity - 1)
                         add = sorted((pool - {owner}), key=lambda n: graph.degree(n), reverse=True)[:add_need]
                         groups.append(LicenseGroup(lt2, owner, frozenset(add)))
                         uncovered -= {owner} | set(add)
-                    else:
-                        uncovered.remove(owner)
                 continue
 
             k = max(0, lt.max_capacity - 1)

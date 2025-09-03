@@ -12,8 +12,7 @@ class RandomizedAlgorithm(Algorithm):
     def name(self) -> str:
         return "randomized_algorithm"
 
-    def __init__(self, greedy_probability: float = 0.7, seed: int | None = None) -> None:
-        self.greedy_probability = max(0.0, min(1.0, greedy_probability))
+    def __init__(self, seed: int | None = None) -> None:
         self.seed = seed
         if seed is not None:
             random.seed(seed)
@@ -36,12 +35,7 @@ class RandomizedAlgorithm(Algorithm):
             if node not in uncovered_nodes:
                 continue
 
-            use_greedy = random.random() < self.greedy_probability
-
-            if use_greedy:
-                assignment = self._greedy_assignment(node, uncovered_nodes, graph, license_types)
-            else:
-                assignment = self._random_assignment(node, uncovered_nodes, graph, license_types)
+            assignment = self._random_assignment(node, uncovered_nodes, graph, license_types)
 
             if assignment:
                 license_type, group_members = assignment
@@ -57,37 +51,6 @@ class RandomizedAlgorithm(Algorithm):
             groups.append(group)
 
         return SolutionBuilder.create_solution_from_groups(groups)
-
-    def _greedy_assignment(
-        self,
-        node: Any,
-        uncovered_nodes: set[Any],
-        graph: nx.Graph,
-        license_types: list[LicenseType],
-    ) -> tuple[LicenseType, set[Any]] | None:
-        neighbors = set(graph.neighbors(node)) & uncovered_nodes
-        available_nodes = neighbors | {node}
-
-        best_assignment = None
-        best_efficiency = float("inf")
-
-        for license_type in license_types:
-            max_possible_size = min(len(available_nodes), license_type.max_capacity)
-
-            for group_size in range(license_type.min_capacity, max_possible_size + 1):
-                if group_size > len(available_nodes):
-                    break
-
-                group_members = self._select_greedy_group_members(node, available_nodes, group_size, graph)
-
-                if len(group_members) == group_size:
-                    cost_per_node = license_type.cost / group_size
-
-                    if cost_per_node < best_efficiency:
-                        best_efficiency = cost_per_node
-                        best_assignment = (license_type, group_members)
-
-        return best_assignment
 
     def _random_assignment(
         self,
@@ -120,23 +83,6 @@ class RandomizedAlgorithm(Algorithm):
                 return (license_type, group_members)
 
         return self._greedy_assignment(node, uncovered_nodes, graph, license_types)
-
-    def _select_greedy_group_members(self, owner: Any, available_nodes: set[Any], target_size: int, graph: nx.Graph) -> set[Any]:
-        if target_size <= 0:
-            return set()
-
-        group_members = {owner}
-        remaining_slots = target_size - 1
-
-        if remaining_slots <= 0:
-            return group_members
-
-        candidates = list(available_nodes - {owner})
-        candidates.sort(key=lambda n: graph.degree(n), reverse=True)
-
-        group_members.update(candidates[:remaining_slots])
-
-        return group_members
 
     def _select_random_group_members(self, owner: Any, available_nodes: set[Any], target_size: int) -> set[Any]:
         if target_size <= 0:
