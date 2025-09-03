@@ -22,7 +22,7 @@ def plot_performance_profiles(rows: list[dict[str, Any]], title_prefix: str, out
             try:
                 if str(r.get('graph','')) == g and int(float(r.get('n_nodes', 0))) == n:
                     per_alg[str(r['algorithm'])].append(float(r['total_cost']))
-            except Exception:
+            except Exception:  # robust parsing
                 pass
         means = {alg: (mean(vs) if vs else float('inf')) for alg, vs in per_alg.items()}
         best = min((v for v in means.values() if v > 0), default=None)
@@ -58,7 +58,7 @@ def plot_performance_profiles(rows: list[dict[str, Any]], title_prefix: str, out
             try:
                 if str(r.get('graph','')) == g and int(float(r.get('n_nodes', 0))) == n:
                     per_alg[str(r['algorithm'])].append(float(r['time_ms']))
-            except Exception:
+            except Exception:  # robust parsing
                 pass
         means = {alg: (mean(vs) if vs else float('inf')) for alg, vs in per_alg.items()}
         best = min((v for v in means.values() if v > 0), default=None)
@@ -85,4 +85,3 @@ def plot_performance_profiles(rows: list[dict[str, Any]], title_prefix: str, out
         if GENERATE_PDF:
             plt.savefig(out.with_suffix('.pdf'))
         plt.close()
-

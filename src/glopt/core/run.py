@@ -89,7 +89,7 @@ def run_once(
             timestamp_folder=run_id,
             save_path=img_path,
         )
-    except Exception:
+    except Exception:  # defensive: visualization may fail in headless environments
         img_path = ""
 
     return RunResult(

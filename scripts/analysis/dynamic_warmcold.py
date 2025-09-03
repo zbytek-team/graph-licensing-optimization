@@ -18,7 +18,7 @@ def plot_dynamic_warm_cold(rows: list[dict[str, Any]], title_prefix: str, out_di
             alg = str(r['algorithm'])
             warm = str(r.get('warm_start','False')) in {'True','true','1'}
             by_alg[alg][warm].append(r)
-        except Exception:
+        except Exception:  # robust parsing
             continue
 
     for alg, modes in by_alg.items():
@@ -51,4 +51,3 @@ def plot_dynamic_warm_cold(rows: list[dict[str, Any]], title_prefix: str, out_di
         if GENERATE_PDF:
             plt.savefig(out.with_suffix('.pdf'))
         plt.close()
-

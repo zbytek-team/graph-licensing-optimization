@@ -116,3 +116,4 @@ real.csv
 uv.lock
 runs/
 .ruff_cache/
+data/graphs_cache/

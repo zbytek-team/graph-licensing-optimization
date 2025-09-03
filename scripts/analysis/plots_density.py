@@ -16,7 +16,7 @@ def plot_density_vs_time(rows: list[dict[str, Any]], title: str, out_path: Path)
     for r in rows:
         try:
             alg = str(r['algorithm']) ; d = float(r.get('density', 0.0)) ; t = float(r.get('time_ms', 0.0))
-        except Exception:
+        except Exception:  # robust parsing
             continue
         if alg not in colors:
             colors[alg] = next(palette)
@@ -28,4 +28,3 @@ def plot_density_vs_time(rows: list[dict[str, Any]], title: str, out_path: Path)
     if GENERATE_PDF:
         plt.savefig(out_path.with_suffix('.pdf'))
     plt.close()
-

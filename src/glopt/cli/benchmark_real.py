@@ -69,7 +69,7 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
             "group_size_p90": float(p90),
             "cost_per_node": float(sol.total_cost) / max(1, graph.number_of_nodes()),
         }
-    except Exception as e:
+    except Exception as e:  # defensive: return error to parent instead of crashing worker
         res = {"success": False, "error": str(e)}
     try:
         conn.send(res)
@@ -198,4 +198,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

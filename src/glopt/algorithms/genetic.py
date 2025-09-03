@@ -95,7 +95,7 @@ class GeneticAlgorithm(Algorithm):
         try:
             greedy = GreedyAlgorithm().solve(graph, list(license_types))
             pop.append(greedy)
-        except Exception:
+        except Exception:  # defensive: fallback if greedy fails unexpectedly
             pass
         rand_algo = RandomizedAlgorithm()
         while len(pop) < self.population_size:
@@ -121,7 +121,7 @@ class GeneticAlgorithm(Algorithm):
                 greedy = GreedyAlgorithm().solve(graph, list(license_types))
                 if self.validator.is_valid_solution(greedy, graph) and greedy.total_cost <= solution.total_cost:
                     return greedy
-            except Exception:
+            except Exception:  # defensive: ignore greedy failure in fallback
                 pass
             return solution
         return min(valid_neighbors, key=lambda s: s.total_cost)

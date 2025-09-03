@@ -14,7 +14,7 @@ def plot_pareto(rows: list[dict[str, Any]], title: str, out_path: Path) -> None:
         try:
             alg = str(r["algorithm"])
             c = float(r["total_cost"]) ; t = float(r["time_ms"]) ; d = float(r.get("density", 0.0))
-        except Exception:
+        except Exception:  # robust parsing
             continue
         pts.append((t, c, alg, d))
     pareto = []
@@ -46,4 +46,3 @@ def plot_pareto(rows: list[dict[str, Any]], title: str, out_path: Path) -> None:
     if GENERATE_PDF:
         plt.savefig(out_path.with_suffix(".pdf"))
     plt.close()
-
