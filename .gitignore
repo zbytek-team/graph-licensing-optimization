@@ -116,6 +116,7 @@ real.csv
 uv.lock
 runs/
 .ruff_cache/
+data/graphs_cache/
 
 # Academic material is maintained in the private thesis repository.
 /docs/thesis/

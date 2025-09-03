@@ -52,9 +52,9 @@ class AntColonyOptimization(Algorithm):
             best = initial
         else:
             best = GreedyAlgorithm().solve(graph, license_types)
-            ok, _ = self.validator.validate(best, graph)
-            if not ok:
-                best = self._fallback_singletons(graph, license_types)
+        ok, _ = self.validator.validate(best, graph)
+        if not ok:
+            best = self._fallback_singletons(graph, license_types)
         best_cost = best.total_cost
         self._deposit(pher, best)
 

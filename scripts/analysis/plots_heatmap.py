@@ -14,7 +14,7 @@ def plot_cost_heatmap(rows: list[dict[str, Any]], title: str, out_path: Path) ->
     for r in rows:
         try:
             d = float(r.get('density', 0.0)) ; g = float(r.get('avg_degree', 0.0)) ; c = float(r.get('total_cost', 0.0))
-        except Exception:
+        except Exception:  # robust parsing of possibly incomplete rows
             continue
         dens.append(d) ; deg.append(g) ; cost.append(c)
     if not dens:
@@ -37,4 +37,3 @@ def plot_cost_heatmap(rows: list[dict[str, Any]], title: str, out_path: Path) ->
     if GENERATE_PDF:
         plt.savefig(out_path.with_suffix('.pdf'))
     plt.close()
-

@@ -35,4 +35,3 @@ def group_cost_by_n(rows: list[dict[str, Any]], algokey: str = "algorithm") -> d
     for alg, pts in data.items():
         pts.sort(key=lambda x: x[0])
     return data
-
