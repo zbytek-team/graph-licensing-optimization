@@ -119,6 +119,7 @@ def main() -> int:
         "avg_time_ms_per_step",
         "delta_cost_abs",
         "delta_cost_std_so_far",
+        "mutation_params_json",
         "valid",
         "issues",
         "groups",
@@ -181,6 +182,7 @@ def main() -> int:
                 print(
                     f"init -> ego={ego_id} / {lic} / {algo.name:<24s} cold   cost={sol0.total_cost:.2f} time_ms={elapsed:.2f} valid={ok} groups={len(sol0.groups)}"
                 )
+                import json as _json
                 _append_csv_row(
                     out_path,
                     [
@@ -200,6 +202,7 @@ def main() -> int:
                         float(elapsed),
                         0.0,
                         0.0,
+                        _json.dumps(mut_params.__dict__),
                         bool(ok),
                         int(len(issues)),
                         int(len(sol0.groups)),
@@ -263,6 +266,7 @@ def main() -> int:
                             float(avg),
                             float(abs(delta) if delta == delta else 0.0),
                             float(((delta_stats[key_w][1] / max(1, delta_stats[key_w][2]-1)) ** 0.5) if delta_stats[key_w][2] > 1 else 0.0),
+                            _json.dumps(mut_params.__dict__),
                             bool(ok),
                             int(len(issues)),
                             int(len(sol.groups)),
@@ -311,6 +315,7 @@ def main() -> int:
                             float(avg_c),
                             float(abs(delta_c) if delta_c == delta_c else 0.0),
                             float(((delta_stats[key_c][1] / max(1, delta_stats[key_c][2]-1)) ** 0.5) if delta_stats[key_c][2] > 1 else 0.0),
+                            _json.dumps(mut_params.__dict__),
                             bool(ok_c),
                             int(len(issues_c)),
                             int(len(sol_cold.groups)),
@@ -360,6 +365,7 @@ def main() -> int:
                             float(avg_b),
                             float(abs(delta_b) if delta_b == delta_b else 0.0),
                             float(((delta_stats[key_b][1] / max(1, delta_stats[key_b][2]-1)) ** 0.5) if delta_stats[key_b][2] > 1 else 0.0),
+                            _json.dumps(mut_params.__dict__),
                             bool(ok),
                             int(len(issues)),
                             int(len(sol.groups)),
@@ -373,4 +379,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -119,7 +119,7 @@ Poniższe zasady są inspirowane stylem Google i dotyczą całej implementacji w
 
 3. Styl kodu
 
-- Długość linii: max 80 znaków (wyjątki: importy, URL-e, `# noqa`, disable-komentarze).
+- Długość linii: max 100 znaków (wyjątki: importy, URL-e, `# noqa`, disable-komentarze).
 - Wcięcia: 4 spacje. Bez tabów.
 - Nawiasy: tylko gdy konieczne.
 - Puste linie: 2 między funkcjami/klasami, 1 między metodami.
