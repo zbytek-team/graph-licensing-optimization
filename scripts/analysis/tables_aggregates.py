@@ -15,7 +15,7 @@ def write_aggregates(rows: list[dict[str, Any]], out_path: Path) -> None:
         try:
             key = (str(r['algorithm']), str(r.get('graph','')), int(float(r.get('n_nodes', 0))))
             groups[key].append(r)
-        except Exception:
+        except Exception:  # robust parsing
             continue
     lines = []
     for (alg, gname, n), rs in sorted(groups.items(), key=lambda x: (x[0][0], x[0][1], x[0][2])):
@@ -23,7 +23,7 @@ def write_aggregates(rows: list[dict[str, Any]], out_path: Path) -> None:
         for r in rs:
             try:
                 costs.append(float(r['total_cost'])) ; times.append(float(r['time_ms']))
-            except Exception:
+            except Exception:  # robust parsing
                 pass
         if not costs:
             continue
@@ -52,4 +52,3 @@ def write_aggregates(rows: list[dict[str, Any]], out_path: Path) -> None:
             writer = csv.DictWriter(f, fieldnames=list(lines[0].keys()))
             writer.writeheader()
             writer.writerows(lines)
-

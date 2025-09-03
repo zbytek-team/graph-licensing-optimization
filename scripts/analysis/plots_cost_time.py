@@ -37,7 +37,7 @@ def plot_time_vs_n(rows: list[dict[str, Any]], title: str, out_path: Path) -> No
             alg = str(r["algorithm"])
             n = int(float(r.get("n_nodes", 0)))
             t = float(r.get("time_ms", 0.0)) + 1e-9
-        except Exception:
+        except Exception:  # robust parsing
             continue
         series_t[alg][n].append(t)
     plt.figure(figsize=(8, 5))
@@ -61,4 +61,3 @@ def plot_time_vs_n(rows: list[dict[str, Any]], title: str, out_path: Path) -> No
     if GENERATE_PDF:
         plt.savefig(out_path.with_suffix(".pdf"))
     plt.close()
-

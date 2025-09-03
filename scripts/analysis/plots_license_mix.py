@@ -19,7 +19,7 @@ def plot_license_mix(rows: list[dict[str, Any]], title: str, out_path: Path) -> 
             counts = json.loads(js) if isinstance(js, str) else (js or {})
             for k, v in counts.items():
                 lic_agg[alg][k] += int(v)
-        except Exception:
+        except Exception:  # robust parsing
             continue
     if not lic_agg:
         return
@@ -46,4 +46,3 @@ def plot_license_mix(rows: list[dict[str, Any]], title: str, out_path: Path) -> 
     if GENERATE_PDF:
         plt.savefig(out_path.with_suffix('.pdf'))
     plt.close()
-
