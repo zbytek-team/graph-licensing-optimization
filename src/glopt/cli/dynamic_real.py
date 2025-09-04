@@ -33,7 +33,7 @@ LICENSE_CONFIGS: list[str] = [
     "roman_p_3_0",
 ]
 
-NUM_STEPS: int = 8
+NUM_STEPS: int = 50
 RANDOM_SEED: int = 123
 
 WARM_ALGOS: list[str] = [

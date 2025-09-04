@@ -12,7 +12,8 @@ from glopt.core import instantiate_algorithms
 from glopt.core.solution_builder import SolutionBuilder
 from glopt.core.solution_validator import SolutionValidator
 from glopt.dynamic_simulator import DynamicNetworkSimulator, MutationParams
-from glopt.io import build_paths, ensure_dir
+from glopt.io import GraphVisualizer, build_paths, ensure_dir
+from glopt.io.gif_maker import write_gif_from_paths
 from glopt.io.graph_generator import GraphGeneratorFactory
 from glopt.license_config import LicenseConfigFactory
 
@@ -33,13 +34,17 @@ N_NODES: int = 60
 LICENSE_CONFIGS: list[str] = ["spotify", "duolingo_super", "roman_domination"]
 
 # Dynamic changes
-NUM_STEPS: int = 10
+NUM_STEPS: int = 5
 # Probabilities per step (light to moderate churn)
 ADD_NODES_PROB: float = 0.06
 REMOVE_NODES_PROB: float = 0.04
 ADD_EDGES_PROB: float = 0.18
 REMOVE_EDGES_PROB: float = 0.12
 RANDOM_SEED: int = 123
+
+# GIF rendering
+MAKE_GIFS: bool = True
+GIF_FRAME_SEC: float = 2.0
 
 # Algorithms: warm-start capable vs baselines
 WARM_ALGOS: list[str] = [
@@ -118,7 +123,7 @@ def _append_csv_row(path: Path, row: list[Any]) -> None:
 
 def main() -> int:
     run_id = (RUN_ID or datetime.now().strftime("%Y%m%d_%H%M%S")) + "_dynamic"
-    _, _, csv_dir = build_paths(run_id)
+    base_dir, graphs_dir_root, csv_dir = build_paths(run_id)
     out_path = Path(csv_dir) / f"{run_id}.csv"
 
     print("== glopt dynamic benchmark ==")
@@ -183,6 +188,9 @@ def main() -> int:
             graphs.append(g_curr.copy())
             mutations_per_step.append(muts)
 
+        # Shared visualizer for stable layout across all frames/algorithms for this graph
+        vis_gif = GraphVisualizer(figsize=(12, 8), layout_seed=42, reuse_layout=True)
+
         for lic in LICENSE_CONFIGS:
             lts = LicenseConfigFactory.get_config(lic)
 
@@ -194,6 +202,18 @@ def main() -> int:
             prev_solutions: dict[tuple[str, bool], Any] = {}
             time_accum: dict[tuple[str, bool], tuple[float, int]] = {}
             delta_stats: dict[tuple[str, bool], tuple[float, float, int]] = {}
+            # Prepare GIF frame storage per (algo, warm?) and output dirs
+            gif_frames: dict[tuple[str, bool], list[str]] = {}
+            gif_dirs: dict[tuple[str, bool], Path] = {}
+            if MAKE_GIFS:
+                for a in warm_algos + base_algos:
+                    pairs = [(a.name, False)] + ([(a.name, True)] if a in warm_algos else [])
+                    for key in pairs:
+                        out_dir = Path(graphs_dir_root) / gname / lic / f"{key[0]}_{'warm' if key[1] else 'cold'}"
+                        frames_dir = out_dir / "frames"
+                        ensure_dir(str(frames_dir))
+                        gif_frames[key] = []
+                        gif_dirs[key] = out_dir
             for algo in warm_algos + base_algos:
                 G0 = graphs[0]
                 t0 = perf_counter()
@@ -232,6 +252,18 @@ def main() -> int:
                         "; ".join(mutations_per_step[0]),
                     ],
                 )
+                # Render initial frames for GIFs (frame 0)
+                if MAKE_GIFS:
+                    try:
+                        f0_cold = gif_dirs[(algo.name, False)] / "frames" / "frame_000.png"
+                        vis_gif.visualize_solution(G0, sol0, solver_name=f"{algo.name}_cold", timestamp_folder=run_id, save_path=str(f0_cold))
+                        gif_frames[(algo.name, False)].append(str(f0_cold))
+                        if (algo.name, True) in gif_dirs:
+                            f0_warm = gif_dirs[(algo.name, True)] / "frames" / "frame_000.png"
+                            vis_gif.visualize_solution(G0, sol0, solver_name=f"{algo.name}_warm", timestamp_folder=run_id, save_path=str(f0_warm))
+                            gif_frames[(algo.name, True)].append(str(f0_warm))
+                    except Exception:
+                        pass
 
             # Dynamic steps 1..NUM_STEPS
             for step in range(1, NUM_STEPS + 1):
@@ -256,6 +288,14 @@ def main() -> int:
                         if isinstance(prev_solutions.get(key_w), type(sol))
                         else (float(prev_solutions.get((algo.name, False), sol).total_cost) if isinstance(prev_solutions.get((algo.name, False)), type(sol)) else float("nan"))
                     )
+                    # Render warm frame for GIF
+                    if MAKE_GIFS:
+                        try:
+                            fw = gif_dirs[(algo.name, True)] / "frames" / f"frame_{step:03d}.png"
+                            vis_gif.visualize_solution(Gs, sol, solver_name=f"{algo.name}_warm", timestamp_folder=run_id, save_path=str(fw))
+                            gif_frames[(algo.name, True)].append(str(fw))
+                        except Exception:
+                            pass
                     delta = float(sol.total_cost) - (prev_cost if prev_cost == prev_cost else float("nan"))
                     # update accumulators
                     tot, cnt = time_accum.get(key_w, (0.0, 0))
@@ -270,7 +310,7 @@ def main() -> int:
                     m2_new = m2_d + d * (x - mean_new)
                     delta_stats[key_w] = (mean_new, m2_new, k1)
                     prev_solutions[key_w] = sol
-                    print(f"   warm  {algo.name:<24s} cost={sol.total_cost:.2f} time_ms={elapsed:.2f} dCost={delta if delta==delta else 0.0:+.2f} valid={ok} groups={len(sol.groups)}")
+                    print(f"   warm  {algo.name:<24s} cost={sol.total_cost:.2f} time_ms={elapsed:.2f} dCost={delta if delta == delta else 0.0:+.2f} valid={ok} groups={len(sol.groups)}")
                     _append_csv_row(
                         out_path,
                         [
@@ -316,7 +356,7 @@ def main() -> int:
                     m2_new = m2_d + d * (x - mean_new)
                     delta_stats[key_c] = (mean_new, m2_new, k1)
                     prev_solutions[key_c] = sol_cold
-                    print(f"   cold  {algo.name:<24s} cost={sol_cold.total_cost:.2f} time_ms={elapsed_c:.2f} dCost={delta_c if delta_c==delta_c else 0.0:+.2f} valid={ok_c} groups={len(sol_cold.groups)}")
+                    print(f"   cold  {algo.name:<24s} cost={sol_cold.total_cost:.2f} time_ms={elapsed_c:.2f} dCost={delta_c if delta_c == delta_c else 0.0:+.2f} valid={ok_c} groups={len(sol_cold.groups)}")
                     _append_csv_row(
                         out_path,
                         [
@@ -342,6 +382,22 @@ def main() -> int:
                             muts,
                         ],
                     )
+                    # Render cold frame for warm algos
+                    if MAKE_GIFS:
+                        try:
+                            fc = gif_dirs[(algo.name, False)] / "frames" / f"frame_{step:03d}.png"
+                            vis_gif.visualize_solution(Gs, sol_cold, solver_name=f"{algo.name}_cold", timestamp_folder=run_id, save_path=str(fc))
+                            gif_frames[(algo.name, False)].append(str(fc))
+                        except Exception:
+                            pass
+                    # Render cold frame for baseline algos
+                    if MAKE_GIFS:
+                        try:
+                            fb = gif_dirs[(algo.name, False)] / "frames" / f"frame_{step:03d}.png"
+                            vis_gif.visualize_solution(Gs, sol, solver_name=f"{algo.name}_cold", timestamp_folder=run_id, save_path=str(fb))
+                            gif_frames[(algo.name, False)].append(str(fb))
+                        except Exception:
+                            pass
 
                 # Baseline algorithms (cold start each step)
                 for algo in base_algos:
@@ -363,7 +419,7 @@ def main() -> int:
                     m2_new = m2_d + d * (x - mean_new)
                     delta_stats[key_b] = (mean_new, m2_new, k1)
                     prev_solutions[key_b] = sol
-                    print(f"   base  {algo.name:<24s} cost={sol.total_cost:.2f} time_ms={elapsed:.2f} dCost={delta_b if delta_b==delta_b else 0.0:+.2f} valid={ok} groups={len(sol.groups)}")
+                    print(f"   base  {algo.name:<24s} cost={sol.total_cost:.2f} time_ms={elapsed:.2f} dCost={delta_b if delta_b == delta_b else 0.0:+.2f} valid={ok} groups={len(sol.groups)}")
                     _append_csv_row(
                         out_path,
                         [
@@ -389,6 +445,26 @@ def main() -> int:
                             muts,
                         ],
                     )
+                    # Render cold frame for baseline algos
+                    if MAKE_GIFS:
+                        try:
+                            fb = gif_dirs[(algo.name, False)] / "frames" / f"frame_{step:03d}.png"
+                            vis_gif.visualize_solution(Gs, sol, solver_name=f"{algo.name}_cold", timestamp_folder=run_id, save_path=str(fb))
+                            gif_frames[(algo.name, False)].append(str(fb))
+                        except Exception:
+                            pass
+
+            # After all steps for this license, emit GIFs
+            if MAKE_GIFS:
+                for key, frames in gif_frames.items():
+                    if not frames:
+                        continue
+                    try:
+                        out_gif = gif_dirs[key] / f"{key[0]}_{'warm' if key[1] else 'cold'}.gif"
+                        write_gif_from_paths(frames, str(out_gif), duration_sec=GIF_FRAME_SEC, loop=0)
+                        print(f"gif: {out_gif} frames={len(frames)} dur={GIF_FRAME_SEC}s")
+                    except Exception as e:
+                        print(f"gif skipped for {key}: {e}")
 
     print(f"csv: {out_path}")
     return 0
