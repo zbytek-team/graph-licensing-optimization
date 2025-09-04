@@ -9,6 +9,7 @@ dependencies = [
     "pulp>=3.2.2",
     "hypothesis>=6.0",
     "tqdm>=4.66",
+    "pillow>=10.0",
 ]
 
 [tool.black]
