@@ -29,15 +29,15 @@ class LicenseConfigFactory:
 
     @classmethod
     def get_config(cls, name: str) -> list[LicenseType]:
-        # Dynamic roman domination sweep: roman_p_1_5 or roman_p:2.5
-        if name.startswith("roman_p_") or name.startswith("roman_p:"):
-            p_str = name.split("_", 2)[2] if name.startswith("roman_p_") else name.split(":", 1)[1]
+        # Dynamic roman domination sweep: roman_p_1_5
+        if name.startswith("roman_p_"):
+            p_str = name.split("_", 2)[2]
             p_str = p_str.replace("_", ".")
             try:
                 p_val = float(p_str)
             except Exception:
                 available = ", ".join(cls._CONFIGS.keys())
-                raise ValueError(f"Invalid roman price '{name}'. Available: {available} or roman_p_<x_y>/roman_p:<x.y>")
+                raise ValueError(f"Invalid roman price '{name}'. Available: {available} or roman_p_<x_y>")
             return [
                 LicenseType("Solo", 1.0, 1, 1, cls.BLUE),
                 LicenseType("Group", p_val, 2, 99999, cls.RED),
@@ -46,5 +46,5 @@ class LicenseConfigFactory:
             return cls._CONFIGS[name]()
         except KeyError:
             available = ", ".join(cls._CONFIGS.keys())
-            msg = f"Unsupported license config: {name}. Available: {available} or roman_p_<x_y>/roman_p:<x.y>"
+            msg = f"Unsupported license config: {name}. Available: {available} or roman_p_<x_y>"
             raise ValueError(msg) from None

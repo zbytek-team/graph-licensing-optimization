@@ -15,23 +15,24 @@ from glopt.io import ensure_dir
 from glopt.io.data_loader import RealWorldDataLoader
 from glopt.license_config import LicenseConfigFactory
 
-# Configuration
+# Configuration (mirrors benchmark.py style)
 RUN_ID: str | None = None
 ALGORITHM_CLASSES: list[str] = [
-    "ILPSolver",
-    "GreedyAlgorithm",
-    "RandomizedAlgorithm",
-    "DominatingSetAlgorithm",
-    "AntColonyOptimization",
-    "SimulatedAnnealing",
-    "TabuSearch",
-    "GeneticAlgorithm",
+    "ILPSolver",  # temporarily disabled for real benchmark runs
+    # "GreedyAlgorithm",
+    # "RandomizedAlgorithm",
+    # "DominatingSetAlgorithm",
+    # "AntColonyOptimization",
+    # "SimulatedAnnealing",
+    # "TabuSearch",
+    # "GeneticAlgorithm",
 ]
 LICENSE_CONFIG_NAMES: list[str] = ["spotify", "duolingo_super", "roman_domination"]
-DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.0, 2.5, 3.0]
+DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
 LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
 
 TIMEOUT_SECONDS: float = 60.0
+REPEATS_PER_GRAPH: int = 2  # repeated runs per (ego, algo, license)
 
 
 def _json_dumps(obj: Any) -> str:
@@ -48,8 +49,8 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
         lts = LicenseConfigFactory.get_config(license_config)
-        deadline = perf_counter() + (TIMEOUT_SECONDS * 0.98)
-        kwargs: dict[str, Any] = {"seed": seed, "deadline": deadline}
+        # No soft deadline: rely solely on hard kill at TIMEOUT_SECONDS
+        kwargs: dict[str, Any] = {"seed": seed}
         # Warm-start for metaheuristics
         warm_names = {
             "GeneticAlgorithm",
@@ -60,18 +61,29 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         if algo_name in warm_names:
             greedy_sol = GreedyAlgorithm().solve(graph, lts)
             kwargs["initial_solution"] = greedy_sol
-        if algo_name == "ILPSolver":
-            kwargs["time_limit"] = int(max(1, TIMEOUT_SECONDS - 1))
         t0 = perf_counter()
         sol = algo.solve(graph, lts, **kwargs)
         elapsed_ms = (perf_counter() - t0) * 1000.0
 
         ok, issues = validator.validate(sol, graph)
         sizes = [g.size for g in sol.groups]
+        sizes_sorted = sorted(sizes)
         groups = len(sizes)
         mean_sz = (sum(sizes) / groups) if groups else 0.0
-        med_sz = float(sorted(sizes)[groups // 2]) if groups else 0.0
-        p90 = float(sorted(sizes)[min(groups - 1, int(0.9 * (groups - 1)))]) if groups else 0.0
+        if groups:
+            mid = groups // 2
+            if groups % 2 == 1:
+                median_sz = float(sizes_sorted[mid])
+            else:
+                median_sz = (sizes_sorted[mid - 1] + sizes_sorted[mid]) / 2.0
+            p90 = float(sizes_sorted[min(groups - 1, int(0.9 * (groups - 1)))])
+        else:
+            median_sz = 0.0
+            p90 = 0.0
+        # License counts for analysis
+        from collections import Counter as _Counter
+
+        lic_counts = _Counter(g.license_type.name for g in sol.groups)
         # Algo params
         try:
             params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v | (int, float, str, bool))})
@@ -85,9 +97,10 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
             "issues": int(len(issues)),
             "groups": int(groups),
             "group_size_mean": float(mean_sz),
-            "group_size_median": float(med_sz),
+            "group_size_median": float(median_sz),
             "group_size_p90": float(p90),
             "cost_per_node": float(sol.total_cost) / max(1, graph.number_of_nodes()),
+            "license_counts_json": _json_dumps(lic_counts),
             "algo_params_json": params_json,
             "warm_start": bool(algo_name in warm_names),
         }
@@ -164,15 +177,22 @@ def main() -> None:
     ensure_dir(str(csv_dir))
     out_path = csv_dir / f"{run_id}.csv"
 
-    print("== glopt benchmark real ==")
+    # Header aligned with benchmark.py
+    print("== glopt benchmark ==")
     print(f"run_id: {run_id}")
-    print(f"algorithms: {', '.join(ALGORITHM_CLASSES)}")
-    print(f"licenses: {', '.join(LICENSE_CONFIG_NAMES)}")
-    print(f"timeout: {TIMEOUT_SECONDS:.0f}s")
+    print("graphs: facebook_ego")
+    print(f"repeats/graph: {REPEATS_PER_GRAPH}")
+    print(f"timeout limit: {TIMEOUT_SECONDS:.0f}s")
 
     loader = RealWorldDataLoader(data_dir="data")
     networks = loader.load_all_facebook_networks()
     ego_ids = sorted(networks.keys())
+
+    algorithm_classes = list(ALGORITHM_CLASSES)
+    licenses = list(LICENSE_CONFIG_NAMES)
+
+    print(f"licenses: {', '.join(licenses)}")
+    print(f"algorithms: {', '.join(algorithm_classes)}")
     print(f"facebook ego networks: {len(ego_ids)}")
 
     # Write CSV header
@@ -183,13 +203,15 @@ def main() -> None:
             f,
             fieldnames=[
                 "run_id",
-                "graph",
-                "graph_params",
-                "license_config",
                 "algorithm",
-                "ego_id",
+                "graph",
                 "n_nodes",
                 "n_edges",
+                "graph_params",
+                "license_config",
+                "rep",
+                "seed",
+                "ego_id",
                 "density",
                 "avg_degree",
                 "clustering",
@@ -197,6 +219,7 @@ def main() -> None:
                 "total_cost",
                 "cost_per_node",
                 "time_ms",
+                "license_counts_json",
                 "algo_params_json",
                 "warm_start",
                 "valid",
@@ -205,42 +228,59 @@ def main() -> None:
                 "group_size_mean",
                 "group_size_median",
                 "group_size_p90",
+                "image_path",
                 "notes",
             ],
         )
         w.writeheader()
 
-        for ego_id in ego_ids:
-            G = networks[ego_id]
-            n_nodes = G.number_of_nodes()
-            n_edges = G.number_of_edges()
-            density = (2.0 * n_edges) / (n_nodes * (n_nodes - 1)) if n_nodes > 1 else 0.0
-            avg_deg = (2.0 * n_edges) / n_nodes if n_nodes > 0 else 0.0
-            clustering = nx.average_clustering(G) if (n_nodes > 1 and n_nodes <= 1500) else float("nan")
-            components = nx.number_connected_components(G)
+        # Align outer loop order and prints with benchmark.py: all licenses × all algorithms
+        for lic_idx, lic in enumerate(licenses):
+            for algo in algorithm_classes:
+                print(f"-> {lic} / {algo}")
+                for ego_id in ego_ids:
+                    G = networks[ego_id]
+                    n_nodes = G.number_of_nodes()
+                    n_edges = G.number_of_edges()
+                    density = (2.0 * n_edges) / (n_nodes * (n_nodes - 1)) if n_nodes > 1 else 0.0
+                    avg_deg = (2.0 * n_edges) / n_nodes if n_nodes > 0 else 0.0
+                    clustering = nx.average_clustering(G) if (n_nodes > 1 and n_nodes <= 1500) else float("nan")
+                    components = nx.number_connected_components(G)
 
-            for lic in LICENSE_CONFIG_NAMES:
-                for algo in ALGORITHM_CLASSES:
-                    print(f"-> ego={ego_id} lic={lic} algo={algo}")
-                    res, _ = _run_one(algo, G, lic, seed=12345)
-                    row = {
-                        "run_id": run_id,
-                        "graph": "facebook_ego",
-                        "graph_params": _json_dumps({"ego_id": ego_id}),
-                        "license_config": lic,
-                        "algorithm": algo,
-                        "ego_id": ego_id,
-                        "n_nodes": n_nodes,
-                        "n_edges": n_edges,
-                        "density": float(density),
-                        "avg_degree": float(avg_deg),
-                        "clustering": float(clustering),
-                        "components": int(components),
-                        **res,
-                    }
-                    w.writerow(row)
+                    for rep in range(REPEATS_PER_GRAPH):
+                        algo_seed = 12345 + rep
+                        res, timed_out_or_error = _run_one(algo, G, lic, seed=algo_seed)
+                        row = {
+                            "run_id": run_id,
+                            "algorithm": algo,
+                            "graph": "facebook_ego",
+                            "n_nodes": n_nodes,
+                            "n_edges": n_edges,
+                            "graph_params": _json_dumps({"ego_id": ego_id}),
+                            "license_config": lic,
+                            "rep": rep,
+                            "seed": algo_seed,
+                            "ego_id": ego_id,
+                            "density": float(density),
+                            "avg_degree": float(avg_deg),
+                            "clustering": float(clustering),
+                            "components": int(components),
+                            "image_path": "",
+                            **res,
+                        }
+                        w.writerow(row)
 
-    print(f"csv: {out_path}")
+                        status = "OK"
+                        if row.get("notes") == "timeout":
+                            status = "TIMEOUT"
+                        elif row.get("notes") == "error":
+                            status = "ERROR"
+                        print(
+                            f"   {'facebook_ego':12s} ego={str(ego_id):>8s} rep={rep} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}"
+                        )
+
+    if out_path.exists():
+        print(f"csv: {out_path}")
 
 
 if __name__ == "__main__":
