@@ -44,14 +44,14 @@ SAMPLES_PER_SIZE: int = 3  # increase for more robust averages
 REPEATS_PER_GRAPH: int = 2  # e.g., different algorithm seeds
 
 # Per-run time budget (hard cap)
-TIMEOUT_SECONDS: float = 90.0
+TIMEOUT_SECONDS: float = 60.0
 
 # License configurations and algorithms under test
 LICENSE_CONFIG_NAMES: list[str] = ["spotify", "duolingo_super", "roman_domination"]
-DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.0, 2.5, 3.0]
+DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
 LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
 ALGORITHM_CLASSES: list[str] = [
-    # "ILPSolver",  # exact (small n only)
+    "ILPSolver",  # exact (small n only)
     "GreedyAlgorithm",
     "RandomizedAlgorithm",
     "DominatingSetAlgorithm",
@@ -165,9 +165,8 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
         lts = LicenseConfigFactory.get_config(license_config)
-        # Soft deadline for graceful stop inside algorithms
-        deadline = perf_counter() + (TIMEOUT_SECONDS * 0.98)
-        kwargs: dict[str, Any] = {"seed": seed, "deadline": deadline}
+        # No soft deadline: rely solely on hard kill at TIMEOUT_SECONDS
+        kwargs: dict[str, Any] = {"seed": seed}
         # Warm-start metaheuristics with greedy
         warm_names = {
             "GeneticAlgorithm",
@@ -178,9 +177,7 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         if algo_name in warm_names:
             greedy_sol = GreedyAlgorithm().solve(graph, lts)
             kwargs["initial_solution"] = greedy_sol
-        # ILP time limit
-        if algo_name == "ILPSolver":
-            kwargs["time_limit"] = int(max(1, TIMEOUT_SECONDS - 1))
+        # No internal ILP time limit: enforce only external hard timeout
         t0 = perf_counter()
         sol = algo.solve(graph, lts, **kwargs)
         elapsed_ms = (perf_counter() - t0) * 1000.0
@@ -318,15 +315,10 @@ def main() -> None:
 
     for lic_name in LICENSE_CONFIG_NAMES:
         for algo_name in ALGORITHM_CLASSES:
-            print(f"-> {lic_name} / {algo_name}")
             for gname in GRAPH_NAMES:
                 stop_sizes = False
                 for n in SIZES:
                     if stop_sizes:
-                        break
-                    if ILP_MAX_N is not None and algo_name == "ILPSolver" and n > ILP_MAX_N:
-                        print(f"   {gname:12s} n={n:4d} ILP capped at {ILP_MAX_N} — skipping remaining sizes")
-                        stop_sizes = True
                         break
 
                     # Load graph instances from cache
@@ -372,7 +364,9 @@ def main() -> None:
                                 status = "TIMEOUT"
                             elif row.get("notes") == "error":
                                 status = "ERROR"
-                            print(f"   {gname:12s} n={n:4d} s={s_idx} rep={rep} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}")
+                            print(
+                                f"   {gname:12s} n={n:4d} s={s_idx} rep={rep} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}"
+                            )
                             if is_over:
                                 over_here = True
                         if over_here:
