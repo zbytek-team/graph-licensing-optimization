@@ -14,8 +14,11 @@ from glopt.core.solution_validator import SolutionValidator
 from glopt.io import ensure_dir
 from glopt.io.data_loader import RealWorldDataLoader
 from glopt.license_config import LicenseConfigFactory
+from glopt.logging_config import get_logger, log_run_banner, log_run_footer, setup_logging
 
-# Configuration (mirrors benchmark.py style)
+# ==============================================
+# Configuration (no CLI/env)
+# ==============================================
 RUN_ID: str | None = None
 ALGORITHM_CLASSES: list[str] = [
     "ILPSolver",  # temporarily disabled for real benchmark runs
@@ -27,9 +30,13 @@ ALGORITHM_CLASSES: list[str] = [
     # "TabuSearch",
     # "GeneticAlgorithm",
 ]
-LICENSE_CONFIG_NAMES: list[str] = ["spotify", "duolingo_super", "roman_domination"]
+LICENSE_CONFIG_NAMES: list[str] = [
+    "duolingo_super",
+    "roman_domination",
+]
 DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
 LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
+LICENSE_CONFIG_NAMES.extend(["duolingo_p_2_0", "duolingo_p_3_0"])  # cap=6 variants
 
 TIMEOUT_SECONDS: float = 60.0
 REPEATS_PER_GRAPH: int = 2  # repeated runs per (ego, algo, license)
@@ -178,11 +185,21 @@ def main() -> None:
     out_path = csv_dir / f"{run_id}.csv"
 
     # Header aligned with benchmark.py
-    print("== glopt benchmark ==")
-    print(f"run_id: {run_id}")
-    print("graphs: facebook_ego")
-    print(f"repeats/graph: {REPEATS_PER_GRAPH}")
-    print(f"timeout limit: {TIMEOUT_SECONDS:.0f}s")
+    from time import perf_counter as _pc
+
+    setup_logging(run_id=run_id)
+    logger = get_logger(__name__)
+    _t0 = _pc()
+    log_run_banner(
+        logger,
+        title="glopt benchmark",
+        params={
+            "run_id": run_id,
+            "graphs": "facebook_ego",
+            "repeats/graph": REPEATS_PER_GRAPH,
+            "timeout limit": f"{TIMEOUT_SECONDS:.0f}s",
+        },
+    )
 
     loader = RealWorldDataLoader(data_dir="data")
     networks = loader.load_all_facebook_networks()
@@ -191,9 +208,9 @@ def main() -> None:
     algorithm_classes = list(ALGORITHM_CLASSES)
     licenses = list(LICENSE_CONFIG_NAMES)
 
-    print(f"licenses: {', '.join(licenses)}")
-    print(f"algorithms: {', '.join(algorithm_classes)}")
-    print(f"facebook ego networks: {len(ego_ids)}")
+    logger.info("licenses: %s", ", ".join(licenses))
+    logger.info("algorithms: %s", ", ".join(algorithm_classes))
+    logger.info("facebook ego networks: %d", len(ego_ids))
 
     # Write CSV header
     import csv as _csv
@@ -237,7 +254,7 @@ def main() -> None:
         # Align outer loop order and prints with benchmark.py: all licenses × all algorithms
         for lic_idx, lic in enumerate(licenses):
             for algo in algorithm_classes:
-                print(f"-> {lic} / {algo}")
+                logger.info("-> %s / %s", lic, algo)
                 for ego_id in ego_ids:
                     G = networks[ego_id]
                     n_nodes = G.number_of_nodes()
@@ -275,12 +292,20 @@ def main() -> None:
                             status = "TIMEOUT"
                         elif row.get("notes") == "error":
                             status = "ERROR"
-                        print(
-                            f"   {'facebook_ego':12s} ego={str(ego_id):>8s} rep={rep} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}"
+                        logger.info(
+                            "%-12s ego=%8s rep=%d cost=%.2f time_ms=%.2f valid=%s %s",
+                            "facebook_ego",
+                            str(ego_id),
+                            rep,
+                            row["total_cost"],
+                            row["time_ms"],
+                            row["valid"],
+                            status,
                         )
 
     if out_path.exists():
-        print(f"csv: {out_path}")
+        duration_s = _pc() - _t0
+        log_run_footer(logger, {"csv": out_path, "elapsed_sec": f"{duration_s:.2f}"})
 
 
 if __name__ == "__main__":

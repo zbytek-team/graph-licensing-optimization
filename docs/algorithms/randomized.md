@@ -1,52 +1,51 @@
 # Randomized Algorithm
 
-- Idea: Jednoprzebiegowy algorytm, który dla każdego wierzchołka decyduje losowo między wariantem zachłannym a czysto losowym.
+- Idea: jednoprzebiegowy algorytm, który w losowej kolejności próbuje dobrać losową licencję i losowy rozmiar grupy dla danego właściciela w granicach pojemności. Gdy nie da się dobrać licencji dla dostępnych sąsiadów, algorytm spada do prostego wariantu zachłannego dla tego wierzchołka. Na końcu domyka pozostałe wierzchołki najtańszą licencją jednoosobową.
 
 ## Pseudocode
 ```
-input: graph G=(V,E), license types L, greedy_probability p∈[0,1]
+input: graph G=(V,E), license types L
 uncovered ← V
 order ← shuffled list of V
 groups ← ∅
 for node in order:
   if node ∉ uncovered: continue
-  if rand() < p:
-    # greedy-assignment
-    best ← None; best_eff ← +∞
-    S ← (N(node)∪{node}) ∩ uncovered
-    for each license ℓ in L:
-      for size s from ℓ.min to min(|S|, ℓ.max):
-        members ← {node} ∪ top_{s-1} nodes by degree from S\{node}
-        eff ← ℓ.cost / s
-        if eff < best_eff: best ← (ℓ, members); best_eff ← eff
+  S ← (N(node)∪{node}) ∩ uncovered
+  C ← {ℓ ∈ L : ℓ.min ≤ |S|}
+  best ← None
+  if C≠∅:
+    ℓ ← random element of C
+    s ← random integer in [ℓ.min, min(|S|, ℓ.max)]
+    members ← {node} ∪ random (s-1) nodes from S\{node}
+    best ← (ℓ, members)
   else:
-    # random-assignment
-    S ← (N(node)∪{node}) ∩ uncovered
-    C ← {ℓ ∈ L : ℓ.min ≤ |S|}
-    if C≠∅:
-      ℓ ← random element of C
-      s ← random integer in [ℓ.min, min(|S|, ℓ.max)]
-      members ← {node} ∪ random (s-1) nodes from S\{node}
-      best ← (ℓ, members)
+    # fallback: mały krok zachłanny
+    best_eff ← +∞
+    for ℓ in L:
+      for s in [ℓ.min .. min(|S|, ℓ.max)]:
+        cand ← {node} ∪ top_{s-1} by degree from S\{node}
+        if |cand|=s and ℓ.cost/s < best_eff: best ← (ℓ,cand); best_eff ← ℓ.cost/s
   if best exists:
-    add group(best) to groups; uncovered ← uncovered \ best.members
+    add group(best); uncovered ← uncovered \ best.members
 
-# domknięcie resztek pojedynczymi
-while uncovered ≠ ∅:
+while uncovered ≠ ∅:  # domknięcie singlami
   u ← pop(uncovered)
   ℓ1 ← cheapest license with min_capacity ≤ 1
-  add (ℓ1, {u}) to groups
+  add (ℓ1, {u})
 
 return groups
 ```
 
 ## Złożoność
-- Czas: O(V·Δ log Δ) przy wariancie greedy (sortowanie sąsiadów), losowy wariant ~O(V·Δ).
+- Czas: ~O(V·Δ) dla części losowej, z okazjonalnym lokalnym krokiem zachłannym ~O(Δ log Δ).
 - Pamięć: O(V).
 
-## Wyniki z ostatniego custom.py
-- Graph: small_world(n=100), License: spotify
-- cost: 1171.64, time_ms: 0.25, valid: True
-
 ## Uwagi
-- Parametr p steruje kompromisem jakość/czas. Fallback uzupełnia niepokryte węzły najtańszymi singlami.
+- Losowość zwiększa różnorodność rozwiązań, a prosty fallback pilnuje, żeby nie utknąć gdy nie ma dopasowania pojemności.
+
+## Mapowanie pseudokodu na kod
+- Plik: `src/glopt/algorithms/randomized.py`
+- `solve(...)` – kolejność losowa, tworzenie grup losowych, domknięcie singlami
+- `_random_assignment(...)` – dobór losowej licencji i rozmiaru plus fallback zachłanny
+- `_select_random_group_members(...)` – losowy wybór członków
+- `_find_cheapest_single_license(...)` – najtańsza licencja jednoosobowa

@@ -36,3 +36,10 @@ Ruchy są generowane tak, by zachować ograniczenia licencji i sąsiedztwa (wali
 
 ## Uwagi
 - Dobór ruchów i harmonogram chłodzenia silnie wpływają na jakość; walidacja filtruje ruchy niepoprawne.
+
+## Mapowanie pseudokodu na kod
+- Plik: `src/glopt/algorithms/simulated_annealing.py`
+- `solve(...)` – główna pętla SA, chłodzenie i licznik zastoju
+- `_neighbor(...)` – losowanie typu ruchu i walidacja sąsiada
+- Ruchy loklane: `_mv_change_license`, `_mv_move_member`, `_mv_swap_members`, `_mv_merge_groups`, `_mv_split_group`
+- `_fallback_singletons(...)` – bezpieczny start gdy greedy nie przejdzie walidacji

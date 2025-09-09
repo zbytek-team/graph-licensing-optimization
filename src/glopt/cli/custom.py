@@ -6,8 +6,11 @@ from typing import Any
 from glopt.core import RunResult, generate_graph, instantiate_algorithms, run_once
 from glopt.io import build_paths, write_csv
 from glopt.license_config import LicenseConfigFactory
+from glopt.logging_config import get_logger, log_run_banner, log_run_footer, setup_logging
 
-# Configuration
+# ==============================================
+# Configuration (no CLI/env)
+# ==============================================
 RUN_ID: str | None = None
 GRAPH_NAME: str = "small_world"
 GRAPH_PARAMS: dict[str, Any] = {"k": 4, "p": 0.1, "seed": 42}
@@ -30,13 +33,18 @@ ALGORITHMS: list[str] = [
 def main() -> None:
     run_id = (RUN_ID or datetime.now().strftime("%Y%m%d_%H%M%S")) + "_custom"
     _, graphs_dir, csv_dir = build_paths(run_id)
-
-    # Print header config
-    print("== glopt custom run ==")
-    print(f"run_id: {run_id}")
-    print(f"graph: {GRAPH_NAME} n={N_NODES} params={GRAPH_PARAMS}")
-    print(f"license: {LICENSE_CONFIG_NAME}")
-    print(f"algorithms: {', '.join(ALGORITHMS)}")
+    setup_logging(run_id=run_id)
+    logger = get_logger(__name__)
+    log_run_banner(
+        logger,
+        title="glopt custom run",
+        params={
+            "run_id": run_id,
+            "graph": f"{GRAPH_NAME} n={N_NODES} params={GRAPH_PARAMS}",
+            "license": LICENSE_CONFIG_NAME,
+            "algorithms": ", ".join(ALGORITHMS),
+        },
+    )
 
     graph = generate_graph(GRAPH_NAME, N_NODES, GRAPH_PARAMS)
     license_types = LicenseConfigFactory.get_config(LICENSE_CONFIG_NAME)
@@ -44,7 +52,7 @@ def main() -> None:
 
     results: list[RunResult] = []
     for algo in algos:
-        print(f"-> running {algo.name}...")
+        logger.info("-> running %s...", algo.name)
         r = run_once(
             algo=algo,
             graph=graph,
@@ -53,7 +61,13 @@ def main() -> None:
             graphs_dir=graphs_dir,
             print_issue_limit=10,
         )
-        print(f"   done: cost={r.total_cost:.2f} time_ms={r.time_ms:.2f} valid={r.valid} issues={r.issues}")
+        logger.info(
+            "   done: cost=%.2f time_ms=%.2f valid=%s issues=%d",
+            r.total_cost,
+            r.time_ms,
+            r.valid,
+            r.issues,
+        )
         r = RunResult(
             **{
                 **r.__dict__,
@@ -67,12 +81,19 @@ def main() -> None:
     csv_path = write_csv(csv_dir, run_id, results)
 
     # Summary
-    print("== summary ==")
+    from time import perf_counter as _pc
+    # Note: we don't track a start time here; keeping footer consistent
+    log_run_footer(
+        logger,
+        summary={
+            "runs": len(results),
+            "csv": csv_path,
+        },
+    )
     for r in results:
-        print(f"{r.algorithm}: cost={r.total_cost:.2f} time_ms={r.time_ms:.2f} valid={r.valid}")
+        logger.info("%s: cost=%.2f time_ms=%.2f valid=%s", r.algorithm, r.total_cost, r.time_ms, r.valid)
         if r.image_path:
-            print(f" image: {r.image_path}")
-    print(f"csv: {csv_path}")
+            logger.info(" image: %s", r.image_path)
 
 
 if __name__ == "__main__":

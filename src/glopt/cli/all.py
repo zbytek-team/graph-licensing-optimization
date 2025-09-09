@@ -5,6 +5,7 @@ from typing import Any
 from glopt.core import RunResult, generate_graph, instantiate_algorithms, run_once
 from glopt.io import build_paths, ensure_dir, write_csv
 from glopt.license_config import LicenseConfigFactory
+from glopt.logging_config import get_logger, log_run_banner, log_run_footer, setup_logging
 
 # Configuration
 N_NODES: int = 30
@@ -36,21 +37,27 @@ def _format_license_types(license_types: list) -> str:
         return ", ".join(getattr(lt, "name", str(lt)) for lt in license_types)
 
 
-def main() -> int:
+def main() -> None:
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S") + "_all"
     _, graphs_dir_root, csv_dir = build_paths(run_id)
-
-    print("== glopt all ==")
-    print(f"run_id: {run_id}")
-    print(f"graphs: {', '.join(GRAPH_NAMES)} n={N_NODES}")
-    print(f"licenses: {', '.join(LICENSE_CONFIGS)}")
-    print(f"algorithms: {', '.join(ALGORITHMS)}")
+    setup_logging(run_id=run_id)
+    logger = get_logger(__name__)
+    log_run_banner(
+        logger,
+        title="glopt all",
+        params={
+            "run_id": run_id,
+            "graphs": ", ".join(GRAPH_NAMES) + f" n={N_NODES}",
+            "licenses": ", ".join(LICENSE_CONFIGS),
+            "algorithms": ", ".join(ALGORITHMS),
+        },
+    )
 
     results: list[RunResult] = []
     for graph_name in GRAPH_NAMES:
-        print("\n== graph ==")
+        logger.info("\n== graph ==")
         params = DEFAULT_GRAPH_PARAMS.get(graph_name, {})
-        print(f"generating: {graph_name} n={N_NODES} params={params}")
+        logger.info("generating: %s n=%d params=%s", graph_name, N_NODES, params)
         t0 = perf_counter()
         graph = generate_graph(graph_name, N_NODES, params)
         gen_ms = (perf_counter() - t0) * 1000.0
@@ -60,20 +67,27 @@ def main() -> int:
 
             n_comp = _nx.number_connected_components(graph)
             avg_deg = (2.0 * n_edges / max(1, n_nodes)) if n_nodes else 0.0
-            print(f"generated: {n_nodes} nodes, {n_edges} edges, comps={n_comp}, avg_deg={avg_deg:.2f} in {gen_ms:.1f} ms")
+            logger.info(
+                "generated: %d nodes, %d edges, comps=%d, avg_deg=%.2f in %.1f ms",
+                n_nodes,
+                n_edges,
+                n_comp,
+                avg_deg,
+                gen_ms,
+            )
         except Exception:
-            print(f"generated: {n_nodes} nodes, {n_edges} edges in {gen_ms:.1f} ms")
+            logger.info("generated: %d nodes, %d edges in %.1f ms", n_nodes, n_edges, gen_ms)
 
         for lic_name in LICENSE_CONFIGS:
             license_types = LicenseConfigFactory.get_config(lic_name)
             g_dir = f"{graphs_dir_root}/{graph_name}/{lic_name}"
             ensure_dir(g_dir)
-            print(f"-> license: {lic_name} [{_format_license_types(license_types)}]")
+            logger.info("-> license: %s [%s]", lic_name, _format_license_types(license_types))
 
             for algo_name in ALGORITHMS:
                 try:
                     algo = instantiate_algorithms([algo_name])[0]
-                    print(f"   running: {algo.name}")
+                    logger.info("   running: %s", algo.name)
                     t0 = perf_counter()
                     r = run_once(
                         algo=algo,
@@ -84,9 +98,16 @@ def main() -> int:
                         print_issue_limit=10,
                     )
                     wall_ms = (perf_counter() - t0) * 1000.0
-                    print(f"     result: cost={r.total_cost:.2f} time_ms={r.time_ms:.2f} valid={r.valid} issues={r.issues} img={bool(r.image_path)}")
+                    logger.info(
+                        "     result: cost=%.2f time_ms=%.2f valid=%s issues=%d img=%s",
+                        r.total_cost,
+                        r.time_ms,
+                        r.valid,
+                        r.issues,
+                        bool(r.image_path),
+                    )
                     if abs(r.time_ms - wall_ms) > 5.0:
-                        print(f"     note: wall={wall_ms:.2f} ms vs reported={r.time_ms:.2f} ms")
+                        logger.info("     note: wall=%.2f ms vs reported=%.2f ms", wall_ms, r.time_ms)
                     r = RunResult(
                         **{
                             **r.__dict__,
@@ -97,14 +118,18 @@ def main() -> int:
                     )
                     results.append(r)
                 except Exception as e:
-                    print(f"     skipped: {algo_name} -> {e}")
+                    logger.warning("     skipped: %s -> %s", algo_name, e)
 
     csv_path = write_csv(csv_dir, run_id, results)
-    print("== summary ==")
-    print(f"runs: {len(results)}")
-    print(f"csv: {csv_path}")
-    return 0
+    log_run_footer(
+        logger,
+        summary={
+            "runs": len(results),
+            "csv": csv_path,
+        },
+    )
+    return None
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

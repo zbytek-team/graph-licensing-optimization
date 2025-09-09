@@ -1,0 +1,8 @@
+bin,graph,algorithm,wins
+200<n<=1000,facebook_ego,GreedyAlgorithm,26
+200<n<=1000,facebook_ego,RandomizedAlgorithm,9
+n<=200,facebook_ego,GreedyAlgorithm,15
+n<=200,facebook_ego,TabuSearch,10
+n<=200,facebook_ego,RandomizedAlgorithm,3
+n>1000,facebook_ego,GreedyAlgorithm,5
+n>1000,facebook_ego,RandomizedAlgorithm,2
