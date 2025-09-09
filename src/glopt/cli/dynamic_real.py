@@ -8,6 +8,7 @@ from typing import Any
 
 import networkx as nx
 
+
 from glopt.algorithms.greedy import GreedyAlgorithm
 from glopt.core import LicenseGroup, Solution, SolutionBuilder, instantiate_algorithms
 from glopt.core.solution_validator import SolutionValidator
@@ -15,9 +16,10 @@ from glopt.dynamic_simulator import DynamicNetworkSimulator, MutationParams
 from glopt.io import ensure_dir
 from glopt.io.data_loader import RealWorldDataLoader
 from glopt.license_config import LicenseConfigFactory
+from glopt.logging_config import get_logger, log_run_banner, log_run_footer, setup_logging
 
 # ==============================================
-# Configuration aligned with benchmark_real
+# Configuration (no CLI/env)
 # ==============================================
 
 RUN_ID: str | None = None
@@ -33,9 +35,13 @@ ALGORITHM_CLASSES: list[str] = [
     "GeneticAlgorithm",
 ]
 
-LICENSE_CONFIG_NAMES: list[str] = ["spotify", "duolingo_super", "roman_domination"]
+LICENSE_CONFIG_NAMES: list[str] = [
+    "duolingo_super",
+    "roman_domination",
+]
 DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
 LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
+LICENSE_CONFIG_NAMES.extend(["duolingo_p_2_0", "duolingo_p_3_0"])  # cap=6 variants
 
 TIMEOUT_SECONDS: float = 60.0
 REPEATS_PER_GRAPH: int = 1
@@ -215,13 +221,24 @@ def main() -> None:
     ensure_dir(str(csv_dir))
     out_path = csv_dir / f"{run_id}.csv"
 
-    print("== glopt benchmark ==")
-    print(f"run_id: {run_id}")
-    print("graphs: facebook_ego")
-    print(f"steps/ego: {NUM_STEPS} repeats/step: {REPEATS_PER_GRAPH}")
-    print(f"licenses: {', '.join(LICENSE_CONFIG_NAMES)}")
-    print(f"algorithms: {', '.join(ALGORITHM_CLASSES)}")
-    print(f"timeout limit: {TIMEOUT_SECONDS:.0f}s")
+    from time import perf_counter as _pc
+
+    setup_logging(run_id=run_id)
+    logger = get_logger(__name__)
+    _t0 = _pc()
+    log_run_banner(
+        logger,
+        title="glopt dynamic",
+        params={
+            "run_id": run_id,
+            "graphs": "facebook_ego",
+            "steps/ego": NUM_STEPS,
+            "repeats/step": REPEATS_PER_GRAPH,
+            "licenses": ", ".join(LICENSE_CONFIG_NAMES),
+            "algorithms": ", ".join(ALGORITHM_CLASSES),
+            "timeout limit": f"{TIMEOUT_SECONDS:.0f}s",
+        },
+    )
 
     loader = RealWorldDataLoader(data_dir="data")
     networks = loader.load_all_facebook_networks()
@@ -274,7 +291,7 @@ def main() -> None:
         for lic in LICENSE_CONFIG_NAMES:
             for algo in ALGORITHM_CLASSES:
                 warm_variants = [False, True] if algo in warmable else [False]
-                print(f"-> {lic} / {algo}")
+                logger.info("-> %s / %s", lic, algo)
                 for ego_id in ego_ids:
                     G0 = networks[ego_id]
                     # Scale mutation params to graph size
@@ -413,8 +430,17 @@ def main() -> None:
                             elif row.get("notes") == "error":
                                 status = "ERROR"
                             warm_lbl = "warm" if row.get("warm_start") else "cold"
-                            print(
-                                f"   {'facebook_ego':12s} ego={str(ego_id):>8s} step={step:02d} rep={rep} {warm_lbl:4s} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}"
+                            logger.info(
+                                "%-12s ego=%8s step=%02d rep=%d %4s cost=%.2f time_ms=%.2f valid=%s %s",
+                                "facebook_ego",
+                                str(ego_id),
+                                step,
+                                rep,
+                                warm_lbl,
+                                row["total_cost"],
+                                row["time_ms"],
+                                row["valid"],
+                                status,
                             )
                             if over:
                                 stop_steps = True
@@ -423,7 +449,8 @@ def main() -> None:
                             break
 
     if out_path.exists():
-        print(f"csv: {out_path}")
+        duration_s = _pc() - _t0
+        log_run_footer(logger, {"csv": out_path, "elapsed_sec": f"{duration_s:.2f}"})
 
 
 if __name__ == "__main__":

@@ -1,3 +1,8 @@
+from .utils.runtime import ensure_python_313
+
+# Enforce Python 3.13 at import-time (clear error early)
+ensure_python_313()
+
 from . import algorithms
 from .core import (
     Algorithm,

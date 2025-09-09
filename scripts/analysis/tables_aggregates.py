@@ -4,6 +4,7 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 from statistics import mean, pstdev, stdev
+import math
 from typing import Any
 
 from .commons import ensure_dir
@@ -23,8 +24,12 @@ def write_aggregates(rows: list[dict[str, Any]], out_path: Path) -> None:
         times = []
         for r in rs:
             try:
-                costs.append(float(r["total_cost"]))
-                times.append(float(r["time_ms"]))
+                c = float(r["total_cost"]) 
+                t = float(r["time_ms"]) 
+                if math.isfinite(c):
+                    costs.append(c)
+                if math.isfinite(t):
+                    times.append(t)
             except Exception:  # robust parsing
                 pass
         if not costs:

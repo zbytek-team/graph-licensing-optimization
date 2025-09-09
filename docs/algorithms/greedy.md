@@ -48,3 +48,9 @@ return groups
 
 ## Uwagi
 - Bardzo szybki, zazwyczaj rozsądna jakość; dobry baseline.
+
+## Mapowanie pseudokodu na kod
+- Plik: `src/glopt/algorithms/greedy.py`
+- `solve(...)` – pętla po właścicielach w kolejności po stopniu oraz faza domknięcia resztek
+- `_best_group_for_owner(...)` – wybór licencji i członków grupy minimalizujący koszt na węzeł
+- `_cheapest_feasible_group(...)` – domknięcie najmniejszą dopuszczalną grupą albo licencją 1

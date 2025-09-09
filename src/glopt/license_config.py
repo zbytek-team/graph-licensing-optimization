@@ -29,7 +29,7 @@ class LicenseConfigFactory:
 
     @classmethod
     def get_config(cls, name: str) -> list[LicenseType]:
-        # Dynamic roman domination sweep: roman_p_1_5
+        # Dynamic roman domination sweep: roman_p_1_5 (unbounded group capacity)
         if name.startswith("roman_p_"):
             p_str = name.split("_", 2)[2]
             p_str = p_str.replace("_", ".")
@@ -42,9 +42,22 @@ class LicenseConfigFactory:
                 LicenseType("Solo", 1.0, 1, 1, cls.BLUE),
                 LicenseType("Group", p_val, 2, 99999, cls.RED),
             ]
+        # Duolingo-style sweep with capacity limited to 6: duolingo_p_2_0 → group=2.0× solo, cap=6
+        if name.startswith("duolingo_p_"):
+            p_str = name.split("_", 2)[2]
+            p_str = p_str.replace("_", ".")
+            try:
+                p_val = float(p_str)
+            except Exception:
+                available = ", ".join(cls._CONFIGS.keys())
+                raise ValueError(f"Invalid duolingo price '{name}'. Available: {available} or duolingo_p_<x_y>")
+            return [
+                LicenseType("Individual", 1.0, 1, 1, cls.RED),
+                LicenseType("Family", p_val, 2, 6, cls.BLUE),
+            ]
         try:
             return cls._CONFIGS[name]()
         except KeyError:
             available = ", ".join(cls._CONFIGS.keys())
-            msg = f"Unsupported license config: {name}. Available: {available} or roman_p_<x_y>"
+            msg = f"Unsupported license config: {name}. Available: {available} or roman_p_<x_y> or duolingo_p_<x_y>"
             raise ValueError(msg) from None

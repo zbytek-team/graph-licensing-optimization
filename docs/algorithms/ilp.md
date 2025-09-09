@@ -26,3 +26,9 @@ Constraints:
 
 ## Uwagi
 - Daje zwykle najlepszą jakość (dolna granica porównawcza), ale jest najwolniejszy.
+
+## Mapowanie pseudokodu na kod
+- Plik: `src/glopt/algorithms/ilp.py`
+- `solve(...)` – budowa zmiennych `assign_vars` (`x[i,j,t]`) i `active_vars` (`y[i,t]`), funkcja celu i ograniczenia dokładnie jak w pseudomodelu
+- Ustalanie sąsiedztwa w ograniczeniach pojemności: sumy po `N(i) ∪ {i}`
+- Decoding rozwiązania do grup: pętle po `active_vars` i `assign_vars`, tworzenie `LicenseGroup`

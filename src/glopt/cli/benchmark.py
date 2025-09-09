@@ -11,14 +11,16 @@ from typing import Any
 
 import networkx as nx
 
+
 from glopt.algorithms.greedy import GreedyAlgorithm
 from glopt.core import generate_graph, instantiate_algorithms
 from glopt.core.solution_validator import SolutionValidator
 from glopt.io import ensure_dir
 from glopt.license_config import LicenseConfigFactory
+from glopt.logging_config import get_logger, log_run_banner, log_run_footer, setup_logging
 
 # ==============================================
-# Simple, tweakable configuration (no CLI/env)
+# Configuration (no CLI/env)
 # ==============================================
 
 # Optional custom run id suffix. If None, timestamp is used.
@@ -47,9 +49,15 @@ REPEATS_PER_GRAPH: int = 2  # e.g., different algorithm seeds
 TIMEOUT_SECONDS: float = 60.0
 
 # License configurations and algorithms under test
-LICENSE_CONFIG_NAMES: list[str] = ["spotify", "duolingo_super", "roman_domination"]
+LICENSE_CONFIG_NAMES: list[str] = [
+    "duolingo_super",           # real-world Duolingo Super (1 + family up to 6)
+    "roman_domination",         # normalized Roman domination (group unbounded)
+]
+# Param sweeps: Roman (unbounded capacity) and Duolingo-style (cap 6)
 DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
 LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
+DYNAMIC_DUO_PS: list[float] = [2.0, 3.0]
+LICENSE_CONFIG_NAMES.extend([f"duolingo_p_{str(p).replace('.', '_')}" for p in DYNAMIC_DUO_PS])
 ALGORITHM_CLASSES: list[str] = [
     "ILPSolver",  # exact (small n only)
     "GreedyAlgorithm",
@@ -138,10 +146,11 @@ def _ensure_cache_for_all() -> None:
                 with mpath.open("w", encoding="utf-8") as f:
                     json.dump(meta, f, ensure_ascii=False)
                 created += 1
+    logger = get_logger(__name__)
     if created:
-        print(f"graph cache: generated {created} new graphs under {GRAPH_CACHE_DIR}")
+        logger.info("graph cache: generated %d new graphs under %s", created, GRAPH_CACHE_DIR)
     else:
-        print(f"graph cache: up-to-date at {GRAPH_CACHE_DIR}")
+        logger.info("graph cache: up-to-date at %s", GRAPH_CACHE_DIR)
 
 
 def _load_cached_graph(gname: str, n: int, sample_idx: int) -> tuple[nx.Graph, dict[str, Any]]:
@@ -302,15 +311,26 @@ def main() -> None:
     ensure_dir(str(csv_dir))
     out_path = csv_dir / f"{run_id}.csv"
 
-    print("== glopt benchmark ==")
-    print(f"run_id: {run_id}")
-    print(f"graphs: {', '.join(GRAPH_NAMES)}")
-    print(f"sizes: {SIZES[0]}..{SIZES[-1]} ({len(SIZES)} points)")
-    print(f"samples/size: {SAMPLES_PER_SIZE} repeats/graph: {REPEATS_PER_GRAPH}")
-    print(f"licenses: {', '.join(LICENSE_CONFIG_NAMES)}")
-    print(f"algorithms: {', '.join(ALGORITHM_CLASSES)}")
-    print(f"timeout limit: {TIMEOUT_SECONDS:.0f}s (kills run and stops larger sizes)")
-    print("warming up graph cache …")
+    from time import perf_counter as _pc
+
+    setup_logging(run_id=run_id)
+    logger = get_logger(__name__)
+    _t0 = _pc()
+    log_run_banner(
+        logger,
+        title="glopt benchmark",
+        params={
+            "run_id": run_id,
+            "graphs": ", ".join(GRAPH_NAMES),
+            "sizes": f"{SIZES[0]}..{SIZES[-1]} ({len(SIZES)} points)",
+            "samples/size": SAMPLES_PER_SIZE,
+            "repeats/graph": REPEATS_PER_GRAPH,
+            "licenses": ", ".join(LICENSE_CONFIG_NAMES),
+            "algorithms": ", ".join(ALGORITHM_CLASSES),
+            "timeout limit": f"{TIMEOUT_SECONDS:.0f}s (kills run and stops larger sizes)",
+        },
+    )
+    logger.info("warming up graph cache …")
     _ensure_cache_for_all()
 
     for lic_name in LICENSE_CONFIG_NAMES:
@@ -364,18 +384,32 @@ def main() -> None:
                                 status = "TIMEOUT"
                             elif row.get("notes") == "error":
                                 status = "ERROR"
-                            print(
-                                f"   {gname:12s} n={n:4d} s={s_idx} rep={rep} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}"
+                            logger.info(
+                                "%-12s n=%4d s=%d rep=%d cost=%.2f time_ms=%.2f valid=%s %s",
+                                gname,
+                                n,
+                                s_idx,
+                                rep,
+                                row["total_cost"],
+                                row["time_ms"],
+                                row["valid"],
+                                status,
                             )
                             if is_over:
                                 over_here = True
                         if over_here:
-                            print(f"   {gname:12s} n={n:4d} TIMEOUT — stopping larger sizes for {algo_name} on this graph")
+                            logger.warning(
+                                "%-12s n=%4d TIMEOUT — stopping larger sizes for %s on this graph",
+                                gname,
+                                n,
+                                algo_name,
+                            )
                             stop_sizes = True
                             break
 
     if out_path.exists():
-        print(f"csv: {out_path}")
+        duration_s = _pc() - _t0
+        log_run_footer(logger, {"csv": out_path, "elapsed_sec": f"{duration_s:.2f}"})
 
 
 if __name__ == "__main__":

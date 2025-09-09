@@ -1,0 +1,3 @@
+N=46 instances, k=7 algorithms
+Friedman chi2≈255.6801, Iman–Davenport F≈566.2242 (df1=6, df2=270)
+Note: p-values not computed here; use these stats for reference or compute externally.
