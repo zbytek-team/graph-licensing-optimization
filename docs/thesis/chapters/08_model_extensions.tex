@@ -51,6 +51,10 @@ W tabeli przedstawiono wpływ tych scenariuszy na średni koszt optymalnego rozw
     \item Niższa cena licencji grupowej wyraźnie zachęca do większego wykorzystywania planów rodzinnych.
 \end{itemize}
 
+W praktycznej części pracy skupiam się głównie na dwóch konfiguracjach: \texttt{duolingo\_super} i \texttt{roman\_domination}. To te dwa zestawy dają najbardziej klarowne porównanie podejścia realistycznego i podejścia zdominowanego przez logikę dominacji rzymskiej. W eksperymentach trzymam też rodzinę \texttt{roman\_p\_*}, ale \texttt{roman\_p\_2\_0} pokrywa się znaczeniowo z \texttt{roman\_domination}, więc nie ma sensu dublować tego wariantu - wyłączyłem go z nowych uruchomień.
+
+Na potrzeby rozdziału z eksperymentami eksportuję wykresy porównawcze obu konfiguracji do katalogu \texttt{docs/thesis/assets/figures}. Przykładowy wykres kosztu na węzeł dla ego-sieci Facebooka znajduje się w pliku \texttt{br\_compare\_cost\_duo\_vs\_roman\_facebook\_ego.png}. Taki widok pozwala szybko ocenić, jak zmiana polityki cenowej przesuwa preferencje algorytmów i jakie są różnice w jakości przy tych samych danych.
+
 \section{Rozszerzenie modelu o dodatkowe typy planów subskrypcyjnych}
 
 W rzeczywistych platformach, takich jak Spotify, oprócz licencji indywidualnych i rodzinnych dostępne są również inne plany subskrypcyjne:

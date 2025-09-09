@@ -1,6 +1,6 @@
 \chapter{Eksperymenty i analiza wyników}
 
-W tym rozdziale zostały przedstawione wyniki badań przeprowadzonych nad różnymi algorytmami rozwiązywania problemu optymalnej dystrybucji licencji. Eksperymenty zostały wykonane na zbiorach obejmujących zarówno grafy syntetyczne, jak i grafy rzeczywiste. Dane zostały następnie przeanalizowane według przyjętych kryteriów, a uzyskane wyniki porównane pod względem jakości oraz efektywności obliczeniowej.
+W rozdziale prezentuję procedurę uruchomień, zestaw parametrów i algorytmów, a następnie wyniki na grafach syntetycznych i rzeczywistych. Opis odzwierciedla stan repozytorium (skrypty w \texttt{src/glopt/cli/}) oraz zbiory wykresów w \texttt{docs/thesis/assets/figures}. Każdy wykres ma jednoznaczny podpis i interpretację, a metryki są spójne z tym, co zbiera kod.
 
 % Na początku zostały opisane kryteria oceny, które określają sposób interpretacji wyników. Każda z metryk ma swoje znaczenie praktyczne – część z nich odnosi się do wartości absolutnych, takich jak koszt rozwiązania czy czas działania algorytmu, a część ma charakter względny, umożliwiający porównania między algorytmami i odniesienie ich jakości do rozwiązań optymalnych uzyskanych za pomocą ILP. Dzięki temu możliwe było równoczesne ujęcie wyników w dwóch wymiarach: faktycznego kosztu i czasu obliczeń oraz dystansu od optimum.
 
@@ -12,30 +12,20 @@ W tym rozdziale zostały przedstawione wyniki badań przeprowadzonych nad różn
 
 \section{Kryteria oceny}
 
-W celu przeprowadzenia analizy skuteczności wszystkich wykorzystanych w badaniu algorytmów oraz umożliwienia ich bezpośredniego porównania zostały zdefiniowane odpowiednie metryki. Dane do ich obliczenia rejestrowano automatycznie w trakcie działania skryptu uruchamiającego wszystkie algorytmy dla poszczególnych typów grafów o zróżnicowanej ilości węzłów. Zebrane informacje zapisano następnie w arkuszu kalkulacyjnym, który posłużył do dalszej analizy wyników. Wyróżniono następujące metryki:
+Wszystkie skrypty zapisują spójne metryki (koszt, czas, poprawność oraz statystyki grup), na których opieram wykresy i porównania. Kluczowe pola w CSV:
 
 \begin{itemize}
-    \item \textbf{średni stosunek kosztu (mean\_cost\_ratio)} \\
-    Miara jakości rozwiązania w odniesieniu do optimum ILP. 
-    Obliczana jako iloraz kosztu uzyskanego przez algorytm i kosztu rozwiązania optymalnego. 
-    Wartość równa 1 oznacza rozwiązanie optymalne, wartości powyżej 1 wskazują o ile heurystyka była gorsza od optimum.
+    \item \textbf{cost\_per\_node} \\
+    Koszt znormalizowany przez liczbę węzłów — umożliwia porównywanie instancji o różnych rozmiarach oraz różnych rodzinach grafów.
 
-    \item \textbf{średnie przyspieszenie (mean\_speedup)} \\
-    Relacja czasu działania algorytmu do czasu działania algorytmu ILP. 
-    Wartości większe od 1 oznaczają, że algorytm działał szybciej niż punkt odniesienia, 
-    natomiast wartości poniżej 1 – że wolniej. 
-    Metryka ta pozwala ocenić efektywność czasową algorytmów względem siebie.
+    \item \textbf{time\_ms} \\
+    Czas obliczeń jednej próby (ms), mierzony ścienny — praktyczny koszt obliczeniowy metody.
 
-    \item \textbf{średni koszt (mean\_cost)} \\
-    Uśredniona wartość funkcji celu dla rozwiązań wygenerowanych przez dany algorytm. 
-    Jest to wartość absolutna, wyrażająca jakość rozwiązania bez normalizacji względem ILP. 
-    Pozwala zorientować się, jakie wartości funkcji celu osiągają algorytmy w praktyce, 
-    co bywa istotne np. gdy ILP nie zostało obliczone dla wszystkich instancji.
+    \item \textbf{total\_cost} \\
+    Wartość funkcji celu — jakość rozwiązania. W agregacjach odnoszę ją do najmniejszej wartości uzyskanej w danej rodzinie (lub do ILP, jeśli jest dostępne).
 
-    \item \textbf{średni czas obliczeń (mean\_time\_ms)} \\
-    Uśredniony czas wykonania algorytmu podany w milisekundach. 
-    Pokazuje praktyczny koszt obliczeniowy każdej metody i umożliwia porównanie ich użyteczności 
-    w zastosowaniach, gdzie czas działania jest krytyczny.
+    \item \textbf{valid}, \textbf{issues} \\
+    Poprawność rozwiązania i liczba naruszeń (gdyby wystąpiły) raportowane przez walidator.
 
     \item \textbf{średni koszt ILP (mean\_ilp\_cost)} \\
     Wartość optymalna kosztu, uzyskana z rozwiązania za pomocą programowania całkowitoliczbowego (ILP). 
@@ -53,6 +43,99 @@ W celu przeprowadzenia analizy skuteczności wszystkich wykorzystanych w badaniu
     Duża liczność zwiększa wiarygodność uśrednień, a mała liczność oznacza, 
     że wyniki mogą być mniej reprezentatywne. 
 \end{itemize}
+
+\section{Środowisko i uruchamianie}
+Wszystkie eksperymenty uruchamiam w Pythonie 3.13 - wersja jest wymuszona w projekcie i sprawdzana na starcie. Do zarządzania środowiskiem używam narzędzia \texttt{uv}. W repozytorium mam prosty \texttt{Makefile}, który odpala skrypty CLI bez dodatkowych parametrów. To było dla mnie wygodne, bo cała konfiguracja leży na górze plików w folderze \texttt{src/glopt/cli/} i mogę to łatwo zmieniać w kodzie bez długich parserów linii poleceń. Każdy skrypt na starcie drukuje w logu najważniejsze ustawienia, potem raportuje postęp w pętlach i na koniec robi krótkie podsumowanie. Logi zapisują się do \texttt{runs/<run\_id>/glopt.log} i jednocześnie lecą na konsolę.
+
+Zestaw \texttt{benchmark\_all} to grafy syntetyczne - trzy rodziny. Zestaw \texttt{benchmark\_real\_all} to ego-sieci Facebooka. Po uruchomieniu \texttt{make analyze-csv} z odpowiednim CSV powstaje folder \texttt{results/...} z wykresami i tabelami. Mam też skrypt, który kopiuje wybrane PNG do katalogu pracy: \texttt{make thesis-figs} - dzięki temu figury są w \texttt{docs/thesis/assets/figures} i mogę je wprost wstawić do rozdziału.
+
+\subsection*{Konfiguracja sprzętowo-programowa}
+\begin{itemize}
+  \item System: Ubuntu 24.04 LTS (WSL2), CPU Intel Core i5-14600KF (16 wątków), RAM~24~GiB (dla WSL2).
+  \item Środowisko: Python~3.13, biblioteki: networkx, pulp (CBC), numpy, pandas, matplotlib.
+  \item Czas: wszystkie czasy to średnie z wielu powtórzeń (patrz \S\,Organizacja eksperymentów), z limitem czasu dla ILP.
+\end{itemize}
+
+\subsection*{Parametry algorytmów}
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+Algorytm & Parametry (wartości domyślne) \\
+\midrule
+Greedy & kolejność wg stopnia/efektywności licencji \\
+Genetic & populacja=30, generacje=40, elita=20\%, crossover=0.6 \\
+Simulated Annealing & $T_0$ dobrane eksperymentalnie, ochładzanie geometr. \\
+Tabu Search & tabu tenure ok.~20, sąsiedztwo mutacji grup \\
+Ant Colony & $\alpha=1,\beta=2$, parowanie=0.5, $q_0=0.9$, 20 mrówek \\
+ILP & CBC, limit czasu na instancję \\
+\bottomrule
+\end{tabular}
+\caption{Zestawienie głównych parametrów algorytmów użytych w eksperymentach.}
+\label{tab:algo_params}
+\end{table}
+
+\section{Wybrane wykresy - grafy syntetyczne}
+Na rysunkach poniżej pokazuję kilka reprezentatywnych figur (pełny komplet wykresów i tabel znajduje się w katalogu wyników). Odwołania w tekście używają etykiet \ref{fig:random_duo_cost_time}–\ref{fig:ilp_timeout}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.48\linewidth]{assets/figures/ba_random_duo_cost_vs_n.png}
+  \includegraphics[width=0.48\linewidth]{assets/figures/ba_random_duo_time_vs_n.png}
+  \caption{Random - Duolingo Super - koszt i czas w funkcji n.}
+  \label{fig:random_duo_cost_time}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.48\linewidth]{assets/figures/ba_compare_cost_duo_vs_roman.png}
+  \includegraphics[width=0.48\linewidth]{assets/figures/ba_leaderboard_time.png}
+  \caption{Porównanie konfiguracji licencji - koszt na węzeł oraz „leaderboard” czasu.}
+  \label{fig:compare_duo_roman}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.6\linewidth]{assets/figures/ba_heatmap_cost.png}
+  \caption{Heatmapa średniego kosztu względem gęstości i średniego stopnia.}
+  \label{fig:heatmap_cost}
+\end{figure}
+
+W skrócie: algorytmy zachłanne i proste losowe są bardzo szybkie i dają akceptowalną jakość; metaheurystyki (GA/SA/TS/ACO) schodzą niżej kosztowo, kosztem czasu obliczeń. ILP jest punktem odniesienia dla małych $n$, a następnie szybko napotyka limity czasu (por. rys.\,\ref{fig:ilp_timeout}).
+
+\section{Wybrane wykresy - grafy rzeczywiste}
+Analogiczne obserwacje dotyczą ego-sieci Facebooka (rys.\,\ref{fig:facebook_ego_cost}–\ref{fig:facebook_compare_cost}).
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.48\linewidth]{assets/figures/br_facebook_ego_duo_cost_vs_n.png}
+  \includegraphics[width=0.48\linewidth]{assets/figures/br_facebook_ego_roman_cost_vs_n.png}
+  \caption{Facebook ego - koszt w funkcji n dla Duolingo Super i Roman domination.}
+  \label{fig:facebook_ego_cost}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.48\linewidth]{assets/figures/br_compare_cost_duo_vs_roman_facebook_ego.png}
+  \includegraphics[width=0.48\linewidth]{assets/figures/br_leaderboard_cost.png}
+  \caption{Porównanie konfiguracji licencji na facebook\_ego oraz leaderboard kosztu.}
+  \label{fig:facebook_compare_cost}
+\end{figure}
+
+W praktyce duolingo\_super i roman\_domination to dwa najważniejsze zestawy - te porównania są głównym punktem odniesienia w wnioskach końcowych.
+
+\section{Granica wykonalności ILP}
+Na małych instancjach ILP daje nam złoty punkt odniesienia. Potem szybko pojawia się granica, gdzie solver zaczyna przekraczać limity czasu. Na rysunkach poniżej pokazuję prosty obraz tej granicy: heatmapa udziału timeoutów w siatce gęstość kontra rozmiar n oraz chmura punktów sukces kontra timeout.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.48\linewidth]{assets/figures/ba_ilp_timeout_boundary.png}
+  \includegraphics[width=0.48\linewidth]{assets/figures/br_ilp_timeout_boundary.png}
+  \caption{Granica czasowa ILP: po lewej grafy syntetyczne, po prawej grafy rzeczywiste (jaśniejsze = więcej timeoutów).}
+  \label{fig:ilp_timeout}
+\end{figure}
+
+Widać, że wraz ze wzrostem n i gęstości rośnie procent timeoutów. To potwierdza praktyczną rolę ILP jako algorytmu referencyjnego do mniejszych zadań i motywuje użycie heurystyk oraz metaheurystyk dla większych sieci.
 
 
 \section{Środowisko testowe}
@@ -97,50 +180,29 @@ Do implementacji oraz analizy wykorzystano język Python wraz z kilkoma kluczowy
 
 \subsection{Charakterystyka grafów testowych}
 
-W eksperymentach wykorzystano trzy klasy grafów syntetycznych: \textit{random}, \textit{scale-free} oraz \textit{small-world}. Dla każdej klasy analizowano serie instancji o rosnącej liczbie wierzchołków, przy stałym przyroście o 20. Minimalna liczba węzłów wynosi 10. Zakresy były następujące: dla \textit{random} od 10 do 90, dla \textit{small-world} od 10 do 230, natomiast dla \textit{scale-free} od 10 do 990. Zróżnicowanie maksymalnych rozmiarów wynika z pragmatyki pomiarów: dla \textit{random} i \textit{small-world} odnotowano wyraźnie dłuższe czasy działania przy większych rozmiarach, podczas gdy struktura \textit{scale-free} pozwalała bezpiecznie rozszerzyć zakres do znacznie większych instancji bez utraty powtarzalności pomiarów. Oprócz grafów syntetycznych analizowano też grafy rzeczywiste; ich rozmiary nie są sterowane parametrycznie i wynikają z dostępnych zbiorów danych, dlatego służą jako uzupełniający punkt odniesienia dla obserwacji ze środowiska kontrolowanego.
+\textbf{Syntetyczne.} Trzy rodziny: \textit{random} (Erdős–Rényi, $p=0{.}10$), \textit{small-world} (Watts–Strogatz, $k=6$, $p=0{.}05$, $k$ wymuszane parzyste) i \textit{scale-free} (Barabási–Albert, $m=2$). Rozmiary: \(n\in\{20,40,\dots,200\}\) i \(n\in\{300,400,600,800,1000,1500,2000,2500,3000\}\). Na każdy punkt: \(\texttt{SAMPLES\_PER\_SIZE}=3\) próbek i \(\texttt{REPEATS\_PER\_GRAPH}=2\).
+
+\textbf{Rzeczywiste.} Ego-sieci Facebooka (SNAP), bez parametrycznego sterowania rozmiarem; raportuję \(|V|,|E|\), gęstość, średni stopień, klasteryzację i liczbę składowych.
 
 
-\subsection{Organizacja eksperymentów}
+\subsection{Organizacja eksperymentów i uruchomienia}\label{subsec:uruchomienia}
+Uruchomienia są skryptowe i powtarzalne:
 \begin{itemize}
-    \item Wszystkie testy uruchamiane były wielokrotnie, aby ograniczyć wpływ losowości.
-    \item Zastosowano kontrolę seeda generatora losowego dla powtarzalności wyników.
-    \item Wyniki uśredniono po wielu przebiegach i zapisano w formie tabelarycznej.
-    \item Dla każdego algorytmu mierzono zarówno jakość rozwiązania (koszt), jak i czas wykonania.
+  \item \textbf{Syntetyczne (statyczne):} \texttt{src/glopt/cli/benchmark.py}. Rodziny, rozmiary i powtórzenia jak wyżej; twardy limit czasu \(60\,\mathrm{s}\) na próbę (zabicie procesu potomnego), co wyznacza granicę wykonalności ILP.
+  \item \textbf{Rzeczywiste (statyczne):} \texttt{src/glopt/cli/benchmark\_real.py}. Ego-sieci Facebooka; analogiczne metryki i limit \(60\,\mathrm{s}\).
+  \item \textbf{Syntetyczne (dynamiczne):} \texttt{src/glopt/cli/dynamic.py}. Każdy bazowy graf ewoluuje przez \(\texttt{NUM\_STEPS}=50\) kroków zgodnie z parametrami mutacji: dodawanie/usuwanie węzłów (\(0{.}06/0{.}04\)) i krawędzi (\(0{.}18/0{.}12\)), z ziarnem \(123\). W każdym kroku uruchamiam algorytmy i rejestruję metryki.
+  \item \textbf{Rzeczywiste (dynamiczne):} \texttt{src/glopt/cli/dynamic\_real.py}. Dla każdej ego-sieci \(\texttt{NUM\_STEPS}=6\), mutacje umiarkowane (\(0{.}05/0{.}03\) węzły, \(0{.}15/0{.}10\) krawędzie). Metaheurystyki mogą być \emph{ciepło startowane} (warm start) rozwiązaniem zachłannym.
 \end{itemize}
 
+\noindent Zestawy licencji: \texttt{duolingo\_super} oraz \texttt{roman\_domination}, a także warianty parametryczne: \texttt{roman\_p\_\{1\_5,2\_5,3\_0\}} i \texttt{duolingo\_p\_\{2\_0,3\_0\}}. Zestawy algorytmów: \texttt{ILPSolver}, \texttt{GreedyAlgorithm}, \texttt{RandomizedAlgorithm}, \texttt{DominatingSetAlgorithm}, \texttt{AntColonyOptimization}, \texttt{SimulatedAnnealing}, \texttt{TabuSearch}, \texttt{GeneticAlgorithm} (ILP tylko dla mniejszych instancji, dalej zastępowany heurystykami/metaheurystykami).
 
-\section{Eksperymenty}
 
-\subsection{Grafy syntetyczne}
-
-Dla grafów syntetycznych wyniki zostały podzielone na trzy grupy: \texttt{duolingo\_super}, \texttt{roman\_domination} oraz \texttt{spotify}. 
-W każdej grupie analizowane są trzy klasy grafów: \textit{random}, \textit{scale-free} oraz \textit{small-world}. 
-Prezentowane są następujące metryki:
-
+\section{Uwagi interpretacyjne}
+Powyższe wykresy pozwalają sformułować kilka stabilnych obserwacji:
 \begin{itemize}
-    \item Mean Cost Ratio – stosunek kosztu do najlepszego algorytmu,
-    \item Mean Speedup – przyspieszenie względem najwolniejszego rozwiązania.
-\end{itemize}
-
-\paragraph{Random graph}
-Omówienie wykresów:
-\begin{itemize}
-    \item Mean Cost Ratio – interpretacja jakości heurystyk,
-    \item Mean Speedup – porównanie szybkości obliczeń.
-\end{itemize}
-
-\paragraph{Scale-free graph}
-Opis wyników dla grafów o rozkładzie skali:
-\begin{itemize}
-    \item Omówienie zależności kosztu względem optimum,
-    \item Analiza różnic w czasach działania.
-\end{itemize}
-
-\paragraph{Small-world graph}
-Charakterystyka algorytmów na grafach typu small-world:
-\begin{itemize}
-    \item Zależność kosztu od struktury grafu,
-    \item Efektywność czasowa poszczególnych podejść.
+  \item \textbf{Zależność kosztu od struktury:} koszt na węzeł maleje wraz ze wzrostem możliwości łączenia w grupy — sprzyja temu większy średni stopień, większa gęstość i obecność hubów; efekt jest widoczny zarówno dla grafów syntetycznych, jak i rzeczywistych.
+  \item \textbf{Koszt a konfiguracja licencji:} warianty o wyższej pojemności grup (mniej restrykcyjne) uzyskują przewagi kosztowe wtedy, gdy sieć realnie umożliwia większe grupy; w rzadkich grafach różnice cenowe między konfiguracjami maleją.
+  \item \textbf{Czas a klasa metody:} zachłanny i lekkie heurystyki pozostają bazą szybkości; metaheurystyki osiągają niższe koszty kosztem czasu, a ILP jest punktem odniesienia dla małych instancji.
 \end{itemize}
 
 \subsection{Skalowanie względem liczby wierzchołków}

@@ -4,44 +4,29 @@
 \section*{Oznaczenia}
 
 \begin{tabular}{@{} l l p{0.7\textwidth} @{}}
-    $G = (V,E)$  & -- & Graf reprezentujący sieć społecznościową. \\
-    $V$          & -- & Zbiór wierzchołków grafu (użytkowników sieci społecznościowej). \\
-    $E$          & -- & Zbiór krawędzi reprezentujących relacje między użytkownikami. \\
-    $u, v \in V$ & -- & Pojedyncze wierzchołki (użytkownicy). \\
-    % $N(v)$       & -- & Zbiór sąsiadów wierzchołka $v$. \\
-    % $D$          & -- & Zbiór dominujący (wierzchołki posiadające licencje). \\
-    % $f(v)$       & -- & Funkcja dominowania przypisująca wartości 0, 1 lub 2 (dominowanie rzymskie). \\
-    % $deg(v)$     & -- & Stopień wierzchołka $v$ (liczba sąsiadów). \\
-    % $p$          & -- & Prawdopodobieństwo utworzenia krawędzi (w modelu Erdős–Rényi). \\
-    % $k$          & -- & Parametr określający stopień początkowy w modelu Watts–Strogatz. \\
-    % $m$          & -- & Liczba krawędzi dołączanych do nowych wierzchołków w modelu Barabási–Albert. \\
-    % PLN          & -- & Złoty polski (waluta używana w pracy do reprezentacji kosztów). \\
+    $G=(V,E)$    & -- & graf relacji społecznych. \\
+    $V,E$        & -- & zbiory wierzchołków i krawędzi. \\
+    $N(v),\ N[v]$ & -- & otoczenie wierzchołka $v$ oraz otoczenie domknięte. \\
+    $\deg(v)$    & -- & stopień wierzchołka $v$. \\
+    $n=|V|,\ m=|E|$ & -- & liczba wierzchołków i krawędzi. \\
+    $\Delta$     & -- & maksymalny stopień grafu. \\
+    $f:V\to\{0,1,2\}$ & -- & etykietowanie ról (0–odbiorca, 1–indywidualna, 2–grupowa). \\
+    $\cost(f)$   & -- & koszt rozwiązania (def. w rozdz.\,\ref{sec:model-formal}). \\
+    $\mathcal{L}$ & -- & rodzina typów licencji $\ell_t=(c_t,m_t,k_t)$. \\
+    $I,G,R$      & -- & zbiory: licencji indywidualnych, grupowych i odbiorców. \\
+    $p$          & -- & względny koszt licencji grupowej $p=c_g/c_1$. \\
 \end{tabular}
 
 \section*{Skróty}
 
 \begin{tabular}{@{} l l p{0.7\textwidth} @{}}
-    SaaS & -- & Software as a Service, model biznesowy udostępniający oprogramowanie jako usługę. \\
-% TUTAJ NIŻEJ TO CO TY MIAŁEŚ ZOSTAŁO, WYŻEJ (^^^) SĄ JUŻ SPRAWDZONE I WYKORZYSYTWANE W TEKŚCIE
-    % MIP  & -- & Mixed Integer Programming, programowanie mieszane całkowitoliczbowe. \\
-    % GA   & -- & Genetic Algorithms, algorytmy genetyczne. \\
-    % SA   & -- & Simulated Annealing, symulowane wyżarzanie. \\
-    % TS   & -- & Tabu Search. \\
-    % ACO  & -- & Ant Colony Optimization, optymalizacja kolonii mrówek. \\
-    % PSO  & -- & Particle Swarm Optimization, optymalizacja roju cząstek. \\
-    % RL   & -- & Reinforcement Learning, uczenie ze wzmocnieniem. \\
-    % ILS  & -- & Iterated Local Search, iterowane przeszukiwanie lokalne. \\
-    % NP-hard & -- & Problemy NP-trudne. \\
-    % GNN  & -- & Graph Neural Networks, grafowe sieci neuronowe. \\
-    % MDS  & -- & Minimum Dominating Set, minimalny zbiór dominujący. \\
+    SaaS & -- & Software as a Service. \\
+    ILP/MIP & -- & (Mixed) Integer Linear Programming. \\
+    GA   & -- & Genetic Algorithm. \\
+    SA   & -- & Simulated Annealing. \\
+    TS   & -- & Tabu Search. \\
+    ACO  & -- & Ant Colony Optimization. \\
+    MDS  & -- & Minimum Dominating Set. \\
+    RD   & -- & Roman Domination. \\
 \end{tabular}
 
-% \section*{Skróty związane z licencjami}
-
-% \begin{tabular}{@{} l l p{0.7\textwidth} @{}}
-%     Indie        & -- & Licencja indywidualna (individual plan). \\
-%     Family       & -- & Licencja rodzinna (family plan), 2–6 osób. \\
-%     Duo          & -- & Licencja dla 2 osób (plan dwuosobowy). \\
-%     Student      & -- & Specjalny plan subskrypcyjny dla studentów. \\
-%     License holder & -- & Użytkownik będący właścicielem licencji grupowej (posiadacz licencji). \\
-% \end{tabular}

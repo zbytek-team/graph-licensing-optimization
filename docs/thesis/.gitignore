@@ -1,0 +1,43 @@
+### LaTeX build artifacts (ignore)
+*.aux
+*.auxlock
+*.bcf
+*.blg
+*.bbl
+*.blx.bib
+*.dvi
+*.fdb_latexmk
+*.fls
+*.gz
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.pdf
+*.run.xml
+*.snm
+*.synctex(busy)
+*.synctex.gz
+*.toc
+*.vrb
+
+# Per-chapter temporary logs
+chapters/texput.log
+
+# Local TeX cache used during LuaLaTeX runs
+.texlive-cache/
+.texlive-cache/**
+.texmf-var/
+.texmf-var/**
+
+### Keep important assets and sources
+!assets/**
+!*.tex
+!*.md
+!*.sty
+!*.bib
+!.gitignore

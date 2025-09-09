@@ -1,0 +1,10 @@
+% Minimal local stub of algorithmicx package to satisfy \usepackage{algorithmicx}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{algorithmicx}[2025/09/09 local minimal stub]
+% Minimal helpers expected by algpseudocode / customization macros
+\newcommand{\algrenewcommand}[2]{\renewcommand{#1}{#2}}
+% Define simple block macro used in template
+\newcommand{\algblockdefx}[4]{%
+  \expandafter\newcommand\csname #1\endcsname{#3}%
+  \expandafter\newcommand\csname #2\endcsname{}%
+}

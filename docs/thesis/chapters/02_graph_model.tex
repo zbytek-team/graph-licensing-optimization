@@ -27,6 +27,9 @@ Należy jednak zauważyć, że nawet w przypadku wysokiego stopnia \( \deg(v) \)
 
 \section{Definicja problemu}
 
+\subsection{Formalizacja modelu}
+\label{sec:model-formal}
+
 Optymalizacja kosztu dostępu do usługi wymaga przypisania wierzchołkom grafu $G = (V, E)$ odpowiednich ról. Każdy użytkownik $v \in V$ może uzyskać dostęp do usługi na trzy sposoby:
 \begin{enumerate}
     \item poprzez wykupienie licencji indywidualnej o koszcie $c_1 = 1$,
@@ -35,23 +38,36 @@ Optymalizacja kosztu dostępu do usługi wymaga przypisania wierzchołkom grafu 
 \end{enumerate}
 Licencja indywidualna zapewnia dostęp wyłącznie jej właścicielowi, natomiast licencja grupowa umożliwia współdzielenie dostępu z maksymalnie $k-1$ sąsiadami w grafie. 
 
-Aby precyzyjnie sformułować model, wprowadzone zostały trzy zbiory, reprezentujące użytkowników wykupujących konkretne licencje:
-\begin{enumerate}
-    \item \textbf{$I$} - zawierający użytkowników z licencjami indywidualnymi,
-    \item \textbf{$G$} - obejmujący użytkowników z licencjami grupowymi,
-    \item \textbf{$R = V \setminus (I \cup G)$} - czyli odbiorców nieposiadających własnej licencji.
-\end{enumerate}
-Aby rozwiązanie było wykonalne, każdy odbiorca musi mieć sąsiada z licencją grupową, użytkownicy z licencją grupową nie mogą współdzielić dostępu z więcej niż $k-1$ osobami, a zarówno użytkownicy z licencją grupową, jak i indywidualną muszą zapewniać sobie dostęp samodzielnie.
+\noindent Aby precyzyjnie sformułować model, wprowadzamy etykietowanie ról $f:V\to\{0,1,2\}$ oraz zbiory: $I=\{v:f(v)=1\}$, $G=\{v:f(v)=2\}$ i $R=V\setminus(I\cup G)$. Przyjmujemy rodzinę typów licencji $\mathcal{L}=\{\ell_t=(c_t,m_t,k_t)\}_t$ z kosztami $c_t>0$ oraz ograniczeniami liczebności $m_t\le k_t$ (wliczając właściciela). Licencja indywidualna spełnia $m_t=k_t=1$; dla uproszczenia normalizujemy $c_1=1$ i zapisujemy $p=c_g/c_1$.
 
-W celu uproszczenia analizy oraz z myślą o późniejszym sprowadzeniu problemu do wariantu dominowania rzymskiego, przypisujemy każdemu wierzchołkowi jedną z trzech etykiet: $0$ oznacza odbiorcę (użytkownika bez własnej licencji), $1$ odpowiada użytkownikowi z licencją indywidualną, natomiast $2$ reprezentuje użytkownika posiadającego licencję grupową. Taki sposób etykietowania pozwala w prosty sposób wyrazić warunki wykonalności: każdy wierzchołek o etykiecie $0$ musi być połączony z przynajmniej jednym sąsiadem o etykiecie $2$, natomiast każdy wierzchołek o etykiecie $2$ może współdzielić swoją licencję z co najwyżej $k-1$ odbiorcami.
+\paragraph{Warunki wykonalności.}
+\begin{itemize}
+  \item Pokrycie: $\forall v\in V:\ f(v)\in\{1,2\}$ lub $\exists u\in N(v): f(u)=2$ i $v$ należy do grupy $u$.
+  \item Sąsiedztwo: odbiorca $v\in R$ może być przypisany tylko do właściciela $u\in G$ z $\{u,v\}\in E$.
+  \item Pojemność: dla każdego $u\in G$ i wybranego typu $\ell_t$ zachodzi $m_t\le |N[u]\cap (\{u\}\cup R_u)|\le k_t$, gdzie $R_u$ to zbiór odbiorców przypisanych do $u$.
+\end{itemize}
 
-Przedstawiony model odpowiada wariantowi problemu pokrycia wierzchołków grafu, w którym tylko wierzchołki o etykiecie $2$ mogą pokrywać sąsiadów, a wierzchołki o etykiecie $1$ pokrywają jedynie same siebie.
-
-Łączny koszt rozwiązania wyraża się wzorem:
+\paragraph{Funkcja kosztu.}
+Całkowity koszt rozwiązania $f$ wynosi
 \[
-C = |I| + p \cdot |G|,
+  \cost(f)\;=\;|I|\cdot c_1\; +\; \sum_{u\in G} c_{t(u)}\, ,
 \]
-gdzie $p$ oznacza względny koszt licencji grupowej względem indywidualnej. Celem optymalizacji jest znalezienie takiego podziału zbioru $V = I \cup G \cup R$, który spełnia wszystkie warunki wykonalności i minimalizuje całkowity koszt $C$.
+gdzie $t(u)$ oznacza typ licencji właściciela $u$. Celem jest minimalizacja $\cost(f)$ przy spełnieniu powyższych ograniczeń.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Model & koszt $c_t$ & $m_t$ & $k_t$ \\
+\midrule
+Indywidualna & $1.00$ & 1 & 1 \\
+Duo          & $2.00$ & 2 & 2 \\
+Rodzinna     & $p$    & 2 & 6 \\
+\bottomrule
+\end{tabular}
+\caption{Przykładowe typy licencji i ich parametry.}
+\label{tab:license_models}
+\end{table}
 
 % Odpowiadający problem decyzyjny polega na sprawdzeniu, czy istnieje taki wybór zbiorów $I$ i $G$, że spełnione są wszystkie warunki oraz zachodzi nierówność:
 % \[
@@ -96,7 +112,7 @@ W testach syntetycznych wartości $c_t$, $m_t$ i $k_t$ ustalane są eksperymenta
 \begin{table}[h!]
 \centering
 \caption{Przykładowe modele licencji dla usług rzeczywistych i modelu teoretycznego}
-\label{tab:license_models}
+\label{tab:license_models_real}
 \begin{tabular}{lccc}
 \hline
 \textbf{Typ licencji} & \textbf{Koszt $c_t$} & \textbf{Min $m_t$} & \textbf{Max $k_t$} \\

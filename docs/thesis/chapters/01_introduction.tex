@@ -32,6 +32,18 @@ Struktura pracy została zorganizowana w dziewięciu rozdziałach. Obejmują one
 %     \item \textbf{Rodział 9} --- Zawiera wnioski wynikające z przeprowadzonych badań, podkreśla osiągnięte cele oraz proponuje kierunki dalszych badań. Wskazane są możliwe usprawnienia modeli oraz rozwinięcia algorytmów. Rozdział ten kończy pracę, syntetycznie odpowiadając na pytanie sformułowane na początku i sugerując, jak uzyskane rezultaty mogą zostać wykorzystane w praktyce.
 % \end{description}
 
+\section{Wkład pracy i struktura dokumentu}
+\subsection*{Wkład pracy}
+\begin{itemize}
+  \item Sformalizowanie modelu optymalizacji zakupu licencji w sieciach społecznościowych: etykietowanie ról $f:V\to\{0,1,2\}$, warunki wykonalności (pokrycie, sąsiedztwo, pojemność) oraz funkcja kosztu.
+  \item Wykazanie powiązania z dominacją rzymską i sformułowanie twierdzenia o równoważności w szczególnym przypadku kosztów/pojemności; omówienie konsekwencji złożonościowych i aproksymacyjnych.
+  \item Implementacja i porównanie metod: ILP (PuLP/CBC), algorytm zachłanny, metaheurystyki (algorytm genetyczny, symulowane wyżarzanie, tabu search, ant colony optimization) oraz odmiany specyficzne (np. dla drzew).
+  \item Opracowanie środowiska eksperymentalnego dla grafów syntetycznych i ego-sieci Facebooka, wraz z pomiarem czasu/kosztu, profilami wydajności i analizą granicy czasowej ILP.
+  \item Analiza wariantu dynamicznego (mutacje grafu) i porównanie cold- vs warm-start dla metaheurystyk.
+  \item Studium wpływu polityk cenowych i typów planów (Indywidualna/Duo/Rodzinna) na strukturę rozwiązań i koszt całkowity.
+\end{itemize}
+
+\subsection*{Struktura dokumentu}
 \begin{description}
     \item \textbf{Rozdział 1} --- Wprowadzenie. Przedstawia tło problemu, motywację podjęcia tematu oraz znaczenie optymalizacji kosztów w kontekście współdzielenia licencji w sieciach społecznościowych. Określone są cele i zakres pracy oraz jej ogólna struktura.
     

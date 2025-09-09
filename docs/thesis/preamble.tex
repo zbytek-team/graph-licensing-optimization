@@ -1,6 +1,7 @@
 % Set up main font using Arial (requires LuaLaTeX or XeLaTeX)
 \usepackage{fontspec}
-\setmainfont{Arial}
+% Use a widely available sans-serif as fallback (Arial may be unavailable)
+\setmainfont{TeX Gyre Heros}
 
 % Ensure the first paragraph in each section or chapter is indented
 \usepackage{indentfirst}
@@ -34,8 +35,7 @@
 }
 \renewcommand{\headrulewidth}{0pt}
 
-% Paragraph formatting: indentation and spacing
-\usepackage{parskip}
+% Paragraph formatting: use classic indentation, no extra parskip
 \setlength{\parindent}{1.25cm}
 \setlength{\parskip}{0pt}
 \raggedbottom
@@ -46,14 +46,16 @@
 \definecolor{pantoneGray}{HTML}{75787B}
 \definecolor{pantone1797}{HTML}{C8102E}
 
-% Enable graphics support and define image path
+% Enable graphics support and define image path (figures live under assets/ and assets/figures/)
 \usepackage{graphicx}
-\graphicspath{{assets/images/}}
+\graphicspath{{assets/}{assets/figures/}}
 
 % Configure captions for tables and figures
 \usepackage{caption}
 \captionsetup[table]{position=above}
 \captionsetup[figure]{position=below}
+\usepackage{booktabs}
+\usepackage{float}
 
 % Enable PDF inclusion for the title page
 \usepackage{pdfpages}
@@ -80,8 +82,55 @@
 }
 
 \usepackage{amsmath}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
+\usepackage{algorithm}      % float 'algorithm'
+\usepackage{algpseudocode}  % algpseudocode over algorithmicx
+% Styl floatu 'algorithm': ramki u góry i u dołu, caption na górze
+\floatstyle{ruled}
+\restylefloat{algorithm}
+
+% Polskie etykiety i słowa kluczowe
+% Niektóre wersje 'algorithm.sty' mogą nie definiować \ALG@name — zabezpieczamy się
+\makeatletter
+\@ifundefined{ALG@name}{\newcommand{\ALG@name}{Algorytm}}{\renewcommand{\ALG@name}{Algorytm}}
+\makeatother
+\floatname{algorithm}{Algorytm}
+% Lokalizacja podpisów i słów kluczowych w algorytmach
+% Jeśli dostępny jest algpseudocode/algorithmicx (algrenewcommand), użyj go;
+% w przeciwnym razie ustawienia dla lokalnej, minimalistycznej wersji.
+\makeatletter
+\@ifundefined{algrenewcommand}{%
+  % Fallback dla lokalnej wersji algpseudocode.sty
+  \renewcommand{\Require}{\item[\textbf{Wejście:}]~}
+  \renewcommand{\Ensure}{\item[\textbf{Wyjście:}]~}
+  \renewcommand{\Return}{\item[\textbf{zwróć}]~}
+  % No-op środowiska Input/Output (nie są używane w treści, ale dla zgodności)
+  \newenvironment{Input}{}{}
+  \newenvironment{EndInput}{}{}
+  \newenvironment{Output}{}{}
+  \newenvironment{EndOutput}{}{}
+}{%
+  \algrenewcommand\algorithmicrequire{\textbf{Wejście:}}
+  \algrenewcommand\algorithmicensure{\textbf{Wyjście:}}
+  \algrenewcommand\algorithmicprocedure{\textbf{Procedura}}
+  \algrenewcommand\algorithmicfunction{\textbf{Funkcja}}
+  \algrenewcommand\algorithmicif{\textbf{Jeśli}}
+  \algrenewcommand\algorithmicthen{\textbf{to}}
+  \algrenewcommand\algorithmicelse{\textbf{wpp.}}
+  \algrenewcommand\algorithmicfor{\textbf{Dla}}
+  \algrenewcommand\algorithmicwhile{\textbf{Dopóki}}
+  \algrenewcommand\algorithmicdo{\textbf{wykonuj}}
+  \algrenewcommand\algorithmicreturn{\textbf{zwróć}}
+  \algrenewcommand\algorithmiccomment[1]{\hfill\(\triangleright\)~##1}
+  % numeracja linii mniejszą czcionką
+  \algrenewcommand\alglinenumber[1]{\footnotesize ##1}
+  % Bloki Input/Output
+  \algblockdefx{Input}{EndInput}{\textbf{Wejście:}}{}
+  \algblockdefx{Output}{EndOutput}{\textbf{Wyjście:}}{}
+}
+\makeatother
+\usepackage{amsthm}
+% Simple theorem environments (Polish captions)
+\newtheorem{theorem}{Twierdzenie}
 
 \newcommand{\Adj}{\mathrm{Adj}}
 \DeclareMathOperator{\cost}{cost}
