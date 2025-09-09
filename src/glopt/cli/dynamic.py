@@ -1,62 +1,72 @@
 from __future__ import annotations
 
+import json
+import multiprocessing as mp
+import pickle
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from time import perf_counter
 from typing import Any
 
 import networkx as nx
 
 from glopt.algorithms.greedy import GreedyAlgorithm
-from glopt.core import instantiate_algorithms
-from glopt.core.solution_builder import SolutionBuilder
+from glopt.core import LicenseGroup, Solution, SolutionBuilder, generate_graph, instantiate_algorithms
 from glopt.core.solution_validator import SolutionValidator
 from glopt.dynamic_simulator import DynamicNetworkSimulator, MutationParams
-from glopt.io import GraphVisualizer, build_paths, ensure_dir
-from glopt.io.gif_maker import write_gif_from_paths
-from glopt.io.graph_generator import GraphGeneratorFactory
+from glopt.io import ensure_dir
 from glopt.license_config import LicenseConfigFactory
 
 # ==============================================
-# Simple, tweakable configuration
+# Simple, benchmark-aligned configuration
 # ==============================================
 
 RUN_ID: str | None = None
 
+# Graph families and defaults (same as benchmark.py)
 GRAPH_NAMES: list[str] = ["random", "small_world", "scale_free"]
 GRAPH_DEFAULTS: dict[str, dict[str, Any]] = {
-    "random": {"p": 0.10, "seed": 7},
-    "small_world": {"k": 6, "p": 0.05, "seed": 7},
-    "scale_free": {"m": 2, "seed": 7},
+    "random": {"p": 0.10, "seed": 42},
+    "small_world": {"k": 6, "p": 0.05, "seed": 42},
+    "scale_free": {"m": 2, "seed": 42},
 }
 
-N_NODES: int = 60
-LICENSE_CONFIGS: list[str] = ["spotify", "duolingo_super", "roman_domination"]
+SIZES: list[int] = [40, 80, 160, 320, 640, 1280, 2560, 5120, 10000]
+# SIZES = [20]
 
-# Dynamic changes
-NUM_STEPS: int = 5
-# Probabilities per step (light to moderate churn)
+# Steps replace samples per size
+NUM_STEPS: int = 50
+
+# Repeats per graph snapshot (per step)
+REPEATS_PER_GRAPH: int = 1
+
+# Per-run hard cap
+TIMEOUT_SECONDS: float = 60.0
+
+# License configurations and algorithms
+LICENSE_CONFIG_NAMES: list[str] = ["spotify", "duolingo_super", "roman_domination"]
+DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
+LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
+ALGORITHM_CLASSES: list[str] = [
+    "ILPSolver",
+    "GreedyAlgorithm",
+    "RandomizedAlgorithm",
+    "DominatingSetAlgorithm",
+    "AntColonyOptimization",
+    "SimulatedAnnealing",
+    "TabuSearch",
+    "GeneticAlgorithm",
+]
+
+# Graph cache directory (same as benchmark)
+GRAPH_CACHE_DIR: str = "data/graphs_cache"
+
+# Dynamic mutation parameters (light to moderate churn)
 ADD_NODES_PROB: float = 0.06
 REMOVE_NODES_PROB: float = 0.04
 ADD_EDGES_PROB: float = 0.18
 REMOVE_EDGES_PROB: float = 0.12
 RANDOM_SEED: int = 123
-
-# GIF rendering
-MAKE_GIFS: bool = True
-GIF_FRAME_SEC: float = 2.0
-
-# Algorithms: warm-start capable vs baselines
-WARM_ALGOS: list[str] = [
-    "GeneticAlgorithm",
-    "SimulatedAnnealing",
-    "TabuSearch",
-    "AntColonyOptimization",
-]
-BASELINE_ALGOS: list[str] = [
-    "GreedyAlgorithm",
-    "ILPSolver",
-]
 
 
 def _adjust_params(name: str, n: int, base: dict[str, Any]) -> dict[str, Any]:
@@ -76,399 +86,463 @@ def _adjust_params(name: str, n: int, base: dict[str, Any]) -> dict[str, Any]:
     return p
 
 
-def _repair_solution_for_graph(prev_solution, graph: nx.Graph, license_types) -> Any:
-    # Keep groups with owner+members present and neighbor constraint satisfied
-    ok_groups = []
-    nodes = set(graph.nodes())
-    for g in prev_solution.groups:
-        if g.owner not in nodes:
-            continue
-        allowed = set(graph.neighbors(g.owner)) | {g.owner}
-        allm = set(g.all_members) & nodes
-        if not allm:
-            continue
-        if not allm.issubset(allowed):
-            continue
-        try:
-            new_g = type(g)(g.license_type, g.owner, frozenset(allm - {g.owner}))
-        except Exception:
-            continue
-        ok_groups.append(new_g)
-
-    covered = set().union(*(g.all_members for g in ok_groups)) if ok_groups else set()
-    uncovered = set(graph.nodes()) - covered
-    if uncovered:
-        H = graph.subgraph(uncovered).copy()
-        greedy = GreedyAlgorithm().solve(H, list(license_types))
-        ok_groups.extend(greedy.groups)
-    return SolutionBuilder.create_solution_from_groups(ok_groups)
+def _json_dumps(obj: Any) -> str:
+    try:
+        return json.dumps(obj, ensure_ascii=False)
+    except Exception:
+        return "{}"
 
 
-def _write_csv_header(path: Path, header: list[str]) -> None:
-    import csv
+def _write_row(csv_path: Path, row: dict[str, object]) -> None:
+    import csv as _csv
 
-    ensure_dir(str(path.parent))
-    with path.open("w", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
-        w.writerow(header)
-
-
-def _append_csv_row(path: Path, row: list[Any]) -> None:
-    import csv
-
-    with path.open("a", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
+    ensure_dir(str(csv_path.parent))
+    is_new = not csv_path.exists() or csv_path.stat().st_size == 0
+    with csv_path.open("a", encoding="utf-8", newline="") as f:
+        w = _csv.DictWriter(f, fieldnames=list(row.keys()))
+        if is_new:
+            w.writeheader()
         w.writerow(row)
 
 
-def main() -> int:
+def _cache_paths(cache_dir: str, gname: str, n: int) -> tuple[Path, Path]:
+    base = Path(cache_dir) / gname / f"n{n:04d}"
+    gpath = base / "s0.gpickle"  # single base sample per (graph, n)
+    mpath = gpath.with_suffix(".json")
+    return gpath, mpath
+
+
+def _ensure_cache(graphs: list[str], sizes: list[int]) -> None:
+    ensure_dir(GRAPH_CACHE_DIR)
+    created = 0
+    for gname in graphs:
+        for n in sizes:
+            base_params = _adjust_params(gname, n, GRAPH_DEFAULTS.get(gname, {}))
+            gpath, mpath = _cache_paths(GRAPH_CACHE_DIR, gname, n)
+            if gpath.exists() and mpath.exists():
+                continue
+            seed = int(base_params.get("seed", 42) or 42)
+            params = dict(base_params)
+            params["seed"] = seed
+            G = generate_graph(gname, n, params)
+            Path(gpath).parent.mkdir(parents=True, exist_ok=True)
+            with gpath.open("wb") as f:
+                pickle.dump(G, f, protocol=pickle.HIGHEST_PROTOCOL)
+            meta = {"type": gname, "n": n, "params": params, "sample": 0}
+            with mpath.open("w", encoding="utf-8") as f:
+                json.dump(meta, f, ensure_ascii=False)
+            created += 1
+    if created:
+        print(f"graph cache: generated {created} new base graphs under {GRAPH_CACHE_DIR}")
+    else:
+        print(f"graph cache: up-to-date at {GRAPH_CACHE_DIR}")
+
+
+def _load_cached_graph(gname: str, n: int) -> tuple[nx.Graph, dict[str, Any]]:
+    gpath, mpath = _cache_paths(GRAPH_CACHE_DIR, gname, n)
+    with gpath.open("rb") as f:
+        G: nx.Graph = pickle.load(f)
+    params: dict[str, Any] = {}
+    if mpath.exists():
+        try:
+            with mpath.open("r", encoding="utf-8") as f:
+                meta = json.load(f)
+            params = dict(meta.get("params", {}))
+        except Exception:
+            params = {}
+    return G, params
+
+
+def _worker_solve(
+    algo_name: str,
+    graph: nx.Graph,
+    license_config: str,
+    seed: int,
+    use_warm: bool,
+    conn,
+    initial_solution_bytes: bytes | None = None,
+    return_solution: bool = False,
+) -> None:  # type: ignore[no-redef]
+    try:
+        validator = SolutionValidator(debug=False)
+        algo = instantiate_algorithms([algo_name])[0]
+        lts = LicenseConfigFactory.get_config(license_config)
+        kwargs: dict[str, Any] = {"seed": seed}
+        warm_names = {
+            "GeneticAlgorithm",
+            "SimulatedAnnealing",
+            "TabuSearch",
+            "AntColonyOptimization",
+        }
+        do_warm = use_warm and (algo_name in warm_names)
+        if do_warm:
+            if initial_solution_bytes:
+                try:
+                    init = pickle.loads(initial_solution_bytes)
+                    kwargs["initial_solution"] = init
+                except Exception:
+                    greedy_sol = GreedyAlgorithm().solve(graph, lts)
+                    kwargs["initial_solution"] = greedy_sol
+            else:
+                greedy_sol = GreedyAlgorithm().solve(graph, lts)
+                kwargs["initial_solution"] = greedy_sol
+        from time import perf_counter as _pc
+
+        t0 = _pc()
+        sol = algo.solve(graph, lts, **kwargs)
+        elapsed_ms = (_pc() - t0) * 1000.0
+        ok, issues = validator.validate(sol, graph)
+        sizes = [g.size for g in sol.groups]
+        sizes_sorted = sorted(sizes)
+        groups = len(sizes)
+        mean_sz = (sum(sizes) / groups) if groups else 0.0
+        if groups:
+            mid = groups // 2
+            if groups % 2 == 1:
+                median_sz = float(sizes_sorted[mid])
+            else:
+                median_sz = (sizes_sorted[mid - 1] + sizes_sorted[mid]) / 2.0
+            p90 = float(sizes_sorted[min(groups - 1, int(0.9 * (groups - 1)))])
+        else:
+            median_sz = 0.0
+            p90 = 0.0
+        lic_counts = Counter(g.license_type.name for g in sol.groups)
+        try:
+            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v | (int, float, str, bool))})
+        except Exception:
+            params_json = "{}"
+        res = {
+            "success": True,
+            "total_cost": float(sol.total_cost),
+            "time_ms": float(elapsed_ms),
+            "valid": bool(ok),
+            "issues": int(len(issues)),
+            "groups": int(groups),
+            "group_size_mean": float(mean_sz),
+            "group_size_median": float(median_sz),
+            "group_size_p90": float(p90),
+            "license_counts_json": _json_dumps(lic_counts),
+            "algo_params_json": params_json,
+            "warm_start": bool(do_warm),
+            "cost_per_node": float(sol.total_cost) / max(1, graph.number_of_nodes()),
+        }
+        if return_solution:
+            try:
+                res["solution_pickle"] = pickle.dumps(sol, protocol=pickle.HIGHEST_PROTOCOL)
+            except Exception:
+                pass
+    except Exception as e:
+        res = {"success": False, "error": str(e)}
+    try:
+        conn.send(res)
+    finally:
+        conn.close()
+
+
+def _run_one(algo_name: str, graph: nx.Graph, license_config: str, seed: int) -> tuple[dict[str, object], bool]:
+    parent_conn, child_conn = mp.Pipe(duplex=False)
+    # NOTE: this wrapper now requires explicit warm flag; kept for backward compatibility by defaulting to cold here.
+    p = mp.Process(target=_worker_solve, args=(algo_name, graph, license_config, seed, False, child_conn))
+    p.start()
+    timed_out = False
+    if parent_conn.poll(TIMEOUT_SECONDS):
+        try:
+            msg = parent_conn.recv()
+        except EOFError:
+            msg = {"success": False, "error": "no-data"}
+        p.join()
+        if msg.get("success"):
+            res = {
+                "total_cost": float(msg.get("total_cost", float("nan"))),
+                "time_ms": float(msg.get("time_ms", 0.0)),
+                "valid": bool(msg.get("valid", False)),
+                "issues": int(msg.get("issues", 0)),
+                "groups": int(msg.get("groups", 0)),
+                "group_size_mean": float(msg.get("group_size_mean", 0.0)),
+                "group_size_median": float(msg.get("group_size_median", 0.0)),
+                "group_size_p90": float(msg.get("group_size_p90", 0.0)),
+                "license_counts_json": str(msg.get("license_counts_json", "{}")),
+                "algo_params_json": str(msg.get("algo_params_json", "{}")),
+                "warm_start": bool(msg.get("warm_start", False)),
+                "cost_per_node": float(msg.get("cost_per_node", 0.0)),
+                "notes": "",
+            }
+        else:
+            res = {
+                "total_cost": float("nan"),
+                "time_ms": 0.0,
+                "valid": False,
+                "issues": 0,
+                "groups": 0,
+                "group_size_mean": 0.0,
+                "group_size_median": 0.0,
+                "group_size_p90": 0.0,
+                "license_counts_json": "{}",
+                "notes": "error",
+            }
+    else:
+        timed_out = True
+        try:
+            p.terminate()
+        finally:
+            p.join()
+        res = {
+            "total_cost": float("nan"),
+            "time_ms": float(TIMEOUT_SECONDS * 1000.0),
+            "valid": False,
+            "issues": 0,
+            "groups": 0,
+            "group_size_mean": 0.0,
+            "group_size_median": 0.0,
+            "group_size_p90": 0.0,
+            "license_counts_json": "{}",
+            "notes": "timeout",
+        }
+    return res, timed_out or (res.get("notes") == "error")
+
+
+def main() -> None:
     run_id = (RUN_ID or datetime.now().strftime("%Y%m%d_%H%M%S")) + "_dynamic"
-    base_dir, graphs_dir_root, csv_dir = build_paths(run_id)
-    out_path = Path(csv_dir) / f"{run_id}.csv"
+    base = Path("runs") / run_id
+    csv_dir = base / "csv"
+    ensure_dir(str(csv_dir))
+    out_path = csv_dir / f"{run_id}.csv"
 
-    print("== glopt dynamic benchmark ==")
+    print("== glopt benchmark ==")
     print(f"run_id: {run_id}")
-    print(f"graphs: {', '.join(GRAPH_NAMES)} n={N_NODES}")
-    print(f"licenses: {', '.join(LICENSE_CONFIGS)}")
-    print(f"warm algos: {', '.join(WARM_ALGOS)}")
-    print(f"baselines: {', '.join(BASELINE_ALGOS)}")
-    print(f"steps: {NUM_STEPS} seed={RANDOM_SEED}")
+    print(f"graphs: {', '.join(GRAPH_NAMES)}")
+    print(f"sizes: {SIZES[0]}..{SIZES[-1]} ({len(SIZES)} points)")
+    print(f"steps/size: {NUM_STEPS} repeats/step: {REPEATS_PER_GRAPH}")
+    print(f"licenses: {', '.join(LICENSE_CONFIG_NAMES)}")
+    print(f"algorithms: {', '.join(ALGORITHM_CLASSES)}")
+    print(f"timeout limit: {TIMEOUT_SECONDS:.0f}s (kills run and stops larger sizes)")
+    print("warming up graph cache …")
+    _ensure_cache(GRAPH_NAMES, SIZES)
 
-    header = [
-        "run_id",
-        "graph",
-        "graph_params",
-        "license_config",
-        "algorithm",
-        "warm_start",
-        "step",
-        "n_nodes",
-        "n_edges",
-        "total_cost",
-        "time_ms",
-        "delta_cost",
-        "avg_time_ms_per_step",
-        "delta_cost_abs",
-        "delta_cost_std_so_far",
-        "mutation_params_json",
-        "valid",
-        "issues",
-        "groups",
-        "mutations",
-    ]
-    _write_csv_header(out_path, header)
+    def _project_solution(prev: Solution, graph: nx.Graph, lic_name: str) -> Solution:
+        lts = LicenseConfigFactory.get_config(lic_name)
+        nodes = set(graph.nodes())
+        used: set = set()
+        new_groups: list[LicenseGroup] = []
 
-    validator = SolutionValidator(debug=False)
+        for g in prev.groups:
+            cand = list((g.all_members & nodes) - used)
+            if not cand:
+                continue
+            owner = g.owner if g.owner in cand else max(cand, key=lambda n: graph.degree(n))
+            allowed = (set(graph.neighbors(owner)) | {owner}) - used
+            members = [n for n in cand if n in allowed]
+            if not members:
+                continue
+            max_cap = max(lt.max_capacity for lt in lts)
+            members_sorted = sorted(members, key=lambda n: graph.degree(n), reverse=True)
+            if owner not in members_sorted:
+                members_sorted = [owner] + [n for n in members_sorted if n != owner]
+            size = min(len(members_sorted), max_cap)
+            chosen_lt = None
+            chosen_members = None
+            while size >= 1 and chosen_lt is None:
+                lt = SolutionBuilder.find_cheapest_license_for_size(size, lts)
+                if lt is not None:
+                    chosen_lt = lt
+                    chosen_members = members_sorted[:size]
+                    if owner not in chosen_members:
+                        chosen_members[-1] = owner
+                else:
+                    size -= 1
+            if chosen_lt is None or chosen_members is None:
+                continue
+            owner_final = owner if owner in chosen_members else chosen_members[0]
+            additional = frozenset(set(chosen_members) - {owner_final})
+            try:
+                ng = LicenseGroup(chosen_lt, owner_final, additional)
+            except Exception:
+                continue
+            new_groups.append(ng)
+            used.update(ng.all_members)
 
-    for gname in GRAPH_NAMES:
-        params = _adjust_params(gname, N_NODES, GRAPH_DEFAULTS.get(gname, {}))
-        gen = GraphGeneratorFactory.get(gname)
-        graph = gen(n_nodes=N_NODES, **params)
+        uncovered = nodes - used
+        if uncovered:
+            lt1 = SolutionBuilder.find_cheapest_single_license(lts)
+            for n in uncovered:
+                new_groups.append(LicenseGroup(lt1, n, frozenset()))
 
-        # Prepare mutation params scaled to graph size and shared across algorithms
-        E0 = graph.number_of_edges()
-        mut_params = MutationParams(
-            add_nodes_prob=ADD_NODES_PROB,
-            remove_nodes_prob=REMOVE_NODES_PROB,
-            add_edges_prob=ADD_EDGES_PROB,
-            remove_edges_prob=REMOVE_EDGES_PROB,
-            max_nodes_add=max(1, int(0.03 * N_NODES)),
-            max_nodes_remove=max(1, int(0.02 * N_NODES)),
-            max_edges_add=max(1, int(0.04 * (E0 or N_NODES))),
-            max_edges_remove=max(1, int(0.03 * (E0 or N_NODES))),
-        )
-        sim = DynamicNetworkSimulator(mutation_params=mut_params, seed=RANDOM_SEED)
-        sim.next_node_id = max(graph.nodes()) + 1 if graph.nodes() else 0
+        sol = Solution(groups=tuple(new_groups))
+        ok, _ = SolutionValidator(debug=False).validate(sol, graph)
+        if not ok:
+            sol = GreedyAlgorithm().solve(graph, lts)
+        return sol
 
-        graphs: list[nx.Graph] = [graph.copy()]
-        mutations_per_step: list[list[str]] = [[]]
-        g_curr = graph.copy()
-        for _ in range(NUM_STEPS):
-            g_curr, muts = sim._apply_mutations(g_curr)  # type: ignore[attr-defined]
-            graphs.append(g_curr.copy())
-            mutations_per_step.append(muts)
+    warmable = {"GeneticAlgorithm", "SimulatedAnnealing", "TabuSearch", "AntColonyOptimization"}
 
-        # Shared visualizer for stable layout across all frames/algorithms for this graph
-        vis_gif = GraphVisualizer(figsize=(12, 8), layout_seed=42, reuse_layout=True)
+    for lic_name in LICENSE_CONFIG_NAMES:
+        for algo_name in ALGORITHM_CLASSES:
+            warm_variants = [False, True] if algo_name in warmable else [False]
+            for gname in GRAPH_NAMES:
+                stop_sizes = False
+                for n in SIZES:
+                    if stop_sizes:
+                        break
 
-        for lic in LICENSE_CONFIGS:
-            lts = LicenseConfigFactory.get_config(lic)
-
-            # Instantiate algorithms once per combo
-            warm_algos = instantiate_algorithms(WARM_ALGOS)
-            base_algos = instantiate_algorithms(BASELINE_ALGOS)
-
-            # Initial solutions at step 0 and accumulators
-            prev_solutions: dict[tuple[str, bool], Any] = {}
-            time_accum: dict[tuple[str, bool], tuple[float, int]] = {}
-            delta_stats: dict[tuple[str, bool], tuple[float, float, int]] = {}
-            # Prepare GIF frame storage per (algo, warm?) and output dirs
-            gif_frames: dict[tuple[str, bool], list[str]] = {}
-            gif_dirs: dict[tuple[str, bool], Path] = {}
-            if MAKE_GIFS:
-                for a in warm_algos + base_algos:
-                    pairs = [(a.name, False)] + ([(a.name, True)] if a in warm_algos else [])
-                    for key in pairs:
-                        out_dir = Path(graphs_dir_root) / gname / lic / f"{key[0]}_{'warm' if key[1] else 'cold'}"
-                        frames_dir = out_dir / "frames"
-                        ensure_dir(str(frames_dir))
-                        gif_frames[key] = []
-                        gif_dirs[key] = out_dir
-            for algo in warm_algos + base_algos:
-                G0 = graphs[0]
-                t0 = perf_counter()
-                sol0 = algo.solve(G0, lts, seed=RANDOM_SEED)
-                elapsed = (perf_counter() - t0) * 1000.0
-                ok, issues = validator.validate(sol0, G0)
-                key = (algo.name, False)
-                prev_solutions[key] = sol0
-                time_accum[key] = (elapsed, 1)
-                delta_stats[key] = (0.0, 0.0, 0)
-                print(f"init -> {gname} / {lic} / {algo.name:<24s} cold   cost={sol0.total_cost:.2f} time_ms={elapsed:.2f} valid={ok} groups={len(sol0.groups)}")
-                import json as _json
-
-                _append_csv_row(
-                    out_path,
-                    [
-                        run_id,
-                        gname,
-                        str(params),
-                        lic,
-                        algo.name,
-                        False,
-                        0,
-                        G0.number_of_nodes(),
-                        G0.number_of_edges(),
-                        float(sol0.total_cost),
-                        float(elapsed),
-                        0.0,
-                        float(elapsed),
-                        0.0,
-                        0.0,
-                        _json.dumps(mut_params.__dict__),
-                        bool(ok),
-                        int(len(issues)),
-                        int(len(sol0.groups)),
-                        "; ".join(mutations_per_step[0]),
-                    ],
-                )
-                # Render initial frames for GIFs (frame 0)
-                if MAKE_GIFS:
-                    try:
-                        f0_cold = gif_dirs[(algo.name, False)] / "frames" / "frame_000.png"
-                        vis_gif.visualize_solution(G0, sol0, solver_name=f"{algo.name}_cold", timestamp_folder=run_id, save_path=str(f0_cold))
-                        gif_frames[(algo.name, False)].append(str(f0_cold))
-                        if (algo.name, True) in gif_dirs:
-                            f0_warm = gif_dirs[(algo.name, True)] / "frames" / "frame_000.png"
-                            vis_gif.visualize_solution(G0, sol0, solver_name=f"{algo.name}_warm", timestamp_folder=run_id, save_path=str(f0_warm))
-                            gif_frames[(algo.name, True)].append(str(f0_warm))
-                    except Exception:
-                        pass
-
-            # Dynamic steps 1..NUM_STEPS
-            for step in range(1, NUM_STEPS + 1):
-                Gs = graphs[step]
-                muts = "; ".join(mutations_per_step[step])
-                print(f"step {step:02d} -> graph={gname} lic={lic} nodes={Gs.number_of_nodes()} edges={Gs.number_of_edges()} mutations=[{muts}]")
-
-                # Warm-start algorithms (warm and cold variants)
-                for algo in warm_algos:
-                    # WARM RUN
-                    prev_warm = prev_solutions.get((algo.name, True))
-                    if prev_warm is None:
-                        prev_warm = prev_solutions.get((algo.name, False))
-                    warm = _repair_solution_for_graph(prev_warm, Gs, lts) if prev_warm is not None else None
-                    t0 = perf_counter()
-                    sol = algo.solve(Gs, lts, seed=RANDOM_SEED + step, initial_solution=warm)
-                    elapsed = (perf_counter() - t0) * 1000.0
-                    ok, issues = validator.validate(sol, Gs)
-                    key_w = (algo.name, True)
-                    prev_cost = (
-                        float(prev_solutions.get(key_w, sol).total_cost)
-                        if isinstance(prev_solutions.get(key_w), type(sol))
-                        else (float(prev_solutions.get((algo.name, False), sol).total_cost) if isinstance(prev_solutions.get((algo.name, False)), type(sol)) else float("nan"))
+                    # Load base graph and pre-generate steps of mutations
+                    G0, params = _load_cached_graph(gname, n)
+                    sim = DynamicNetworkSimulator(
+                        mutation_params=MutationParams(
+                            add_nodes_prob=ADD_NODES_PROB,
+                            remove_nodes_prob=REMOVE_NODES_PROB,
+                            add_edges_prob=ADD_EDGES_PROB,
+                            remove_edges_prob=REMOVE_EDGES_PROB,
+                            max_nodes_add=max(1, int(0.02 * max(1, n))),
+                            max_nodes_remove=max(1, int(0.015 * max(1, n))),
+                            max_edges_add=max(1, int(0.03 * max(1, G0.number_of_edges() or n))),
+                            max_edges_remove=max(1, int(0.02 * max(1, G0.number_of_edges() or n))),
+                        ),
+                        seed=RANDOM_SEED,
                     )
-                    # Render warm frame for GIF
-                    if MAKE_GIFS:
-                        try:
-                            fw = gif_dirs[(algo.name, True)] / "frames" / f"frame_{step:03d}.png"
-                            vis_gif.visualize_solution(Gs, sol, solver_name=f"{algo.name}_warm", timestamp_folder=run_id, save_path=str(fw))
-                            gif_frames[(algo.name, True)].append(str(fw))
-                        except Exception:
-                            pass
-                    delta = float(sol.total_cost) - (prev_cost if prev_cost == prev_cost else float("nan"))
-                    # update accumulators
-                    tot, cnt = time_accum.get(key_w, (0.0, 0))
-                    avg = (tot + elapsed) / (cnt + 1)
-                    time_accum[key_w] = (tot + elapsed, cnt + 1)
-                    # delta stats (Welford)
-                    mean_d, m2_d, k = delta_stats.get(key_w, (0.0, 0.0, 0))
-                    x = float(delta) if delta == delta else 0.0
-                    k1 = k + 1
-                    d = x - mean_d
-                    mean_new = mean_d + d / k1
-                    m2_new = m2_d + d * (x - mean_new)
-                    delta_stats[key_w] = (mean_new, m2_new, k1)
-                    prev_solutions[key_w] = sol
-                    print(f"   warm  {algo.name:<24s} cost={sol.total_cost:.2f} time_ms={elapsed:.2f} dCost={delta if delta == delta else 0.0:+.2f} valid={ok} groups={len(sol.groups)}")
-                    _append_csv_row(
-                        out_path,
-                        [
-                            run_id,
-                            gname,
-                            str(params),
-                            lic,
-                            algo.name,
-                            True,
-                            step,
-                            Gs.number_of_nodes(),
-                            Gs.number_of_edges(),
-                            float(sol.total_cost),
-                            float(elapsed),
-                            float(delta if delta == delta else 0.0),
-                            float(avg),
-                            float(abs(delta) if delta == delta else 0.0),
-                            float(((delta_stats[key_w][1] / max(1, delta_stats[key_w][2] - 1)) ** 0.5) if delta_stats[key_w][2] > 1 else 0.0),
-                            _json.dumps(mut_params.__dict__),
-                            bool(ok),
-                            int(len(issues)),
-                            int(len(sol.groups)),
-                            muts,
-                        ],
-                    )
+                    sim.next_node_id = max(G0.nodes()) + 1 if G0.nodes() else 0
+                    graphs: list[nx.Graph] = [G0.copy()]
+                    mutations_per_step: list[list[str]] = [[]]
+                    g_curr = G0.copy()
+                    for _ in range(NUM_STEPS):
+                        g_curr, muts = sim._apply_mutations(g_curr)  # type: ignore[attr-defined]
+                        graphs.append(g_curr.copy())
+                        mutations_per_step.append(muts)
 
-                    # COLD RUN (for warm algos)
-                    t0 = perf_counter()
-                    sol_cold = algo.solve(Gs, lts, seed=RANDOM_SEED + step)
-                    elapsed_c = (perf_counter() - t0) * 1000.0
-                    ok_c, issues_c = validator.validate(sol_cold, Gs)
-                    key_c = (algo.name, False)
-                    prev_cost_c = float(prev_solutions.get(key_c, sol_cold).total_cost) if isinstance(prev_solutions.get(key_c), type(sol_cold)) else float("nan")
-                    delta_c = float(sol_cold.total_cost) - (prev_cost_c if prev_cost_c == prev_cost_c else float("nan"))
-                    tot_c, cnt_c = time_accum.get(key_c, (0.0, 0))
-                    avg_c = (tot_c + elapsed_c) / (cnt_c + 1)
-                    time_accum[key_c] = (tot_c + elapsed_c, cnt_c + 1)
-                    mean_d, m2_d, k = delta_stats.get(key_c, (0.0, 0.0, 0))
-                    x = float(delta_c) if delta_c == delta_c else 0.0
-                    k1 = k + 1
-                    d = x - mean_d
-                    mean_new = mean_d + d / k1
-                    m2_new = m2_d + d * (x - mean_new)
-                    delta_stats[key_c] = (mean_new, m2_new, k1)
-                    prev_solutions[key_c] = sol_cold
-                    print(f"   cold  {algo.name:<24s} cost={sol_cold.total_cost:.2f} time_ms={elapsed_c:.2f} dCost={delta_c if delta_c == delta_c else 0.0:+.2f} valid={ok_c} groups={len(sol_cold.groups)}")
-                    _append_csv_row(
-                        out_path,
-                        [
-                            run_id,
-                            gname,
-                            str(params),
-                            lic,
-                            algo.name,
-                            False,
-                            step,
-                            Gs.number_of_nodes(),
-                            Gs.number_of_edges(),
-                            float(sol_cold.total_cost),
-                            float(elapsed_c),
-                            float(delta_c if delta_c == delta_c else 0.0),
-                            float(avg_c),
-                            float(abs(delta_c) if delta_c == delta_c else 0.0),
-                            float(((delta_stats[key_c][1] / max(1, delta_stats[key_c][2] - 1)) ** 0.5) if delta_stats[key_c][2] > 1 else 0.0),
-                            _json.dumps(mut_params.__dict__),
-                            bool(ok_c),
-                            int(len(issues_c)),
-                            int(len(sol_cold.groups)),
-                            muts,
-                        ],
-                    )
-                    # Render cold frame for warm algos
-                    if MAKE_GIFS:
-                        try:
-                            fc = gif_dirs[(algo.name, False)] / "frames" / f"frame_{step:03d}.png"
-                            vis_gif.visualize_solution(Gs, sol_cold, solver_name=f"{algo.name}_cold", timestamp_folder=run_id, save_path=str(fc))
-                            gif_frames[(algo.name, False)].append(str(fc))
-                        except Exception:
-                            pass
-                    # Render cold frame for baseline algos
-                    if MAKE_GIFS:
-                        try:
-                            fb = gif_dirs[(algo.name, False)] / "frames" / f"frame_{step:03d}.png"
-                            vis_gif.visualize_solution(Gs, sol, solver_name=f"{algo.name}_cold", timestamp_folder=run_id, save_path=str(fb))
-                            gif_frames[(algo.name, False)].append(str(fb))
-                        except Exception:
-                            pass
+                    over_here = False
+                    prev_solution_warm: Solution | None = None
+                    for step in range(NUM_STEPS + 1):
+                        Gs = graphs[step]
+                        muts = "; ".join(mutations_per_step[step])
+                        for rep in range(REPEATS_PER_GRAPH):
+                            for warm_flag in warm_variants:
+                                # Run worker with explicit warm/cold selection
+                                parent_conn, child_conn = mp.Pipe(duplex=False)
+                                init_bytes = None
+                                if warm_flag and prev_solution_warm is not None:
+                                    projected = _project_solution(prev_solution_warm, Gs, lic_name)
+                                    try:
+                                        init_bytes = pickle.dumps(projected, protocol=pickle.HIGHEST_PROTOCOL)
+                                    except Exception:
+                                        init_bytes = None
+                                p = mp.Process(
+                                    target=_worker_solve,
+                                    args=(algo_name, Gs, lic_name, 12345 + step * 1000 + rep, warm_flag, child_conn, init_bytes, True),
+                                )
+                                p.start()
+                                timed_out = False
+                                if parent_conn.poll(TIMEOUT_SECONDS):
+                                    try:
+                                        msg = parent_conn.recv()
+                                    except EOFError:
+                                        msg = {"success": False, "error": "no-data"}
+                                    p.join()
+                                    if msg.get("success"):
+                                        result = {
+                                            "total_cost": float(msg.get("total_cost", float("nan"))),
+                                            "time_ms": float(msg.get("time_ms", 0.0)),
+                                            "valid": bool(msg.get("valid", False)),
+                                            "issues": int(msg.get("issues", 0)),
+                                            "groups": int(msg.get("groups", 0)),
+                                            "group_size_mean": float(msg.get("group_size_mean", 0.0)),
+                                            "group_size_median": float(msg.get("group_size_median", 0.0)),
+                                            "group_size_p90": float(msg.get("group_size_p90", 0.0)),
+                                            "license_counts_json": str(msg.get("license_counts_json", "{}")),
+                                            "algo_params_json": str(msg.get("algo_params_json", "{}")),
+                                            "warm_start": bool(msg.get("warm_start", False)),
+                                            "cost_per_node": float(msg.get("cost_per_node", 0.0)),
+                                            "notes": "",
+                                        }
+                                        if warm_flag:
+                                            sol_bytes = msg.get("solution_pickle")
+                                            if isinstance(sol_bytes, (bytes, bytearray)):
+                                                try:
+                                                    prev_solution_warm = pickle.loads(sol_bytes)
+                                                except Exception:
+                                                    prev_solution_warm = None
+                                    else:
+                                        result = {
+                                            "total_cost": float("nan"),
+                                            "time_ms": 0.0,
+                                            "valid": False,
+                                            "issues": 0,
+                                            "groups": 0,
+                                            "group_size_mean": 0.0,
+                                            "group_size_median": 0.0,
+                                            "group_size_p90": 0.0,
+                                            "license_counts_json": "{}",
+                                            "notes": "error",
+                                        }
+                                else:
+                                    timed_out = True
+                                    try:
+                                        p.terminate()
+                                    finally:
+                                        p.join()
+                                    result = {
+                                        "total_cost": float("nan"),
+                                        "time_ms": float(TIMEOUT_SECONDS * 1000.0),
+                                        "valid": False,
+                                        "issues": 0,
+                                        "groups": 0,
+                                        "group_size_mean": 0.0,
+                                        "group_size_median": 0.0,
+                                        "group_size_p90": 0.0,
+                                        "license_counts_json": "{}",
+                                        "notes": "timeout",
+                                    }
+                                is_over = timed_out or (result.get("notes") == "error")
+                            # Step-specific metrics
+                            n_nodes = Gs.number_of_nodes()
+                            n_edges = Gs.number_of_edges()
+                            density = (2.0 * n_edges) / (n_nodes * (n_nodes - 1)) if n_nodes > 1 else 0.0
+                            avg_deg = (2.0 * n_edges) / n_nodes if n_nodes > 0 else 0.0
+                            clustering = nx.average_clustering(Gs) if (n_nodes > 1 and n_nodes <= 1500) else float("nan")
+                            components = nx.number_connected_components(Gs)
+                            row = {
+                                "run_id": run_id,
+                                "algorithm": algo_name,
+                                "graph": gname,
+                                "n_nodes": n_nodes,
+                                "n_edges": n_edges,
+                                "graph_params": str(params),
+                                "license_config": lic_name,
+                                "rep": rep,
+                                "seed": 12345 + step * 1000 + rep,
+                                "sample": 0,
+                                "graph_seed": int(params.get("seed", 0) or 0),
+                                "density": float(density),
+                                "avg_degree": float(avg_deg),
+                                "clustering": float(clustering),
+                                "components": int(components),
+                                "image_path": "",
+                                **result,
+                                # dynamic-specific
+                                "step": int(step),
+                                "mutation_params_json": _json_dumps(sim.mutation_params.__dict__),
+                                "mutations": muts,
+                            }
+                            _write_row(out_path, row)
+                            status = "OK"
+                            if row.get("notes") == "timeout":
+                                status = "TIMEOUT"
+                            elif row.get("notes") == "error":
+                                status = "ERROR"
+                            warm_lbl = "warm" if row.get("warm_start") else "cold"
+                            print(
+                                f"   {gname:12s} n={n:4d} step={step:02d} rep={rep} {warm_lbl:4s} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}"
+                            )
+                            if is_over:
+                                over_here = True
+                        if over_here:
+                            break
+                    if over_here:
+                        print(f"   {gname:12s} n={n:4d} TIMEOUT — stopping larger sizes for {algo_name} on this graph")
+                        stop_sizes = True
+                        break
 
-                # Baseline algorithms (cold start each step)
-                for algo in base_algos:
-                    t0 = perf_counter()
-                    sol = algo.solve(Gs, lts, seed=RANDOM_SEED + step)
-                    elapsed = (perf_counter() - t0) * 1000.0
-                    ok, issues = validator.validate(sol, Gs)
-                    key_b = (algo.name, False)
-                    prev_cost_b = float(prev_solutions.get(key_b, sol).total_cost) if isinstance(prev_solutions.get(key_b), type(sol)) else float("nan")
-                    delta_b = float(sol.total_cost) - (prev_cost_b if prev_cost_b == prev_cost_b else float("nan"))
-                    tot_b, cnt_b = time_accum.get(key_b, (0.0, 0))
-                    avg_b = (tot_b + elapsed) / (cnt_b + 1)
-                    time_accum[key_b] = (tot_b + elapsed, cnt_b + 1)
-                    mean_d, m2_d, k = delta_stats.get(key_b, (0.0, 0.0, 0))
-                    x = float(delta_b) if delta_b == delta_b else 0.0
-                    k1 = k + 1
-                    d = x - mean_d
-                    mean_new = mean_d + d / k1
-                    m2_new = m2_d + d * (x - mean_new)
-                    delta_stats[key_b] = (mean_new, m2_new, k1)
-                    prev_solutions[key_b] = sol
-                    print(f"   base  {algo.name:<24s} cost={sol.total_cost:.2f} time_ms={elapsed:.2f} dCost={delta_b if delta_b == delta_b else 0.0:+.2f} valid={ok} groups={len(sol.groups)}")
-                    _append_csv_row(
-                        out_path,
-                        [
-                            run_id,
-                            gname,
-                            str(params),
-                            lic,
-                            algo.name,
-                            False,
-                            step,
-                            Gs.number_of_nodes(),
-                            Gs.number_of_edges(),
-                            float(sol.total_cost),
-                            float(elapsed),
-                            float(delta_b if delta_b == delta_b else 0.0),
-                            float(avg_b),
-                            float(abs(delta_b) if delta_b == delta_b else 0.0),
-                            float(((delta_stats[key_b][1] / max(1, delta_stats[key_b][2] - 1)) ** 0.5) if delta_stats[key_b][2] > 1 else 0.0),
-                            _json.dumps(mut_params.__dict__),
-                            bool(ok),
-                            int(len(issues)),
-                            int(len(sol.groups)),
-                            muts,
-                        ],
-                    )
-                    # Render cold frame for baseline algos
-                    if MAKE_GIFS:
-                        try:
-                            fb = gif_dirs[(algo.name, False)] / "frames" / f"frame_{step:03d}.png"
-                            vis_gif.visualize_solution(Gs, sol, solver_name=f"{algo.name}_cold", timestamp_folder=run_id, save_path=str(fb))
-                            gif_frames[(algo.name, False)].append(str(fb))
-                        except Exception:
-                            pass
-
-            # After all steps for this license, emit GIFs
-            if MAKE_GIFS:
-                for key, frames in gif_frames.items():
-                    if not frames:
-                        continue
-                    try:
-                        out_gif = gif_dirs[key] / f"{key[0]}_{'warm' if key[1] else 'cold'}.gif"
-                        write_gif_from_paths(frames, str(out_gif), duration_sec=GIF_FRAME_SEC, loop=0)
-                        print(f"gif: {out_gif} frames={len(frames)} dur={GIF_FRAME_SEC}s")
-                    except Exception as e:
-                        print(f"gif skipped for {key}: {e}")
-
-    print(f"csv: {out_path}")
-    return 0
+    if out_path.exists():
+        print(f"csv: {out_path}")
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
