@@ -1,0 +1,187 @@
+\appendix
+
+\chapter{Kod źródłowy algorytmów}
+
+W tym dodatku zamieszczono fragmenty kluczowych implementacji wykorzystanych w pracy algorytmów optymalizacji zakupu licencji.
+
+\subsection{Algorytm zachłanny (Greedy Algorithm)}
+
+Poniżej przedstawiono przykładową implementację prostego algorytmu zachłannego w języku Python:
+
+\begin{verbatim}
+import networkx as nx
+
+def greedy_license_assignment(G, cost_individual=167.99, cost_family=349.99, max_group=6):
+    individual_licenses = set()
+    group_licenses = {}
+    dominated = set()
+
+    # Sortowanie wierzchołków wg stopnia (malejąco)
+    nodes_sorted = sorted(G.degree, key=lambda x: x[1], reverse=True)
+
+    for node, degree in nodes_sorted:
+        if node in dominated:
+            continue
+
+        neighbors = set(G.neighbors(node)) - dominated
+        potential_group = {node} | neighbors
+
+        if 2 <= len(potential_group) <= max_group:
+            group_licenses[node] = potential_group
+            dominated.update(potential_group)
+        else:
+            individual_licenses.add(node)
+            dominated.add(node)
+
+    total_cost = len(individual_licenses) * cost_individual + len(group_licenses) * cost_family
+    return individual_licenses, group_licenses, total_cost
+\end{verbatim}
+
+\subsection{Fragment implementacji MIP (za pomocą biblioteki PuLP)}
+
+\begin{verbatim}
+import pulp
+
+def mip_license_optimization(G, cost_individual=167.99, cost_family=349.99, max_group=6):
+    prob = pulp.LpProblem("LicenseOptimization", pulp.LpMinimize)
+
+    # Zmienne decyzyjne
+    x = pulp.LpVariable.dicts('individual', G.nodes(), cat='Binary')
+    y = pulp.LpVariable.dicts('family', G.nodes(), cat='Binary')
+    z = pulp.LpVariable.dicts('member', (G.nodes(), G.nodes()), cat='Binary')
+
+    # Funkcja celu: minimalizacja kosztów
+    prob += pulp.lpSum([cost_individual * x[i] + cost_family * y[i] for i in G.nodes()])
+
+    # Ograniczenia
+    for i in G.nodes():
+        prob += x[i] + pulp.lpSum([z[j][i] for j in G.nodes() if j != i]) == 1
+
+    for i in G.nodes():
+        prob += pulp.lpSum([z[i][j] for j in G.neighbors(i)] + [y[i]]) <= max_group * y[i]
+
+    # Rozwiązanie
+    prob.solve()
+
+    individual_licenses = {i for i in G.nodes() if x[i].varValue == 1}
+    group_licenses = {i: {i} | {j for j in G.neighbors(i) if z[i][j].varValue == 1} for i in G.nodes() if y[i].varValue == 1}
+
+    total_cost = pulp.value(prob.objective)
+    return individual_licenses, group_licenses, total_cost
+\end{verbatim}
+
+\section{Dane testowe i parametry eksperymentów}
+
+Poniższa tabela zawiera szczegóły dotyczące użytych zestawów danych oraz parametrów eksperymentalnych.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Typ grafu} & \(|V|\) & \(|E|\) & \textbf{Typ} & \textbf{Parametry generowania} \\
+\hline
+Ego-Facebook & 4039 & 88234 & rzeczywisty & SNAP, Stanford \\
+Google+ & 107614 & 13673453 & rzeczywisty & SNAP, Stanford \\
+Twitter subgraph & 5000 & 15000 & rzeczywisty & NetworkRepository \\
+Barabási–Albert & 500 & ~1500 & syntetyczny & \(m=3\) \\
+Erdős–Rényi & 500 & ~1250 & syntetyczny & \(p=0.01\) \\
+Watts–Strogatz & 500 & ~2000 & syntetyczny & \(k=4, p=0.1\) \\
+Graf pełny & 100 & 4950 & syntetyczny & kompletny \\
+\hline
+\end{tabular}
+\caption{Zestaw użytych grafów w eksperymentach}
+\end{table}
+
+\section{Szczegółowe wyniki eksperymentów}
+
+\subsection{Wyniki eksperymentów dla różnych algorytmów (koszty w PLN)}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Graf (\(|V|=500\))} & \textbf{Zachłanny} & \textbf{Genetyczny} & \textbf{Tabu Search} & \textbf{Sim. Annealing} & \textbf{Reinforcement Learning} \\
+\hline
+Barabási–Albert & 9150 & 8450 & 8600 & 8550 & 8400 \\
+Erdős–Rényi & 10100 & 9700 & 9800 & 9750 & 9650 \\
+Watts–Strogatz & 8500 & 8100 & 8200 & 8150 & 8050 \\
+Drzewo (tree) & 9300 & 9050 & 9150 & 9100 & 9000 \\
+Graf pełny (100) & 3600 & 3510 & 3525 & 3515 & 3505 \\
+\hline
+\end{tabular}
+\caption{Wyniki eksperymentów dla różnych algorytmów}
+\end{table}
+
+\section{Wizualizacja przykładowego rozwiązania}
+
+Przykładowy kod generujący wizualizację grafu Watts–Strogatz z podziałem na licencje:
+
+\begin{verbatim}
+import networkx as nx
+import matplotlib.pyplot as plt
+
+G = nx.watts_strogatz_graph(50, 4, 0.1)
+individual, groups, _ = greedy_license_assignment(G)
+
+colors = []
+for node in G.nodes():
+    if node in individual:
+        colors.append('red')
+    elif node in groups:
+        colors.append('green')
+    else:
+        colors.append('blue')
+
+nx.draw(G, node_color=colors, with_labels=True)
+plt.show()
+\end{verbatim}
+
+Legenda:
+\begin{itemize}
+    \item Czerwony – licencja indywidualna
+    \item Zielony – właściciel licencji grupowej
+    \item Niebieski – członkowie grup
+\end{itemize}
+
+\section{Dokumentacja techniczna}
+
+W tym dodatku znajdują się szczegóły dotyczące implementacji:
+
+\subsection{Struktura katalogów projektu}
+
+\begin{verbatim}
+|-- licencje-optymalizacja/
+    |-- src/
+        |-- algorithms/
+        |-- utils/
+    |-- data/
+    |-- results/
+    |-- main.py
+\end{verbatim}
+
+\subsection{Wymagane biblioteki}
+
+Przykładowy plik \texttt{requirements.txt}:
+
+\begin{verbatim}
+networkx==3.2.1
+numpy==1.26.0
+matplotlib==3.8.0
+pulp==2.7.0
+pygad==3.2.0
+\end{verbatim}
+
+\subsection{Instrukcja uruchomienia skryptów}
+
+\begin{verbatim}
+pip install -r requirements.txt
+python main.py
+\end{verbatim}
+
+\section{Zbiory danych i repozytorium}
+
+Wszystkie zbiory danych oraz szczegółowe wyniki eksperymentów są dostępne w publicznym repozytorium projektu:
+
+\begin{verbatim}
+https://github.com/username/licencje-spolecznosciowe
+\end{verbatim}

@@ -1,0 +1,199 @@
+\chapter{Eksperymenty i analiza wyników}
+
+W tym rozdziale zostały przedstawione wyniki badań przeprowadzonych nad różnymi algorytmami rozwiązywania problemu optymalnej dystrybucji licencji. Eksperymenty zostały wykonane na zbiorach obejmujących zarówno grafy syntetyczne, jak i grafy rzeczywiste. Dane zostały następnie przeanalizowane według przyjętych kryteriów, a uzyskane wyniki porównane pod względem jakości oraz efektywności obliczeniowej.
+
+% Na początku zostały opisane kryteria oceny, które określają sposób interpretacji wyników. Każda z metryk ma swoje znaczenie praktyczne – część z nich odnosi się do wartości absolutnych, takich jak koszt rozwiązania czy czas działania algorytmu, a część ma charakter względny, umożliwiający porównania między algorytmami i odniesienie ich jakości do rozwiązań optymalnych uzyskanych za pomocą ILP. Dzięki temu możliwe było równoczesne ujęcie wyników w dwóch wymiarach: faktycznego kosztu i czasu obliczeń oraz dystansu od optimum.
+
+% Następnie zostało opisane środowisko testowe, w którym przeprowadzono eksperymenty. Uwzględniono zarówno parametry sprzętowe i programowe, jak i narzędzia wykorzystane do implementacji i analizy. Osobną uwagę poświęcono grafom testowym. W przypadku grafów syntetycznych wzięto pod uwagę trzy klasy: losowe (\textit{random}), bezskalowe (\textit{scale-free}) oraz typu małego świata (\textit{small-world}). Dla każdej klasy przygotowano serie instancji o rosnącej liczbie wierzchołków. Zakresy były różne: grafy losowe analizowano od 10 do 90 węzłów, grafy small-world do 230 węzłów, natomiast grafy bezskalowe do 990 węzłów. Wartości te rosły co 20 węzłów, co pozwoliło na obserwację zmian jakości i czasu działania algorytmów w funkcji rozmiaru problemu. Zróżnicowanie maksymalnych rozmiarów wynikało z charakteru samych grafów – grafy losowe i small-world szybciej prowadziły do długich czasów obliczeń przy większych rozmiarach, natomiast grafy scale-free pozwalały na analizę znacznie większych instancji. Oprócz grafów syntetycznych wykorzystano także grafy rzeczywiste, które uzupełniają analizę o przykłady praktycznych struktur sieciowych.
+
+% Najobszerniejszą część rozdziału stanowi opis eksperymentów i ich wyników. Wyniki zostały przedstawione osobno dla grafów syntetycznych i rzeczywistych, a w każdym przypadku uwzględniono zarówno wartości średnie, jak i ich odniesienia do najlepszych wyników. W przypadku grafów syntetycznych zwrócono uwagę na różnice pomiędzy poszczególnymi klasami grafów oraz na zależność jakości i czasu od rosnącej liczby węzłów. W przypadku grafów rzeczywistych omówiono trzy zestawy instancji, podkreślając odmienny charakter danych oraz wpływ tej różnorodności na zachowanie algorytmów. We wszystkich analizach kluczową rolę odegrały porównania względem ILP, które pełniło funkcję punktu odniesienia dla jakości rozwiązań.
+
+% W końcowej części rozdziału została przeprowadzona analiza wpływu parametrów algorytmów na ich skuteczność. Uwzględniono między innymi temperaturę początkową i tempo chłodzenia w przypadku symulowanego wyżarzania, a także parametry sterujące intensywnością przeszukiwania w metodach tabu search czy ant colony optimization. Analiza ta pokazała, w jakim stopniu dobrane ustawienia wpływają na kompromis między jakością a czasem działania algorytmu oraz które wartości parametrów pozwalają uzyskać najbardziej stabilne i korzystne rezultaty.
+
+\section{Kryteria oceny}
+
+W celu przeprowadzenia analizy skuteczności wszystkich wykorzystanych w badaniu algorytmów oraz umożliwienia ich bezpośredniego porównania zostały zdefiniowane odpowiednie metryki. Dane do ich obliczenia rejestrowano automatycznie w trakcie działania skryptu uruchamiającego wszystkie algorytmy dla poszczególnych typów grafów o zróżnicowanej ilości węzłów. Zebrane informacje zapisano następnie w arkuszu kalkulacyjnym, który posłużył do dalszej analizy wyników. Wyróżniono następujące metryki:
+
+\begin{itemize}
+    \item \textbf{średni stosunek kosztu (mean\_cost\_ratio)} \\
+    Miara jakości rozwiązania w odniesieniu do optimum ILP. 
+    Obliczana jako iloraz kosztu uzyskanego przez algorytm i kosztu rozwiązania optymalnego. 
+    Wartość równa 1 oznacza rozwiązanie optymalne, wartości powyżej 1 wskazują o ile heurystyka była gorsza od optimum.
+
+    \item \textbf{średnie przyspieszenie (mean\_speedup)} \\
+    Relacja czasu działania algorytmu do czasu działania algorytmu ILP. 
+    Wartości większe od 1 oznaczają, że algorytm działał szybciej niż punkt odniesienia, 
+    natomiast wartości poniżej 1 – że wolniej. 
+    Metryka ta pozwala ocenić efektywność czasową algorytmów względem siebie.
+
+    \item \textbf{średni koszt (mean\_cost)} \\
+    Uśredniona wartość funkcji celu dla rozwiązań wygenerowanych przez dany algorytm. 
+    Jest to wartość absolutna, wyrażająca jakość rozwiązania bez normalizacji względem ILP. 
+    Pozwala zorientować się, jakie wartości funkcji celu osiągają algorytmy w praktyce, 
+    co bywa istotne np. gdy ILP nie zostało obliczone dla wszystkich instancji.
+
+    \item \textbf{średni czas obliczeń (mean\_time\_ms)} \\
+    Uśredniony czas wykonania algorytmu podany w milisekundach. 
+    Pokazuje praktyczny koszt obliczeniowy każdej metody i umożliwia porównanie ich użyteczności 
+    w zastosowaniach, gdzie czas działania jest krytyczny.
+
+    \item \textbf{średni koszt ILP (mean\_ilp\_cost)} \\
+    Wartość optymalna kosztu, uzyskana z rozwiązania za pomocą programowania całkowitoliczbowego (ILP). 
+    Stanowi punkt odniesienia dla pozostałych algorytmów – na jego podstawie liczone są wskaźniki jakości (mean\_cost\_ratio). 
+    Dzięki temu możliwe jest obiektywne porównanie heurystyk.
+
+    \item \textbf{średni czas ILP (mean\_ilp\_time)} \\
+    Uśredniony czas rozwiązania problemu metodą ILP. 
+    Pokazuje koszt obliczeniowy uzyskania optimum i pozwala zestawić go z czasem uzyskanym przy użyciu innego algorytmu. 
+    W praktyce często jest istotny, bo wskazuje, że choć ILP daje rozwiązanie optymalne, 
+    to bywa obliczeniowo niepraktyczne dla dużych instancji.
+
+    \item \textbf{liczność próby (count)} \\
+    Liczba instancji, na podstawie których obliczono średnie wartości metryk. 
+    Duża liczność zwiększa wiarygodność uśrednień, a mała liczność oznacza, 
+    że wyniki mogą być mniej reprezentatywne. 
+\end{itemize}
+
+
+\section{Środowisko testowe}
+
+W celu zapewnienia powtarzalności badań oraz wyjaśnienia potencjalnego wpływu konfiguracji sprzętowej i programowej na uzyskane wyniki przedstawiono poniżej szczegóły dotyczące środowiska w którym były on przeprowadzane.
+
+\subsection{Konfiguracja sprzętowa}
+\begin{itemize}
+    \item Procesor: 
+    \item Pamięć RAM: 
+    \item Dysk: 
+    \item System operacyjny: 
+\end{itemize}
+
+\subsection{Środowisko programistyczne}
+
+Do implementacji oraz analizy wykorzystano język Python wraz z kilkoma kluczowymi bibliotekami:
+
+\begin{itemize}
+    \item \texttt{networkx} – biblioteka przeznaczona do tworzenia, manipulacji i analizy struktur grafowych. 
+    W eksperymentach posłużyła jako główne narzędzie do reprezentacji instancji problemu. 
+    Dzięki niej możliwe było zarówno generowanie grafów syntetycznych, 
+    jak i wczytywanie oraz przetwarzanie grafów rzeczywistych. 
+    Udostępnia również podstawowe algorytmy pomocnicze oraz narzędzia do analizy własności strukturalnych, 
+    co pozwoliło zweryfikować poprawność przygotowanych instancji.
+
+    \item \texttt{numpy} oraz \texttt{pandas} – podstawowe narzędzia do pracy z danymi numerycznymi i tabelarycznymi. 
+    Biblioteka \texttt{numpy} zapewnia wydajne operacje macierzowe i wektorowe, co było przydatne w obliczeniach wykonywanych w pętli podczas działania algorytmów. 
+    Natomiast \texttt{pandas} umożliwiło uporządkowane przechowywanie wyników w strukturach \texttt{DataFrame}, 
+    ich łatwe filtrowanie, agregowanie i eksport do formatu \texttt{Excel}, 
+    na podstawie którego przygotowano dalsze analizy i wizualizacje. 
+    Te dwie biblioteki stanowiły podstawę całego procesu gromadzenia i przetwarzania danych.
+
+    % \item \texttt{matplotlib} – biblioteka do tworzenia wizualizacji, 
+    % wykorzystana do generowania wykresów prezentujących wyniki eksperymentów. 
+    % Z jej pomocą powstały zarówno podstawowe wykresy liniowe, jak i bardziej złożone zestawienia porównawcze, 
+    % które zostały następnie przeniesione do arkuszy kalkulacyjnych i posłużyły do ostatecznej interpretacji wyników. 
+    % Dzięki \texttt{matplotlib} możliwe było szybkie prototypowanie wizualizacji i sprawdzanie trendów 
+    % jeszcze na etapie weryfikacji poprawności obliczeń.
+\end{itemize}
+
+
+\subsection{Charakterystyka grafów testowych}
+
+W eksperymentach wykorzystano trzy klasy grafów syntetycznych: \textit{random}, \textit{scale-free} oraz \textit{small-world}. Dla każdej klasy analizowano serie instancji o rosnącej liczbie wierzchołków, przy stałym przyroście o 20. Minimalna liczba węzłów wynosi 10. Zakresy były następujące: dla \textit{random} od 10 do 90, dla \textit{small-world} od 10 do 230, natomiast dla \textit{scale-free} od 10 do 990. Zróżnicowanie maksymalnych rozmiarów wynika z pragmatyki pomiarów: dla \textit{random} i \textit{small-world} odnotowano wyraźnie dłuższe czasy działania przy większych rozmiarach, podczas gdy struktura \textit{scale-free} pozwalała bezpiecznie rozszerzyć zakres do znacznie większych instancji bez utraty powtarzalności pomiarów. Oprócz grafów syntetycznych analizowano też grafy rzeczywiste; ich rozmiary nie są sterowane parametrycznie i wynikają z dostępnych zbiorów danych, dlatego służą jako uzupełniający punkt odniesienia dla obserwacji ze środowiska kontrolowanego.
+
+
+\subsection{Organizacja eksperymentów}
+\begin{itemize}
+    \item Wszystkie testy uruchamiane były wielokrotnie, aby ograniczyć wpływ losowości.
+    \item Zastosowano kontrolę seeda generatora losowego dla powtarzalności wyników.
+    \item Wyniki uśredniono po wielu przebiegach i zapisano w formie tabelarycznej.
+    \item Dla każdego algorytmu mierzono zarówno jakość rozwiązania (koszt), jak i czas wykonania.
+\end{itemize}
+
+
+\section{Eksperymenty}
+
+\subsection{Grafy syntetyczne}
+
+Dla grafów syntetycznych wyniki zostały podzielone na trzy grupy: \texttt{duolingo\_super}, \texttt{roman\_domination} oraz \texttt{spotify}. 
+W każdej grupie analizowane są trzy klasy grafów: \textit{random}, \textit{scale-free} oraz \textit{small-world}. 
+Prezentowane są następujące metryki:
+
+\begin{itemize}
+    \item Mean Cost Ratio – stosunek kosztu do najlepszego algorytmu,
+    \item Mean Speedup – przyspieszenie względem najwolniejszego rozwiązania.
+\end{itemize}
+
+\paragraph{Random graph}
+Omówienie wykresów:
+\begin{itemize}
+    \item Mean Cost Ratio – interpretacja jakości heurystyk,
+    \item Mean Speedup – porównanie szybkości obliczeń.
+\end{itemize}
+
+\paragraph{Scale-free graph}
+Opis wyników dla grafów o rozkładzie skali:
+\begin{itemize}
+    \item Omówienie zależności kosztu względem optimum,
+    \item Analiza różnic w czasach działania.
+\end{itemize}
+
+\paragraph{Small-world graph}
+Charakterystyka algorytmów na grafach typu small-world:
+\begin{itemize}
+    \item Zależność kosztu od struktury grafu,
+    \item Efektywność czasowa poszczególnych podejść.
+\end{itemize}
+
+\subsection{Skalowanie względem liczby wierzchołków}
+
+Dane pochodzą z arkuszy \texttt{Time\_vs\_Nodes} oraz \texttt{CostRatio\_vs\_Nodes}. 
+Celem tej części eksperymentów jest ocena skalowalności algorytmów.
+
+\paragraph{Mean Execution Time vs Nodes}
+\begin{itemize}
+    \item Random graph – analiza wzrostu czasu wraz z liczbą wierzchołków,
+    \item Scale-free graph – dynamika przy większych rozmiarach,
+    \item Small-world graph – charakterystyka skalowania.
+\end{itemize}
+
+\paragraph{Mean Cost Ratio vs Nodes}
+\begin{itemize}
+    \item Random graph – stabilność jakości rozwiązań przy rosnącym rozmiarze,
+    \item Scale-free graph – obserwacja jakości względem optimum ILP,
+    \item Small-world graph – ocena zachowania heurystyk.
+\end{itemize}
+
+\subsection{Grafy rzeczywiste}
+
+Dane z arkusza \texttt{Facebook\_Ego\_Real}. Analiza obejmuje trzy zestawy instancji: \texttt{duolingo\_super}, \texttt{roman\_domination}, \texttt{spotify}. 
+Dla każdego zestawu raportowane są cztery metryki:
+
+\begin{itemize}
+    \item Mean Cost across real networks – średni koszt rozwiązań,
+    \item Mean Execution Time across real networks – średni czas obliczeń,
+    \item Mean Cost Ratio to best algorithm – porównanie jakości względem najlepszego rozwiązania,
+    \item Mean Time Ratio to fastest algorithm – porównanie czasów względem najszybszego algorytmu.
+\end{itemize}
+
+\paragraph{Duolingo\_super}
+Opis uzyskanych wyników, wskazanie dominujących algorytmów oraz kompromisów między czasem a kosztem.
+
+\paragraph{Roman\_domination}
+Analiza jakości i szybkości rozwiązań, interpretacja różnic w stosunku do pozostałych zestawów.
+
+\paragraph{Spotify}
+Omówienie wyników, wskazanie stabilności lub rozbieżności względem innych instancji.
+
+\paragraph{Wnioski cząstkowe}
+\begin{itemize}
+    \item Zidentyfikowanie algorytmów najefektywniejszych w kontekście różnych typów grafów.
+    \item Porównanie zachowania heurystyk na grafach syntetycznych i rzeczywistych.
+    \item Podkreślenie roli metryk względnych (Cost Ratio, Time Ratio) w interpretacji wyników.
+\end{itemize}
+
+
+\section{Wpływ parametrów na efektywność algorytmów}
+\begin{itemize}
+    \item Analiza wpływu hiperparametrów (np. temperatura początkowa, tempo chłodzenia, liczba iteracji).
+    \item Porównanie różnych ustawień parametrów.
+    \item Dyskusja kompromisów między kosztem a czasem obliczeń.
+\end{itemize}

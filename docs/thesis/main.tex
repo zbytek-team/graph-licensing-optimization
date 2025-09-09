@@ -1,0 +1,37 @@
+\documentclass[10pt,a4paper]{report}
+
+\input{preamble} % Load custom preamble for packages and formatting settings
+
+\begin{document}
+
+% official template must be downloaded and placed in assets/titlepage.pdf
+\includepdf[pages=1]{assets/titlepage.pdf}
+
+% Include abstracts
+\input{frontmatter/abstract_pl}
+\input{frontmatter/abstract_en}
+
+% Generate the table of contents (automatically includes chapters and sections)
+% Note: To include the bibliography and all references, ensure to compile with Biber or BibTeX after running LaTeX.
+\tableofcontents
+
+\input{frontmatter/list_of_symbols}
+
+% Include main chapters of the thesis
+\input{chapters/01_introduction}
+\input{chapters/02_graph_model}
+\input{chapters/03_roman_domination}
+\input{chapters/04_test_data}
+\input{chapters/05_algorithmic_methods}
+\input{chapters/06_experiments}
+% \input{chapters/07_dynamic_analysis}
+% \input{chapters/08_model_extensions}
+% \input{chapters/09_conclusion}
+
+\printbibliography
+
+% Appendices (additional materials, calculations, etc.)
+% \appendix
+% \include{chapters/99_appendix}
+
+\end{document}

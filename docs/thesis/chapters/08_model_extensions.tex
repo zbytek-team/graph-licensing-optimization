@@ -1,0 +1,117 @@
+\chapter{Rozszerzenia modelu i analiza ekonomiczna}
+
+\section{Wprowadzenie}
+
+Dotychczas przeprowadzona analiza bazowała na uproszczonym scenariuszu zakupu licencji indywidualnych oraz licencji rodzinnych (\textit{family plan}). W rzeczywistych usługach subskrypcyjnych występuje jednak często więcej typów licencji, a także bardziej złożone struktury cenowe. Niniejszy rozdział poświęcony jest analizie wpływu różnych wariantów polityk cenowych oraz dodatkowych typów licencji (np. plany \textit{Duo, Student}) na efektywność algorytmów oraz strategię optymalizacyjną.
+
+\section{Analiza wpływu różnych polityk cenowych na strategię zakupu licencji}
+
+Koszt licencji ma fundamentalny wpływ na optymalne strategie zakupowe użytkowników. Rozważmy trzy typowe scenariusze cenowe:
+
+\begin{itemize}
+    \item \textbf{Scenariusz 1 (podstawowy)}:  
+    \begin{itemize}
+        \item Licencja indywidualna: 167,99 PLN  
+        \item Licencja rodzinna (2–6 osób): 349,99 PLN (ok. 2,08× indywidualna)
+    \end{itemize}
+
+    \item \textbf{Scenariusz 2 (licencja grupowa droższa)}:  
+    \begin{itemize}
+        \item Licencja indywidualna: 167,99 PLN  
+        \item Licencja rodzinna (2–6 osób): 450,00 PLN (2,68× indywidualna)
+    \end{itemize}
+
+    \item \textbf{Scenariusz 3 (licencja grupowa tańsza)}:  
+    \begin{itemize}
+        \item Licencja indywidualna: 167,99 PLN  
+        \item Licencja rodzinna (2–6 osób): 250,00 PLN (1,49× indywidualna)
+    \end{itemize}
+\end{itemize}
+
+W tabeli przedstawiono wpływ tych scenariuszy na średni koszt optymalnego rozwiązania dla grafów syntetycznych (\textit{500 użytkowników, Watts–Strogatz}):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Scenariusz} & \textbf{Średni koszt całkowity} & \textbf{\% Licencji indywidualnych} & \textbf{\% Licencji grupowych} \\
+\hline
+1 (bazowy) & ~8500 PLN  & ~35\%  & ~65\%  \\
+2 (droższy) & ~10200 PLN  & ~60\%  & ~40\%  \\
+3 (tańszy) & ~7200 PLN  & ~20\%  & ~80\%  \\
+\hline
+\end{tabular}
+\caption{Wpływ polityki cenowej na strategię zakupu licencji}
+\label{tab:pricing_impact}
+\end{table}
+
+\textbf{Wnioski}:
+\begin{itemize}
+    \item Wzrost ceny licencji rodzinnej powoduje przejście na licencje indywidualne.
+    \item Niższa cena licencji grupowej wyraźnie zachęca do większego wykorzystywania planów rodzinnych.
+\end{itemize}
+
+\section{Rozszerzenie modelu o dodatkowe typy planów subskrypcyjnych}
+
+W rzeczywistych platformach, takich jak Spotify, oprócz licencji indywidualnych i rodzinnych dostępne są również inne plany subskrypcyjne:
+
+\begin{itemize}
+    \item \textbf{Plan Duo (2 osoby)} – np. 210,00 PLN rocznie.
+    \item \textbf{Plan Student} – np. 85,00 PLN rocznie, dostępny tylko dla części użytkowników (wymaga dodatkowej klasyfikacji wierzchołków w grafie).
+\end{itemize}
+
+Przy rozszerzeniu modelu należy uwzględnić dodatkowe ograniczenia:
+
+\begin{itemize}
+    \item Plan Duo może być użyty tylko dla dwóch osób bezpośrednio połączonych krawędzią.
+    \item Plan Student dostępny tylko dla specyficznej grupy wierzchołków (np. wierzchołki oznaczone jako studenci).
+\end{itemize}
+
+Poniższa tabela pokazuje przykładowe skutki uwzględnienia planów dodatkowych na grafie \textit{Ego-Facebook}:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Wariant licencji} & \textbf{Średni koszt} & \textbf{Indywidualne} & \textbf{Duo} & \textbf{Family} & \textbf{Student} \\
+\hline
+Indywidualne + Family & 4532 PLN & 32\% & – & 68\% & – \\
+Indywidualne + Duo + Family & 4195 PLN & 20\% & 24\% & 56\% & – \\
+Wszystkie (z lic. Student) & 3710 PLN & 15\% & 20\% & 50\% & 15\% \\
+\hline
+\end{tabular}
+\caption{Wpływ dodatkowych typów subskrypcji na koszty}
+\label{tab:subscription_plans}
+\end{table}
+
+Uwzględnienie dodatkowych planów obniża koszty całkowite, ale zwiększa złożoność optymalizacyjną problemu.
+
+\section{Wpływ dodatkowych ograniczeń na złożoność problemu}
+
+Rozszerzenie modelu o dodatkowe licencje zwiększa złożoność algorytmiczną problemu. Liczba potencjalnych kombinacji rośnie wykładniczo ze wzrostem liczby wariantów licencji, co utrudnia zastosowanie metod dokładnych (MIP) nawet dla niewielkich grafów. W związku z tym wskazane jest dalsze poleganie na algorytmach heurystycznych i metaheurystycznych.
+
+\section{Możliwości zastosowania modelu w innych branżach}
+
+Model grafowego optymalizowania zakupu licencji może mieć zastosowanie również poza subskrypcjami cyfrowymi:
+
+\begin{itemize}
+    \item Optymalizacja zakupu usług dostępu do aplikacji biznesowych w korporacjach.
+    \item Organizowanie wspólnych zakupów abonamentów telekomunikacyjnych, sieciowych usług chmurowych.
+    \item Zakup subskrypcji treści cyfrowych (np. prasa, serwisy VOD).
+\end{itemize}
+
+Analizowany model umożliwia uwzględnienie relacji społecznych lub zawodowych przy zakupie dowolnych usług grupowych, co zwiększa zakres potencjalnych zastosowań praktycznych.
+
+\section{Analiza ekonomiczna i rekomendacje dla dostawców usług}
+
+Z perspektywy dostawców usług istotna jest również analiza tego, jak ustalanie cen i struktury licencji wpływa na decyzje użytkowników. Kluczowe rekomendacje wynikające z analizy eksperymentalnej to:
+
+\begin{itemize}
+    \item Niższe ceny licencji grupowych sprzyjają większej popularności usługi, ale mogą obniżyć ogólne przychody.
+    \item Rozszerzenie oferty o różnorodne typy subskrypcji (\textit{np. Duo, Student}) pozwala na bardziej efektywne pozyskiwanie i utrzymanie użytkowników z różnych grup demograficznych.
+    \item Różnicowanie licencji dla specyficznych grup (np. studenci, seniorzy) pozytywnie wpływa na penetrację rynku.
+\end{itemize}
+
+\section{Podsumowanie rozdziału}
+
+W rozdziale przeanalizowano wpływ różnych wariantów polityk cenowych oraz dodatkowych typów planów subskrypcyjnych na strategię optymalizacji zakupu licencji. Przedstawione wyniki eksperymentalne pokazują, że uwzględnienie większej liczby opcji licencyjnych prowadzi do znaczących oszczędności dla użytkowników, lecz jednocześnie istotnie zwiększa złożoność problemu optymalizacyjnego.

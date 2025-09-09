@@ -1,0 +1,561 @@
+\chapter{Metody algorytmiczne optymalizacji kosztów licencji}
+
+W niniejszym rozdziale przedstawione omówione zostaną różnorodne metody algorytmiczne, które zostały wykorzystane do rozwiązywania sformułowanego w poprzednich rozdziałach problemu optymalnego zakupu licencji w sieciach społecznościowych.
+
+\section{Dokładne algorytmy}
+
+\subsection{Programowanie całkowitoliczbowe}
+
+Programowanie całkowitoliczbowe (ILP) to technika optymalizacji, w której dobieramy wartości zmiennych całkowitoliczbowych tak, aby zminimalizować (lub zmaksymalizować) liniową funkcję celu przy jednoczesnym spełnieniu zestawu równań i nierówności liniowych. W odróżnieniu od klasycznego programowania liniowego, ILP wymaga, aby zmienne przyjmowały wartości całkowite, co pozwala w naturalny sposób modelować decyzje typu tak/nie, włącz/wyłącz czy przydziel/nie przydziel.
+
+W zadaniu optymalnego zakupu licencji modelujemy sieć społecznościową jako graf $G=(V,E)$, gdzie wierzchołki to użytkownicy, a krawędzie – relacje umożliwiające współdzielenie. Dla każdego użytkownika i typu licencji wprowadzamy zmienne binarne określające, kto kupuje daną licencję oraz komu ją udostępnia. Funkcję celu stanowi suma kosztów wszystkich wykupionych licencji, zaś zestaw równań i nierówności gwarantuje, że każdy użytkownik jest objęty dokładnie jedną licencją, a rozmiary grup mieszczą się w zadanych granicach.
+
+Implementacja opiera się na bibliotece \texttt{pulp} i solwerze CBC, który dzięki mechanizmom branch-and-bound, cutting-planes i heurystykom startowym potrafi w rozsądnym czasie znaleźć rozwiązanie optymalne dla małych i średnich grafów (rzędu kilkudziesięciu wierzchołków). Zaletą ILP jest gwarancja optymalności i elastyczność: nowe ograniczenia (np. różne modele cenowe, dodatkowe warunki zaufania czy ograniczenia sekwencyjne) można dodać poprzez kolejne zmienne lub nierówności liniowe. Główną wadą jest jednak potencjalnie nadwykładniczy czas rozwiązania w najgorszym przypadku, co sprawia, że ILP pełni tu rolę algorytmu referencyjnego dla instancji niewielkich rozmiarów.
+
+W dalszych częściach przedstawimy szczegółową konstrukcję zmiennych decyzyjnych, funkcji celu i ograniczeń, sposób rozwiązania problemu za pomocą solwera oraz metody ekstrakcji i interpretacji uzyskanego rozwiązania.  
+
+\paragraph{Zmienne decyzyjne}  
+\begin{itemize}
+  \item $x_{i,j,t}\in\{0,1\}$ dla każdej pary $(i,j)$ takiej, że $j=i$ lub $\{i,j\}\in E$, oraz każdego typu licencji $t\in\{1,\dots,T\}$:
+  \[
+    x_{i,j,t}=1
+    \quad\Longleftrightarrow\quad
+    \text{użytkownik }i\text{ wykupił licencję typu }\ell_t\text{ i obsługuje }j.
+  \]
+  \item $y_{i,t}\in\{0,1\}$ dla każdego $i\in V$ i $t\in\{1,\dots,T\}$:
+  \[
+    y_{i,t}=1
+    \quad\Longleftrightarrow\quad
+    \text{użytkownik }i\text{ wykupił licencję typu }\ell_t.
+  \]
+\end{itemize}
+
+\paragraph{Funkcja celu}  
+Minimalizujemy łączny koszt wykupionych licencji:
+\[
+  \min \;\sum_{i\in V}\sum_{t=1}^T c_t\,y_{i,t}.
+\]
+
+\paragraph{Ograniczenia}
+\begin{enumerate}
+  \item \emph{Każdy użytkownik obsłużony dokładnie raz:}
+  \[
+    \forall\,j\in V:\quad
+    \sum_{i\in V}\sum_{t=1}^T x_{i,j,t} \;=\; 1.
+  \]
+  \item \emph{Powiązanie $x$ z $y$ (pojemność grupy):}
+  \[
+    \forall\,i\in V,\;t=1,\dots,T:\quad
+    \sum_{j:\,\{i,j\}\in E\lor j=i} x_{i,j,t}
+    \;\le\;
+    y_{i,t}\,\max_t,
+  \]
+  \[
+    \sum_{j:\,\{i,j\}\in E\lor j=i} x_{i,j,t}
+    \;\ge\;
+    y_{i,t}\,\min_t.
+  \]
+  \item \emph{Własny dostęp:}
+  \[
+    \forall\,i\in V,\;t=1,\dots,T:\quad
+    x_{i,i,t}\;\ge\;y_{i,t}.
+  \]
+\end{enumerate}
+
+\paragraph{Rozwiązywanie i konstrukcja rozwiązania}  
+Model ILP formułowany jest za pomocą biblioteki \texttt{pulp} i rozwiązywany solwerem CBC. Po uzyskaniu optymalnego rozwiązania:
+\begin{itemize}
+  \item Dla każdej zmiennej $y_{i,t}=1$ odczytujemy grupę
+    \[
+      S_{i,t} = \{\,j\in V : x_{i,j,t}=1\}.
+    \]
+  \item Tworzymy obiekt \texttt{LicenseGroup(license\_type=\(\ell_t\), owner=\(i\), additional\_members=\(S_{i,t}\setminus\{i\}\))}.
+  \item Zestaw wszystkich grup przekazujemy do \texttt{Solution(groups, total\_cost, covered\_nodes)}.
+\end{itemize}
+
+Rozwiązanie oparte na ILP gwarantuje optymalne przypisanie licencji przy minimalnym koszcie i pełnym spełnieniu wszystkich ograniczeń modelu.
+
+
+
+\subsection{Algorytm naiwny}
+
+Algorytm naiwny jest najbardziej bezpośrednim podejściem do problemu optymalnego przypisania licencji. Algorytm przeszukuje całą przestrzeń możliwych rozwiązań, gwarantując znalezienie globalnego optimum dla małych instancji. W przeciwieństwie do metod heurystycznych czy metaheurystycznych, które starają się jak najszybciej wygenerować dobre przybliżenie, algorytm naiwny nie stosuje żadnych uproszczeń ani aproksymacji — dla każdego możliwego podziału użytkowników na grupy licencyjne (oraz przypisania licencji indywidualnych) sprawdza warunki poprawności, oblicza łączny koszt i wybiera najlepsze rozwiązanie.
+
+Takie wyczerpujące przeszukiwanie ma jednak swoją cenę: liczba rozwiązań rośnie nadwykładniczo wraz z rozmiarem grafu, dlatego w praktyce algorytm stosuje się wyłącznie do niewielkich sieci (w niniejszej pracy — maksymalnie $n\le10$ wierzchołków). Pomimo tej ograniczonej skalowalności, algorytm naiwny pełni kluczową rolę jako punkt odniesienia dla oceny jakości bardziej zaawansowanych metod. Jego główne zalety to prostota interpretacji, gwarancja optymalności oraz brak potrzeby dostrajania parametrów — wszystko, co jest potrzebne, to definicja dostępnych licencji i ograniczeń grupowych.
+
+\paragraph{Główne założenia}
+\begin{itemize}
+  \item \emph{Rozłączność}: każdy wierzchołek należy do co najwyżej jednej grupy licencyjnej.
+  \item \emph{Spójność}: każda grupa indukuje spójny podgraf w $G$.
+  \item \emph{Pokrycie}: wszystkie wierzchołki muszą być objęte licencją (indywidualną lub grupową).
+  \item \emph{Limit obliczeń}: w implementacji przyjmujemy $n\le10$ (ze względu na nadwykładniczy wzrost liczby rozwiązań).
+\end{itemize}
+
+\paragraph{Ogólny przebieg}
+\begin{enumerate}
+  \item Sprawdź, czy $n=|V|\le10$; jeśli nie, przerwij (graf zbyt duży).
+  \item Wygeneruj wszystkie możliwe \emph{partycje} zbioru $V$ na rozłączne podzbiory (grupy) metodą rekurencyjną.
+  \item Dla każdej partycji:
+    \begin{enumerate}
+      \item Dla każdego podzbioru (grupy) i każdego typu licencji $\ell\in\mathcal{L}$ sprawdź, czy rozmiar grupy mieści się w $[\min_\ell,\max_\ell]$.
+      \item Dla każdej dopuszczalnej licencji na dany podzbiór wybierz możliwego właściciela (każdy wierzchołek w grupie) i sprawdź spójność sąsiedztwa.
+      \item Zbuduj przypisanie licencji do wszystkich grup w partycji.
+    \end{enumerate}
+  \item Dla każdego pełnego przypisania:
+    \begin{itemize}
+      \item Sprawdź poprawność (rozłączność, pokrycie, limity).
+      \item Oblicz koszt $C$.
+      \item Zaktualizuj rozwiązanie optymalne, jeśli $C$ jest mniejsze niż dotychczasowe.
+    \end{itemize}
+  \item Jeśli żadne przypisanie nie jest poprawne, dla każdego wierzchołka przypisz najtańszą licencję indywidualną.
+  \item Zwróć najlepsze przypisanie.
+\end{enumerate}
+
+\paragraph{Generowanie przypisań}
+\begin{enumerate}
+  \item \textbf{Partycje:} rekurencyjnie generujemy wszystkie partycje $\Pi$ zbioru $V$:
+    \[
+      \Pi = \{P_1,P_2,\dots,P_k\},\quad P_i\subseteq V,\;\bigcup_i P_i=V,\;P_i\cap P_j=\emptyset.
+    \]
+  \item \textbf{Przypisania dla partycji:} dla każdego $P_i\in\Pi$ i każdego $\ell\in\mathcal{L}$ takich, że 
+    \[
+      \min_\ell \le |P_i|\le \max_\ell,
+    \]
+    oraz dla każdego możliwego wyboru właściciela $v\in P_i$ sprawdzamy:
+    \[
+      P_i\setminus\{v\}\subseteq \mathrm{Adj}(v).
+    \]
+    Jeśli ten warunek jest spełniony, tworzymy krotkę $(\ell,v,P_i\setminus\{v\})$.
+  \item \textbf{Kombinacje:} z tablicy list krotek dla każdego $P_i$ generujemy iloczyn kartezjański — dając kompletne przypisanie dla całej partycji.
+\end{enumerate}
+
+\paragraph{Złożoność obliczeniowa}
+Pełna przestrzeń dopuszczalnych przypisań odpowiada wszystkim rozłącznym, spójnym partycjom $V$ z grupami o rozmiarach w $[\min_\ell,\max_\ell]$. Górną granicę tej przestrzeni stanowi liczba Bella:
+\[
+B(n)=\text{liczba wszystkich partycji zbioru }V,\quad
+B(n)\in\Theta\!\Bigl(\tfrac{1}{\sqrt n}\,\bigl(\tfrac{n}{\ln n}\bigr)^{\!n}\Bigr).
+\]
+Z powodu dodatkowych ograniczeń ($[\min_\ell,\max_\ell]$, spójność), liczba rozwiązań jest mniejsza od $B(n)$, ale nadal rośnie nadwykładniczo. Można zatem oszacować złożoność na:
+\[
+\mathcal{O}\bigl(c^n\bigr),
+\]
+gdzie stała $c>1$ zależy od maksymalnego stopnia wierzchołków, zakresu rozmiarów licencji i limitu $L$ odbiorców. Ze względu na tę złożoność algorytm jest praktyczny tylko dla $n\le10$ i pełni rolę algorytmu referencyjnego.  
+
+\subsection{Branch and Bound}
+
+\paragraph{Wprowadzenie}  
+Branch and Bound to technika dokładnego przeszukiwania, która systematycznie eksploruje drzewo decyzyjne możliwych przydziałów licencji, jednocześnie przycinając gałęzie, dla których wiadomo, że nie przyniosą rozwiązania lepszego od już znanego. W zadaniu dystrybucji licencji w sieci społecznościowej każda decyzja o przydziale grupy licencyjnej do wierzchołka tworzy kolejny poziom drzewa. Dzięki estymacji dolnych i górnych granic kosz­tów dla częściowych przypisań możliwe jest szybkie odrzucanie tych gałęzi, które nie mogą doprowadzić do optymalnego rozwiązania.
+
+\paragraph{Założenia i przygotowanie danych}  
+\begin{itemize}
+  \item Graf $G=(V,E)$, typy licencji $\mathcal{L}$ z parametrami $\min_\ell,\max_\ell,c_\ell$.
+  \item Używamy struktury \texttt{BranchNode}, zawierającej:
+    \begin{itemize}
+      \item częściowe przypisania $\textit{assignments}$ (mapowanie właściciel → (licencja, członkowie)),
+      \item zbiór \textit{unassigned\_nodes} – wierzchołków, które jeszcze nie zostały pokryte,
+      \item \textit{lower\_bound} – dolną granicę kosztu rozszerzenia bieżącego węzła do pełnego rozwiązania,
+      \item \textit{upper\_bound} – górną granicę kosztu (np. heurystyka zachłanna),
+      \item \textit{level} – głębokość w drzewie decyzyjnym.
+    \end{itemize}
+  \item Kolejka priorytetowa sortowana po \textit{lower\_bound} pozwala wybierać najbardziej obiecujące węzły.
+  \item Parametr \texttt{max\_iterations} ogranicza liczbę rozgałęzień.
+\end{itemize}
+
+\paragraph{Ogólny przebieg}  
+\begin{enumerate}
+  \item \textbf{Inicjalizacja:}  
+    \begin{itemize}
+      \item Oblicz dolną granicę dla pustych przypisań jako suma minimalnych kosztów potrzebnych do pokrycia wszystkich węzłów.  
+      \item Oblicz górną granicę przez szybki algorytm zachłanny.  
+      \item Utwórz węzeł początkowy (\textit{root}) z pełnym zbiorem nieprzypisanych wierzchołków i dodaj go do kolejki.
+    \end{itemize}
+  \item \textbf{Loop:} dopóki kolejka nie jest pusta i nie przekroczono \texttt{max\_iterations}:
+    \begin{enumerate}
+      \item Wyjmij węzeł o najmniejszej \textit{lower\_bound}.
+      \item Jeśli \textit{lower\_bound} ≥ bieżące najlepsze rozwiązanie, pomiń tę gałąź.
+      \item Jeśli \textit{unassigned\_nodes} jest puste, przekształć przypisania w pełne rozwiązanie i zaktualizuj optymalne, jeśli koszt jest niższy.
+      \item W przeciwnym wypadku:
+        \begin{itemize}
+          \item Wybierz jeden wierzchołek z \textit{unassigned\_nodes} jako cel rozgałęzień.
+          \item Wygeneruj wszystkie możliwe przypisania licencji dla tego wierzchołka (właściciel + grupa) zgodnie z parametrami licencji i krawędziami grafu.
+          \item Dla każdego możliwego przypisania utwórz nowy węzeł z:
+            \begin{itemize}
+              \item zaktualizowanym zbiorem \textit{assignments} i \textit{unassigned\_nodes},
+              \item obliczonymi nowymi \textit{lower\_bound} i \textit{upper\_bound}.
+            \end{itemize}
+          \item Dodaj powstałe węzły do kolejki, jeśli ich \textit{lower\_bound} jest mniejsze od najlepszego znanego kosztu.
+        \end{itemize}
+    \end{enumerate}
+  \item Po zakończeniu zwróć najlepsze rozwiązanie lub – jeśli nie znaleziono – heurystykę zachłanną jako fallback.
+\end{enumerate}
+
+\paragraph{Złożoność obliczeniowa}  
+W najgorszym przypadku Branch and Bound nadal może eksplorować wykładniczą liczbę węzłów. Jednak przy dobrych estymatach dolnych granic i efektywnej kolejce priorytetowej znacznie ogranicza liczbę rozgałęzień. Każde rozgałęzienie wymaga wygenerowania wszystkich możliwych grup licencyjnych dla jednego wierzchołka, co w najgorszym przypadku daje sumę kombinacji $\sum_{\ell\in\mathcal{L}}\sum_{k=\min_\ell}^{\max_\ell}\binom{d}{k-1}$, gdzie $d$ to stopień wierzchołka. Całkowity koszt obliczeniowy wynosi zatem w praktyce znacznie mniej niż pełne przeszukiwanie wykładnicze, ale z zachowaniem gwarancji optymalności.  
+
+\subsection{Programowanie dynamiczne na drzewach}
+
+\paragraph{Wprowadzenie}  
+Metoda programowania dynamicznego na drzewach (Tree DP) jest szczególną techniką optymalizacji wykorzystywaną, gdy graf wejściowy jest (lub może być zrootowany jako) drzewem. Dzięki temu zamiast eksplorować nadwykładniczą przestrzeń wszystkich podziałów, możemy w czasie wielomianowym (lub pseudo-wielomianowym przy stałym maksymalnym stopniu wierzchołków) obliczyć optymalne przypisanie licencji poprzez rekurencyjne łączenie wyników z poddrzew. Dla każdej poddrzewa liczymy minimalny koszt pokrycia wszystkich węzłów, uwzględniając różne typy licencji i możliwość objęcia przez lidera części jego potomków.
+
+\paragraph{Założenia i przygotowanie danych}  
+\begin{itemize}
+  \item Graf wejściowy musi być drzewem: $G=(V,E)$ ze strukturą acykliczną.
+  \item Typy licencji $\mathcal{L}=\{\ell_1,\dots,\ell_T\}$ z parametrami:
+    \[
+      \min_\ell,\;\max_\ell\quad\text{(zakres wielkości grup)},\quad
+      c_\ell\quad\text{(koszt licencji)}.
+    \]
+  \item Rootowanie drzewa: wybieramy dowolny węzeł jako korzeń, by zdefiniować relacje rodzic–dziecko.
+  \item Memoizacja: słownik \texttt{memo[node,children]} przechowuje wynik (koszt, zestaw grup) dla każdego poddrzewa.
+\end{itemize}
+
+\paragraph{Ogólny przebieg}  
+\begin{enumerate}
+  \item \textbf{Rootowanie:} wybierz dowolny węzeł jako korzeń drzewa.
+  \item \textbf{Rekurencyjna funkcja} \texttt{\_solve\_subtree(node,parent)}:
+    \begin{itemize}
+      \item Zbierz listę dzieci węzła $node$ (sąsiedzi różni od $parent$).
+      \item \emph{Przypadek bazowy (liść):} przypisz najtańszą licencję pojedynczą do $node$.
+      \item \emph{Rekurencja:} dla każdego dziecka wywołaj \texttt{\_solve\_subtree(child,node)} i zapamiętaj minimalne koszty i grupy.
+      \item \emph{Wybór licencji dla $node$:} dla każdego typu $\ell\in\mathcal{L}$ i dla każdej liczby potomków $k$ w przedziale $[\min_\ell-1,\min(\max_\ell-1,|\text{children}|)]$:
+        \begin{enumerate}
+          \item Rozważ wszystkie kombinacje $k$ dzieci do włączenia w grupę z liderem $node$.
+          \item Oblicz koszt: $c_\ell$ plus koszty poddrzew pozostałych dzieci (znormalne wywołania) oraz kosztów wywołania osobnego dopasowania dla włączonych dzieci (bez licencji dla lidera w tych poddrzewach).
+          \item Zachowaj konfigurację o minimalnym łącznym koszcie i odpowiadające jej listy obiektów \texttt{LicenseGroup}.
+        \end{enumerate}
+      \item Zwróć najlepszy koszt i zestaw grup dla poddrzewa z korzeniem w $node$.
+    \end{itemize}
+  \item \textbf{Budowa rozwiązania:} wywołaj \texttt{\_solve\_subtree(root,None)} i przekaż uzyskane grupy do \texttt{SolutionBuilder}.
+\end{enumerate}
+
+\paragraph{Złożoność obliczeniowa}  
+\begin{itemize}
+  \item Liczba stanów DP: każdy węzeł wraz ze zbiorem jego dzieci ⇒ $O(n)$.
+  \item Dla stanu dokonujemy iteracji po $T$ typach licencji oraz po wszystkich kombinacjach włączanych dzieci:  
+    \[
+      \sum_{v\in V}\sum_{\ell=1}^T \sum_{k=0}^{\min(\max_\ell-1,d_v)} \binom{d_v}{k}
+      \;=\;
+      O\!\bigl(n \cdot T \cdot 2^{d_{\max}}\bigr),
+    \]
+    gdzie $d_v$ to stopień węzła $v$, a $d_{\max}$ — maksymalny stopień w drzewie.
+  \item Jeśli maksymalny stopień $d_{\max}$ jest ograniczony (lub niewielki), złożoność staje się praktycznie liniowa: $O(n\,T)$.
+\end{itemize}
+Dzięki memoizacji każde poddrzewo jest rozwiązywane tylko raz, co czyni metodę znacznie szybszą niż algorytmy wykładnicze dla drzewiastych struktur grafu, z gwarancją znalezienia globalnie optymalnego rozwiązania.  
+
+\section{Algorytmy przybliżone}
+
+\subsection{Algorytm zachłanny}
+
+Algorytmy zachłanne stanowią jedną z najprostszych i zarazem najczęściej wykorzystywanych technik przybliżonego rozwiązywania zadań kombinatorycznych, w tym problemów optymalizacyjnych na grafach. Ich kluczową ideą jest stopniowe, krokowe konstruowanie rozwiązania poprzez wybór w każdym kroku lokalnie „najlepszej” akcji — tej, która w danym momencie przynosi największą korzyść lub najmniejszy koszt. W przeciwieństwie do metod dokładnych, które eksplorują całą przestrzeń rozwiązań (jak algorytm naiwny czy ILP), heurystyki zachłanne stawiają na szybkość wykonania kosztem utraty gwarancji osiągnięcia optimum globalnego.
+
+W kontekście dystrybucji licencji w sieciach społecznościowych nasz algorytm zachłanny wykorzystuje prostą metrykę efektywności: stosunek kosztu licencji do liczby użytkowników, którym może ona zapewnić dostęp. Zaczynamy od liderów o najwyższym stopniu w grafie — oni mają największy potencjał, by obsłużyć wielu sąsiadów. Dla każdego kandydata wybieramy typ licencji o odpowiedniej pojemności tak, aby maksymalizować liczbę nowych objętych użytkowników przy minimalnym wzroście całkowitego kosztu. W efekcie uzyskujemy szybki, deterministyczny algorytm, który w praktyce dobrze sprawdza się na dużych instancjach, gdzie metody dokładne są zbyt wolne.
+
+Mimo braku formalnych gwarancji co do odległości od rozwiązania optymalnego, algorytm zachłanny ma kilka istotnych zalet. Po pierwsze, jego złożoność czasowa jest wielomianowa (w praktyce bliska $O(m\log n)$ dla grafu z $n$ wierzchołkami i $m$ krawędziami), co pozwala go stosować nawet w przypadku dużych sieci społecznościowych. Po drugie, implementacja jest prosta, a parametry — takie jak kryterium wyboru lidera czy sposobu sortowania dostępnych sąsiadów — można łatwo dostosować do specyfiki danych. Wreszcie, algorytm zachłanny może stanowić doskonałe rozwiązanie startowe (warm start) dla bardziej zaawansowanych metaheurystyk czy solwerów ILP.
+
+Jako metoda przybliżona, algorytm zachłanny pełni ważną rolę w zestawie narzędzi do rozwiązywania problemu dystrybucji licencji: dostarcza wstępnej, szybko obliczalnej oceny kosztu optymalnego pokrycia grafu, którą można porównać z wynikiem algorytmu dokładnego lub wykorzystać jako punkt wyjścia do dalszej optymalizacji.
+
+\paragraph{Założenia i przygotowanie danych}
+\begin{itemize}
+  \item Dane wejściowe: graf nieskierowany $G=(V,E)$, lista typów licencji $\mathcal{L}$ ze zdefiniowanymi parametrami 
+    \[
+      \min_\ell,\;\max_\ell,\;c_\ell\quad(\ell\in\mathcal{L}).
+    \]
+  \item Wstępne sortowanie:
+    \begin{enumerate}
+      \item Licencje malejąco według $\max_\ell$ — by najpierw rozważać najbardziej pojemne plany.
+      \item Wierzchołki malejąco według stopnia $\deg(v)$ — by liderami stawały się węzły o największym potencjale obsługi.
+    \end{enumerate}
+  \item Zmienna pomocnicza: $U\subseteq V$ — zbiór jeszcze nieobjętych licencją wierzchołków.
+\end{itemize}
+
+\paragraph{Ogólny przebieg}
+\begin{enumerate}
+  \item \emph{Faza główna:}  
+  \begin{itemize}
+    \item Dla każdego węzła–lidera $v$ w kolejności według malejącego stopnia:
+      \begin{enumerate}
+        \item Jeśli $v\notin U$, pomiń.
+        \item Wyznacz zbiór dostępnych sąsiadów $N = (\{v\}\cup \mathrm{Adj}(v))\cap U$.
+        \item Jeśli $N=\emptyset$, pomiń $v$.
+        \item Dla każdej licencji $\ell\in\mathcal{L}$, której $|N|\ge \min_\ell$, wybierz podzbiór $G_\ell\subseteq N$ o rozmiarze $\min\{|N|,\max_\ell\}$ — np. węzły o najwyższym stopniu.
+        \item Oblicz efektywność $e_\ell = c_\ell/|G_\ell|$; wybierz licencję $\ell^*$ o najmniejszym $e_\ell$.
+        \item Utwórz grupę licencyjną z liderem $v$ i dodatkowymi członkami $G_{\ell^*}\setminus\{v\}$, zaktualizuj $U \leftarrow U \setminus G_{\ell^*}$.
+      \end{enumerate}
+  \end{itemize}
+  \item \emph{Faza uzupełniająca:}  
+  Jeśli pozostały węzły w $U$, dla każdego $u\in U$:
+  \begin{itemize}
+    \item Spróbuj przydzielić mu najmniejszą możliwą grupę licencyjną (według $c_\ell$ dla $\ell$ z $|N|\ge\min_\ell$), analogicznie do fazy głównej.
+    \item Jeśli nie można, przypisz indywidualną licencję najniższego kosztu.
+  \end{itemize}
+  \item Zwróć zbudowane grupy oraz obliczony koszt sumaryczny.
+\end{enumerate}
+
+\paragraph{Złożoność obliczeniowa}
+Algorytm wymaga posortowania wierzchołków i typów licencji: $O(T\log T + n\log n)$.  
+W fazie głównej dla każdego $v$ iterujemy po $T$ licencjach, sortując co najwyżej $d(v)$ sąsiadów:  
+\[
+  \sum_{v\in V} O\bigl(T + d(v)\log d(v)\bigr)
+  \;=\; O\bigl(nT + \sum_v d(v)\log n\bigr)
+  \;=\; O\bigl(nT + m\log n\bigr),
+\]
+gdzie $m=|E|$. Faza uzupełniająca jest porównywalna. W efekcie cała procedura działa w czasie
+\[
+  O\bigl(nT + m\log n\bigr).
+\]
+Jest to znacznie wydajniejsze niż wykładnicze rozwiązania dokładne, lecz nie gwarantuje optimum globalnego.  
+
+\subsection{Algorytm dla zbioru dominującego}
+
+Algorytm bazujący na koncepcji zbioru dominującego to jedna z klasycznych heurystyk przybliżonych dla problemów pokrycia wierzchołków grafu. W naszym zastosowaniu – optymalizacji zakupu licencji w sieci społecznościowej – zależy nam na wybraniu niewielkiej grupy „liderów” (użytkowników), którzy swoimi licencjami pokryją pozostałych członków sieci. Zbiór dominujący w grafie $G=(V,E)$ to podzbiór $D\subseteq V$ taki, że każdy wierzchołek spoza $D$ ma sąsiada w $D$.  
+
+W kontekście licencji oznacza to, że każdy użytkownik bez własnej licencji (odbiorca) jest sąsiadem przynajmniej jednego użytkownika z licencją grupową. Dzięki temu zamiast rozważać dowolne partycje zbioru $V$, wystarczy najpierw wskazać kandydatów na liderów – węzły o największym wpływie pokrycia – a dopiero następnie dobrać im konkretne plany licencyjne i członków.  
+
+Metoda ta opiera się na następujących założeniach i korzyściach:
+
+1. \textbf{Redukcja przestrzeni rozwiązań.} Pełne przeszukiwanie wszystkich konfiguracji jest nadwykładnicze. Wyznaczenie niewielkiego zbioru dominującego redukuje problem do doboru licencji wyłącznie dla tych węzłów oraz ich bezpośrednich sąsiadów.
+
+2. \textbf{Łatwa adaptacja do kosztów.} W klasycznym zbiorze dominującym minimalizuje się karność bazując na liczebności $|D|$. W naszym wariancie wprowadzamy dodatkowy wymiar – koszt licencji. Heurystyka dobiera węzły do $D$ nie tylko według liczby niepokrytych sąsiadów, ale też minimalizuje średni koszt pokrycia („koszt na osobę”), wykorzystując dostępne typy licencji i ich zakresy rozmiarów.
+
+3. \textbf{Efektywność obliczeniowa.} Wyznaczenie przybliżonego zbioru dominującego metodą zachłanną (greedy) działa w czasie wielomianowym, co pozwala na skalowanie do dużych sieci (rzędu tysięcy wierzchołków). Dla każdej iteracji operujemy na stopniu wierzchołków i prostej ocenie efektywności, bez kosztownych przeglądów całych partycji.
+
+4. \textbf{Elastyczność i rozszerzalność.} Algorytm można wzbogacić o dodatkowe kryteria wyboru liderów (np. wskaźniki centralności, wieloczłonowe funkcje efektywności) czy o mechanizmy poprawiające pokrycie pozostałych węzłów. Umożliwia to szybkie eksperymenty z różnymi politykami cenowymi i limitami grup.
+
+5. \textbf{Brak gwarancji optymalności globalnej.} Podobnie jak większość heurystyk greedy, zbiór dominujący oparty na lokalnych wyborach nie gwarantuje znalezienia rozwiązania optymalnego. W praktyce jednak dla wielu grafów społecznościowych osiągamy wysoką jakość pokrycia przy relatywnie niskim koszcie, co czyni tę metodę wartościowym uzupełnieniem algorytmów dokładnych (ILP, algorytm naiwny) i metaheurystyk.
+
+W dalszej części opisujemy szczegóły implementacyjne: sposób wyboru dominatorów z uwzględnieniem kosztów, algorytm przydziału licencji do liderów oraz mechanizm uzupełniania pokrycia dla pozostałych wierzchołków.  
+
+\paragraph{Krok 1: Wyznaczenie zbioru dominującego}  
+Zaczynamy od wyznaczenia zbioru dominującego $D\subseteq V$, który „pokrywa” wszystkie wierzchołki grafu. Wykorzystujemy tu zmodyfikowaną heurystykę zachłanną:
+\begin{enumerate}
+  \item $U \leftarrow V$ (zbiór jeszcze niepokrytych wierzchołków), $D\leftarrow\emptyset$.
+  \item Dopóki $U\neq\emptyset$:
+    \begin{itemize}
+      \item Dla każdego $v\in V\setminus D$ obliczamy zbiór potencjalnego pokrycia 
+      \[
+        C(v) = \bigl(\{v\}\cup \mathrm{Adj}(v)\bigr)\,\cap\,U
+      \]
+      oraz minimalny koszt na użytkownika 
+      \[
+        \gamma(v)=\min_{\ell\in\mathcal{L},\,\min_\ell\le|C(v)|\le\max_\ell}
+          \frac{c_\ell}{|C(v)|}.
+      \]
+      \item Wybieramy $v^*=\arg\max_{v} \bigl(|C(v)|/\gamma(v)\bigr)$ — lidera o najlepszym stosunku pokrycia do kosztu.
+      \item $D\leftarrow D\cup\{v^*\},\quad U\leftarrow U\setminus C(v^*)$.
+    \end{itemize}
+\end{enumerate}
+Otrzymany zbiór $D$ jest zbiorem dominującym o dobrej efektywności kosztowej, choć niekoniecznie minimalnym.
+
+\paragraph{Krok 2: Przydział licencji liderom}  
+Dla każdego dominatora $v\in D$, posortowanego malejąco według stopnia w grafie (aby najpierw obsłużyć potencjalnie największe pokrycie), dobieramy typ licencji i członków grupy w następujący sposób:
+\begin{enumerate}
+  \item Zbiór dostępnych wierzchołków do obsługi:
+  \[
+    A(v) = \bigl(\{v\}\cup \mathrm{Adj}(v)\bigr)\,\cap\,\bigl(V\setminus R\bigr),
+    \quad R\text{ — zbiór już obsłużonych węzłów.}
+  \]
+  \item Dla każdej licencji $\ell\in\mathcal{L}$, której parametry $\min_\ell,\max_\ell$ mieszczą się w $1\le|A(v)|\le\max_\ell$, wybieramy najlepszy podzbiór $G_\ell\subseteq A(v)$ o rozmiarze $k\in[\min_\ell,\min(|A(v)|,\max_\ell)]$ — np. ze wzmocnioną heurystyką wyboru najwyżej wyspecjalizowanych sąsiadów.
+  \item Spośród wszystkich $(\ell,G_\ell)$ wybieramy tę kombinację, która minimalizuje stosunek $c_\ell/|G_\ell|$.
+  \item Tworzymy obiekt \texttt{LicenseGroup(license\_type=\(\ell\), owner=\(v\), additional\_members=\(G_\ell\setminus\{v\}\))}, a następnie aktualizujemy
+  \[
+    R \leftarrow R \cup G_\ell.
+  \]
+\end{enumerate}
+
+\paragraph{Krok 3: Pokrycie pozostałych wierzchołków}  
+Po obsłużeniu wszystkich dominatorów mogą pozostać niepokryte wierzchołki $V\setminus R$. Postępujemy podobnie jak w kroku 2, ale liderami stają się teraz dowolne niepokryte węzły, a w ostateczności przypisujemy im najtańszą licencję indywidualną, jeśli żaden plan grupowy nie jest dopasowany do ich sąsiedztwa.
+
+\paragraph{Zalety i ograniczenia}  
+Algorytm zbioru dominującego łączy niewielką złożoność heurystyki dominacji rzymskiej z prostym doborem licencji, co skutkuje:
+\begin{itemize}
+  \item \emph{Szybkością wykonania} — złożoność w przybliżeniu $O(n^2T)$ dla grafu $n$ wierzchołków i $T$ typów licencji.
+  \item \emph{Łatwością rozszerzeń} — można wprowadzić dodatkowe kryteria wyboru dominatorów lub bardziej zaawansowane metryki efektywności.
+\end{itemize}
+Jednocześnie brak gwarancji osiągnięcia globalnego optimum oraz możliwa duża przewaga kosztu nad rozwiązaniem referencyjnym (ILP lub naiwnym) stanowią główne ograniczenia tej metody.
+
+\subsection{Algorytm losowy}
+
+Algorytm losowy (ang. \emph{randomized}) łączy w sobie cechy strategii zachłannej z elementem nieprzewidywalności, co pozwala na generowanie zróżnicowanych rozwiązań w krótkim czasie. W kontekście dystrybucji licencji w sieci społecznościowej celem jest otrzymanie przyzwoitej jakości rozwiązania szybciej niż w przypadku metod dokładnych (ILP, algorytm naiwny), a jednocześnie uniknięcie pułapek najprostszej heurystyki zachłannej, która może utknąć w lokalnym optimum.
+
+\paragraph{Główna idea}  
+Algorytm działa na przemian w dwóch trybach:
+\begin{itemize}
+  \item \emph{zachłannym} – wybiera lidera i typ licencji o najlepszym stosunku kosztu do liczby objętych użytkowników,  
+  \item \emph{losowym} – losowo dobiera typ licencji oraz członków grupy w dopuszczalnych granicach, dzięki czemu niektóre decyzje mogą być nietrywialne i odkrywać inne obszary przestrzeni rozwiązań.
+\end{itemize}
+Przełączanie między trybami odbywa się z zadanym prawdopodobieństwem $p_\mathrm{greedy}$ – typowo większym od 0.5, aby zachować równowagę między eksploracją a eksploatacją.
+
+\paragraph{Przebieg algorytmu}
+\begin{enumerate}
+  \item Jeśli graf jest pusty, zwróć rozwiązanie puste.
+  \item Ustaw ziarno generatora losowego dla powtarzalności (jeśli podano).
+  \item Utwórz listę wierzchołków, wykonaj losowe przemieszanie, oraz zbiór niepokrytych węzłów $U=V$.
+  \item Dla każdego wierzchołka $v$ w losowej kolejności:
+    \begin{itemize}
+      \item Jeśli $v\notin U$, pomiń.
+      \item Wylosuj liczbę $r\in[0,1)$; jeśli $r<p_\mathrm{greedy}$, użyj strategii zachłannej, w przeciwnym razie strategii losowej.
+      \item Uzyskaj przypisanie $(\ell,S)$: typ licencji $\ell$ i grupa $S\subseteq U$ zawierająca $v$.
+      \item Jeśli przypisanie jest prawidłowe (spełnia minimalne i maksymalne pojemności oraz spójność), dodaj nową grupę, zaktualizuj $U\leftarrow U\setminus S$.
+    \end{itemize}
+  \item Po przejściu wszystkich wierzchołków, jeśli pozostały niepokryte $U\neq\emptyset$, dla każdego $u\in U$ przypisz najtańszą licencję pojedynczą.
+  \item Zbuduj i zwróć obiekt \texttt{Solution} zawierający utworzone grupy, sumaryczny koszt oraz pokryte węzły.
+\end{enumerate}
+
+\paragraph{Zalety i wady}  
+Algorytm losowy oferuje:
+\begin{itemize}
+  \item \emph{Zróżnicowanie rozwiązań}: dzięki elementowi losowemu unika stagnacji w jednym kierunku eksploracji,
+  \item \emph{Elastyczność}: parametr $p_\mathrm{greedy}$ można dostosować do pożądanego balansu między szybkością a jakością,
+  \item \emph{Prosta implementacja}: opiera się na istniejących funkcjach zachłannej i losowej alokacji licencji.
+\end{itemize}
+Jednocześnie:
+\begin{itemize}
+  \item brak gwarancji jakości globalnej – wyniki różnią się między kolejnymi uruchomieniami,
+  \item konieczność doboru parametru $p_\mathrm{greedy}$ i ziarna, co wymaga eksperymentów dla konkretnych danych.
+\end{itemize}
+
+\section{Metaheurystyki}
+
+\subsection{Algorytm genetyczny}
+\begin{itemize}
+  \item Ewolucyjna optymalizacja z krzyżowaniem i mutacją
+  \item Eksploracja przestrzeni rozwiązań
+  \item Dostosowany do struktury problemu dominacji
+\end{itemize}
+
+\subsection{Tabu Search}
+
+\paragraph{Wprowadzenie}  
+Tabu Search to metaheurystyka, która rozszerza klasyczne lokalne przeszukiwanie o mechanizm „tabu” zapobiegający powrotom do niedawnych stanów rozwiązania. W zadaniu dystrybucji licencji w sieci społecznościowej celem jest minimalizacja łącznego kosztu przy jednoczesnym spełnieniu ograniczeń spójności i rozmiaru grup. Tabu Search pozwala na uniknięcie stagnacji w lokalnych minimach, co jest częstym problemem prostych heurystyk zachłannych.
+
+\paragraph{Założenia i przygotowanie danych}  
+\begin{itemize}
+  \item Rozwiązanie startowe generowane jest przez algorytm zachłanny, zapewniający dobry punkt wyjścia.
+  \item Tabu lista służy przechowywaniu identyfikatorów ostatnio odwiedzanych rozwiązań, by unikać cykli.
+  \item Parametry:
+    \begin{itemize}
+      \item \texttt{max\_iterations} – maksymalna liczba iteracji,  
+      \item \texttt{tabu\_tenure} – długość tabu listy (liczba przechowywanych wpisów).
+    \end{itemize}
+\end{itemize}
+
+\paragraph{Ogólny przebieg}  
+\begin{enumerate}
+  \item Rozpocznij od rozwiązania zachłannego $S_{\text{current}}$; ustaw $S_{\text{best}}=S_{\text{current}}$, tabu listę pustą.
+  \item Dla każdej z maksymalnie \texttt{max\_iterations} rund:
+    \begin{enumerate}
+      \item Wygeneruj zbiór sąsiadów $N(S_{\text{current}})$ przez losowe mutacje (np. przeniesienie węzła między grupami, zamiana lidera).
+      \item Spośród sąsiadów wybierz $S_{\text{candidate}}$ o najmniejszym koszcie, który nie jest na tabu liście lub poprawia globalne optimum (kryterium aspiracji).
+      \item Jeśli brak dopuszczalnych sąsiadów, przerwij pętlę.
+      \item Ustaw $S_{\text{current}} = S_{\text{candidate}}$.  
+      \item Jeśli koszt $S_{\text{current}}$ jest niższy niż koszt $S_{\text{best}}$, zaktualizuj $S_{\text{best}} = S_{\text{current}}$.
+      \item Dodaj identyfikator $S_{\text{current}}$ do tabu listy; jeśli lista przekroczy \texttt{tabu\_tenure}, usuń najstarszy wpis.
+    \end{enumerate}
+  \item Zwróć $S_{\text{best}}$ jako rozwiązanie końcowe.
+\end{enumerate}
+
+\paragraph{Złożoność obliczeniowa}  
+W każdej iteracji generujemy stałą liczbę sąsiadów ($k$ mutacji) i dla każdego oceniamy koszt w czasie $O(C)$ (walidacja i sumowanie kosztów). Dla \texttt{max\_iterations} iteracji całkowity koszt to
+\[
+  O\bigl(\texttt{max\_iterations}\times k \times C\bigr).
+\]
+W praktyce dobiera się niewielkie $k$ i umiarkowane \texttt{max\_iterations}, co pozwala uzyskać znacznie szybsze działanie niż w metodach dokładnych, przy jednoczesnym uniknięciu pułapek lokalnych minimów charakterystycznych dla prostych heurystyk.  
+
+\subsection{Algorytm mrówkowy}
+
+\paragraph{Wprowadzenie}  
+Algorytm mrówkowy (Ant Colony Optimization, ACO) to metaheurystyka inspirowana zachowaniem kolonii mrówek, które komunikują się za pomocą feromonów. W zadaniu dystrybucji licencji modelujemy każdy ruch mrówki jako budowanie rozwiązania – wyboru lidera, typu licencji i grupy odbiorców. Feromony gromadzone na elementach rozwiązania (połączeniach między węzłami oraz przypisaniach typu licencji) kierują kolejnych „mrówek” ku bardziej obiecującym fragmentom przestrzeni rozwiązań, pozwalając łączyć eksplorację i eksploatację.
+
+\paragraph{Założenia i przygotowanie danych}  
+\begin{itemize}
+  \item Graf reprezentujący użytkowników i ich relacje: $G=(V,E)$, gdzie $V$ to węzły (użytkownicy), a $E$ – krawędzie (możliwość współdzielenia licencji).
+  \item Typy licencji $\mathcal{L}=\{\ell_1,\dots,\ell_T\}$ z parametrami $\min_\ell,\max_\ell,c_\ell$.
+  \item Tablica feromonów: dla każdej pary węzeł–licencja $(v,\ell)$ oraz dla każdej krawędzi $(u,v)$ z licencją $\ell$ przechowujemy wartość feromonu $\tau$.
+  \item Macierz heurystyk: ocena jakości lokalnego wyboru, np. odwrotność kosztu lub stopień węzła.
+  \item Parametry metaheurystyki:
+    \begin{itemize}
+      \item $\alpha$ – wpływ feromonów na decyzje mrówek,
+      \item $\beta$ – wpływ informacji heurystycznej,
+      \item $\rho$ – współczynnik parowania feromonów (evaporation rate),
+      \item $q_0$ – próg eksploracji vs. eksploatacji (prawdopodobieństwo wyboru najwyższego współczynnika),
+      \item $m$ – liczba mrówek w kolonii,
+      \item $I$ – maksymalna liczba iteracji.
+    \end{itemize}
+\end{itemize}
+
+\paragraph{Ogólny przebieg}  
+\begin{enumerate}
+  \item \emph{Inicjalizacja}: feromony $\tau_0$ ustawiamy na stałą wartość, heurystyki obliczamy raz na podstawie parametrów licencji i stopni węzłów.
+  \item \emph{Rozwiązanie początkowe}: generujemy losową konfigurację licencji lub wykorzystujemy prostą heurystykę.
+  \item \emph{Iteracje mrówek} (do $I$):
+    \begin{enumerate}
+      \item Każda z $m$ mrówek wznawia od pustego pokrycia i kolejno:
+        \begin{itemize}
+          \item Wybiera węzeł–lidera $v$ spośród niepokrytych, korzystając z kombinacji feromonów i heurystyk:  
+            \[
+              P(v)\propto \bigl[\tau(v,\ell)\bigr]^\alpha\,[\eta(v,\ell)]^\beta.
+            \]
+          \item Dla wybranego $\ell\in\mathcal{L}$ i lidera $v$ dobiera kolejnych członków grupy w podobny sposób, aż do osiągnięcia $\max_\ell$ lub wyczerpania kandydatów.
+          \item Zapisuje powstałą grupę i usuwa pokryte węzły.
+        \end{itemize}
+      \item Po zbudowaniu pełnego rozwiązania wykonuje się opcjonalne przeszukiwanie lokalne (np. drobna zamiana licencji w grupach poprawiająca koszt).
+      \item \emph{Parowanie feromonów}: dla każdego klucza feromonowego $(v,\ell)$ i każdej pary $(u,v,\ell)$ zmniejszamy wartość o czynnik $(1-\rho)$, a następnie dodajemy porcję zależną od jakości najlepszego rozwiązania:
+        \[
+          \tau \leftarrow (1-\rho)\,\tau + \Delta\tau,\quad
+          \Delta\tau \propto \frac{1}{\text{koszt\_best}}.
+        \]
+      \item Resetujemy licznik braku poprawy, ewentualnie przerywamy, jeśli osiągnięto limit kolejnych iteracji bez ulepszenia.
+    \end{enumerate}
+  \item \emph{Zakończenie}: zwracamy najlepsze rozwiązanie znalezione przez mrówki.
+\end{enumerate}
+
+\paragraph{Złożoność obliczeniowa}  
+Każda iteracja składa się z konstrukcji $m$ rozwiązań – budowania grup przez sekwencyjny wybór liderów i członków, co w najgorszym przypadku wymaga $O(nT)$ operacji na węźle. Parowanie feromonów to kolejna operacja O(nT + mT). Dla $I$ iteracji daje to łącznie
+\[
+  O\bigl(I \times m \times (nT + mT)\bigr).
+\]
+W praktyce parametry $m$ i $I$ dobiera się tak, aby proces był wykonalny czasowo, a jednocześnie pozwalał na zróżnicowaną eksplorację przestrzeni rozwiązań i zbieranie informacji zwrotnych za pomocą feromonów. Metoda ACO łączy zalety losowości i ukierunkowania feromonami, często osiągając dobre wyniki kosztowe przy akceptowalnym czasie obliczeń.
+
+\subsection{Symulowane wyżarzanie (Simulated Annealing)}
+
+\paragraph{Wprowadzenie}  
+Symulowane wyżarzanie to metaheurystyka inspirowana procesem termodynamicznym wyżarzania metali, w którym materiał jest podgrzewany, a następnie powoli schładzany, by osiągnąć konfigurację o minimalnej energii. W optymalizacji combinatorycznej analogią energii jest wartość funkcji celu (koszt licencji), a temperatura kontroluje prawdopodobieństwo akceptacji gorszych rozwiązań, co pozwala na uwolnienie się z lokalnych minimów.  
+
+W zadaniu dystrybucji licencji algorytm zaczyna od dobrego przybliżenia (heurystyka zachłanna), po czym w kolejnych krokach generuje sąsiednie rozwiązania przez niewielkie perturbacje (mutacje). Zmiana rozwiązania jest akceptowana zawsze, gdy prowadzi do obniżenia kosztu, a w przeciwnym wypadku z prawdopodobieństwem zależnym od różnicy kosztów i bieżącej temperatury. Temperatura stopniowo spada według założonego współczynnika schładzania, zmniejszając liczbę akceptowanych ruchów „w górę”, aż do stabilizacji w okolicy dobrego minimum.
+
+\paragraph{Założenia i parametry}  
+Algorytm wymaga następujących parametrów:
+\begin{itemize}
+  \item $T_0$ – temperatura początkowa (np. 100),
+  \item $\alpha$ – współczynnik schładzania ($0<\alpha<1$, np. 0{.}995),
+  \item $T_{\min}$ – minimalna temperatura, przy której kończymy ($\sim10^{-3}$),
+  \item $I_{\max}$ – maksymalna liczba iteracji (np. 20\,000),
+  \item $S_{\max}$ – maksymalna liczba kolejnych kroków bez akceptacji poprawy (stall limit, np. 2\,000).
+\end{itemize}
+Do generowania sąsiadów wykorzystujemy zbiór operatorów mutacji: zmiana typu licencji, przeniesienie członka między grupami, zamianę członków, łączenie i dzielenie grup.
+
+\paragraph{Ogólny przebieg}  
+\begin{enumerate}
+  \item \emph{Inicjalizacja:}  
+    \begin{itemize}
+      \item Rozwiązanie startowe $S$ uzyskane heurystyką zachłanną; gdy jest niepoprawne, fallback do przydziału indywidualnego.
+      \item Ustaw temperaturę $T\leftarrow T_0$, najlepsze rozwiązanie $S_{\mathrm{best}}\leftarrow S$, licznik stagnacji $s\leftarrow0$.
+    \end{itemize}
+  \item \emph{Pętla iteracyjna} (do $I_{\max}$):
+    \begin{enumerate}
+      \item Wygeneruj sąsiada $S'$ przez losowy wybór jednego z operatorów mutacji; jeśli nie można, zwiększ $s$.
+      \item Oblicz różnicę kosztów $\Delta = \mathrm{cost}(S') - \mathrm{cost}(S)$.
+      \item Jeśli $\Delta<0$ lub $\exp(-\Delta / T) > \mathrm{rand}(0,1)$, zaakceptuj przejście: $S\leftarrow S'$, zresetuj $s$ jeśli koszt się poprawił i zaktualizuj $S_{\mathrm{best}}$.
+      \item Inaczej: inkrementuj $s$.
+      \item Jeśli $s\ge S_{\max}$, zmniejsz temperaturę dwukrotnie: $T\leftarrow\max(T_{\min}, T/2)$, ustaw $s\leftarrow0$.
+      \item Schłodź: $T\leftarrow T\cdot\alpha$. Jeśli $T<T_{\min}$, przerwij.
+    \end{enumerate}
+  \item \emph{Zakończenie:} zwróć $S_{\mathrm{best}}$ jako najlepsze znalezione rozwiązanie.
+\end{enumerate}
+
+\paragraph{Złożoność obliczeniowa}  
+Każda iteracja wymaga próby kilku mutacji i oceny kosztu sąsiedniego rozwiązania (walidacja + sumowanie), co zajmuje $O(C)$, gdzie $C$ to koszt jednej walidacji. Dla $I_{\max}$ iteracji i maksymalnie $M$ prób mutacji na krok otrzymujemy złożoność
+\[
+  O\bigl(I_{\max} \times M \times C\bigr).
+\]
+Dzięki stopniowemu obniżaniu temperatury i limitowi stagnacji algorytm jest w stanie skupić się na obszarach obiecujących, zapewniając dobry kompromis między jakością rozwiązania a czasem obliczeń.  
