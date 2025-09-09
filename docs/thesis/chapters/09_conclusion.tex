@@ -1,0 +1,69 @@
+\chapter{Podsumowanie i wnioski końcowe}
+
+\section{Podsumowanie pracy}
+
+Celem niniejszej pracy magisterskiej było opracowanie oraz analiza grafowego modelu optymalizacji kosztów zakupu licencji oprogramowania (na przykładzie usług subskrypcyjnych takich jak \textit{Duolingo Super} czy \textit{Spotify Premium}) w sieciach społecznościowych. Problem ten przedstawiono jako rozszerzenie klasycznych problemów dominowania w grafach, w szczególności dominowania rzymskiego, uwzględniając dodatkowe ograniczenia dotyczące maksymalnej wielkości grup oraz specyficzne warunki kosztowe.
+
+W ramach realizacji celu pracy:
+
+\begin{itemize}
+    \item Zdefiniowano formalny model grafowy reprezentujący użytkowników oraz relacje społeczne, a także dokładne założenia dotyczące zakupu licencji indywidualnych oraz grupowych.
+    \item Dokonano szczegółowej analizy powiązań między analizowanym problemem a klasycznym oraz rzymskim dominowaniem, wskazując jednoznacznie na jego NP-trudność.
+    \item Opracowano oraz zaimplementowano szeroki wachlarz algorytmów rozwiązujących problem: od metod dokładnych (MIP) przez heurystyki zachłanne po zaawansowane metaheurystyki (algorytmy genetyczne, tabu search, symulowane wyżarzanie, reinforcement learning).
+    \item Przeprowadzono eksperymenty wykorzystujące zarówno dane rzeczywiste (\textit{SNAP, NetworkRepository}), jak i syntetyczne (\textit{Barabási–Albert, Erdős–Rényi, Watts–Strogatz}).
+    \item Przeprowadzono analizę dynamicznej wersji problemu, uwzględniając zmieniającą się strukturę sieci społecznościowej.
+    \item Przedstawiono rozszerzenia modelu obejmujące analizę różnych scenariuszy cenowych oraz wprowadzenie dodatkowych typów subskrypcji (np. Duo, Student).
+\end{itemize}
+
+\section{Najważniejsze wnioski}
+
+Najważniejsze wnioski płynące z przeprowadzonych badań to:
+
+\begin{itemize}
+    \item Problem optymalizacji zakupu licencji w grafach społecznościowych stanowi uogólnienie klasycznego problemu dominowania rzymskiego i jest silnie NP-trudny. Metody dokładne mają ograniczone zastosowanie do niewielkich instancji problemu.
+    \item Algorytmy zachłanne zapewniają szybkie i akceptowalne jakościowo rozwiązania dla dużych grafów, choć ustępują metaheurystykom pod względem jakości.
+    \item Metaheurystyki (w szczególności algorytmy genetyczne i reinforcement learning) umożliwiają uzyskanie rozwiązań bliskich optymalnym przy rozsądnym czasie działania, szczególnie w dużych i skomplikowanych sieciach.
+    \item Dynamiczna wersja problemu jest istotna w praktycznych zastosowaniach, gdzie graf społecznościowy ulega zmianom. Algorytmy adaptacyjne (szczególnie reinforcement learning) zapewniają wysoką stabilność rozwiązań i szybkie dostosowanie do nowych warunków.
+    \item Wprowadzenie dodatkowych typów licencji (Duo, Student) oraz zmiany polityk cenowych istotnie wpływają na optymalne rozwiązania i pozwalają na obniżenie kosztów użytkowników oraz zwiększenie przychodów dostawców usług.
+\end{itemize}
+
+\section{Wnioski praktyczne i rekomendacje}
+
+Z perspektywy praktycznej analizowany model może być użyteczny zarówno dla użytkowników platform subskrypcyjnych, jak i dostawców tych usług:
+
+\begin{itemize}
+    \item \textbf{Dla użytkowników:} Możliwość znaczącego zmniejszenia kosztów korzystania z usług poprzez efektywne organizowanie grup zakupowych zgodnie z analizowanymi strategiami optymalizacyjnymi.
+    \item \textbf{Dla dostawców usług:} Wykorzystanie wniosków z tej pracy do ustalania efektywnych polityk cenowych oraz wprowadzania nowych, dostosowanych do potrzeb użytkowników, planów subskrypcyjnych.
+\end{itemize}
+
+\section{Ograniczenia i wyzwania przyszłych badań}
+
+Wśród głównych ograniczeń niniejszej pracy należy wymienić:
+
+\begin{itemize}
+    \item Ograniczone możliwości stosowania metod dokładnych (MIP) do grafów o dużych rozmiarach.
+    \item Trudność analizy globalnej optymalności uzyskiwanych rozwiązań ze względu na NP-trudność problemu.
+    \item Uproszczenia przyjęte w modelu społecznym (brak uwzględnienia bardziej złożonych dynamik społecznych i preferencji użytkowników).
+\end{itemize}
+
+Wyzwania przyszłych badań obejmują:
+
+\begin{itemize}
+    \item Rozwój bardziej efektywnych metod metaheurystycznych oraz hybrydowych, umożliwiających uzyskiwanie jeszcze lepszych rozwiązań w krótszym czasie.
+    \item Uwzględnienie aspektów behawioralnych użytkowników (np. preferencje, chęć współdzielenia licencji).
+    \item Dalszą analizę dynamiczną z uwzględnieniem bardziej realistycznych scenariuszy zmian społecznych.
+\end{itemize}
+
+\section{Możliwości dalszego rozwoju modelu}
+
+Potencjalne kierunki rozwoju modelu obejmują między innymi:
+
+\begin{itemize}
+    \item Integrację metod uczenia maszynowego i grafowych sieci neuronowych (GNN) do efektywnego rozwiązywania problemów optymalizacji w dużych sieciach społecznych.
+    \item Rozszerzenie analizowanych scenariuszy o dodatkowe typy licencji i pakietów usług z różnych branż (np. subskrypcje treści multimedialnych, usługi chmurowe).
+    \item Badanie wpływu zachowań użytkowników i mechanizmów zachęcających ich do współdzielenia licencji (np. zachęty finansowe, programy lojalnościowe).
+\end{itemize}
+
+\section{Podsumowanie rozdziału}
+
+W niniejszym rozdziale dokonano kompleksowego podsumowania osiągniętych rezultatów. Wskazano główne osiągnięcia pracy oraz praktyczne implikacje wyników. Omówiono także ograniczenia przyjętych założeń oraz sformułowano możliwe kierunki dalszych badań, podkreślając potencjał praktyczny i naukowy opracowanego modelu optymalizacji kosztów zakupu licencji w sieciach społecznościowych.

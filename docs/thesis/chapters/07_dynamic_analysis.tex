@@ -1,0 +1,88 @@
+\chapter{Analiza dynamicznej wersji problemu}
+
+\section{Wprowadzenie do dynamicznego modelu}
+
+W praktycznych zastosowaniach sieci społecznościowe są strukturami dynamicznymi, podlegającymi częstym zmianom, takim jak dodawanie lub usuwanie użytkowników, a także tworzenie nowych lub zrywanie istniejących relacji. Z tego względu naturalnym rozwinięciem problemu optymalizacji zakupu licencji oprogramowania jest rozważenie modelu dynamicznego, w którym graf społecznościowy ewoluuje w czasie.
+
+W niniejszym rozdziale przedstawiono analizę dynamicznej wersji problemu, omówiono rodzaje zmian, jakim może podlegać graf, oraz przeprowadzono analizę skuteczności algorytmów adaptacyjnych.
+
+\section{Rodzaje zmian dynamicznych w grafach}
+
+W dynamicznym modelu grafu \(G = (V, E)\) możemy wyróżnić następujące typy zmian:
+
+\begin{itemize}
+    \item \textbf{Dodawanie wierzchołków} – nowi użytkownicy dołączający do społeczności.
+    \item \textbf{Usuwanie wierzchołków} – użytkownicy opuszczający społeczność lub rezygnujący z subskrypcji.
+    \item \textbf{Dodawanie krawędzi} – powstawanie nowych relacji znajomości.
+    \item \textbf{Usuwanie krawędzi} – zrywanie istniejących relacji znajomości.
+\end{itemize}
+
+Każda z powyższych operacji wymusza konieczność aktualizacji konfiguracji zakupionych licencji, aby nadal spełniały one wszystkie wymagania dotyczące dominowania oraz ograniczeń rozmiaru grup.
+
+\section{Adaptacja algorytmów do wersji dynamicznej}
+
+W modelu dynamicznym kluczowe jest szybkie i efektywne aktualizowanie rozwiązania, zamiast jego ponownego obliczania od podstaw po każdej zmianie. Adaptację algorytmów można realizować za pomocą:
+
+\subsection{Algorytmy lokalnego przeszukiwania (Local Search, Iterated Local Search – ILS)}
+
+\begin{itemize}
+    \item Rozwiązanie początkowe (przed zmianą grafu) jest wykorzystywane jako punkt startowy.
+    \item Po dokonaniu zmian w grafie stosuje się lokalne operacje (dodawanie/usuwanie licencji indywidualnych/grupowych) do ponownego osiągnięcia stanu optymalnego lub bliskiego optymalnemu.
+\end{itemize}
+
+\subsection{Algorytmy genetyczne adaptacyjne}
+
+\begin{itemize}
+    \item Populacja rozwiązań z poprzedniej iteracji jest wykorzystywana jako punkt startowy dla kolejnej.
+    \item Mutacje lub krzyżowania rozwiązań uwzględniają zmiany struktury grafu (np. usuwanie nieprawidłowych grup po zerwaniu relacji).
+\end{itemize}
+
+\subsection{Reinforcement Learning}
+
+\begin{itemize}
+    \item Metoda uczenia ze wzmocnieniem może dynamicznie dostosowywać strategię przypisywania licencji, ucząc się na podstawie zmian w grafie.
+    \item Polityka podejmowania decyzji ewoluuje wraz ze zmieniającymi się warunkami grafu.
+\end{itemize}
+
+\section{Eksperymenty z dynamicznymi grafami}
+
+Eksperymenty zostały przeprowadzone w serii iteracji, w których graf podlegał cyklicznym zmianom. W każdej iteracji dokonywano kilku typów zmian, takich jak:
+
+\begin{itemize}
+    \item dodanie/usunięcie do 5\% wierzchołków,
+    \item dodanie/usunięcie do 10\% krawędzi.
+\end{itemize}
+
+Poniższa tabela ilustruje wyniki eksperymentów dla dynamicznych grafów typu Watts–Strogatz (średnia dla 100 iteracji, 500 wierzchołków początkowych):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Algorytm adaptacyjny} & \textbf{Średni czas aktualizacji} & \textbf{Średni koszt po aktualizacji} & \textbf{Wzrost kosztu względem optimum statycznego} \\
+\hline
+Local Search (ILS)   & ~3 s  & 8720 PLN  & ~1,03× optimum  \\
+Algorytm genetyczny adaptacyjny & ~12 s  & 8640 PLN  & ~1,02× optimum  \\
+Reinforcement Learning adaptacyjny & ~25 s  & 8615 PLN  & ~1,015× optimum  \\
+\hline
+\end{tabular}
+\caption{Porównanie algorytmów adaptacyjnych dla dynamicznych grafów}
+\label{tab:dynamic_results}
+\end{table}
+
+Wyniki pokazują, że podejścia adaptacyjne skutecznie radzą sobie ze zmianami grafu, osiągając bardzo dobrą jakość rozwiązań przy znacznie krótszym czasie niż obliczenia od zera.
+
+\section{Analiza stabilności rozwiązań dynamicznych}
+
+Analizę stabilności rozwiązania przeprowadzono poprzez symulację losowych zmian w grafie i ocenę, jak często użytkownicy muszą zmieniać rodzaj licencji (z indywidualnej na grupową lub odwrotnie). Wnioski:
+
+\begin{itemize}
+    \item Algorytmy lokalne (Local Search) charakteryzują się umiarkowaną stabilnością: częściej zmieniają konfiguracje grup.
+    \item Reinforcement Learning charakteryzuje się najwyższą stabilnością, minimalizując liczbę zmian decyzji, dzięki czemu jest preferowane w środowiskach, gdzie ciągłość konfiguracji licencji jest istotna.
+\end{itemize}
+
+\section{Podsumowanie rozdziału}
+
+W tym rozdziale przeanalizowano problem optymalizacji licencji w wersji dynamicznej. Przedstawiono strategie adaptacyjne, umożliwiające szybką i efektywną aktualizację rozwiązań w odpowiedzi na zmiany zachodzące w grafie społecznościowym. Eksperymenty pokazały, że podejścia wykorzystujące lokalne przeszukiwanie, algorytmy genetyczne oraz reinforcement learning pozwalają na skuteczną adaptację, przy zachowaniu niskiego wzrostu kosztu i krótkiego czasu reakcji na zmiany w strukturze sieci.
+
+W kolejnym rozdziale przedstawione zostaną rozszerzenia modelu związane z różnymi wariantami polityk cenowych oraz typami planów subskrypcyjnych.
