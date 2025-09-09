@@ -37,52 +37,23 @@ W modelu dynamicznym kluczowe jest szybkie i efektywne aktualizowanie rozwiązan
     \item Mutacje lub krzyżowania rozwiązań uwzględniają zmiany struktury grafu (np. usuwanie nieprawidłowych grup po zerwaniu relacji).
 \end{itemize}
 
-\subsection{Reinforcement Learning}
-
-\begin{itemize}
-    \item Metoda uczenia ze wzmocnieniem może dynamicznie dostosowywać strategię przypisywania licencji, ucząc się na podstawie zmian w grafie.
-    \item Polityka podejmowania decyzji ewoluuje wraz ze zmieniającymi się warunkami grafu.
-\end{itemize}
+% (Usunięto rozważania RL — niewykorzystane w implementacji.)
 
 \section{Eksperymenty z dynamicznymi grafami}
 
-Eksperymenty zostały przeprowadzone w serii iteracji, w których graf podlegał cyklicznym zmianom. W każdej iteracji dokonywano kilku typów zmian, takich jak:
+Eksperymenty realizujemy jako sekwencję kroków z mutacjami grafu (dodania/usunięcia wierzchołków i krawędzi), porównując warianty cold- i warm-start dla wybranych metaheurystyk (GA/SA/TS/ACO) względem rozwiązań przeliczanych od zera. Miary raportujemy analogicznie jak w rozdz.\,6 (czas/krok, koszt, zmiany grup). Wyniki wskazują na istotne korzyści warm-startu względem cold-startu przy zachowaniu jakości.
 
-\begin{itemize}
-    \item dodanie/usunięcie do 5\% wierzchołków,
-    \item dodanie/usunięcie do 10\% krawędzi.
-\end{itemize}
+\section{Jak uruchomić wersję dynamiczną w praktyce}
+W implementacji dostępne są dwa skrypty CLI: \texttt{dynamic.py} (syntetyczne) oraz \texttt{dynamic\_real.py} (ego-sieci). Skrypty logują parametry, a następnie w pętli po krokach stosują mutacje grafu i uruchamiają algorytmy w dwóch wariantach: cold- oraz warm-start. Warm-start przekazuje rozwiązanie z poprzedniego kroku jako punkt wyjścia, co przyspiesza obliczenia przy porównywalnej jakości.
 
-Poniższa tabela ilustruje wyniki eksperymentów dla dynamicznych grafów typu Watts–Strogatz (średnia dla 100 iteracji, 500 wierzchołków początkowych):
-
-\begin{table}[h]
-\centering
-\begin{tabular}{|c|c|c|c|}
-\hline
-\textbf{Algorytm adaptacyjny} & \textbf{Średni czas aktualizacji} & \textbf{Średni koszt po aktualizacji} & \textbf{Wzrost kosztu względem optimum statycznego} \\
-\hline
-Local Search (ILS)   & ~3 s  & 8720 PLN  & ~1,03× optimum  \\
-Algorytm genetyczny adaptacyjny & ~12 s  & 8640 PLN  & ~1,02× optimum  \\
-Reinforcement Learning adaptacyjny & ~25 s  & 8615 PLN  & ~1,015× optimum  \\
-\hline
-\end{tabular}
-\caption{Porównanie algorytmów adaptacyjnych dla dynamicznych grafów}
-\label{tab:dynamic_results}
-\end{table}
-
-Wyniki pokazują, że podejścia adaptacyjne skutecznie radzą sobie ze zmianami grafu, osiągając bardzo dobrą jakość rozwiązań przy znacznie krótszym czasie niż obliczenia od zera.
+Wyniki dynamiczne zapisuję dokładnie tak jak wyniki statyczne - CSV i potem wykresy z analizy. W pracy pokazuję w rozdziale eksperymenty wykresy czasu i kosztu na kolejnych krokach oraz porównania warm vs cold. To daje jasny obraz przyspieszenia dzięki podgrzewaniu rozwiązania.
 
 \section{Analiza stabilności rozwiązań dynamicznych}
 
-Analizę stabilności rozwiązania przeprowadzono poprzez symulację losowych zmian w grafie i ocenę, jak często użytkownicy muszą zmieniać rodzaj licencji (z indywidualnej na grupową lub odwrotnie). Wnioski:
-
-\begin{itemize}
-    \item Algorytmy lokalne (Local Search) charakteryzują się umiarkowaną stabilnością: częściej zmieniają konfiguracje grup.
-    \item Reinforcement Learning charakteryzuje się najwyższą stabilnością, minimalizując liczbę zmian decyzji, dzięki czemu jest preferowane w środowiskach, gdzie ciągłość konfiguracji licencji jest istotna.
-\end{itemize}
+Analizę stabilności prowadzimy, mierząc liczbę zmian przydziałów w kolejnych krokach. W praktyce metaheurystyki z warm-startem ograniczają liczbę zmian względem przeliczeń od zera, co sprzyja stabilności konfiguracji.
 
 \section{Podsumowanie rozdziału}
 
-W tym rozdziale przeanalizowano problem optymalizacji licencji w wersji dynamicznej. Przedstawiono strategie adaptacyjne, umożliwiające szybką i efektywną aktualizację rozwiązań w odpowiedzi na zmiany zachodzące w grafie społecznościowym. Eksperymenty pokazały, że podejścia wykorzystujące lokalne przeszukiwanie, algorytmy genetyczne oraz reinforcement learning pozwalają na skuteczną adaptację, przy zachowaniu niskiego wzrostu kosztu i krótkiego czasu reakcji na zmiany w strukturze sieci.
+W tym rozdziale przeanalizowano problem optymalizacji licencji w wersji dynamicznej. Przedstawiono strategie adaptacyjne, umożliwiające szybką i efektywną aktualizację rozwiązań w odpowiedzi na zmiany zachodzące w grafie społecznościowym. Eksperymenty pokazały, że podejścia wykorzystujące lokalne przeszukiwanie oraz metaheurystyki (GA/SA/TS/ACO) pozwalają na skuteczną adaptację przy zachowaniu niskiego wzrostu kosztu i krótkiego czasu reakcji na zmiany w strukturze sieci.
 
 W kolejnym rozdziale przedstawione zostaną rozszerzenia modelu związane z różnymi wariantami polityk cenowych oraz typami planów subskrypcyjnych.

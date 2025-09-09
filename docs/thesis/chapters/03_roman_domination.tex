@@ -1,5 +1,26 @@
 \chapter{Związek z dominowaniem w grafach}
 
+\section{Definicje: dominowanie i dominowanie rzymskie}
+\noindent Niech $G=(V,E)$ będzie grafem prostym.
+\begin{description}
+  \item[Zbiór dominujący (MDS)] Zbiór $D\subseteq V$ jest dominujący, gdy $\forall v\in V:\ v\in D$ lub $\exists u\in D:\ \{u,v\}\in E$. Celem w problemie MDS jest minimizacja $|D|$.
+  \item[Dominacja rzymska (RD)] Funkcja $f:V\to\{0,1,2\}$ jest funkcją dominacji rzymskiej, jeśli każdy wierzchołek z $f(v)=0$ ma sąsiada $u$ z $f(u)=2$. Koszt to $\sum_{v\in V} f(v)$. Celem jest minimizacja kosztu \cite{Cockayne2004,henning2013roman}.
+\end{description}
+
+\section{Powiązanie z naszym modelem}
+\noindent Model z rozdz.\,2 (\S\ref{sec:model-formal}) ogólnia RD poprzez ograniczenia pojemności grup i rodzinę licencji $\mathcal{L}$. W szczególności:
+\begin{theorem}
+Jeśli ograniczymy model do dwóch typów: indywidualnej ($c_1=1, m_1=k_1=1$) i „rzymskiej” ($c_g=2, m_g=1, k_g=\infty$), to minimalizacja $\cost(f)$ jest równoważna problemowi RD.
+\end{theorem}
+\begin{proof}[Szkic]
+Ustawienie $c_g=2$ odpowiada wadze $2$ w RD, a $c_1=1$ — wartości $1$. Brak ograniczeń pojemności ($k_g=\infty$) pozwala wierzchołkowi z etykietą 2 „pokrywać” dowolnie wielu sąsiadów $0$, a etykieta $1$ pokrywa jedynie siebie. Mapowanie etykiet $\{0,1,2\}$ na role (R/I/G) i odwrotnie jest obustronnie jednoznaczne i zachowuje koszt, więc optymalne rozwiązania pokrywają się.
+\end{proof}
+
+\section{Złożoność i aproksymacje}
+\noindent MDS jest NP-zupełny i APX-trudny nawet na grafach o ograniczonym stopniu \cite{ALIMONTI2000123,chlebik2008}. Dominacja rzymska jest NP-trudna \cite{chambers2009} i dla wielu klas dziedziczy ograniczenia aproksymacyjne \cite{POUREIDI2023106363}. Ponieważ nasz model ogólnia RD (dodając limity pojemności), jest co najmniej tak trudny jak RD.
+
+Greedy w stylu pokrycia zbiorów (Set Cover) daje standardowo aproksymację $O(\log n)$ dla MDS i pokrewnych wariantów; przegląd takich wyników można znaleźć m.in. w materiałach wykładowych \cite{Kuhn2012NetworkAlgorithms}.
+
 % \section{Dominowanie w grafach - definicje podstawowe}
 
 % Dominowanie jest jednym z klasycznych zagadnień w teorii grafów, które polega na znalezieniu minimalnego zbioru wierzchołków, które „pokrywają” (dominują) wszystkie inne wierzchołki w grafie. Dokładniej, zbiór dominujący \(D\subseteq V\) w grafie \(G=(V,E)\) to taki zbiór, że każdy wierzchołek \( v \in V \) albo należy do zbioru dominującego, albo ma przynajmniej jednego sąsiada z tego zbioru.

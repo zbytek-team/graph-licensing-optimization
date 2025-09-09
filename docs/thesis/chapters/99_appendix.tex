@@ -81,7 +81,6 @@ Poniższa tabela zawiera szczegóły dotyczące użytych zestawów danych oraz p
 \textbf{Typ grafu} & \(|V|\) & \(|E|\) & \textbf{Typ} & \textbf{Parametry generowania} \\
 \hline
 Ego-Facebook & 4039 & 88234 & rzeczywisty & SNAP, Stanford \\
-Google+ & 107614 & 13673453 & rzeczywisty & SNAP, Stanford \\
 Twitter subgraph & 5000 & 15000 & rzeczywisty & NetworkRepository \\
 Barabási–Albert & 500 & ~1500 & syntetyczny & \(m=3\) \\
 Erdős–Rényi & 500 & ~1250 & syntetyczny & \(p=0.01\) \\
@@ -94,22 +93,22 @@ Graf pełny & 100 & 4950 & syntetyczny & kompletny \\
 
 \section{Szczegółowe wyniki eksperymentów}
 
-\subsection{Wyniki eksperymentów dla różnych algorytmów (koszty w PLN)}
+\subsection{Wyniki eksperymentów dla różnych algorytmów (przykładowe)}
 
 \begin{table}[h]
 \centering
-\begin{tabular}{|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|}
 \hline
-\textbf{Graf (\(|V|=500\))} & \textbf{Zachłanny} & \textbf{Genetyczny} & \textbf{Tabu Search} & \textbf{Sim. Annealing} & \textbf{Reinforcement Learning} \\
+\textbf{Graf (\(|V|=500\))} & \textbf{Zachłanny} & \textbf{Genetyczny} & \textbf{Tabu Search} & \textbf{Sim. Annealing} \\
 \hline
-Barabási–Albert & 9150 & 8450 & 8600 & 8550 & 8400 \\
-Erdős–Rényi & 10100 & 9700 & 9800 & 9750 & 9650 \\
-Watts–Strogatz & 8500 & 8100 & 8200 & 8150 & 8050 \\
-Drzewo (tree) & 9300 & 9050 & 9150 & 9100 & 9000 \\
-Graf pełny (100) & 3600 & 3510 & 3525 & 3515 & 3505 \\
+Barabási–Albert & 9150 & 8450 & 8600 & 8550 \\
+Erdős–Rényi & 10100 & 9700 & 9800 & 9750 \\
+Watts–Strogatz & 8500 & 8100 & 8200 & 8150 \\
+Drzewo (tree) & 9300 & 9050 & 9150 & 9100 \\
+Graf pełny (100) & 3600 & 3510 & 3525 & 3515 \\
 \hline
 \end{tabular}
-\caption{Wyniki eksperymentów dla różnych algorytmów}
+\caption{Przykładowe wyniki (szczegóły w rozdz.\,6).}
 \end{table}
 
 \section{Wizualizacja przykładowego rozwiązania}
@@ -178,10 +177,6 @@ pip install -r requirements.txt
 python main.py
 \end{verbatim}
 
-\section{Zbiory danych i repozytorium}
+\section{Ścieżki wyników}
 
-Wszystkie zbiory danych oraz szczegółowe wyniki eksperymentów są dostępne w publicznym repozytorium projektu:
-
-\begin{verbatim}
-https://github.com/username/licencje-spolecznosciowe
-\end{verbatim}
+Wyniki i wykresy generowane przez skrypty znajdują się w katalogach \texttt{results/} oraz \texttt{docs/thesis/assets/figures}.

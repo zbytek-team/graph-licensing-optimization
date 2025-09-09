@@ -9,7 +9,7 @@ W ramach realizacji celu pracy:
 \begin{itemize}
     \item Zdefiniowano formalny model grafowy reprezentujący użytkowników oraz relacje społeczne, a także dokładne założenia dotyczące zakupu licencji indywidualnych oraz grupowych.
     \item Dokonano szczegółowej analizy powiązań między analizowanym problemem a klasycznym oraz rzymskim dominowaniem, wskazując jednoznacznie na jego NP-trudność.
-    \item Opracowano oraz zaimplementowano szeroki wachlarz algorytmów rozwiązujących problem: od metod dokładnych (MIP) przez heurystyki zachłanne po zaawansowane metaheurystyki (algorytmy genetyczne, tabu search, symulowane wyżarzanie, reinforcement learning).
+    \item Opracowano oraz zaimplementowano szeroki wachlarz algorytmów rozwiązujących problem: od metod dokładnych (MIP) przez heurystyki zachłanne po metaheurystyki (algorytmy genetyczne, tabu search, symulowane wyżarzanie, ant colony optimization).
     \item Przeprowadzono eksperymenty wykorzystujące zarówno dane rzeczywiste (\textit{SNAP, NetworkRepository}), jak i syntetyczne (\textit{Barabási–Albert, Erdős–Rényi, Watts–Strogatz}).
     \item Przeprowadzono analizę dynamicznej wersji problemu, uwzględniając zmieniającą się strukturę sieci społecznościowej.
     \item Przedstawiono rozszerzenia modelu obejmujące analizę różnych scenariuszy cenowych oraz wprowadzenie dodatkowych typów subskrypcji (np. Duo, Student).
@@ -22,8 +22,8 @@ Najważniejsze wnioski płynące z przeprowadzonych badań to:
 \begin{itemize}
     \item Problem optymalizacji zakupu licencji w grafach społecznościowych stanowi uogólnienie klasycznego problemu dominowania rzymskiego i jest silnie NP-trudny. Metody dokładne mają ograniczone zastosowanie do niewielkich instancji problemu.
     \item Algorytmy zachłanne zapewniają szybkie i akceptowalne jakościowo rozwiązania dla dużych grafów, choć ustępują metaheurystykom pod względem jakości.
-    \item Metaheurystyki (w szczególności algorytmy genetyczne i reinforcement learning) umożliwiają uzyskanie rozwiązań bliskich optymalnym przy rozsądnym czasie działania, szczególnie w dużych i skomplikowanych sieciach.
-    \item Dynamiczna wersja problemu jest istotna w praktycznych zastosowaniach, gdzie graf społecznościowy ulega zmianom. Algorytmy adaptacyjne (szczególnie reinforcement learning) zapewniają wysoką stabilność rozwiązań i szybkie dostosowanie do nowych warunków.
+    \item Metaheurystyki (w szczególności algorytmy genetyczne, tabu search, symulowane wyżarzanie i ACO) umożliwiają uzyskanie rozwiązań bliskich optymalnym przy rozsądnym czasie działania.
+    \item Dynamiczna wersja problemu jest istotna w praktycznych zastosowaniach, gdzie graf społecznościowy ulega zmianom; podejścia z warm-startem zapewniają dobrą stabilność i krótszy czas reakcji.
     \item Wprowadzenie dodatkowych typów licencji (Duo, Student) oraz zmiany polityk cenowych istotnie wpływają na optymalne rozwiązania i pozwalają na obniżenie kosztów użytkowników oraz zwiększenie przychodów dostawców usług.
 \end{itemize}
 

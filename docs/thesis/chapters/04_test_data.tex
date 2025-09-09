@@ -15,6 +15,25 @@ Z punktu widzenia właściwości, grafy ER cechują się stosunkowo niskim śred
 
 % \textbf{NIE WIEM CZY TO JEST POTRZEBNE:} W celu zilustrowania struktury sieci opisywanych grafów wykorzystano własnoręcznie przygotowane wizualizacje grafów. Do wygenerowania tych wizualizacji zaimplementowano pomocniczą klasę GraphVisualizer w języku Python, korzystającą z biblioteki NetworkX oraz Matplotlib do renderowania grafu. Narzędzie to umożliwia prezentację grafu ze stałymi pozycjami węzłów oraz wyróżnienie określonych grup wierzchołków za pomocą kolorów.
 
+\subsection{Zakresy parametrów generatorów}
+\label{sec:gen-ranges}
+W eksperymentach korzystamy z ustalonych siatek parametrów, co ułatwia porównywalność wyników i replikację. Tabela \ref{tab:gen-ranges} zestawia typowe zakresy.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+Model & Parametry & Zakres w eksperymentach \\
+\midrule
+Erdős–Rényi $G(n,p)$ & $n, p$ & $n\in\{10,30,\dots,90\}$; $p\in\{0.05,0.10\}$ \\
+Barabási–Albert & $n, m$ & $n\in\{10,30,\dots,990\}$; $m\in\{2,3\}$ \\
+Watts–Strogatz & $n, k, p$ & $n\in\{10,30,\dots,230\}$; $k\in\{4,6,8\}$ (parzyste); $p\in\{0.05,0.10\}$ \\
+\bottomrule
+\end{tabular}
+\caption{Przykładowe zakresy parametrów generatorów grafów syntetycznych.}
+\label{tab:gen-ranges}
+\end{table}
+
 \subsection{Model Barabási–Albert - sieci bezskalowe}
 Drugim wykorzystanym generatorem jest model Barabási–Albert (BA), wprowadzony przez Barabási’ego i Alberta w 1999 roku \cite{barabasi1999emergence}. Model BA pozwala generować grafy o strukturze bezskalowej, których rozkład stopni wierzchołków przyjmuje postać potęgową. Tego typu sieci charakteryzują się istnieniem niewielkiej liczby wierzchołków o bardzo wysokim stopniu (tzw. hubów) oraz wielu wierzchołków o małym stopniu – jest to cecha obserwowana w wielu rzeczywistych sieciach, w tym społecznościowych (np. niektórzy użytkownicy mogą mieć tysiące znajomych/obserwujących, podczas gdy większość ma ich kilkudziesięciu lub mniej).
 
@@ -36,12 +55,15 @@ W kontekście modelowania sieci społecznych, generator dla modelu WS dodano w c
 Grafy WS generowane do testów miały parametry dobrane w taki sposób, aby możliwie dobrze odwzorowywać cechy typowe dla niedużych sieci społecznych. Uzyskiwane w ten sposób sieci charakteryzowały się relatywnie niską gęstością, ale jednocześnie wysokim współczynnikiem klasteryzacji, znacznie przewyższającym wartości obserwowane w losowych grafach ER o podobnej gęstości. Dzięki temu w grafach WS obecne są realistyczne zgrupowania lokalne, odpowiadające typowym kręgom znajomych w sieciach społecznych. Co istotne, sieci te z reguły pozostają spójne – niemal wszystkie wierzchołki należą do jednej dużej komponenty, a ewentualne izolowane węzły pojawiają się jedynie sporadycznie przy skrajnych ustawieniach parametrów. Taka struktura sprawia, że model WS stanowi dobre środowisko testowe.
 
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.4\textwidth]{barabasi_n100_m2_example.png}
-\caption{Przykład grafu Barabási-Albert ($n=100$, $m=2$) wygenerowanego syntetycznie. Widoczne jest istnienie kilku węzłów o wysokim stopniu (hubów) oraz licznych węzłów peryferyjnych o małej liczbie połączeń.}
-\label{fig:ba100m2}
-\end{figure}
+\IfFileExists{barabasi_n100_m2_example.png}{%
+  \begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.4\textwidth]{barabasi_n100_m2_example.png}
+  \caption{Przykład grafu Barabási-Albert ($n=100$, $m=2$) wygenerowanego syntetycznie. Widoczne jest istnienie kilku węzłów o wysokim stopniu (hubów) oraz licznych węzłów peryferyjnych o małej liczbie połączeń.}
+  \label{fig:ba100m2}
+  \end{figure}
+}{% brak pliku — pomiń ilustrację
+}
 
 % \section{Grafy rzeczywiste}
 
@@ -87,7 +109,7 @@ Grafy WS generowane do testów miały parametry dobrane w taki sposób, aby moż
 % \label{fig:ego-network-example}
 % \end{figure}
 
-% Warto zaznaczyć, że dane Facebook Ego Network pochodzą z 2012 roku i dotyczą ograniczonego zbioru użytkowników (nie jest to pełna sieć Facebooka, a jedynie dziesięć wybranych ego-sieci zebranych w celach badawczych). Mimo to stanowią one wiarygodny i często wykorzystywany w literaturze benchmark do testowania algorytmów sieciowych. Dzięki udostępnieniu ich przez SNAP (oraz analogicznych zestawów z Twittera i Google+ \cite{McAuley2012}) społeczność naukowa zyskała możliwość porównywania metod na wspólnym, publicznym zbiorze danych. W niniejszej pracy posłużono się omawianymi danymi Facebooka głównie ze względu na ich przejrzystość (małe, zrozumiałe sieci) i reprezentatywność dla rzeczywistych relacji społecznych.
+% (usunięto wzmianki o Google+; w pracy wykorzystano ego-sieci Facebooka)
 
 \section{Grafy rzeczywiste}
 Drugim zestawem danych testowych są rzeczywiste grafy pochodzące z sieci społecznościowej Facebook, a dokładniej zbiór \texttt{Facebook Ego Network} udostępniony w ramach Stanford Network Analysis Project (SNAP). Dane te zostały zebrane w 2012 roku przez J. McAuley i J. Leskovca z Uniwersytetu Stanforda w ramach badań nad automatycznym wykrywaniem kręgów społecznych. Zbiór zawiera dziesięć tzw. ego-sieci - sieci ego-centrycznych poszczególnych użytkowników Facebooka, pozyskane za zgodą uczestników poprzez specjalną aplikację facebookową. Ego-sieć to sieć społeczna z perspektywy pojedynczego użytkownika (zwanego \textit{ego}) - węzłami są \textit{ego} oraz wszystkie jego bezpośrednie znajome osoby, zaś krawędzie reprezentują relacje znajomości pomiędzy tymi znajomymi. W udostępnionych danych każda z dziesięciu sieci odpowiada innemu użytkownikowi (\textit{ego}) i zawiera wyłącznie jego znajomych oraz powiązania między nimi. Węzeł \textit{ego} nie jest jawnie ujęty jako wierzchołek w grafie (można go traktować jako ukrytą centralną jednostkę łączącą wszystkich znajomych). Innymi słowy, graf zapisany w pliku \verb|X.edges| dotyczy tylko znajomych użytkownika $X$ i relacji między nimi - sam $X$ nie pojawia się w pliku jako węzeł.
@@ -115,4 +137,3 @@ Ego-sieci Facebooka cechują się na ogół wysokim \textit{clusteringiem}, co z
 Gęstość, rozumiana jako stosunek liczby istniejących krawędzi do maksymalnej liczby krawędzi możliwej między daną liczbą wierzchołków, w ego-sieciach Facebooka jest stosunkowo niska w kategoriach bezwzględnych (co wynika z faktu, że sieci społecznościowe z natury są rzadkie). Jednak gęstość ta bywa wyższa niż w porównywalnie małych grafach generowanych losowo. Dla zobrazowania: jedna z większych ego-sieci (ID 0, 333 węzły) zawierała 5038 krawędzi, co daje gęstość ok. 0.091 (9.1\%) - czyli spośród wszystkich możliwych par znajomych około 9\% par faktycznie łączy relacja. W przypadku sieci 107 (1034 węzły, 26749 krawędzi) gęstość wyniosła ok. 0.05 (5\%). Nasze mniejsze sieci, takie jak 3980 czy 698, mogą mieć nieco wyższe gęstości ze względu na efekt małych grup (jeśli \textit{ego} ma np. 30 znajomych i wszyscy oni się znają nawzajem, to gęstość takiej małej sieci jest bardzo wysoka, bliska 100\%; jednak zwykle nie każdy zna każdego, więc realnie gęstości wynoszą kilkanaście-kilkadziesiąt procent dla bardzo małych sieci i kilka procent dla większych). Ogólnie gęstość maleje wraz ze wzrostem liczby wierzchołków - większe kręgi znajomych rzadziej są kompletnie połączone. W porównaniu do grafów losowych o podobnej skali i liczbie krawędzi, ego-sieci mają wyższy \textit{clustering} (krawędzie nie są rozłożone przypadkowo, lecz skoncentrowane wewnątrz grup), natomiast same wartości gęstości nie odbiegają rzędu wielkościowo - nadal są to grafy rzadkie (rzędu pojedynczych procent). Ta rzadka natura sieci społecznych jest istotna z punktu widzenia testowanych algorytmów, gdyż wiele z nich ma złożoności silnie zależne od liczby krawędzi (np. operacje przeszukiwania grafu lub znajdowania struktur klikowych mogą być szybsze w grafach rzadszych).
 
 % Podsumowując, rzeczywiste dane z \texttt{Facebook Ego Network} dostarczyły cennych przykładów małych sieci społecznych o realnych właściwościach. Dzięki nim możliwe było zweryfikowanie, czy implementowane algorytmy radzą sobie z naturalnymi strukturami takimi jak gęsto połączone kliki znajomych, obecność hubów (np. \textit{ego} jako ukrytego węzła łączącego komponenty) czy rozkłady stopni wierzchołków zbliżone do obserwowanych w realnych sieciach. Analiza tych sieci pozwoliła również porównać wyniki z danymi syntetycznymi - sprawdzić, na ile modele generatywne (ER, BA, WS) oddają cechy zaobserwowane w prawdziwych sieciach. W dalszych rozdziałach, przy omawianiu wyników eksperymentów, będziemy odwoływać się do opisanych tu zbiorów danych testowych.
-
