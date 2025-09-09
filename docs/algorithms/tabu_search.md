@@ -32,3 +32,10 @@ return best
 
 ## Uwagi
 - Jakość zależy od generowania sąsiedztwa i długości tabu; aspiracja pozwala “przebić” tabu lepszym rozwiązaniem.
+
+## Mapowanie pseudokodu na kod
+- Plik: `src/glopt/algorithms/tabu_search.py`
+- `solve(...)` – pętla tabu, lista tabu jako `deque`, aspiracja gdy kandydat poprawia `best`
+- Sąsiedztwa: `MutationOperators.generate_neighbors(...)` w `glopt/core/mutations.py`
+- Walidacja: `SolutionValidator`
+- `_hash(...)` – haszowanie konfiguracji grup do listy tabu

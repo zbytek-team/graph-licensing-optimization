@@ -110,10 +110,20 @@ dmypy.json
 Thumbs.db
 
 # Project specific
-results/
 filtered_results/
 real.csv
 uv.lock
-runs/
 .ruff_cache/
 data/graphs_cache/
+
+# Archives (untracked convenience artifacts)
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.tbz2
+*.tar.xz
+*.txz

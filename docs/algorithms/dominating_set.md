@@ -42,3 +42,11 @@ return groups
 
 ## Uwagi
 - Heurystyka “coverage per cost” kieruje wyborem dominatorów; dobór członków grup preferuje węzły o największym stopniu.
+
+## Mapowanie pseudokodu na kod
+- Plik: `src/glopt/algorithms/dominating_set.py`
+- `solve(...)` – główna pętla: wyznaczenie zbioru dominującego, przypisania grup i domknięcia
+- `_find_cost_effective_dominating_set(...)` – budowa D według pokrycia i kosztu na węzeł
+- `_find_best_cost_assignment(...)` – najtańsza dopuszczalna grupa dla lidera
+- `_select_best_group_members(...)` – wybór członków według stopnia
+- `_find_cheapest_single_license(...)` – fallback do licencji 1

@@ -20,3 +20,8 @@ return best
 
 ## Uwagi
 - Przydatny tylko dla bardzo małych grafów (≤ 10 węzłów).
+
+## Mapowanie pseudokodu na kod
+- Plik: `src/glopt/algorithms/naive.py`
+- `solve(...)` – generowanie podziałów i sprawdzanie wykonalności, wybór najlepszego po koszcie
+- Typy pomocnicze: `Assignment` – lista krotek (licencja, właściciel, członkowie) odpowiadających grupom

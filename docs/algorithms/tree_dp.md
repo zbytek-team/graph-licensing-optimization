@@ -35,3 +35,9 @@ pick arbitrary root r; return solve_subtree(r, None)
 
 ## Uwagi
 - Gwarantuje optimum na drzewach; do grafów ogólnych wymaga innej dekompozycji (np. drzew rozpinających + heurystyki).
+
+## Mapowanie pseudokodu na kod
+- Plik: `src/glopt/algorithms/tree_dp.py`
+- `solve(...)` – wybór korzenia i odpalenie `_solve_subtree`
+- `_solve_subtree(...)` – rozważanie licencji i łączenie części dzieci do grupy właściciela, reszta przez poddrzewa
+- `_solve_child_subtree(...)` – koszt wnuków dla dzieci włączonych do grupy właściciela
