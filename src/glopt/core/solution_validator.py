@@ -102,9 +102,11 @@ class SolutionValidator:
 
     def _check_no_overlap(self, groups: tuple[LicenseGroup[N], ...]) -> list[ValidationIssue]:
         issues: list[ValidationIssue] = []
-        seen: set[N] = set()
+        seen_owners: set[N] = set()
+        seen_nonowners: set[N] = set()
         for idx, g in enumerate(groups):
-            overlap = seen & g.all_members
+            all_members = g.all_members
+            overlap = (seen_nonowners & all_members) | (seen_owners & (all_members - {g.owner}))
             if overlap:
                 issues.append(
                     ValidationIssue(
@@ -112,7 +114,8 @@ class SolutionValidator:
                         f"group#{idx} owner {g.owner!r} overlaps members {sorted(overlap)!r}",
                     )
                 )
-            seen.update(g.all_members)
+            seen_owners.add(g.owner)
+            seen_nonowners.update(all_members - {g.owner})
         return issues
 
     def _check_coverage(self, groups: tuple[LicenseGroup[N], ...], nodes: set[N]) -> list[ValidationIssue]:

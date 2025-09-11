@@ -1,13 +1,11 @@
-from datetime import datetime
 from time import perf_counter
 from typing import Any
 
+from glopt.cli.common import build_run_id, fmt_ms, print_banner, print_footer, print_stage, print_step
 from glopt.core import RunResult, generate_graph, instantiate_algorithms, run_once
 from glopt.io import build_paths, ensure_dir, write_csv
 from glopt.license_config import LicenseConfigFactory
-from glopt.logging_config import get_logger, log_run_banner, log_run_footer, setup_logging
 
-# Configuration
 N_NODES: int = 30
 GRAPH_NAMES: list[str] = ["random", "scale_free", "small_world"]
 DEFAULT_GRAPH_PARAMS: dict[str, dict[str, Any]] = {
@@ -16,7 +14,6 @@ DEFAULT_GRAPH_PARAMS: dict[str, dict[str, Any]] = {
     "small_world": {"k": 4, "p": 0.1, "seed": 42},
 }
 LICENSE_CONFIGS: list[str] = ["spotify", "duolingo_super", "roman_domination"]
-# Use only generally applicable algorithms here (avoid Naive/TreeDP on general graphs)
 ALGORITHMS: list[str] = [
     "ILPSolver",
     "GreedyAlgorithm",
@@ -38,56 +35,46 @@ def _format_license_types(license_types: list) -> str:
 
 
 def main() -> None:
-    run_id = datetime.now().strftime("%Y%m%d_%H%M%S") + "_all"
+    run_id = build_run_id("all")
     _, graphs_dir_root, csv_dir = build_paths(run_id)
-    setup_logging(run_id=run_id)
-    logger = get_logger(__name__)
-    log_run_banner(
-        logger,
-        title="glopt all",
-        params={
+    print_banner(
+        "glopt all",
+        {
             "run_id": run_id,
-            "graphs": ", ".join(GRAPH_NAMES) + f" n={N_NODES}",
+            "graphs": ", ".join(GRAPH_NAMES),
+            "n_nodes": N_NODES,
             "licenses": ", ".join(LICENSE_CONFIGS),
             "algorithms": ", ".join(ALGORITHMS),
         },
     )
 
     results: list[RunResult] = []
-    for graph_name in GRAPH_NAMES:
-        logger.info("\n== graph ==")
-        params = DEFAULT_GRAPH_PARAMS.get(graph_name, {})
-        logger.info("generating: %s n=%d params=%s", graph_name, N_NODES, params)
-        t0 = perf_counter()
-        graph = generate_graph(graph_name, N_NODES, params)
-        gen_ms = (perf_counter() - t0) * 1000.0
-        n_nodes, n_edges = graph.number_of_nodes(), graph.number_of_edges()
-        try:
-            import networkx as _nx
+    for lic_name in LICENSE_CONFIGS:
+        print_stage(f"license {lic_name}")
+        license_types = LicenseConfigFactory.get_config(lic_name)
+        for algo_name in ALGORITHMS:
+            print_stage(f"algorithm {algo_name}")
+            for graph_name in GRAPH_NAMES:
+                params = DEFAULT_GRAPH_PARAMS.get(graph_name, {})
+                print_step("graph", name=graph_name, n=N_NODES, params=str(params))
+                t0 = perf_counter()
+                graph = generate_graph(graph_name, N_NODES, params)
+                gen_ms = (perf_counter() - t0) * 1000.0
+                n_nodes, n_edges = graph.number_of_nodes(), graph.number_of_edges()
+                try:
+                    import networkx as _nx
 
-            n_comp = _nx.number_connected_components(graph)
-            avg_deg = (2.0 * n_edges / max(1, n_nodes)) if n_nodes else 0.0
-            logger.info(
-                "generated: %d nodes, %d edges, comps=%d, avg_deg=%.2f in %.1f ms",
-                n_nodes,
-                n_edges,
-                n_comp,
-                avg_deg,
-                gen_ms,
-            )
-        except Exception:
-            logger.info("generated: %d nodes, %d edges in %.1f ms", n_nodes, n_edges, gen_ms)
+                    n_comp = _nx.number_connected_components(graph)
+                    avg_deg = (2.0 * n_edges / max(1, n_nodes)) if n_nodes else 0.0
+                    print_step("generated", nodes=n_nodes, edges=n_edges, comps=n_comp, avg_deg=f"{avg_deg:.2f}", time=fmt_ms(gen_ms))
+                except Exception:
+                    print_step("generated", nodes=n_nodes, edges=n_edges, time=fmt_ms(gen_ms))
 
-        for lic_name in LICENSE_CONFIGS:
-            license_types = LicenseConfigFactory.get_config(lic_name)
-            g_dir = f"{graphs_dir_root}/{graph_name}/{lic_name}"
-            ensure_dir(g_dir)
-            logger.info("-> license: %s [%s]", lic_name, _format_license_types(license_types))
-
-            for algo_name in ALGORITHMS:
+                g_dir = f"{graphs_dir_root}/{graph_name}/{lic_name}"
+                ensure_dir(g_dir)
                 try:
                     algo = instantiate_algorithms([algo_name])[0]
-                    logger.info("   running: %s", algo.name)
+                    print_step("run", algo=algo.name)
                     t0 = perf_counter()
                     r = run_once(
                         algo=algo,
@@ -98,16 +85,15 @@ def main() -> None:
                         print_issue_limit=10,
                     )
                     wall_ms = (perf_counter() - t0) * 1000.0
-                    logger.info(
-                        "     result: cost=%.2f time_ms=%.2f valid=%s issues=%d img=%s",
-                        r.total_cost,
-                        r.time_ms,
-                        r.valid,
-                        r.issues,
-                        bool(r.image_path),
+                    print_step(
+                        "result",
+                        cost=f"{r.total_cost:.2f}",
+                        algo_ms=fmt_ms(r.time_ms),
+                        wall_ms=fmt_ms(wall_ms),
+                        valid=r.valid,
+                        issues=r.issues,
+                        image=bool(r.image_path),
                     )
-                    if abs(r.time_ms - wall_ms) > 5.0:
-                        logger.info("     note: wall=%.2f ms vs reported=%.2f ms", wall_ms, r.time_ms)
                     r = RunResult(
                         **{
                             **r.__dict__,
@@ -118,16 +104,10 @@ def main() -> None:
                     )
                     results.append(r)
                 except Exception as e:
-                    logger.warning("     skipped: %s -> %s", algo_name, e)
+                    print_step("skipped", algo=algo_name, reason=str(e))
 
     csv_path = write_csv(csv_dir, run_id, results)
-    log_run_footer(
-        logger,
-        summary={
-            "runs": len(results),
-            "csv": csv_path,
-        },
-    )
+    print_footer({"runs": len(results), "csv": csv_path})
     return None
 
 

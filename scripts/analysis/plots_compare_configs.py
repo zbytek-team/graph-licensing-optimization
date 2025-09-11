@@ -3,17 +3,17 @@ from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
 from statistics import mean
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import matplotlib.pyplot as plt
 
 from .commons import GENERATE_PDF, ensure_dir
 
 
-def _aggregate(rows: List[dict[str, Any]], metric: str, graphs_filter: List[str] | None = None) -> Dict[str, float]:
+def _aggregate(rows: list[dict[str, Any]], metric: str, graphs_filter: list[str] | None = None) -> dict[str, float]:
     # mean over (graph, n) per algorithm
-    per_alg: Dict[str, List[float]] = defaultdict(list)
-    by_key: Dict[Tuple[str, str, int], Dict[str, List[float]]] = defaultdict(lambda: defaultdict(list))
+    per_alg: dict[str, list[float]] = defaultdict(list)
+    by_key: dict[tuple[str, str, int], dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     for r in rows:
         try:
             alg = str(r["algorithm"]) if r.get("algorithm") else ""
@@ -35,12 +35,12 @@ def _aggregate(rows: List[dict[str, Any]], metric: str, graphs_filter: List[str]
 
 
 def plot_compare_configs(
-    rows: List[dict[str, Any]],
+    rows: list[dict[str, Any]],
     cfg_a: str,
     cfg_b: str,
     title_prefix: str,
     out_dir: Path,
-    graphs_filter: List[str] | None = None,
+    graphs_filter: list[str] | None = None,
     tag: str | None = None,
 ) -> None:
     ensure_dir(out_dir)
