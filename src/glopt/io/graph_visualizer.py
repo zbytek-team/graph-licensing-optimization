@@ -9,6 +9,7 @@ import pathlib
 
 import matplotlib.pyplot as plt
 import networkx as nx
+from matplotlib.lines import Line2D
 
 from glopt.core import Solution
 
@@ -49,7 +50,8 @@ class GraphVisualizer:
         edge_colors = self._get_edge_colors(graph, node_to_group)
 
         _, ax = plt.subplots(figsize=self.figsize)
-        nx.draw_networkx_edges(graph, self._pos, edge_color=edge_colors, alpha=0.7, width=1.5, ax=ax)
+        ec: Any = edge_colors
+        nx.draw_networkx_edges(graph, self._pos, edge_color=ec, alpha=0.7, width=1.5, ax=ax)
         nx.draw_networkx_nodes(graph, self._pos, node_color=node_colors, node_size=node_sizes, ax=ax)
 
         self._add_legend(ax, solution)
@@ -114,7 +116,7 @@ class GraphVisualizer:
         return colors, sizes
 
     def _get_edge_colors(self, graph: nx.Graph, node_to_group: dict[Any, Any]) -> list[str]:
-        """Color only owner–member edges within the same group.
+        """Color only owner-member edges within the same group.
 
         Edges connecting two members (neither endpoint is the owner) remain default color.
         """
@@ -139,7 +141,7 @@ class GraphVisualizer:
         if not license_types:
             return
         elems = [
-            plt.Line2D(
+            Line2D(
                 [0],
                 [0],
                 marker="o",
@@ -150,7 +152,7 @@ class GraphVisualizer:
             )
             for lt in license_types
         ]
-        elems.append(plt.Line2D([0], [0], color=self.default_edge_color, linewidth=2, label="Other Edges"))
+        elems.append(Line2D([0], [0], color=self.default_edge_color, linewidth=2, label="Other Edges"))
         ax.legend(handles=elems, loc="upper right", bbox_to_anchor=(0.98, 0.98))
 
 

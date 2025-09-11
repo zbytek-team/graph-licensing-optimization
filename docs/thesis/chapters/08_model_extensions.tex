@@ -9,26 +9,26 @@ Dotychczas przeprowadzona analiza bazowała na uproszczonym scenariuszu zakupu l
 Koszt licencji ma fundamentalny wpływ na optymalne strategie zakupowe użytkowników. Rozważmy trzy typowe scenariusze cenowe:
 
 \begin{itemize}
-    \item \textbf{Scenariusz 1 (podstawowy)}:  
+    \item \textbf{Scenariusz 1 (podstawowy)}:
     \begin{itemize}
-        \item Licencja indywidualna: 167,99 PLN  
-        \item Licencja rodzinna (2–6 osób): 349,99 PLN (ok. 2,08× indywidualna)
+        \item Licencja indywidualna: 167,99 PLN
+        \item Licencja rodzinna (2-6 osób): 349,99 PLN (ok. 2,08× indywidualna)
     \end{itemize}
 
-    \item \textbf{Scenariusz 2 (licencja grupowa droższa)}:  
+    \item \textbf{Scenariusz 2 (licencja grupowa droższa)}:
     \begin{itemize}
-        \item Licencja indywidualna: 167,99 PLN  
-        \item Licencja rodzinna (2–6 osób): 450,00 PLN (2,68× indywidualna)
+        \item Licencja indywidualna: 167,99 PLN
+        \item Licencja rodzinna (2-6 osób): 450,00 PLN (2,68× indywidualna)
     \end{itemize}
 
-    \item \textbf{Scenariusz 3 (licencja grupowa tańsza)}:  
+    \item \textbf{Scenariusz 3 (licencja grupowa tańsza)}:
     \begin{itemize}
-        \item Licencja indywidualna: 167,99 PLN  
-        \item Licencja rodzinna (2–6 osób): 250,00 PLN (1,49× indywidualna)
+        \item Licencja indywidualna: 167,99 PLN
+        \item Licencja rodzinna (2-6 osób): 250,00 PLN (1,49× indywidualna)
     \end{itemize}
 \end{itemize}
 
-W tabeli przedstawiono wpływ tych scenariuszy na średni koszt optymalnego rozwiązania dla grafów syntetycznych (\textit{500 użytkowników, Watts–Strogatz}):
+W tabeli przedstawiono wpływ tych scenariuszy na średni koszt optymalnego rozwiązania dla grafów syntetycznych (\textit{500 użytkowników, Watts-Strogatz}):
 
 \begin{table}[h]
 \centering
@@ -60,8 +60,8 @@ Na potrzeby rozdziału z eksperymentami eksportuję wykresy porównawcze obu kon
 W rzeczywistych platformach, takich jak Spotify, oprócz licencji indywidualnych i rodzinnych dostępne są również inne plany subskrypcyjne:
 
 \begin{itemize}
-    \item \textbf{Plan Duo (2 osoby)} – np. 210,00 PLN rocznie.
-    \item \textbf{Plan Student} – np. 85,00 PLN rocznie, dostępny tylko dla części użytkowników (wymaga dodatkowej klasyfikacji wierzchołków w grafie).
+    \item \textbf{Plan Duo (2 osoby)} - np. 210,00 PLN rocznie.
+    \item \textbf{Plan Student} - np. 85,00 PLN rocznie, dostępny tylko dla części użytkowników (wymaga dodatkowej klasyfikacji wierzchołków w grafie).
 \end{itemize}
 
 Przy rozszerzeniu modelu należy uwzględnić dodatkowe ograniczenia:
@@ -79,8 +79,8 @@ Poniższa tabela pokazuje przykładowe skutki uwzględnienia planów dodatkowych
 \hline
 \textbf{Wariant licencji} & \textbf{Średni koszt} & \textbf{Indywidualne} & \textbf{Duo} & \textbf{Family} & \textbf{Student} \\
 \hline
-Indywidualne + Family & 4532 PLN & 32\% & – & 68\% & – \\
-Indywidualne + Duo + Family & 4195 PLN & 20\% & 24\% & 56\% & – \\
+Indywidualne + Family & 4532 PLN & 32\% & - & 68\% & - \\
+Indywidualne + Duo + Family & 4195 PLN & 20\% & 24\% & 56\% & - \\
 Wszystkie (z lic. Student) & 3710 PLN & 15\% & 20\% & 50\% & 15\% \\
 \hline
 \end{tabular}

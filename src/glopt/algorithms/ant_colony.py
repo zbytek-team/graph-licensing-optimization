@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from glopt.algorithms.greedy import GreedyAlgorithm
 from glopt.core import Algorithm, LicenseGroup, LicenseType, Solution
@@ -112,7 +112,12 @@ class AntColonyOptimization(Algorithm):
                 continue
 
             k = max(0, lt.max_capacity - 1)
-            add = sorted((pool - {owner}), key=lambda n: graph.degree(n), reverse=True)[:k]
+            degv = cast(Any, graph.degree)
+
+            def _deg_val(node: Any) -> int:
+                return int(degv[node])
+
+            add = sorted((pool - {owner}), key=_deg_val, reverse=True)[:k]
             groups.append(LicenseGroup(lt, owner, frozenset(add)))
             uncovered -= {owner} | set(add)
         return Solution(groups=tuple(groups))
@@ -163,11 +168,12 @@ class AntColonyOptimization(Algorithm):
 
     def _init_heur(self, graph: nx.Graph, lts: list[LicenseType]) -> dict[PKey, float]:
         h: dict[PKey, float] = {}
+        degv = cast(Any, graph.degree)
         for n in graph.nodes():
-            deg = graph.degree(n)
+            deg = int(degv[n])
             for lt in lts:
                 cap_eff = (lt.max_capacity / lt.cost) if lt.cost > 0 else 1e9
-                h[n, lt.name] = cap_eff * (1.0 + deg)
+                h[n, lt.name] = cap_eff * (1.0 + float(deg))
         return h
 
     def _evaporate(self, pher: dict[PKey, float]) -> None:

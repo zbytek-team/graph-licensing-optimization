@@ -46,8 +46,9 @@ def write_gif_from_paths(image_paths: Sequence[str], out_path: str, duration_sec
 
     # Fallback: imageio
     try:
-        import imageio.v2 as imageio
+        import importlib
 
+        imageio = importlib.import_module("imageio")
         frames = [imageio.imread(p) for p in image_paths]
         imageio.mimsave(out_path, frames, duration=duration_sec, loop=loop)
         return out_path

@@ -12,9 +12,9 @@ for it in 1..max_iterations:
   repeat num_ants times:
     uncovered ← V; groups ← ∅
     while uncovered ≠ ∅:
-      # wybór właściciela – z prawdopodobieństwem q0 bierzemy najlepszy, w przeciwnym razie ruletka
+      # wybór właściciela - z prawdopodobieństwem q0 bierzemy najlepszy, w przeciwnym razie ruletka
       owner ← best_or_roulette({n∈uncovered}, score(n)=Σ_ℓ (τ[n,ℓ]^α · η[n,ℓ]^β), q0)
-      # wybór licencji dla ownera – podobnie: best lub ruletka
+      # wybór licencji dla ownera - podobnie: best lub ruletka
       ℓ ← best_or_roulette(L, score(ℓ)=τ[owner,ℓ]^α · η[owner,ℓ]^β, q0)
       pool ← (N(owner)∪{owner}) ∩ uncovered
       if |pool| < ℓ.min:  # naprawa niedopasowania
@@ -44,7 +44,7 @@ return best
 
 ## Mapowanie pseudokodu na kod
 - Plik: `src/glopt/algorithms/ant_colony.py`
-- `solve(...)` – pętla iteracji i mrowek, parowanie i depozycja feromonu, walidacja
-- `_construct(...)` – budowa rozwiązania z wyborami owner/licencja na podstawie feromonu i heurystyki
-- `_roulette_or_best(...)` – mechanizm best albo ruletki sterowany parametrem `q0`
-- `_init_pher(...)`, `_init_heur(...)`, `_evaporate(...)`, `_deposit(...)` – obsługa feromonów i heurystyki
+- `solve(...)` - pętla iteracji i mrowek, parowanie i depozycja feromonu, walidacja
+- `_construct(...)` - budowa rozwiązania z wyborami owner/licencja na podstawie feromonu i heurystyki
+- `_roulette_or_best(...)` - mechanizm best albo ruletki sterowany parametrem `q0`
+- `_init_pher(...)`, `_init_heur(...)`, `_evaporate(...)`, `_deposit(...)` - obsługa feromonów i heurystyki

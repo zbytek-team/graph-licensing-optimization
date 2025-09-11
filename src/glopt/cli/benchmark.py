@@ -176,7 +176,7 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
             p90 = 0.0
         lic_counts = Counter(g.license_type.name for g in sol.groups)
         try:
-            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v | (int, float, str, bool))})  # pyright: ignore[reportCallIssue]
+            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v, (int, float, str, bool))})
         except Exception:
             params_json = "{}"
         res = {

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import networkx as nx
 
@@ -12,7 +12,7 @@ class DominatingSetAlgorithm(Algorithm):
         return "dominating_set_algorithm"
 
     def solve(self, graph: nx.Graph, license_types: list[LicenseType], **kwargs: Any) -> Solution:
-        if len(graph.nodes()) == 0:
+        if graph.number_of_nodes() == 0:
             return Solution(groups=())
 
         dominating_set = self._find_cost_effective_dominating_set(graph, license_types)
@@ -20,7 +20,8 @@ class DominatingSetAlgorithm(Algorithm):
         remaining_nodes = set(graph.nodes())
         groups = []
 
-        sorted_dominators = sorted(dominating_set, key=lambda n: graph.degree(n), reverse=True)
+        degv = cast(Any, graph.degree)
+        sorted_dominators = sorted(dominating_set, key=lambda n: int(degv[n]), reverse=True)
 
         for dominator in sorted_dominators:
             if dominator not in remaining_nodes:
@@ -38,7 +39,7 @@ class DominatingSetAlgorithm(Algorithm):
                 groups.append(group)
                 remaining_nodes -= group_members
 
-        remaining_sorted = sorted(remaining_nodes, key=lambda n: graph.degree(n), reverse=True)
+        remaining_sorted = sorted(remaining_nodes, key=lambda n: int(degv[n]), reverse=True)
 
         for node in remaining_sorted:
             if node not in remaining_nodes:
@@ -154,8 +155,8 @@ class DominatingSetAlgorithm(Algorithm):
             return group_members
 
         candidates = list(available_nodes - {owner})
-        # Prefer high-degree neighbors to maximize coverage per group
-        candidates.sort(key=lambda n: graph.degree(n), reverse=True)
+        degv = cast(Any, graph.degree)
+        candidates.sort(key=lambda n: int(degv[n]), reverse=True)
 
         group_members.update(candidates[:remaining_slots])
 

@@ -60,14 +60,17 @@ class ILPSolver(Algorithm):
                 if var is not None:
                     model += var >= active_vars[i, t_idx]
 
-        solver = pulp.PULP_CBC_CMD(msg=0, timeLimit=time_limit) if time_limit else pulp.PULP_CBC_CMD(msg=0)
+        solver = pulp.PULP_CBC_CMD(msg=False, timeLimit=time_limit) if time_limit else pulp.PULP_CBC_CMD(msg=False)
         model.solve(solver)
 
         # Expose diagnostics for logging
         try:
-            # Save as instance attributes for external logging
             self.last_status = pulp.LpStatus[model.status]
-            self.last_objective = float(pulp.value(model.objective)) if model.objective is not None else float("nan")
+            obj_val = pulp.value(model.objective) if model.objective is not None else None
+            if isinstance(obj_val, (int, float)):
+                self.last_objective = float(obj_val)
+            else:
+                self.last_objective = float("nan")
         except Exception:
             self.last_status = "UNKNOWN"
             self.last_objective = float("nan")
@@ -75,11 +78,12 @@ class ILPSolver(Algorithm):
         groups: list[LicenseGroup] = []
         for i in nodes:
             for t_idx, lt in enumerate(license_types):
-                if active_vars[i, t_idx].varValue and active_vars[i, t_idx].varValue > VAR_TRUE_THRESHOLD:
+                val = float(active_vars[i, t_idx].varValue or 0.0)
+                if val > VAR_TRUE_THRESHOLD:
                     members: set[Any] = set()
                     for j in set(graph.neighbors(i)) | {i}:
                         var = assign_vars.get((i, j, t_idx))
-                        if var and var.varValue and var.varValue > VAR_TRUE_THRESHOLD:
+                        if var and float(var.varValue or 0.0) > VAR_TRUE_THRESHOLD:
                             members.add(j)
                     if members:
                         groups.append(

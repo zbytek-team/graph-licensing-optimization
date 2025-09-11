@@ -14,11 +14,11 @@ Najważniejsze braki do rozważenia: dołączenie grafów rzeczywistych (Faceboo
 ## Mapowanie na wymagania pracy (zadania)
 
 - Opisanie grafowego modelu sieci społecznościowej
-  - Stan: Zaimplementowane. Rdzeń w `src/glopt/core` (modele, walidator), generatory grafów syntetycznych w `glopt.io.graph_generator` (Erdős–Rényi, Barabási–Albert, Watts–Strogatz, oraz proste grafy kontrolne).
+  - Stan: Zaimplementowane. Rdzeń w `src/glopt/core` (modele, walidator), generatory grafów syntetycznych w `glopt.io.graph_generator` (Erdős-Rényi, Barabási-Albert, Watts-Strogatz, oraz proste grafy kontrolne).
   - Dodatkowo: walidator rozwiązań sprawdza pojemności, sąsiedztwo właścicieli i pełne pokrycie.
 
 - Opisanie możliwości zakupu podstawowych licencji typu Duolingo Super
-  - Stan: Zaimplementowane jako konfiguracje licencji w `glopt.license_config.LicenseConfigFactory` (np. `spotify`, `duolingo_super`) – każda licencja ma koszt, min/max pojemność i kolor do wizualizacji.
+  - Stan: Zaimplementowane jako konfiguracje licencji w `glopt.license_config.LicenseConfigFactory` (np. `spotify`, `duolingo_super`) - każda licencja ma koszt, min/max pojemność i kolor do wizualizacji.
   - Uwagi: łatwo dopisać dodatkowe warianty (np. zmiana stosunku cen 2×/3×/… lub innych limitów L) i objąć je benchmarkiem.
 
 - Model rozwiązania problemu za pomocą dominowania rzymskiego w grafach
@@ -43,34 +43,34 @@ Najważniejsze braki do rozważenia: dołączenie grafów rzeczywistych (Faceboo
 - Benchmark statyczny (`glopt.cli.benchmark`)
   - Pętla po: typach grafu × rozmiarach (gęsty zakres dla małych n, rzadszy dla dużych) × konfiguracjach licencji × algorytmach.
   - Twardy timeout 60 s per bieg (zabijanie procesu), wczesne zatrzymanie skali n po pierwszym timeout dla danej pary (graph, algorithm).
-  - Cache grafów na dysku (`data/graphs_cache`) – rozgrzewany automatycznie, bieg pracuje na gotowych instancjach (szybko i deterministycznie).
+  - Cache grafów na dysku (`data/graphs_cache`) - rozgrzewany automatycznie, bieg pracuje na gotowych instancjach (szybko i deterministycznie).
   - CSV z obszernym zestawem metryk (czas, koszt, walidacja, zagęszczenie, średni stopień, klasteryzacja, liczba komponentów, rozkład typów licencji itp.).
 
 - Benchmark dynamiczny (`glopt.cli.dynamic`)
-  - Wspólna sekwencja mutacji dla porównywanych algorytmów, warm vs cold dla metaheurystyk i baseline’y (Greedy/ILP) – logowane krok po kroku, CSV z delta_cost i średnim czasem.
+  - Wspólna sekwencja mutacji dla porównywanych algorytmów, warm vs cold dla metaheurystyk i baseline’y (Greedy/ILP) - logowane krok po kroku, CSV z delta_cost i średnim czasem.
 
 - Analiza wyników (`scripts/analyze.py`)
-  - Rysunki kosztu vs n, czasy (log‑scale) z pasmami ufności, Pareto (czas vs koszt), zależność od gęstości, profile wydajności (Dolan–Moré), miks licencji, tabele agregatów (średnie/odchylenia/CI95).
+  - Rysunki kosztu vs n, czasy (log‑scale) z pasmami ufności, Pareto (czas vs koszt), zależność od gęstości, profile wydajności (Dolan-Moré), miks licencji, tabele agregatów (średnie/odchylenia/CI95).
 
 - Dane rzeczywiste
   - Loader Facebook ego‑networks w `glopt.io.data_loader.RealWorldDataLoader` (folder `data/facebook`). Zwraca grafy i metadane (cechy, kręgi).
-  - Rekomendacja: dołączyć te grafy do pętli benchmarków (np. tryb „real”) – prosty krok integracyjny.
+  - Rekomendacja: dołączyć te grafy do pętli benchmarków (np. tryb „real”) - prosty krok integracyjny.
 
 
 ## Co jeszcze warto dodać/przygotować (lista kontrolna)
 
 1. Integracja grafów rzeczywistych do CLI
-   - Dodać tryb benchmarku dla `RealWorldDataLoader` – pętla po ego‑sieciach z `data/facebook` i tych samych algorytmach/licencjach; wynik do osobnego CSV.
+   - Dodać tryb benchmarku dla `RealWorldDataLoader` - pętla po ego‑sieciach z `data/facebook` i tych samych algorytmach/licencjach; wynik do osobnego CSV.
 
 2. Sweep cen grupowych (p)
    - Wygenerować serię konfiguracji licencyjnych (np. `p ∈ {1.5, 2.0, 2.5, 3.0}`) i przebiec benchmark; w analizie pokazać wpływ p na koszt i strukturę grup.
 
 3. Część teoretyczna (tekst pracy)
-   - Formalny dowód równoważności z dominacją rzymską (opis odwzorowania rozwiązań grupowych na etykiety 0/1/2 i odwrotnie; analiza funkcji kosztu; rola L=∞). 
+   - Formalny dowód równoważności z dominacją rzymską (opis odwzorowania rozwiązań grupowych na etykiety 0/1/2 i odwrotnie; analiza funkcji kosztu; rola L=∞).
    - Szkice redukcji do klasycznych problemów dominacji; przegląd złożoności obliczeniowej (NP‑trudność) i konsekwencji dla metod.
 
 4. Metryki dodatkowe
-   - Np. koszt per węzeł, udział pokrycia przez różne typy licencji, korelacja kosztu z gęstością/klasteryzacją/średnim stopniem; w dynamicznych – stabilność kosztu (wariancja delta_cost).
+   - Np. koszt per węzeł, udział pokrycia przez różne typy licencji, korelacja kosztu z gęstością/klasteryzacją/średnim stopniem; w dynamicznych - stabilność kosztu (wariancja delta_cost).
 
 5. Replikacja / instrukcje uruchomienia
    - Zwięzła sekcja w pracy: `make install`, `make benchmark`, `make dynamic`, `python3 scripts/analyze.py`. Wskazanie ścieżek z wynikami (`runs/<run_id>/csv`, `runs/<run_id>/analysis`).

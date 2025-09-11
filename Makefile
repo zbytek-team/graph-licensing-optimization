@@ -1,4 +1,4 @@
-.PHONY: install test lint format clean \
+.PHONY: install test lint format typecheck clean \
     benchmark benchmark_real dynamic dynamic_real \
     custom all_cli analyze report merge-runs check-python thesis-figs \
     all
@@ -23,6 +23,12 @@ lint:
 
 format:
 	uv run --with black black src scripts
+
+typecheck:
+	$(PYPATH) uv run --with basedpyright basedpyright -p pyproject.toml --pythonversion 3.13 src scripts
+
+typecheck-src:
+	$(PYPATH) uv run --with basedpyright basedpyright -p pyproject.toml --pythonversion 3.13 src
 
 clean:
 	rm -rf .pytest_cache .ruff_cache .venv __pycache__
