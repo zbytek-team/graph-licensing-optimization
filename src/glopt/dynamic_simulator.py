@@ -104,8 +104,8 @@ class DynamicNetworkSimulator:
             new_nodes = self._add_nodes(graph, num_add)
             mutations.append(f"Added nodes: {new_nodes}")
 
-        if random.random() < self.mutation_params.remove_nodes_prob and len(graph.nodes()) > 5:
-            num_remove = random.randint(1, min(self.mutation_params.max_nodes_remove, len(graph.nodes()) - 5))
+        if random.random() < self.mutation_params.remove_nodes_prob and graph.number_of_nodes() > 5:
+            num_remove = random.randint(1, min(self.mutation_params.max_nodes_remove, graph.number_of_nodes() - 5))
             removed_nodes = self._remove_nodes(graph, num_remove)
             mutations.append(f"Removed nodes: {removed_nodes}")
 
@@ -114,8 +114,8 @@ class DynamicNetworkSimulator:
             added_edges = self._add_edges(graph, num_add)
             mutations.append(f"Added {len(added_edges)} edges")
 
-        if random.random() < self.mutation_params.remove_edges_prob and len(graph.edges()) > 0:
-            num_remove = random.randint(1, min(self.mutation_params.max_edges_remove, len(graph.edges())))
+        if random.random() < self.mutation_params.remove_edges_prob and graph.number_of_edges() > 0:
+            num_remove = random.randint(1, min(self.mutation_params.max_edges_remove, graph.number_of_edges()))
             removed_edges = self._remove_edges(graph, num_remove)
             mutations.append(f"Removed {len(removed_edges)} edges")
 
@@ -191,7 +191,7 @@ class DynamicNetworkSimulator:
         if uncovered_nodes:
             subgraph = graph.subgraph(uncovered_nodes).copy()
 
-            if len(subgraph.nodes()) > 0:
+            if subgraph.number_of_nodes() > 0:
                 new_solution = self.rebalance_algorithm.solve(subgraph, license_types)
                 valid_groups.extend(new_solution.groups)
 
@@ -258,8 +258,8 @@ class DynamicNetworkSimulator:
                 writer.writerow(
                     {
                         "step": step.step_number,
-                        "nodes": len(step.graph.nodes()),
-                        "edges": len(step.graph.edges()),
+                        "nodes": step.graph.number_of_nodes(),
+                        "edges": step.graph.number_of_edges(),
                         "cost": step.solution.total_cost,
                         "groups": len(step.solution.groups),
                         "cost_change": step.rebalance_cost_change,

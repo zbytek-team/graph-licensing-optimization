@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import networkx as nx
 
@@ -20,10 +20,11 @@ class GreedyAlgorithm(Algorithm):
         licenses = sorted(license_types, key=lambda lt: (-lt.max_capacity, lt.cost))
 
         nodes: list[Any] = list(graph.nodes())
+        degv = cast(Any, graph.degree)
         uncovered: set[Any] = set(nodes)
         groups: list[LicenseGroup] = []
 
-        for owner in sorted(nodes, key=lambda n: graph.degree(n), reverse=True):
+        for owner in sorted(nodes, key=lambda n: int(degv[n]), reverse=True):
             if owner not in uncovered:
                 continue
 
@@ -31,7 +32,7 @@ class GreedyAlgorithm(Algorithm):
             if not avail:
                 continue
 
-            best_group = self._best_group_for_owner(owner, avail, graph, licenses)
+            best_group = self._best_group_for_owner(owner, avail, graph, licenses, degv)
             if best_group is None:
                 continue
 
@@ -42,7 +43,7 @@ class GreedyAlgorithm(Algorithm):
             owner = next(iter(uncovered))
             avail = SolutionBuilder.get_owner_neighbors_with_self(graph, owner) & uncovered
 
-            fallback = self._cheapest_feasible_group(owner, avail, graph, license_types)
+            fallback = self._cheapest_feasible_group(owner, avail, graph, license_types, degv)
             if fallback is not None:
                 groups.append(fallback)
                 uncovered -= fallback.all_members
@@ -63,8 +64,9 @@ class GreedyAlgorithm(Algorithm):
         avail: set[Any],
         graph: nx.Graph,
         licenses: list[LicenseType],
+        degv: Any,
     ) -> LicenseGroup | None:
-        ordered = sorted(avail, key=lambda n: graph.degree(n), reverse=True)
+        ordered = sorted(avail, key=lambda n: int(degv[n]), reverse=True)
 
         best: LicenseGroup | None = None
         best_eff = float("inf")
@@ -93,13 +95,14 @@ class GreedyAlgorithm(Algorithm):
         avail: set[Any],
         graph: nx.Graph,
         license_types: list[LicenseType],
+        degv: Any,
     ) -> LicenseGroup | None:
         for lt in sorted(license_types, key=lambda x: (x.cost, -x.max_capacity)):
             if len(avail) < lt.min_capacity:
                 continue
 
             need_additional = max(0, lt.min_capacity - 1)
-            pool = sorted((n for n in avail if n != owner), key=lambda n: graph.degree(n), reverse=True)
+            pool = sorted((n for n in avail if n != owner), key=lambda n: int(degv[n]), reverse=True)
             chosen = pool[:need_additional]
 
             return LicenseGroup(license_type=lt, owner=owner, additional_members=frozenset(chosen))

@@ -196,7 +196,7 @@ def _worker_solve(
             p90 = 0.0
         lic_counts = Counter(g.license_type.name for g in sol.groups)
         try:
-            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v | (int, float, str, bool))})
+            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v, (int, float, str, bool))})
         except Exception:
             params_json = "{}"
         res = {
@@ -318,18 +318,21 @@ def main() -> None:
         nodes = set(graph.nodes())
         used: set = set()
         new_groups: list[LicenseGroup] = []
+        from typing import cast as _cast
+
+        degv = _cast(Any, graph.degree)
 
         for g in prev.groups:
             cand = list((g.all_members & nodes) - used)
             if not cand:
                 continue
-            owner = g.owner if g.owner in cand else max(cand, key=lambda n: graph.degree(n))
+            owner = g.owner if g.owner in cand else max(cand, key=lambda n: int(degv[n]))
             allowed = (set(graph.neighbors(owner)) | {owner}) - used
             members = [n for n in cand if n in allowed]
             if not members:
                 continue
             max_cap = max(lt.max_capacity for lt in lts)
-            members_sorted = sorted(members, key=lambda n: graph.degree(n), reverse=True)
+            members_sorted = sorted(members, key=lambda n: int(degv[n]), reverse=True)
             if owner not in members_sorted:
                 members_sorted = [owner] + [n for n in members_sorted if n != owner]
             size = min(len(members_sorted), max_cap)

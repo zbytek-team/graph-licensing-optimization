@@ -53,12 +53,12 @@ class SolutionValidator:
     def _check_group_members(self, groups: tuple[LicenseGroup[N], ...], nodes: set[N]) -> list[ValidationIssue]:
         issues: list[ValidationIssue] = []
         for idx, g in enumerate(groups):
-            outside = g.all_members - nodes
+            outside = set(g.all_members) - set(nodes)
             if outside:
                 issues.append(
                     ValidationIssue(
                         "MEMBER_NOT_IN_GRAPH",
-                        f"group#{idx} owner {g.owner!r} has members not in graph: {sorted(outside)!r}",
+                        f"group#{idx} owner {g.owner!r} has members not in graph: {list(outside)!r}",
                     )
                 )
             if g.owner not in g.all_members:
@@ -89,13 +89,13 @@ class SolutionValidator:
             if g.owner not in nodes:
                 issues.append(ValidationIssue("OWNER_NOT_IN_GRAPH", f"group#{idx} owner {g.owner!r} not in graph"))
                 continue
-            allowed = set(graph.neighbors(g.owner)) | {g.owner}
-            not_neighbors = g.all_members - allowed
+            allowed_any = set(graph.neighbors(g.owner)) | {g.owner}
+            not_neighbors = set(g.all_members) - allowed_any
             if not_neighbors:
                 issues.append(
                     ValidationIssue(
                         "DISCONNECTED_MEMBER",
-                        f"group#{idx} owner {g.owner!r} has non-neighbor members: {sorted(not_neighbors)!r}",
+                        f"group#{idx} owner {g.owner!r} has non-neighbor members: {list(not_neighbors)!r}",
                     )
                 )
         return issues
@@ -105,13 +105,13 @@ class SolutionValidator:
         seen_owners: set[N] = set()
         seen_nonowners: set[N] = set()
         for idx, g in enumerate(groups):
-            all_members = g.all_members
+            all_members = set(g.all_members)
             overlap = (seen_nonowners & all_members) | (seen_owners & (all_members - {g.owner}))
             if overlap:
                 issues.append(
                     ValidationIssue(
                         "OVERLAP",
-                        f"group#{idx} owner {g.owner!r} overlaps members {sorted(overlap)!r}",
+                        f"group#{idx} owner {g.owner!r} overlaps members {list(overlap)!r}",
                     )
                 )
             seen_owners.add(g.owner)
@@ -120,11 +120,11 @@ class SolutionValidator:
 
     def _check_coverage(self, groups: tuple[LicenseGroup[N], ...], nodes: set[N]) -> list[ValidationIssue]:
         issues: list[ValidationIssue] = []
-        covered = set().union(*(g.all_members for g in groups)) if groups else set()
+        covered = set().union(*(set(g.all_members) for g in groups)) if groups else set()
         missing = nodes - covered
         extra = covered - nodes
         if missing:
-            issues.append(ValidationIssue("MISSING_COVERAGE", f"missing nodes: {sorted(missing)!r}"))
+            issues.append(ValidationIssue("MISSING_COVERAGE", f"missing nodes: {list(missing)!r}"))
         if extra:
-            issues.append(ValidationIssue("EXTRA_COVERAGE", f"extra nodes not in graph: {sorted(extra)!r}"))
+            issues.append(ValidationIssue("EXTRA_COVERAGE", f"extra nodes not in graph: {list(extra)!r}"))
         return issues

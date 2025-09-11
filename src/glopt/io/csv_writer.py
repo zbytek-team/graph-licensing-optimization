@@ -9,16 +9,17 @@ from typing import Any
 
 def write_csv(csv_dir: str, run_id: str, rows: Iterable[Any]) -> str:
     out_path = Path(csv_dir) / f"{run_id}.csv"
-    first = True
+    it = iter(rows)
     with out_path.open("w", newline="", encoding="utf-8") as f:
-        writer = None
-        for r in rows:
-            d = asdict(r)
-            if first:
-                writer = csv.DictWriter(f, fieldnames=list(d.keys()))
-                writer.writeheader()
-                first = False
-            writer.writerow(d)
+        first_row = next(it, None)
+        if first_row is None:
+            return str(out_path)
+        d0 = asdict(first_row)
+        writer = csv.DictWriter(f, fieldnames=list(d0.keys()))
+        writer.writeheader()
+        writer.writerow(d0)
+        for r in it:
+            writer.writerow(asdict(r))
     return str(out_path)
 
 

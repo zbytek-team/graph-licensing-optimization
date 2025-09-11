@@ -22,11 +22,11 @@ def _collect_instances(rows: list[dict[str, object]]) -> tuple[dict[InstanceKey,
     for r in rows:
         try:
             g = str(r.get("graph", ""))
-            n = int(float(r.get("n_nodes", 0)))
+            n = int(float(str(r.get("n_nodes", 0))))
             lic = str(r.get("license_config", ""))
             alg = str(r.get("algorithm", ""))
-            c = float(r.get("total_cost", float("nan")))
-            t = float(r.get("time_ms", float("nan")))
+            c = float(str(r.get("total_cost", float("nan"))))
+            t = float(str(r.get("time_ms", float("nan"))))
         except Exception:
             continue
         if not alg or not g:
@@ -97,7 +97,7 @@ def _friedman_stats(matrix: list[list[float]], lower_is_better: bool) -> tuple[l
             rank_sums[j] += r
     avg_ranks = [s / N for s in rank_sums]
     chi_sq = (12 * N) / (k * (k + 1)) * sum(s * s for s in avg_ranks) - 3 * N * (k + 1)
-    # Iman–Davenport F approximation
+    # Iman-Davenport F approximation
     F = ((N - 1) * chi_sq) / (N * (k - 1) - chi_sq) if (N * (k - 1) - chi_sq) != 0 else float("nan")
     return avg_ranks, chi_sq, F, N, k
 
@@ -163,7 +163,7 @@ def write_stats_reports(rows: list[dict[str, object]], out_dir: Path) -> None:
                 f.write(f"{alg},{r:.6f}\n")
         with path.with_suffix(".txt").open("w", encoding="utf-8") as g:
             g.write(f"N={N} instances, k={k} algorithms\n")
-            g.write(f"Friedman chi2≈{chi:.4f}, Iman–Davenport F≈{F:.4f} (df1={k-1}, df2={(k-1)*(max(0,N-1))})\n")
+            g.write(f"Friedman chi2≈{chi:.4f}, Iman-Davenport F≈{F:.4f} (df1={k - 1}, df2={(k - 1) * (max(0, N - 1))})\n")
             g.write("Note: p-values not computed here; use these stats for reference or compute externally.\n")
 
     _save_avg_ranks(out_dir / "stats_friedman_cost.csv", avg_r_cost, chi_cost, F_cost, N_cost, k)

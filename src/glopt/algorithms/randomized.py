@@ -18,7 +18,7 @@ class RandomizedAlgorithm(Algorithm):
             random.seed(seed)
 
     def solve(self, graph: nx.Graph, license_types: list[LicenseType], **kwargs: Any) -> Solution:
-        if len(graph.nodes()) == 0:
+        if graph.number_of_nodes() == 0:
             return Solution(groups=())
 
         runtime_seed = kwargs.get("seed", self.seed)
@@ -65,7 +65,7 @@ class RandomizedAlgorithm(Algorithm):
         compatible_licenses = [lt for lt in license_types if lt.min_capacity <= len(available_nodes)]
 
         if not compatible_licenses:
-            return self._greedy_assignment(node, uncovered_nodes, graph, license_types)
+            return None
 
         random.shuffle(compatible_licenses)
 
@@ -82,7 +82,7 @@ class RandomizedAlgorithm(Algorithm):
             if len(group_members) >= license_type.min_capacity:
                 return (license_type, group_members)
 
-        return self._greedy_assignment(node, uncovered_nodes, graph, license_types)
+        return None
 
     def _select_random_group_members(self, owner: Any, available_nodes: set[Any], target_size: int) -> set[Any]:
         if target_size <= 0:

@@ -30,7 +30,7 @@ def _linreg(xs: list[float], ys: list[float]) -> tuple[float, float, float]:
 
 
 def write_time_scaling(rows: list[dict[str, object]], out_dir: Path) -> None:
-    """Fit time_ms ≈ a * n^b (log–log) for each (license, graph, algorithm)."""
+    """Fit time_ms ≈ a * n^b (log-log) for each (license, graph, algorithm)."""
     ensure_dir(out_dir)
     # Group per (license, graph, algorithm) and per n_nodes take mean time
     acc: dict[tuple[str, str, str, int], list[float]] = defaultdict(list)
@@ -39,8 +39,8 @@ def write_time_scaling(rows: list[dict[str, object]], out_dir: Path) -> None:
             lic = str(r.get("license_config", ""))
             g = str(r.get("graph", ""))
             alg = str(r.get("algorithm", ""))
-            n = int(float(r.get("n_nodes", 0)))
-            t = float(r.get("time_ms", 0.0))
+            n = int(float(str(r.get("n_nodes", 0))))
+            t = float(str(r.get("time_ms", 0.0)))
         except Exception:
             continue
         if not (lic and g and alg) or n <= 1 or t <= 0 or not math.isfinite(t):

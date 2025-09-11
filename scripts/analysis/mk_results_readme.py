@@ -137,7 +137,7 @@ def _interpret_block(set_name: str, set_dir: Path) -> list[str]:
         best_time_alg, best_time_rank = ranks_time[0]
         lines.append(f"- Ranking czasu (Friedman): 1) {best_time_alg} (avg rank≈{best_time_rank:.2f}), dalej: " + ", ".join(f"{a}({r:.2f})" for a, r in ranks_time[1:3]))
     if slopes:
-        # pokaż 2–3 najniższe b
+        # pokaż 2-3 najniższe b
         top_b = sorted(slopes.items(), key=lambda x: x[1])[:3]
         lines.append("- Empiryczna złożoność czasu: najniższe b (time≈a·n^b): " + ", ".join(f"{a} (b≈{b:.2f})" for a, b in top_b))
     if sig_cost or sig_time:
