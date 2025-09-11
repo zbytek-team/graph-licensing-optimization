@@ -15,10 +15,10 @@ Przyjmujemy również, że graf \( G \) nie zawiera pętli, tj. \( \{v, v\} \not
 
 Opisana reprezentacja, w której wierzchołki odpowiadają jednostkom, a krawędzie bezpośrednim relacjom umożliwiającym interakcję, jest powszechnie stosowana w analizie sieci społecznościowych \cite{Brandes2004, NETTLETON20131}. Takie ujęcie pozwala formalnie modelować i badać zjawiska zachodzące w społecznościach użytkowników usług cyfrowych.
 
-W przyjętym modelu zakłada się, że współdzielenie licencji może odbywać się wyłącznie między osobami połączonymi bezpośrednią krawędzią w grafie. Oznacza to, że użytkownicy muszą znać się bezpośrednio i mieć wzajemne zaufanie, co jest istotne na przykład w przypadku przekazywania danych logowania lub zapraszania do planu rodzinnego. Relacje pośrednie, w których użytkownicy są powiązani poprzez wspólnych znajomych (np. \( A \sim B \) oraz \( B \sim C \), lecz brak bezpośredniego powiązania \( A \sim C \)), nie są uwzględniane w analizie. Oznacza to, że dla danego grafu \( G = (V, E) \), 
-w którym \( V \) to zbiór użytkowników, a \( E \subseteq \{ \{u,v\} : u,v \in V, u \neq v \} \) to zbiór relacji znajomości, analizie podlegają wyłącznie relacje bezpośrednie, czyli pary \( \{u, v\} \in E \). 
+W przyjętym modelu zakłada się, że współdzielenie licencji może odbywać się wyłącznie między osobami połączonymi bezpośrednią krawędzią w grafie. Oznacza to, że użytkownicy muszą znać się bezpośrednio i mieć wzajemne zaufanie, co jest istotne na przykład w przypadku przekazywania danych logowania lub zapraszania do planu rodzinnego. Relacje pośrednie, w których użytkownicy są powiązani poprzez wspólnych znajomych (np. \( A \sim B \) oraz \( B \sim C \), lecz brak bezpośredniego powiązania \( A \sim C \)), nie są uwzględniane w analizie. Oznacza to, że dla danego grafu \( G = (V, E) \),
+w którym \( V \) to zbiór użytkowników, a \( E \subseteq \{ \{u,v\} : u,v \in V, u \neq v \} \) to zbiór relacji znajomości, analizie podlegają wyłącznie relacje bezpośrednie, czyli pary \( \{u, v\} \in E \).
 Na przykład w grafie przedstawionym na Rysunku \ref{fig:social_graph}, użytkownicy \( A \) i \( D \) są wprawdzie połączeni za pośrednictwem ścieżki \( A \rightarrow C \rightarrow D \), jednak ponieważ brakuje bezpośredniego połączenia \( \{A,D\} \in E \), to taka relacja nie jest uznawana za podstawę do współdzielenia licencji w tym modelu.
-Mimo że w praktyce relacje pośrednie – takie jak ścieżki długości większej niż jeden – mogą sprzyjać tworzeniu grup subskrypcyjnych, w analizie zostały one pominięte w celu uproszczenia problemu.
+Mimo że w praktyce relacje pośrednie - takie jak ścieżki długości większej niż jeden - mogą sprzyjać tworzeniu grup subskrypcyjnych, w analizie zostały one pominięte w celu uproszczenia problemu.
 
 Graf społecznościowy nie musi być pełny - dopuszcza się dowolną strukturę odpowiadającą rzeczywistym relacjom społecznym. W analizie istotną rolę odgrywa stopień wierzchołków, ponieważ decyduje on o liczbie osób, którym dany użytkownik może udostępnić swoją licencję. Dla wierzchołka \( v \in V \), jego stopień oznaczamy przez \( \deg(v) \), co odpowiada liczbie sąsiadów użytkownika \( v \) w grafie \( G = (V, E) \).
 
@@ -36,7 +36,7 @@ Optymalizacja kosztu dostępu do usługi wymaga przypisania wierzchołkom grafu 
     \item poprzez wykupienie licencji grupowej o koszcie $c_g = p$,
     \item jako odbiorca, korzystający z licencji grupowej należącej do innego  użytkownika - znajomego lub członka rodziny.
 \end{enumerate}
-Licencja indywidualna zapewnia dostęp wyłącznie jej właścicielowi, natomiast licencja grupowa umożliwia współdzielenie dostępu z maksymalnie $k-1$ sąsiadami w grafie. 
+Licencja indywidualna zapewnia dostęp wyłącznie jej właścicielowi, natomiast licencja grupowa umożliwia współdzielenie dostępu z maksymalnie $k-1$ sąsiadami w grafie.
 
 \noindent Aby precyzyjnie sformułować model, wprowadzamy etykietowanie ról $f:V\to\{0,1,2\}$ oraz zbiory: $I=\{v:f(v)=1\}$, $G=\{v:f(v)=2\}$ i $R=V\setminus(I\cup G)$. Przyjmujemy rodzinę typów licencji $\mathcal{L}=\{\ell_t=(c_t,m_t,k_t)\}_t$ z kosztami $c_t>0$ oraz ograniczeniami liczebności $m_t\le k_t$ (wliczając właściciela). Licencja indywidualna spełnia $m_t=k_t=1$; dla uproszczenia normalizujemy $c_1=1$ i zapisujemy $p=c_g/c_1$.
 
@@ -133,7 +133,7 @@ Group      & 2.0   & 2 & 999 \\
 \end{tabular}
 \end{table}
 
-W przypadku usług rzeczywistych koszty planów grupowych są znacznie niższe niż suma odpowiadających im licencji indywidualnych. Na przykład plan Spotify Family pozwala na współdzielenie subskrypcji przez maksymalnie sześć osób przy koszcie $37{,}99$ PLN, co czyni go zdecydowanie bardziej opłacalnym od planu indywidualnego ($23{,}99$ PLN). Podobna sytuacja występuje w przypadku Duolingo Super Family.  
+W przypadku usług rzeczywistych koszty planów grupowych są znacznie niższe niż suma odpowiadających im licencji indywidualnych. Na przykład plan Spotify Family pozwala na współdzielenie subskrypcji przez maksymalnie sześć osób przy koszcie $37{,}99$ PLN, co czyni go zdecydowanie bardziej opłacalnym od planu indywidualnego ($23{,}99$ PLN). Podobna sytuacja występuje w przypadku Duolingo Super Family.
 
 W modelu teoretycznym opartym na dominacji rzymskiej koszty są podane w jednostkach względnych. Licencja indywidualna ma koszt $1.0$, a licencja grupowa koszt $2.0$, co odpowiada klasycznemu przypisaniu wag w problemie dominacji rzymskiej. W ramach przeprowadzanych eksperymentów etykieta „2” będzie zmieniała swoją wartość jako wielokrotność kosztu ceny indywidualnej, co pozwala na analizę różnych wariantów tego zagadnienia.
 

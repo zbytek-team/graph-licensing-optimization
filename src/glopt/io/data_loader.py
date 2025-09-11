@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import networkx as nx
 
@@ -64,13 +64,13 @@ class RealWorldDataLoader:
 
         for ego_id, graph in networks.items():
             stats[ego_id] = {
-                "nodes": len(graph.nodes()),
-                "edges": len(graph.edges()),
+                "nodes": graph.number_of_nodes(),
+                "edges": graph.number_of_edges(),
                 "density": nx.density(graph),
                 "avg_clustering": nx.average_clustering(graph),
                 "is_connected": nx.is_connected(graph),
                 "components": nx.number_connected_components(graph),
-                "avg_degree": (sum(dict(graph.degree()).values()) / len(graph.nodes()) if len(graph.nodes()) > 0 else 0),
+                "avg_degree": ((lambda _degv: sum(int(_degv[n]) for n in graph.nodes()) / graph.number_of_nodes())(cast(Any, graph.degree)) if graph.number_of_nodes() > 0 else 0.0),
             }
 
             circles_info = self._get_circles_info(self.data_dir / "facebook", ego_id)

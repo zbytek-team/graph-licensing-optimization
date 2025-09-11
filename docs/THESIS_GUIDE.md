@@ -3,7 +3,7 @@
 This guide maps the thesis table of contents to code, data, and outputs produced by this repository.
 
 ## 1. Wprowadzenie
-- 1.1–1.3 Narrative. Use README context and Results figures as references.
+- 1.1-1.3 Narrative. Use README context and Results figures as references.
 
 ## 2. Model grafowy i analiza problemu
 - 2.1 Reprezentacja grafowa: `src/glopt/io/graph_generator.py`, real: `data/facebook/*`.
@@ -11,7 +11,7 @@ This guide maps the thesis table of contents to code, data, and outputs produced
 - 2.3 Koszty i ograniczenia: `src/glopt/license_config.py` (Duolingo, roman, warianty `*_p_*`).
 
 ## 3. Związek z dominowaniem w grafach
-- 3.1–3.2: Odwołania do konfiguracji `roman_domination` i `roman_p_*` (unbounded capacity group).
+- 3.1-3.2: Odwołania do konfiguracji `roman_domination` i `roman_p_*` (unbounded capacity group).
 - 3.3 Złożoność: komentarze przy `src/glopt/algorithms/*` i ILP.
 
 ## 4. Dane testowe
@@ -39,7 +39,7 @@ This guide maps the thesis table of contents to code, data, and outputs produced
 - 8.2 Dodatkowe typy licencji: `spotify`, można rozszerzać w `license_config.py`.
 
 ## 9. Zakończenie
-- 9.1–9.2: Wnioski oparte o `aggregates.csv`, profile wydajności, pivoty z `summary_pandas.py`.
+- 9.1-9.2: Wnioski oparte o `aggregates.csv`, profile wydajności, pivoty z `summary_pandas.py`.
 
 ## Szybki przepływ pracy (Figury/Tabele)
 1. Uruchom benchmark/dynamic (syntetyczne/real): `make benchmark`, `make dynamic`, `make benchmark_real`, `make dynamic_real`.

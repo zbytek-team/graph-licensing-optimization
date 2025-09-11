@@ -39,8 +39,8 @@ return best
 
 ## Mapowanie pseudokodu na kod
 - Plik: `src/glopt/algorithms/genetic.py`
-- `solve(...)` – główna pętla GA, elityzm, selekcja, krzyżowanie i mutacja
-- `_init_population(...)` – warm start + greedy + losowe rozwiązania
-- `_tournament_selection(...)` – selekcja turniejowa
-- `_mutate(...)` – sąsiedztwa z `MutationOperators`, walidacja i ewentualny fallback do greedy
-- `_crossover(...)` – łączenie grup po efektywności i domknięcie greedy na niepokrytych
+- `solve(...)` - główna pętla GA, elityzm, selekcja, krzyżowanie i mutacja
+- `_init_population(...)` - warm start + greedy + losowe rozwiązania
+- `_tournament_selection(...)` - selekcja turniejowa
+- `_mutate(...)` - sąsiedztwa z `MutationOperators`, walidacja i ewentualny fallback do greedy
+- `_crossover(...)` - łączenie grup po efektywności i domknięcie greedy na niepokrytych

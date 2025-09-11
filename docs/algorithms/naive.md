@@ -1,6 +1,6 @@
 # Naive Algorithm
 
-- Idea: pełne przeszukiwanie (podziały na grupy i właścicieli) – dokładny, ale wykładniczy.
+- Idea: pełne przeszukiwanie (podziały na grupy i właścicieli) - dokładny, ale wykładniczy.
 
 ## Pseudocode
 ```
@@ -13,7 +13,7 @@ return best
 
 ## Złożoność
 - Czas: wykładnicza w liczbie wierzchołków (brak skalowalności).
-- Pamięć: w zależności od sposobu generowania – co najmniej O(V).
+- Pamięć: w zależności od sposobu generowania - co najmniej O(V).
 
 ## Wyniki z ostatniego custom.py
 - Brak w obecnym biegu custom (wyłączony domyślnie ze względu na koszty obliczeń).
@@ -23,5 +23,5 @@ return best
 
 ## Mapowanie pseudokodu na kod
 - Plik: `src/glopt/algorithms/naive.py`
-- `solve(...)` – generowanie podziałów i sprawdzanie wykonalności, wybór najlepszego po koszcie
-- Typy pomocnicze: `Assignment` – lista krotek (licencja, właściciel, członkowie) odpowiadających grupom
+- `solve(...)` - generowanie podziałów i sprawdzanie wykonalności, wybór najlepszego po koszcie
+- Typy pomocnicze: `Assignment` - lista krotek (licencja, właściciel, członkowie) odpowiadających grupom

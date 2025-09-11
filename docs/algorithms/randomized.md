@@ -45,7 +45,7 @@ return groups
 
 ## Mapowanie pseudokodu na kod
 - Plik: `src/glopt/algorithms/randomized.py`
-- `solve(...)` – kolejność losowa, tworzenie grup losowych, domknięcie singlami
-- `_random_assignment(...)` – dobór losowej licencji i rozmiaru plus fallback zachłanny
-- `_select_random_group_members(...)` – losowy wybór członków
-- `_find_cheapest_single_license(...)` – najtańsza licencja jednoosobowa
+- `solve(...)` - kolejność losowa, tworzenie grup losowych, domknięcie singlami
+- `_random_assignment(...)` - dobór losowej licencji i rozmiaru plus fallback zachłanny
+- `_select_random_group_members(...)` - losowy wybór członków
+- `_find_cheapest_single_license(...)` - najtańsza licencja jednoosobowa

@@ -35,9 +35,11 @@ def _winners_by_bin(rows: list[dict[str, Any]], metric: str) -> dict[tuple[str, 
         if not alg or not g or n <= 0:
             continue
         acc[(alg, lic, g, n, metric)].append(v)
-    means: dict[tuple[str, str, str, int], dict[str, float]] = defaultdict(dict)
+    means: dict[tuple[str, str, int], dict[str, float]] = {}
     for (alg, lic, g, n, _m), vs in acc.items():
-        means[(lic, g, n)][alg] = sum(vs) / len(vs)
+        key = (lic, g, n)
+        m = means.setdefault(key, {})
+        m[alg] = sum(vs) / len(vs)
 
     # choose winner per (lic,g,n)
     wins: dict[tuple[str, str], dict[str, int]] = defaultdict(lambda: defaultdict(int))

@@ -2,9 +2,9 @@
 
 W rozdziale prezentuję procedurę uruchomień, zestaw parametrów i algorytmów, a następnie wyniki na grafach syntetycznych i rzeczywistych. Opis odzwierciedla stan repozytorium (skrypty w \texttt{src/glopt/cli/}) oraz zbiory wykresów w \texttt{docs/thesis/assets/figures}. Każdy wykres ma jednoznaczny podpis i interpretację, a metryki są spójne z tym, co zbiera kod.
 
-% Na początku zostały opisane kryteria oceny, które określają sposób interpretacji wyników. Każda z metryk ma swoje znaczenie praktyczne – część z nich odnosi się do wartości absolutnych, takich jak koszt rozwiązania czy czas działania algorytmu, a część ma charakter względny, umożliwiający porównania między algorytmami i odniesienie ich jakości do rozwiązań optymalnych uzyskanych za pomocą ILP. Dzięki temu możliwe było równoczesne ujęcie wyników w dwóch wymiarach: faktycznego kosztu i czasu obliczeń oraz dystansu od optimum.
+% Na początku zostały opisane kryteria oceny, które określają sposób interpretacji wyników. Każda z metryk ma swoje znaczenie praktyczne - część z nich odnosi się do wartości absolutnych, takich jak koszt rozwiązania czy czas działania algorytmu, a część ma charakter względny, umożliwiający porównania między algorytmami i odniesienie ich jakości do rozwiązań optymalnych uzyskanych za pomocą ILP. Dzięki temu możliwe było równoczesne ujęcie wyników w dwóch wymiarach: faktycznego kosztu i czasu obliczeń oraz dystansu od optimum.
 
-% Następnie zostało opisane środowisko testowe, w którym przeprowadzono eksperymenty. Uwzględniono zarówno parametry sprzętowe i programowe, jak i narzędzia wykorzystane do implementacji i analizy. Osobną uwagę poświęcono grafom testowym. W przypadku grafów syntetycznych wzięto pod uwagę trzy klasy: losowe (\textit{random}), bezskalowe (\textit{scale-free}) oraz typu małego świata (\textit{small-world}). Dla każdej klasy przygotowano serie instancji o rosnącej liczbie wierzchołków. Zakresy były różne: grafy losowe analizowano od 10 do 90 węzłów, grafy small-world do 230 węzłów, natomiast grafy bezskalowe do 990 węzłów. Wartości te rosły co 20 węzłów, co pozwoliło na obserwację zmian jakości i czasu działania algorytmów w funkcji rozmiaru problemu. Zróżnicowanie maksymalnych rozmiarów wynikało z charakteru samych grafów – grafy losowe i small-world szybciej prowadziły do długich czasów obliczeń przy większych rozmiarach, natomiast grafy scale-free pozwalały na analizę znacznie większych instancji. Oprócz grafów syntetycznych wykorzystano także grafy rzeczywiste, które uzupełniają analizę o przykłady praktycznych struktur sieciowych.
+% Następnie zostało opisane środowisko testowe, w którym przeprowadzono eksperymenty. Uwzględniono zarówno parametry sprzętowe i programowe, jak i narzędzia wykorzystane do implementacji i analizy. Osobną uwagę poświęcono grafom testowym. W przypadku grafów syntetycznych wzięto pod uwagę trzy klasy: losowe (\textit{random}), bezskalowe (\textit{scale-free}) oraz typu małego świata (\textit{small-world}). Dla każdej klasy przygotowano serie instancji o rosnącej liczbie wierzchołków. Zakresy były różne: grafy losowe analizowano od 10 do 90 węzłów, grafy small-world do 230 węzłów, natomiast grafy bezskalowe do 990 węzłów. Wartości te rosły co 20 węzłów, co pozwoliło na obserwację zmian jakości i czasu działania algorytmów w funkcji rozmiaru problemu. Zróżnicowanie maksymalnych rozmiarów wynikało z charakteru samych grafów - grafy losowe i small-world szybciej prowadziły do długich czasów obliczeń przy większych rozmiarach, natomiast grafy scale-free pozwalały na analizę znacznie większych instancji. Oprócz grafów syntetycznych wykorzystano także grafy rzeczywiste, które uzupełniają analizę o przykłady praktycznych struktur sieciowych.
 
 % Najobszerniejszą część rozdziału stanowi opis eksperymentów i ich wyników. Wyniki zostały przedstawione osobno dla grafów syntetycznych i rzeczywistych, a w każdym przypadku uwzględniono zarówno wartości średnie, jak i ich odniesienia do najlepszych wyników. W przypadku grafów syntetycznych zwrócono uwagę na różnice pomiędzy poszczególnymi klasami grafów oraz na zależność jakości i czasu od rosnącej liczby węzłów. W przypadku grafów rzeczywistych omówiono trzy zestawy instancji, podkreślając odmienny charakter danych oraz wpływ tej różnorodności na zachowanie algorytmów. We wszystkich analizach kluczową rolę odegrały porównania względem ILP, które pełniło funkcję punktu odniesienia dla jakości rozwiązań.
 
@@ -28,20 +28,20 @@ Wszystkie skrypty zapisują spójne metryki (koszt, czas, poprawność oraz stat
     Poprawność rozwiązania i liczba naruszeń (gdyby wystąpiły) raportowane przez walidator.
 
     \item \textbf{średni koszt ILP (mean\_ilp\_cost)} \\
-    Wartość optymalna kosztu, uzyskana z rozwiązania za pomocą programowania całkowitoliczbowego (ILP). 
-    Stanowi punkt odniesienia dla pozostałych algorytmów – na jego podstawie liczone są wskaźniki jakości (mean\_cost\_ratio). 
+    Wartość optymalna kosztu, uzyskana z rozwiązania za pomocą programowania całkowitoliczbowego (ILP).
+    Stanowi punkt odniesienia dla pozostałych algorytmów - na jego podstawie liczone są wskaźniki jakości (mean\_cost\_ratio).
     Dzięki temu możliwe jest obiektywne porównanie heurystyk.
 
     \item \textbf{średni czas ILP (mean\_ilp\_time)} \\
-    Uśredniony czas rozwiązania problemu metodą ILP. 
-    Pokazuje koszt obliczeniowy uzyskania optimum i pozwala zestawić go z czasem uzyskanym przy użyciu innego algorytmu. 
-    W praktyce często jest istotny, bo wskazuje, że choć ILP daje rozwiązanie optymalne, 
+    Uśredniony czas rozwiązania problemu metodą ILP.
+    Pokazuje koszt obliczeniowy uzyskania optimum i pozwala zestawić go z czasem uzyskanym przy użyciu innego algorytmu.
+    W praktyce często jest istotny, bo wskazuje, że choć ILP daje rozwiązanie optymalne,
     to bywa obliczeniowo niepraktyczne dla dużych instancji.
 
     \item \textbf{liczność próby (count)} \\
-    Liczba instancji, na podstawie których obliczono średnie wartości metryk. 
-    Duża liczność zwiększa wiarygodność uśrednień, a mała liczność oznacza, 
-    że wyniki mogą być mniej reprezentatywne. 
+    Liczba instancji, na podstawie których obliczono średnie wartości metryk.
+    Duża liczność zwiększa wiarygodność uśrednień, a mała liczność oznacza,
+    że wyniki mogą być mniej reprezentatywne.
 \end{itemize}
 
 \section{Środowisko i uruchamianie}
@@ -76,7 +76,7 @@ ILP & CBC, limit czasu na instancję \\
 \end{table}
 
 \section{Wybrane wykresy - grafy syntetyczne}
-Na rysunkach poniżej pokazuję kilka reprezentatywnych figur (pełny komplet wykresów i tabel znajduje się w katalogu wyników). Odwołania w tekście używają etykiet \ref{fig:random_duo_cost_time}–\ref{fig:ilp_timeout}.
+Na rysunkach poniżej pokazuję kilka reprezentatywnych figur (pełny komplet wykresów i tabel znajduje się w katalogu wyników). Odwołania w tekście używają etykiet \ref{fig:random_duo_cost_time}-\ref{fig:ilp_timeout}.
 
 \begin{figure}[h]
   \centering
@@ -104,7 +104,7 @@ Na rysunkach poniżej pokazuję kilka reprezentatywnych figur (pełny komplet wy
 W skrócie: algorytmy zachłanne i proste losowe są bardzo szybkie i dają akceptowalną jakość; metaheurystyki (GA/SA/TS/ACO) schodzą niżej kosztowo, kosztem czasu obliczeń. ILP jest punktem odniesienia dla małych $n$, a następnie szybko napotyka limity czasu (por. rys.\,\ref{fig:ilp_timeout}).
 
 \section{Wybrane wykresy - grafy rzeczywiste}
-Analogiczne obserwacje dotyczą ego-sieci Facebooka (rys.\,\ref{fig:facebook_ego_cost}–\ref{fig:facebook_compare_cost}).
+Analogiczne obserwacje dotyczą ego-sieci Facebooka (rys.\,\ref{fig:facebook_ego_cost}-\ref{fig:facebook_compare_cost}).
 
 \begin{figure}[h]
   \centering
@@ -144,10 +144,10 @@ W celu zapewnienia powtarzalności badań oraz wyjaśnienia potencjalnego wpływ
 
 \subsection{Konfiguracja sprzętowa}
 \begin{itemize}
-    \item Procesor: 
-    \item Pamięć RAM: 
-    \item Dysk: 
-    \item System operacyjny: 
+    \item Procesor:
+    \item Pamięć RAM:
+    \item Dysk:
+    \item System operacyjny:
 \end{itemize}
 
 \subsection{Środowisko programistyczne}
@@ -155,32 +155,32 @@ W celu zapewnienia powtarzalności badań oraz wyjaśnienia potencjalnego wpływ
 Do implementacji oraz analizy wykorzystano język Python wraz z kilkoma kluczowymi bibliotekami:
 
 \begin{itemize}
-    \item \texttt{networkx} – biblioteka przeznaczona do tworzenia, manipulacji i analizy struktur grafowych. 
-    W eksperymentach posłużyła jako główne narzędzie do reprezentacji instancji problemu. 
-    Dzięki niej możliwe było zarówno generowanie grafów syntetycznych, 
-    jak i wczytywanie oraz przetwarzanie grafów rzeczywistych. 
-    Udostępnia również podstawowe algorytmy pomocnicze oraz narzędzia do analizy własności strukturalnych, 
+    \item \texttt{networkx} - biblioteka przeznaczona do tworzenia, manipulacji i analizy struktur grafowych.
+    W eksperymentach posłużyła jako główne narzędzie do reprezentacji instancji problemu.
+    Dzięki niej możliwe było zarówno generowanie grafów syntetycznych,
+    jak i wczytywanie oraz przetwarzanie grafów rzeczywistych.
+    Udostępnia również podstawowe algorytmy pomocnicze oraz narzędzia do analizy własności strukturalnych,
     co pozwoliło zweryfikować poprawność przygotowanych instancji.
 
-    \item \texttt{numpy} oraz \texttt{pandas} – podstawowe narzędzia do pracy z danymi numerycznymi i tabelarycznymi. 
-    Biblioteka \texttt{numpy} zapewnia wydajne operacje macierzowe i wektorowe, co było przydatne w obliczeniach wykonywanych w pętli podczas działania algorytmów. 
-    Natomiast \texttt{pandas} umożliwiło uporządkowane przechowywanie wyników w strukturach \texttt{DataFrame}, 
-    ich łatwe filtrowanie, agregowanie i eksport do formatu \texttt{Excel}, 
-    na podstawie którego przygotowano dalsze analizy i wizualizacje. 
+    \item \texttt{numpy} oraz \texttt{pandas} - podstawowe narzędzia do pracy z danymi numerycznymi i tabelarycznymi.
+    Biblioteka \texttt{numpy} zapewnia wydajne operacje macierzowe i wektorowe, co było przydatne w obliczeniach wykonywanych w pętli podczas działania algorytmów.
+    Natomiast \texttt{pandas} umożliwiło uporządkowane przechowywanie wyników w strukturach \texttt{DataFrame},
+    ich łatwe filtrowanie, agregowanie i eksport do formatu \texttt{Excel},
+    na podstawie którego przygotowano dalsze analizy i wizualizacje.
     Te dwie biblioteki stanowiły podstawę całego procesu gromadzenia i przetwarzania danych.
 
-    % \item \texttt{matplotlib} – biblioteka do tworzenia wizualizacji, 
-    % wykorzystana do generowania wykresów prezentujących wyniki eksperymentów. 
-    % Z jej pomocą powstały zarówno podstawowe wykresy liniowe, jak i bardziej złożone zestawienia porównawcze, 
-    % które zostały następnie przeniesione do arkuszy kalkulacyjnych i posłużyły do ostatecznej interpretacji wyników. 
-    % Dzięki \texttt{matplotlib} możliwe było szybkie prototypowanie wizualizacji i sprawdzanie trendów 
+    % \item \texttt{matplotlib} - biblioteka do tworzenia wizualizacji,
+    % wykorzystana do generowania wykresów prezentujących wyniki eksperymentów.
+    % Z jej pomocą powstały zarówno podstawowe wykresy liniowe, jak i bardziej złożone zestawienia porównawcze,
+    % które zostały następnie przeniesione do arkuszy kalkulacyjnych i posłużyły do ostatecznej interpretacji wyników.
+    % Dzięki \texttt{matplotlib} możliwe było szybkie prototypowanie wizualizacji i sprawdzanie trendów
     % jeszcze na etapie weryfikacji poprawności obliczeń.
 \end{itemize}
 
 
 \subsection{Charakterystyka grafów testowych}
 
-\textbf{Syntetyczne.} Trzy rodziny: \textit{random} (Erdős–Rényi, $p=0{.}10$), \textit{small-world} (Watts–Strogatz, $k=6$, $p=0{.}05$, $k$ wymuszane parzyste) i \textit{scale-free} (Barabási–Albert, $m=2$). Rozmiary: \(n\in\{20,40,\dots,200\}\) i \(n\in\{300,400,600,800,1000,1500,2000,2500,3000\}\). Na każdy punkt: \(\texttt{SAMPLES\_PER\_SIZE}=3\) próbek i \(\texttt{REPEATS\_PER\_GRAPH}=2\).
+\textbf{Syntetyczne.} Trzy rodziny: \textit{random} (Erdős-Rényi, $p=0{.}10$), \textit{small-world} (Watts-Strogatz, $k=6$, $p=0{.}05$, $k$ wymuszane parzyste) i \textit{scale-free} (Barabási-Albert, $m=2$). Rozmiary: \(n\in\{20,40,\dots,200\}\) i \(n\in\{300,400,600,800,1000,1500,2000,2500,3000\}\). Na każdy punkt: \(\texttt{SAMPLES\_PER\_SIZE}=3\) próbek i \(\texttt{REPEATS\_PER\_GRAPH}=2\).
 
 \textbf{Rzeczywiste.} Ego-sieci Facebooka (SNAP), bez parametrycznego sterowania rozmiarem; raportuję \(|V|,|E|\), gęstość, średni stopień, klasteryzację i liczbę składowych.
 
@@ -207,33 +207,33 @@ Powyższe wykresy pozwalają sformułować kilka stabilnych obserwacji:
 
 \subsection{Skalowanie względem liczby wierzchołków}
 
-Dane pochodzą z arkuszy \texttt{Time\_vs\_Nodes} oraz \texttt{CostRatio\_vs\_Nodes}. 
+Dane pochodzą z arkuszy \texttt{Time\_vs\_Nodes} oraz \texttt{CostRatio\_vs\_Nodes}.
 Celem tej części eksperymentów jest ocena skalowalności algorytmów.
 
 \paragraph{Mean Execution Time vs Nodes}
 \begin{itemize}
-    \item Random graph – analiza wzrostu czasu wraz z liczbą wierzchołków,
-    \item Scale-free graph – dynamika przy większych rozmiarach,
-    \item Small-world graph – charakterystyka skalowania.
+    \item Random graph - analiza wzrostu czasu wraz z liczbą wierzchołków,
+    \item Scale-free graph - dynamika przy większych rozmiarach,
+    \item Small-world graph - charakterystyka skalowania.
 \end{itemize}
 
 \paragraph{Mean Cost Ratio vs Nodes}
 \begin{itemize}
-    \item Random graph – stabilność jakości rozwiązań przy rosnącym rozmiarze,
-    \item Scale-free graph – obserwacja jakości względem optimum ILP,
-    \item Small-world graph – ocena zachowania heurystyk.
+    \item Random graph - stabilność jakości rozwiązań przy rosnącym rozmiarze,
+    \item Scale-free graph - obserwacja jakości względem optimum ILP,
+    \item Small-world graph - ocena zachowania heurystyk.
 \end{itemize}
 
 \subsection{Grafy rzeczywiste}
 
-Dane z arkusza \texttt{Facebook\_Ego\_Real}. Analiza obejmuje trzy zestawy instancji: \texttt{duolingo\_super}, \texttt{roman\_domination}, \texttt{spotify}. 
+Dane z arkusza \texttt{Facebook\_Ego\_Real}. Analiza obejmuje trzy zestawy instancji: \texttt{duolingo\_super}, \texttt{roman\_domination}, \texttt{spotify}.
 Dla każdego zestawu raportowane są cztery metryki:
 
 \begin{itemize}
-    \item Mean Cost across real networks – średni koszt rozwiązań,
-    \item Mean Execution Time across real networks – średni czas obliczeń,
-    \item Mean Cost Ratio to best algorithm – porównanie jakości względem najlepszego rozwiązania,
-    \item Mean Time Ratio to fastest algorithm – porównanie czasów względem najszybszego algorytmu.
+    \item Mean Cost across real networks - średni koszt rozwiązań,
+    \item Mean Execution Time across real networks - średni czas obliczeń,
+    \item Mean Cost Ratio to best algorithm - porównanie jakości względem najlepszego rozwiązania,
+    \item Mean Time Ratio to fastest algorithm - porównanie czasów względem najszybszego algorytmu.
 \end{itemize}
 
 \paragraph{Duolingo\_super}

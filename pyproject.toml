@@ -24,3 +24,18 @@ fix = true
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
 ignore = []
+
+[tool.basedpyright]
+typeCheckingMode = "basic"
+pythonVersion = "3.13"
+include = [
+  "src",
+  "scripts",
+]
+exclude = [
+  ".venv",
+  "runs",
+  "results",
+  "data",
+  "docs/thesis",
+]

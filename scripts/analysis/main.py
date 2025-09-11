@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import zipfile
 from pathlib import Path
+from typing import Any
 
 from .commons import ensure_dir, load_rows
 from .dynamic_warmcold import plot_dynamic_warm_cold
@@ -113,7 +114,7 @@ def main() -> None:
         zip_path = Path("filtered_results.zip")
         if zip_path.exists():
             with zipfile.ZipFile(zip_path) as z:
-                rows: list[dict[str, object]] = []
+                rows: list[dict[str, Any]] = []
                 members = [n for n in z.namelist() if n.lower().endswith(".csv")]
                 if not members:
                     print("filtered_results.zip contains no CSV files")
@@ -124,7 +125,7 @@ def main() -> None:
                     with z.open(name) as f:
                         reader = csv.DictReader(line.decode("utf-8", "ignore") for line in f)
                         for r in reader:
-                            rows.append(r)
+                            rows.append(dict(r))
                 # Write a convenience combined CSV under runs/filtered_zip/csv
                 out_base = runs_dir / "filtered_zip"
                 csv_dir = out_base / "csv"

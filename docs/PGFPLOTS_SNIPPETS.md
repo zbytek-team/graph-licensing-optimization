@@ -105,7 +105,7 @@ Wskazówka: aby wykreślić kilka serii na jednym wykresie, powtórz `\addplot` 
 \end{tikzpicture}
 ```
 
-## 3) Wykres słupkowy — empiryczna złożoność czasu (nachylenie b z log–log)
+## 3) Wykres słupkowy — empiryczna złożoność czasu (nachylenie b z log-log)
 
 Źródło: `results/**/all/time_scaling.csv` z kolumną `slope_b` (b w `time ≈ a·n^b`).
 
@@ -121,7 +121,7 @@ Wskazówka: aby wykreślić kilka serii na jednym wykresie, powtórz `\addplot` 
     x tick label style={rotate=30, anchor=east},
     ymin=0,
   ]
-    % Dla prostoty: weź medianę b per algorytm – można też filtrować po graph/licence
+    % Dla prostoty: weź medianę b per algorytm - można też filtrować po graph/licence
     % W PGFPlots łatwiej przygotować pre‑zredukowane dane, ale można też dodać filtr podobny jak wyżej.
     % Poniższy przykład zakłada, że mamy jedną wartość b per algorytm (np. medianę).
     % Jeśli chcesz automatycznej mediany, zrób to w CSV lub pre‑obróbce.

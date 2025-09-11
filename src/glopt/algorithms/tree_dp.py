@@ -22,10 +22,10 @@ class TreeDynamicProgramming(Algorithm):
             msg = "TreeDynamicProgramming requires a tree graph"
             raise ValueError(msg)
 
-        if len(graph.nodes()) == 0:
+        if graph.number_of_nodes() == 0:
             return Solution(groups=())
 
-        if len(graph.nodes()) == 1:
+        if graph.number_of_nodes() == 1:
             node = next(iter(graph.nodes()))
             cheapest = min(
                 license_types,
