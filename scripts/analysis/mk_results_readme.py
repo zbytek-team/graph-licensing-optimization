@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import csv
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 from statistics import mean
-from typing import Dict, List, Tuple
 
 
-def load_csv_rows(p: Path) -> List[Dict[str, str]]:
-    rows: List[Dict[str, str]] = []
+def load_csv_rows(p: Path) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
     if not p.exists():
         return rows
     with p.open("r", encoding="utf-8", newline="") as f:
@@ -17,16 +16,16 @@ def load_csv_rows(p: Path) -> List[Dict[str, str]]:
     return rows
 
 
-def summarize_aggregates(agg_csv: Path) -> Tuple[str, List[str]]:
+def summarize_aggregates(agg_csv: Path) -> tuple[str, list[str]]:
     rows = load_csv_rows(agg_csv)
-    lines: List[str] = []
+    lines: list[str] = []
     title = agg_csv.parent.parent.name  # e.g., benchmark_all
     if not rows:
         return title, ["- Brak danych agregatów (aggregates.csv nie znaleziony)."]
 
     # Per algorithm summary across graphs and n: mean of means
-    per_alg_cost: Dict[str, List[float]] = defaultdict(list)
-    per_alg_time: Dict[str, List[float]] = defaultdict(list)
+    per_alg_cost: dict[str, list[float]] = defaultdict(list)
+    per_alg_time: dict[str, list[float]] = defaultdict(list)
     graphs: set[str] = set()
     for r in rows:
         try:
@@ -38,7 +37,7 @@ def summarize_aggregates(agg_csv: Path) -> Tuple[str, List[str]]:
         except Exception:
             pass
 
-    def _best(d: Dict[str, List[float]], reverse: bool=False) -> Tuple[str, float]:
+    def _best(d: dict[str, list[float]], reverse: bool = False) -> tuple[str, float]:
         best_name = ""
         best_val = float("inf") if not reverse else float("-inf")
         for k, vs in d.items():
@@ -73,7 +72,7 @@ def _load_avg_ranks(path: Path) -> list[tuple[str, float]]:
     out: list[tuple[str, float]] = []
     for r in rows:
         try:
-            out.append((r["algorithm"], float(r["avg_rank"])) )
+            out.append((r["algorithm"], float(r["avg_rank"])))
         except Exception:
             pass
     out.sort(key=lambda x: x[1])
@@ -152,6 +151,7 @@ def _interpret_block(set_name: str, set_dir: Path) -> list[str]:
     # Leaderboard
     lb_cost = set_dir / "all" / "leaderboard_cost.csv"
     lb_time = set_dir / "all" / "leaderboard_time.csv"
+
     def _top_from_lb(p: Path) -> list[str]:
         rows = load_csv_rows(p)
         cnt: Counter[str] = Counter()
@@ -164,6 +164,7 @@ def _interpret_block(set_name: str, set_dir: Path) -> list[str]:
             cnt[alg] += wins
         top = [f"{a} ({c})" for a, c in cnt.most_common(2)]
         return top
+
     if lb_cost.exists():
         top = _top_from_lb(lb_cost)
         if top:
@@ -180,7 +181,7 @@ def _interpret_block(set_name: str, set_dir: Path) -> list[str]:
 
 def write_results_readme(root: Path) -> Path:
     out = root / "README.md"
-    lines: List[str] = []
+    lines: list[str] = []
     lines.append("# Wyniki — Podsumowanie\n")
     lines.append("Ten plik zbiera najważniejsze wnioski z analiz w katalogach `results/benchmark_all` oraz `results/benchmark_real_all`.\n")
 

@@ -3,23 +3,21 @@ from __future__ import annotations
 import math
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
 
 from .commons import ensure_dir
 
+InstanceKey = tuple[str, int, str]  # (graph, n_nodes, license_config)
 
-InstanceKey = Tuple[str, int, str]  # (graph, n_nodes, license_config)
 
-
-def _collect_instances(rows: List[dict[str, object]]) -> Tuple[Dict[InstanceKey, Dict[str, float]], Dict[InstanceKey, Dict[str, float]], List[str]]:
+def _collect_instances(rows: list[dict[str, object]]) -> tuple[dict[InstanceKey, dict[str, float]], dict[InstanceKey, dict[str, float]], list[str]]:
     """Aggregate rows into instance -> algorithm -> mean cost/time.
 
     Returns (cost_map, time_map, algorithms_sorted).
     Only numeric, finite values are considered.
     """
     # Aggregate per instance and algorithm
-    acc_cost: Dict[Tuple[InstanceKey, str], List[float]] = defaultdict(list)
-    acc_time: Dict[Tuple[InstanceKey, str], List[float]] = defaultdict(list)
+    acc_cost: dict[tuple[InstanceKey, str], list[float]] = defaultdict(list)
+    acc_time: dict[tuple[InstanceKey, str], list[float]] = defaultdict(list)
     algs: set[str] = set()
     for r in rows:
         try:
@@ -41,11 +39,11 @@ def _collect_instances(rows: List[dict[str, object]]) -> Tuple[Dict[InstanceKey,
         algs.add(alg)
 
     # Mean per instance/algorithm
-    def mean(vals: List[float]) -> float:
+    def mean(vals: list[float]) -> float:
         return sum(vals) / max(1, len(vals))
 
-    cost_map: Dict[InstanceKey, Dict[str, float]] = defaultdict(dict)
-    time_map: Dict[InstanceKey, Dict[str, float]] = defaultdict(dict)
+    cost_map: dict[InstanceKey, dict[str, float]] = defaultdict(dict)
+    time_map: dict[InstanceKey, dict[str, float]] = defaultdict(dict)
     for (key, alg), vals in acc_cost.items():
         cost_map[key][alg] = mean(vals)
     for (key, alg), vals in acc_time.items():
@@ -55,10 +53,10 @@ def _collect_instances(rows: List[dict[str, object]]) -> Tuple[Dict[InstanceKey,
     return cost_map, time_map, algs_s
 
 
-def _build_matrix(metric_map: Dict[InstanceKey, Dict[str, float]], algorithms: List[str]) -> Tuple[List[InstanceKey], List[List[float]]]:
+def _build_matrix(metric_map: dict[InstanceKey, dict[str, float]], algorithms: list[str]) -> tuple[list[InstanceKey], list[list[float]]]:
     """Keep only instances where all algorithms have a value; return matrix N x k."""
-    insts: List[InstanceKey] = []
-    mat: List[List[float]] = []
+    insts: list[InstanceKey] = []
+    mat: list[list[float]] = []
     for key, alg2val in metric_map.items():
         if all(a in alg2val for a in algorithms):
             insts.append(key)
@@ -66,9 +64,8 @@ def _build_matrix(metric_map: Dict[InstanceKey, Dict[str, float]], algorithms: L
     return insts, mat
 
 
-def _ranks_per_row(values: List[float], lower_is_better: bool = True) -> List[float]:
-    """Compute ranks with average ties. 1 = best if lower_is_better.
-    """
+def _ranks_per_row(values: list[float], lower_is_better: bool = True) -> list[float]:
+    """Compute ranks with average ties. 1 = best if lower_is_better."""
     idx_vals = list(enumerate(values))
     # Sort ascending for lower is better; descending otherwise
     idx_vals.sort(key=lambda x: x[1], reverse=not lower_is_better)
@@ -87,7 +84,7 @@ def _ranks_per_row(values: List[float], lower_is_better: bool = True) -> List[fl
     return ranks
 
 
-def _friedman_stats(matrix: List[List[float]], lower_is_better: bool) -> Tuple[List[float], float, float, int, int]:
+def _friedman_stats(matrix: list[list[float]], lower_is_better: bool) -> tuple[list[float], float, float, int, int]:
     """Return (avg_ranks, chi_sq, iman_davenport_F, N, k)."""
     if not matrix:
         return [], float("nan"), float("nan"), 0, 0
@@ -109,7 +106,7 @@ def _normal_cdf(z: float) -> float:
     return 0.5 * (1 + math.erf(z / math.sqrt(2)))
 
 
-def _wilcoxon_signed_rank(x: List[float], y: List[float]) -> Tuple[float, float, int]:
+def _wilcoxon_signed_rank(x: list[float], y: list[float]) -> tuple[float, float, int]:
     """Wilcoxon signed-rank test (two-sided), normal approximation.
     Returns (z, p_approx, n_eff).
     """
@@ -145,7 +142,7 @@ def _wilcoxon_signed_rank(x: List[float], y: List[float]) -> Tuple[float, float,
     return z, p, n
 
 
-def write_stats_reports(rows: List[dict[str, object]], out_dir: Path) -> None:
+def write_stats_reports(rows: list[dict[str, object]], out_dir: Path) -> None:
     ensure_dir(out_dir)
     cost_map, time_map, algorithms = _collect_instances(rows)
 
@@ -159,7 +156,7 @@ def write_stats_reports(rows: List[dict[str, object]], out_dir: Path) -> None:
     avg_r_time, chi_time, F_time, N_time, _ = _friedman_stats(M_time, lower_is_better=True)
 
     # Save average ranks
-    def _save_avg_ranks(path: Path, avg_r: List[float], chi: float, F: float, N: int, k: int) -> None:
+    def _save_avg_ranks(path: Path, avg_r: list[float], chi: float, F: float, N: int, k: int) -> None:
         with path.open("w", encoding="utf-8", newline="") as f:
             f.write("algorithm,avg_rank\n")
             for alg, r in zip(algorithms, avg_r):
@@ -173,7 +170,7 @@ def write_stats_reports(rows: List[dict[str, object]], out_dir: Path) -> None:
     _save_avg_ranks(out_dir / "stats_friedman_time.csv", avg_r_time, chi_time, F_time, N_time, k)
 
     # Pairwise Wilcoxon
-    def _extract_metric(M: List[List[float]], algs: List[str]) -> Dict[str, List[float]]:
+    def _extract_metric(M: list[list[float]], algs: list[str]) -> dict[str, list[float]]:
         res = {}
         for j, a in enumerate(algs):
             res[a] = [row[j] for row in M]
@@ -182,7 +179,7 @@ def write_stats_reports(rows: List[dict[str, object]], out_dir: Path) -> None:
     cost_by_alg = _extract_metric(M_cost, algorithms)
     time_by_alg = _extract_metric(M_time, algorithms)
 
-    def _save_wilcoxon(path: Path, data: Dict[str, List[float]]) -> None:
+    def _save_wilcoxon(path: Path, data: dict[str, list[float]]) -> None:
         algs = list(data.keys())
         with path.open("w", encoding="utf-8", newline="") as f:
             f.write("alg_a,alg_b,z,p_approx,n_instances\n")
@@ -198,4 +195,3 @@ def write_stats_reports(rows: List[dict[str, object]], out_dir: Path) -> None:
 
     _save_wilcoxon(out_dir / "stats_wilcoxon_cost.csv", cost_by_alg)
     _save_wilcoxon(out_dir / "stats_wilcoxon_time.csv", time_by_alg)
-

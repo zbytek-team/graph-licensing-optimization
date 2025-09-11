@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 from pathlib import Path
 
 from .commons import ensure_dir
@@ -78,4 +77,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

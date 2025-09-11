@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,14 +9,13 @@ import numpy as np
 from .commons import GENERATE_PDF, ensure_dir
 
 
-def plot_ilp_boundary(rows: List[dict[str, Any]], out_dir: Path) -> None:
-    """Heatmap timeout rate for ILP over (n, density) bins + outcome scatter.
-    """
+def plot_ilp_boundary(rows: list[dict[str, Any]], out_dir: Path) -> None:
+    """Heatmap timeout rate for ILP over (n, density) bins + outcome scatter."""
     ensure_dir(out_dir)
     ilp = [r for r in rows if str(r.get("algorithm", "")) in {"ILPSolver", "ilp"}]
     if not ilp:
         return
-    data: List[Tuple[int, float, bool]] = []
+    data: list[tuple[int, float, bool]] = []
     for r in ilp:
         try:
             n = int(float(r.get("n_nodes", 0)))
@@ -25,7 +23,7 @@ def plot_ilp_boundary(rows: List[dict[str, Any]], out_dir: Path) -> None:
         except Exception:
             continue
         note = str(r.get("notes", ""))
-        timeout = (note == "timeout")
+        timeout = note == "timeout"
         data.append((n, d, timeout))
     if not data:
         return
@@ -81,4 +79,3 @@ def plot_ilp_boundary(rows: List[dict[str, Any]], out_dir: Path) -> None:
     if GENERATE_PDF:
         plt.savefig(out2.with_suffix(".pdf"))
     plt.close()
-

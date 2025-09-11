@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import csv
+import math
 from collections import defaultdict
 from pathlib import Path
 from statistics import mean, pstdev, stdev
-import math
 from typing import Any
 
 from .commons import ensure_dir
@@ -24,8 +24,8 @@ def write_aggregates(rows: list[dict[str, Any]], out_path: Path) -> None:
         times = []
         for r in rs:
             try:
-                c = float(r["total_cost"]) 
-                t = float(r["time_ms"]) 
+                c = float(r["total_cost"])
+                t = float(r["time_ms"])
                 if math.isfinite(c):
                     costs.append(c)
                 if math.isfinite(t):

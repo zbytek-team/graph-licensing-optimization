@@ -4,7 +4,6 @@ import argparse
 import csv
 import re
 from pathlib import Path
-from typing import Iterable
 
 from .commons import ensure_dir, load_rows
 
@@ -67,7 +66,7 @@ def merge_runs(out_run: str, runs: list[str], out_csv_path: Path | None = None) 
     try:
         import pandas as pd  # type: ignore
 
-        xlsx_path = (combined_csv.parent / f"{combined_csv.stem}.xlsx")
+        xlsx_path = combined_csv.parent / f"{combined_csv.stem}.xlsx"
         with pd.ExcelWriter(xlsx_path, engine="xlsxwriter") as writer:  # type: ignore[call-arg]
             # Individual sheets
             for r, rs in per_run.items():

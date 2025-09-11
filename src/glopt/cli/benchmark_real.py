@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import multiprocessing as mp
-from datetime import datetime
 from pathlib import Path
 from time import perf_counter
 from typing import Any
@@ -9,26 +8,16 @@ from typing import Any
 import networkx as nx
 
 from glopt.algorithms.greedy import GreedyAlgorithm
+from glopt.cli.common import build_run_id, print_banner, print_footer
 from glopt.core import instantiate_algorithms
 from glopt.core.solution_validator import SolutionValidator
 from glopt.io import ensure_dir
 from glopt.io.data_loader import RealWorldDataLoader
 from glopt.license_config import LicenseConfigFactory
-from glopt.logging_config import get_logger, log_run_banner, log_run_footer, setup_logging
 
-# ==============================================
-# Configuration (no CLI/env)
-# ==============================================
 RUN_ID: str | None = None
 ALGORITHM_CLASSES: list[str] = [
-    "ILPSolver",  # temporarily disabled for real benchmark runs
-    # "GreedyAlgorithm",
-    # "RandomizedAlgorithm",
-    # "DominatingSetAlgorithm",
-    # "AntColonyOptimization",
-    # "SimulatedAnnealing",
-    # "TabuSearch",
-    # "GeneticAlgorithm",
+    "ILPSolver",
 ]
 LICENSE_CONFIG_NAMES: list[str] = [
     "duolingo_super",
@@ -36,10 +25,10 @@ LICENSE_CONFIG_NAMES: list[str] = [
 ]
 DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
 LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
-LICENSE_CONFIG_NAMES.extend(["duolingo_p_2_0", "duolingo_p_3_0"])  # cap=6 variants
+LICENSE_CONFIG_NAMES.extend(["duolingo_p_2_0", "duolingo_p_3_0"])
 
 TIMEOUT_SECONDS: float = 60.0
-REPEATS_PER_GRAPH: int = 2  # repeated runs per (ego, algo, license)
+REPEATS_PER_GRAPH: int = 2
 
 
 def _json_dumps(obj: Any) -> str:
@@ -51,14 +40,12 @@ def _json_dumps(obj: Any) -> str:
         return "{}"
 
 
-def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: int, conn) -> None:  # type: ignore[no-redef]
+def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: int, conn) -> None:
     try:
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
         lts = LicenseConfigFactory.get_config(license_config)
-        # No soft deadline: rely solely on hard kill at TIMEOUT_SECONDS
         kwargs: dict[str, Any] = {"seed": seed}
-        # Warm-start for metaheuristics
         warm_names = {
             "GeneticAlgorithm",
             "SimulatedAnnealing",
@@ -87,11 +74,9 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
         else:
             median_sz = 0.0
             p90 = 0.0
-        # License counts for analysis
         from collections import Counter as _Counter
 
         lic_counts = _Counter(g.license_type.name for g in sol.groups)
-        # Algo params
         try:
             params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v | (int, float, str, bool))})
         except Exception:
@@ -111,7 +96,7 @@ def _worker_solve(algo_name: str, graph: nx.Graph, license_config: str, seed: in
             "algo_params_json": params_json,
             "warm_start": bool(algo_name in warm_names),
         }
-    except Exception as e:  # defensive: return error to parent instead of crashing worker
+    except Exception as e:
         res = {"success": False, "error": str(e)}
     try:
         conn.send(res)
@@ -178,26 +163,22 @@ def _run_one(algo: str, graph: nx.Graph, lic: str, seed: int) -> tuple[dict[str,
 
 
 def main() -> None:
-    run_id = (RUN_ID or datetime.now().strftime("%Y%m%d_%H%M%S")) + "_benchmark_real"
+    run_id = build_run_id("benchmark_real", RUN_ID)
     base = Path("runs") / run_id
     csv_dir = base / "csv"
     ensure_dir(str(csv_dir))
     out_path = csv_dir / f"{run_id}.csv"
 
-    # Header aligned with benchmark.py
     from time import perf_counter as _pc
 
-    setup_logging(run_id=run_id)
-    logger = get_logger(__name__)
     _t0 = _pc()
-    log_run_banner(
-        logger,
-        title="glopt benchmark",
-        params={
+    print_banner(
+        "glopt benchmark",
+        {
             "run_id": run_id,
             "graphs": "facebook_ego",
-            "repeats/graph": REPEATS_PER_GRAPH,
-            "timeout limit": f"{TIMEOUT_SECONDS:.0f}s",
+            "repeats_per_graph": REPEATS_PER_GRAPH,
+            "timeout": f"{TIMEOUT_SECONDS:.0f}s",
         },
     )
 
@@ -207,12 +188,10 @@ def main() -> None:
 
     algorithm_classes = list(ALGORITHM_CLASSES)
     licenses = list(LICENSE_CONFIG_NAMES)
+    print(f"licenses: {', '.join(licenses)}")
+    print(f"algorithms: {', '.join(algorithm_classes)}")
+    print(f"facebook ego networks: {len(ego_ids)}")
 
-    logger.info("licenses: %s", ", ".join(licenses))
-    logger.info("algorithms: %s", ", ".join(algorithm_classes))
-    logger.info("facebook ego networks: %d", len(ego_ids))
-
-    # Write CSV header
     import csv as _csv
 
     with out_path.open("w", encoding="utf-8", newline="") as f:
@@ -251,10 +230,9 @@ def main() -> None:
         )
         w.writeheader()
 
-        # Align outer loop order and prints with benchmark.py: all licenses × all algorithms
         for lic_idx, lic in enumerate(licenses):
             for algo in algorithm_classes:
-                logger.info("-> %s / %s", lic, algo)
+                print(f"-> {lic} / {algo}")
                 for ego_id in ego_ids:
                     G = networks[ego_id]
                     n_nodes = G.number_of_nodes()
@@ -292,20 +270,11 @@ def main() -> None:
                             status = "TIMEOUT"
                         elif row.get("notes") == "error":
                             status = "ERROR"
-                        logger.info(
-                            "%-12s ego=%8s rep=%d cost=%.2f time_ms=%.2f valid=%s %s",
-                            "facebook_ego",
-                            str(ego_id),
-                            rep,
-                            row["total_cost"],
-                            row["time_ms"],
-                            row["valid"],
-                            status,
-                        )
+                        print(f"{'facebook_ego':12s} ego={str(ego_id):8s} rep={rep} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}")
 
     if out_path.exists():
         duration_s = _pc() - _t0
-        log_run_footer(logger, {"csv": out_path, "elapsed_sec": f"{duration_s:.2f}"})
+        print_footer({"csv": out_path, "elapsed_sec": f"{duration_s:.2f}"})
 
 
 if __name__ == "__main__":

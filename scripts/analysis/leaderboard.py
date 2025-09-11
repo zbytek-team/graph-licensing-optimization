@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import matplotlib.pyplot as plt
 
@@ -17,12 +17,12 @@ def _bin_label(n: int) -> str:
     return "n>1000"
 
 
-def _winners_by_bin(rows: List[dict[str, Any]], metric: str) -> Dict[Tuple[str, str], Dict[str, int]]:
+def _winners_by_bin(rows: list[dict[str, Any]], metric: str) -> dict[tuple[str, str], dict[str, int]]:
     """Return {(bin, graph): {algorithm: wins}} using min metric per instance.
     Instances are (license_config, graph, n_nodes); winner is alg with lowest mean metric.
     """
     # aggregate per (alg, lic, graph, n) mean metric
-    acc: Dict[Tuple[str, str, str, int, str], List[float]] = defaultdict(list)
+    acc: dict[tuple[str, str, str, int, str], list[float]] = defaultdict(list)
     for r in rows:
         try:
             alg = str(r["algorithm"]) if r.get("algorithm") else ""
@@ -35,12 +35,12 @@ def _winners_by_bin(rows: List[dict[str, Any]], metric: str) -> Dict[Tuple[str, 
         if not alg or not g or n <= 0:
             continue
         acc[(alg, lic, g, n, metric)].append(v)
-    means: Dict[Tuple[str, str, str, int], Dict[str, float]] = defaultdict(dict)
+    means: dict[tuple[str, str, str, int], dict[str, float]] = defaultdict(dict)
     for (alg, lic, g, n, _m), vs in acc.items():
         means[(lic, g, n)][alg] = sum(vs) / len(vs)
 
     # choose winner per (lic,g,n)
-    wins: Dict[Tuple[str, str], Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    wins: dict[tuple[str, str], dict[str, int]] = defaultdict(lambda: defaultdict(int))
     for (lic, g, n), alg2val in means.items():
         if not alg2val:
             continue
@@ -50,13 +50,13 @@ def _winners_by_bin(rows: List[dict[str, Any]], metric: str) -> Dict[Tuple[str, 
     return wins
 
 
-def write_leaderboards(rows: List[dict[str, Any]], out_dir: Path) -> None:
+def write_leaderboards(rows: list[dict[str, Any]], out_dir: Path) -> None:
     ensure_dir(out_dir)
     for metric, fname in [("cost_per_node", "leaderboard_cost"), ("time_ms", "leaderboard_time")]:
         wins = _winners_by_bin(rows, metric)
         # write CSV and bar plots (overall across graphs)
         # accumulate overall wins per algorithm across bins
-        overall: Dict[str, int] = defaultdict(int)
+        overall: dict[str, int] = defaultdict(int)
         out_csv = out_dir / f"{fname}.csv"
         with out_csv.open("w", encoding="utf-8", newline="") as f:
             f.write("bin,graph,algorithm,wins\n")
@@ -81,4 +81,3 @@ def write_leaderboards(rows: List[dict[str, Any]], out_dir: Path) -> None:
             if GENERATE_PDF:
                 plt.savefig(out_dir / f"{fname}.pdf")
             plt.close()
-

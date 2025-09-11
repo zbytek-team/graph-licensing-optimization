@@ -1,8 +1,3 @@
-from .utils.runtime import ensure_python_313
-
-# Enforce Python 3.13 at import-time (clear error early)
-ensure_python_313()
-
 from . import algorithms
 from .core import (
     Algorithm,
@@ -23,6 +18,10 @@ from .io.data_loader import RealWorldDataLoader
 from .io.graph_generator import GraphGeneratorFactory
 from .io.graph_visualizer import GraphVisualizer
 from .license_config import LicenseConfigFactory
+from .utils.runtime import ensure_python_313
+
+# Enforce Python 3.13 at import-time
+ensure_python_313()
 
 __all__ = [
     "Algorithm",
