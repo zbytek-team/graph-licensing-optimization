@@ -4,19 +4,19 @@ import argparse
 from pathlib import Path
 
 from .commons import ensure_dir, load_rows
+from .ilp_boundary import plot_ilp_boundary
+from .leaderboard import write_leaderboards
+from .plots_compare_configs import plot_compare_configs
 from .plots_cost_time import plot_cost_vs_n, plot_time_vs_n
 from .plots_density import plot_density_vs_time
 from .plots_heatmap import plot_cost_heatmap
 from .plots_license_mix import plot_license_mix
 from .plots_pareto import plot_pareto
 from .plots_profiles import plot_performance_profiles
-from .tables_aggregates import write_aggregates
-from .summary_pandas import write_pandas_summaries
 from .stats_tests import write_stats_reports
+from .summary_pandas import write_pandas_summaries
+from .tables_aggregates import write_aggregates
 from .time_scaling import write_time_scaling
-from .leaderboard import write_leaderboards
-from .ilp_boundary import plot_ilp_boundary
-from .plots_compare_configs import plot_compare_configs
 
 
 def analyze_static(csv_path: Path, out_dir: Path) -> None:

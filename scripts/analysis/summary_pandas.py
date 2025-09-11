@@ -7,8 +7,8 @@ from .commons import ensure_dir
 
 def write_pandas_summaries(csv_path: Path, out_dir: Path) -> None:
     try:
-        import pandas as pd  # type: ignore
         import numpy as np
+        import pandas as pd  # type: ignore
     except Exception:  # pandas optional
         return
 
@@ -42,4 +42,3 @@ def write_pandas_summaries(csv_path: Path, out_dir: Path) -> None:
     if "license_config" in df.columns:
         piv = agg.pivot_table(index=["algorithm", "graph"], columns="license_config", values="cost_per_node_mean")
         piv.to_csv(out_dir / "pivot_cost_per_node.csv")
-

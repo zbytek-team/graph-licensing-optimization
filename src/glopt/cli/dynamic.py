@@ -4,28 +4,20 @@ import json
 import multiprocessing as mp
 import pickle
 from collections import Counter
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import networkx as nx
 
-
 from glopt.algorithms.greedy import GreedyAlgorithm
+from glopt.cli.common import build_run_id, print_banner, print_footer
 from glopt.core import LicenseGroup, Solution, SolutionBuilder, generate_graph, instantiate_algorithms
 from glopt.core.solution_validator import SolutionValidator
 from glopt.dynamic_simulator import DynamicNetworkSimulator, MutationParams
 from glopt.io import ensure_dir
 from glopt.license_config import LicenseConfigFactory
-from glopt.logging_config import get_logger, log_run_banner, log_run_footer, setup_logging
-
-# ==============================================
-# Configuration (no CLI/env)
-# ==============================================
 
 RUN_ID: str | None = None
-
-# Graph families and defaults (same as benchmark.py)
 GRAPH_NAMES: list[str] = ["random", "small_world", "scale_free"]
 GRAPH_DEFAULTS: dict[str, dict[str, Any]] = {
     "random": {"p": 0.10, "seed": 42},
@@ -34,18 +26,10 @@ GRAPH_DEFAULTS: dict[str, dict[str, Any]] = {
 }
 
 SIZES: list[int] = [40, 80, 160, 320, 640, 1280, 2560, 5120, 10000]
-# SIZES = [20]
-
-# Steps replace samples per size
 NUM_STEPS: int = 50
-
-# Repeats per graph snapshot (per step)
 REPEATS_PER_GRAPH: int = 1
-
-# Per-run hard cap
 TIMEOUT_SECONDS: float = 60.0
 
-# License configurations and algorithms
 LICENSE_CONFIG_NAMES: list[str] = [
     "duolingo_super",
     "roman_domination",
@@ -65,10 +49,7 @@ ALGORITHM_CLASSES: list[str] = [
     "GeneticAlgorithm",
 ]
 
-# Graph cache directory (same as benchmark)
 GRAPH_CACHE_DIR: str = "data/graphs_cache"
-
-# Dynamic mutation parameters (light to moderate churn)
 ADD_NODES_PROB: float = 0.06
 REMOVE_NODES_PROB: float = 0.04
 ADD_EDGES_PROB: float = 0.18
@@ -114,7 +95,7 @@ def _write_row(csv_path: Path, row: dict[str, object]) -> None:
 
 def _cache_paths(cache_dir: str, gname: str, n: int) -> tuple[Path, Path]:
     base = Path(cache_dir) / gname / f"n{n:04d}"
-    gpath = base / "s0.gpickle"  # single base sample per (graph, n)
+    gpath = base / "s0.gpickle"
     mpath = gpath.with_suffix(".json")
     return gpath, mpath
 
@@ -139,11 +120,10 @@ def _ensure_cache(graphs: list[str], sizes: list[int]) -> None:
             with mpath.open("w", encoding="utf-8") as f:
                 json.dump(meta, f, ensure_ascii=False)
             created += 1
-    logger = get_logger(__name__)
     if created:
-        logger.info("graph cache: generated %d new base graphs under %s", created, GRAPH_CACHE_DIR)
+        print(f"graph cache: generated {created} new base graphs under {GRAPH_CACHE_DIR}")
     else:
-        logger.info("graph cache: up-to-date at %s", GRAPH_CACHE_DIR)
+        print(f"graph cache: up-to-date at {GRAPH_CACHE_DIR}")
 
 
 def _load_cached_graph(gname: str, n: int) -> tuple[nx.Graph, dict[str, Any]]:
@@ -170,7 +150,7 @@ def _worker_solve(
     conn,
     initial_solution_bytes: bytes | None = None,
     return_solution: bool = False,
-) -> None:  # type: ignore[no-redef]
+) -> None:
     try:
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
@@ -249,7 +229,6 @@ def _worker_solve(
 
 def _run_one(algo_name: str, graph: nx.Graph, license_config: str, seed: int) -> tuple[dict[str, object], bool]:
     parent_conn, child_conn = mp.Pipe(duplex=False)
-    # NOTE: this wrapper now requires explicit warm flag; kept for backward compatibility by defaulting to cold here.
     p = mp.Process(target=_worker_solve, args=(algo_name, graph, license_config, seed, False, child_conn))
     p.start()
     timed_out = False
@@ -310,31 +289,28 @@ def _run_one(algo_name: str, graph: nx.Graph, license_config: str, seed: int) ->
 
 
 def main() -> None:
-    run_id = (RUN_ID or datetime.now().strftime("%Y%m%d_%H%M%S")) + "_dynamic"
+    run_id = build_run_id("dynamic", RUN_ID)
     base = Path("runs") / run_id
     csv_dir = base / "csv"
     ensure_dir(str(csv_dir))
     out_path = csv_dir / f"{run_id}.csv"
     from time import perf_counter as _pc
 
-    setup_logging(run_id=run_id)
-    logger = get_logger(__name__)
     _t0 = _pc()
-    log_run_banner(
-        logger,
-        title="glopt dynamic",
-        params={
+    print_banner(
+        "glopt dynamic",
+        {
             "run_id": run_id,
             "graphs": ", ".join(GRAPH_NAMES),
             "sizes": f"{SIZES[0]}..{SIZES[-1]} ({len(SIZES)} points)",
-            "steps/size": NUM_STEPS,
-            "repeats/step": REPEATS_PER_GRAPH,
+            "steps_per_size": NUM_STEPS,
+            "repeats_per_step": REPEATS_PER_GRAPH,
             "licenses": ", ".join(LICENSE_CONFIG_NAMES),
             "algorithms": ", ".join(ALGORITHM_CLASSES),
-            "timeout limit": f"{TIMEOUT_SECONDS:.0f}s (kills run and stops larger sizes)",
+            "timeout": f"{TIMEOUT_SECONDS:.0f}s",
         },
     )
-    logger.info("warming up graph cache …")
+    print("warming up graph cache …")
     _ensure_cache(GRAPH_NAMES, SIZES)
 
     def _project_solution(prev: Solution, graph: nx.Graph, lic_name: str) -> Solution:
@@ -395,6 +371,7 @@ def main() -> None:
 
     for lic_name in LICENSE_CONFIG_NAMES:
         for algo_name in ALGORITHM_CLASSES:
+            print(f"-> {lic_name} / {algo_name}")
             warm_variants = [False, True] if algo_name in warmable else [False]
             for gname in GRAPH_NAMES:
                 stop_sizes = False
@@ -402,7 +379,6 @@ def main() -> None:
                     if stop_sizes:
                         break
 
-                    # Load base graph and pre-generate steps of mutations
                     G0, params = _load_cached_graph(gname, n)
                     sim = DynamicNetworkSimulator(
                         mutation_params=MutationParams(
@@ -422,7 +398,7 @@ def main() -> None:
                     mutations_per_step: list[list[str]] = [[]]
                     g_curr = G0.copy()
                     for _ in range(NUM_STEPS):
-                        g_curr, muts = sim._apply_mutations(g_curr)  # type: ignore[attr-defined]
+                        g_curr, muts = sim._apply_mutations(g_curr)
                         graphs.append(g_curr.copy())
                         mutations_per_step.append(muts)
 
@@ -433,7 +409,6 @@ def main() -> None:
                         muts = "; ".join(mutations_per_step[step])
                         for rep in range(REPEATS_PER_GRAPH):
                             for warm_flag in warm_variants:
-                                # Run worker with explicit warm/cold selection
                                 parent_conn, child_conn = mp.Pipe(duplex=False)
                                 init_bytes = None
                                 if warm_flag and prev_solution_warm is not None:
@@ -509,7 +484,6 @@ def main() -> None:
                                         "notes": "timeout",
                                     }
                                 is_over = timed_out or (result.get("notes") == "error")
-                            # Step-specific metrics
                             n_nodes = Gs.number_of_nodes()
                             n_edges = Gs.number_of_edges()
                             density = (2.0 * n_edges) / (n_nodes * (n_nodes - 1)) if n_nodes > 1 else 0.0
@@ -534,7 +508,6 @@ def main() -> None:
                                 "components": int(components),
                                 "image_path": "",
                                 **result,
-                                # dynamic-specific
                                 "step": int(step),
                                 "mutation_params_json": _json_dumps(sim.mutation_params.__dict__),
                                 "mutations": muts,
@@ -546,35 +519,19 @@ def main() -> None:
                             elif row.get("notes") == "error":
                                 status = "ERROR"
                             warm_lbl = "warm" if row.get("warm_start") else "cold"
-                            logger.info(
-                                "%-12s n=%4d step=%02d rep=%d %4s cost=%.2f time_ms=%.2f valid=%s %s",
-                                gname,
-                                n,
-                                step,
-                                rep,
-                                warm_lbl,
-                                row["total_cost"],
-                                row["time_ms"],
-                                row["valid"],
-                                status,
-                            )
+                            print(f"{gname:12s} n={n:4d} step={step:02d} rep={rep} {warm_lbl:4s} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}")
                             if is_over:
                                 over_here = True
                         if over_here:
                             break
                     if over_here:
-                        logger.warning(
-                            "%-12s n=%4d TIMEOUT — stopping larger sizes for %s on this graph",
-                            gname,
-                            n,
-                            algo_name,
-                        )
+                        print(f"{gname:12s} n={n:4d} TIMEOUT stopping larger sizes for {algo_name}")
                         stop_sizes = True
                         break
 
     if out_path.exists():
         duration_s = _pc() - _t0
-        log_run_footer(logger, {"csv": out_path, "elapsed_sec": f"{duration_s:.2f}"})
+        print_footer({"csv": out_path, "elapsed_sec": f"{duration_s:.2f}"})
 
 
 if __name__ == "__main__":

@@ -3,12 +3,11 @@ from __future__ import annotations
 import math
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 from .commons import ensure_dir
 
 
-def _linreg(xs: List[float], ys: List[float]) -> Tuple[float, float, float]:
+def _linreg(xs: list[float], ys: list[float]) -> tuple[float, float, float]:
     """Return (slope, intercept, r2) for simple linear regression.
     Assumes len(xs) == len(ys) >= 2.
     """
@@ -17,7 +16,7 @@ def _linreg(xs: List[float], ys: List[float]) -> Tuple[float, float, float]:
     sy = sum(ys)
     sxx = sum(x * x for x in xs)
     sxy = sum(x * y for x, y in zip(xs, ys))
-    denom = (n * sxx - sx * sx)
+    denom = n * sxx - sx * sx
     if denom == 0:
         return float("nan"), float("nan"), float("nan")
     slope = (n * sxy - sx * sy) / denom
@@ -30,11 +29,11 @@ def _linreg(xs: List[float], ys: List[float]) -> Tuple[float, float, float]:
     return slope, intercept, r2
 
 
-def write_time_scaling(rows: List[dict[str, object]], out_dir: Path) -> None:
+def write_time_scaling(rows: list[dict[str, object]], out_dir: Path) -> None:
     """Fit time_ms ≈ a * n^b (log–log) for each (license, graph, algorithm)."""
     ensure_dir(out_dir)
     # Group per (license, graph, algorithm) and per n_nodes take mean time
-    acc: Dict[Tuple[str, str, str, int], List[float]] = defaultdict(list)
+    acc: dict[tuple[str, str, str, int], list[float]] = defaultdict(list)
     for r in rows:
         try:
             lic = str(r.get("license_config", ""))
@@ -49,7 +48,7 @@ def write_time_scaling(rows: List[dict[str, object]], out_dir: Path) -> None:
         acc[(lic, g, alg, n)].append(t)
 
     # Collapse to means per n
-    by_group: Dict[Tuple[str, str, str], Dict[int, float]] = defaultdict(dict)
+    by_group: dict[tuple[str, str, str], dict[int, float]] = defaultdict(dict)
     for (lic, g, alg, n), vs in acc.items():
         by_group[(lic, g, alg)][n] = sum(vs) / len(vs)
 
@@ -64,4 +63,3 @@ def write_time_scaling(rows: List[dict[str, object]], out_dir: Path) -> None:
             ys = [math.log(max(m[n], 1e-12), 10) for n in ns]
             b, a, r2 = _linreg(xs, ys)
             f.write(f"{lic},{g},{alg},{len(ns)},{b:.6f},{a:.6f},{r2:.6f}\n")
-

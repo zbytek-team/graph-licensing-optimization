@@ -2,30 +2,24 @@ from __future__ import annotations
 
 import json
 import multiprocessing as mp
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import networkx as nx
 
-
 from glopt.algorithms.greedy import GreedyAlgorithm
+from glopt.cli.common import build_run_id, print_banner, print_footer
 from glopt.core import LicenseGroup, Solution, SolutionBuilder, instantiate_algorithms
 from glopt.core.solution_validator import SolutionValidator
 from glopt.dynamic_simulator import DynamicNetworkSimulator, MutationParams
 from glopt.io import ensure_dir
 from glopt.io.data_loader import RealWorldDataLoader
 from glopt.license_config import LicenseConfigFactory
-from glopt.logging_config import get_logger, log_run_banner, log_run_footer, setup_logging
-
-# ==============================================
-# Configuration (no CLI/env)
-# ==============================================
 
 RUN_ID: str | None = None
 
 ALGORITHM_CLASSES: list[str] = [
-    "ILPSolver",  # exact (small graphs only)
+    "ILPSolver",
     "GreedyAlgorithm",
     "RandomizedAlgorithm",
     "DominatingSetAlgorithm",
@@ -37,18 +31,16 @@ ALGORITHM_CLASSES: list[str] = [
 
 LICENSE_CONFIG_NAMES: list[str] = [
     "duolingo_super",
+    "spotify",
     "roman_domination",
 ]
-DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
-LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
-LICENSE_CONFIG_NAMES.extend(["duolingo_p_2_0", "duolingo_p_3_0"])  # cap=6 variants
+
 
 TIMEOUT_SECONDS: float = 60.0
 REPEATS_PER_GRAPH: int = 1
-NUM_STEPS: int = 6
+NUM_STEPS: int = 100
 RANDOM_SEED: int = 123
 
-# Dynamic mutation parameters for real graphs (scaled later)
 ADD_NODES_PROB: float = 0.05
 REMOVE_NODES_PROB: float = 0.03
 ADD_EDGES_PROB: float = 0.15
@@ -71,7 +63,7 @@ def _worker_solve(
     conn,
     initial_solution_bytes: bytes | None = None,
     return_solution: bool = False,
-) -> None:  # type: ignore[no-redef]
+) -> None:
     try:
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
@@ -137,7 +129,7 @@ def _worker_solve(
                 res["solution_pickle"] = _p.dumps(sol, protocol=_p.HIGHEST_PROTOCOL)
             except Exception:
                 pass
-    except Exception as e:  # defensive: return error to parent instead of crashing worker
+    except Exception as e:
         res = {"success": False, "error": str(e)}
     try:
         conn.send(res)
@@ -215,7 +207,7 @@ def _run_one(algo: str, graph: nx.Graph, lic: str, seed: int, warm: bool, init_b
 
 
 def main() -> None:
-    run_id = (RUN_ID or datetime.now().strftime("%Y%m%d_%H%M%S")) + "_dynamic_real"
+    run_id = build_run_id("dynamic_real", RUN_ID)
     base = Path("runs") / run_id
     csv_dir = base / "csv"
     ensure_dir(str(csv_dir))
@@ -223,20 +215,17 @@ def main() -> None:
 
     from time import perf_counter as _pc
 
-    setup_logging(run_id=run_id)
-    logger = get_logger(__name__)
     _t0 = _pc()
-    log_run_banner(
-        logger,
-        title="glopt dynamic",
-        params={
+    print_banner(
+        "glopt dynamic",
+        {
             "run_id": run_id,
             "graphs": "facebook_ego",
-            "steps/ego": NUM_STEPS,
-            "repeats/step": REPEATS_PER_GRAPH,
+            "steps_per_ego": NUM_STEPS,
+            "repeats_per_step": REPEATS_PER_GRAPH,
             "licenses": ", ".join(LICENSE_CONFIG_NAMES),
             "algorithms": ", ".join(ALGORITHM_CLASSES),
-            "timeout limit": f"{TIMEOUT_SECONDS:.0f}s",
+            "timeout": f"{TIMEOUT_SECONDS:.0f}s",
         },
     )
 
@@ -244,7 +233,6 @@ def main() -> None:
     networks = loader.load_all_facebook_networks()
     ego_ids = sorted(networks.keys())
 
-    # Write CSV header
     import csv as _csv
 
     with out_path.open("w", encoding="utf-8", newline="") as f:
@@ -279,7 +267,6 @@ def main() -> None:
                 "group_size_p90",
                 "image_path",
                 "notes",
-                # dynamic
                 "step",
                 "mutation_params_json",
                 "mutations",
@@ -290,11 +277,10 @@ def main() -> None:
         warmable = {"GeneticAlgorithm", "SimulatedAnnealing", "TabuSearch", "AntColonyOptimization"}
         for lic in LICENSE_CONFIG_NAMES:
             for algo in ALGORITHM_CLASSES:
+                print(f"-> {lic} / {algo}")
                 warm_variants = [False, True] if algo in warmable else [False]
-                logger.info("-> %s / %s", lic, algo)
                 for ego_id in ego_ids:
                     G0 = networks[ego_id]
-                    # Scale mutation params to graph size
                     N = G0.number_of_nodes() or 1
                     E0 = G0.number_of_edges() or N
                     mut_params = MutationParams(
@@ -313,13 +299,14 @@ def main() -> None:
                     mutations_per_step: list[list[str]] = [[]]
                     g_curr = G0.copy()
                     for _ in range(NUM_STEPS):
-                        g_curr, muts = sim._apply_mutations(g_curr)  # type: ignore[attr-defined]
+                        g_curr, muts = sim._apply_mutations(g_curr)
                         graphs.append(g_curr.copy())
                         mutations_per_step.append(muts)
 
                     stop_steps = False
                     prev_solution_warm: Solution | None = None
                     for step in range(NUM_STEPS + 1):
+                        print(f"== graph {str(ego_id)} step {step} / {NUM_STEPS} ==")
                         Gs = graphs[step]
                         muts = "; ".join(mutations_per_step[step])
                         n_nodes = Gs.number_of_nodes()
@@ -330,13 +317,14 @@ def main() -> None:
                         components = nx.number_connected_components(Gs)
 
                         for rep in range(REPEATS_PER_GRAPH):
+                            print(f"-- license {lic} algo {algo} rep {rep} --")
                             for warm_flag in warm_variants:
                                 algo_seed = 12345 + step * 1000 + rep
                                 init_bytes = None
                                 if warm_flag and prev_solution_warm is not None:
-                                    # project prev solution to current graph
+
                                     lts = LicenseConfigFactory.get_config(lic)
-                                    # helper inline: project using degrees and capacity constraints
+
                                     nodes = set(Gs.nodes())
                                     used: set = set()
                                     new_groups: list[LicenseGroup] = []
@@ -391,7 +379,7 @@ def main() -> None:
                                     except Exception:
                                         init_bytes = None
                                 res, over = _run_one(algo, Gs, lic, seed=algo_seed, warm=warm_flag, init_bytes=init_bytes)
-                                # consume solution for chaining; remove before CSV write
+
                                 sol_bytes = res.pop("solution_pickle", None)
                                 if warm_flag and isinstance(sol_bytes, (bytes, bytearray)):
                                     try:
@@ -417,7 +405,6 @@ def main() -> None:
                                 "components": int(components),
                                 "image_path": "",
                                 **res,
-                                # dynamic
                                 "step": int(step),
                                 "mutation_params_json": _json_dumps(sim.mutation_params.__dict__),
                                 "mutations": muts,
@@ -430,18 +417,7 @@ def main() -> None:
                             elif row.get("notes") == "error":
                                 status = "ERROR"
                             warm_lbl = "warm" if row.get("warm_start") else "cold"
-                            logger.info(
-                                "%-12s ego=%8s step=%02d rep=%d %4s cost=%.2f time_ms=%.2f valid=%s %s",
-                                "facebook_ego",
-                                str(ego_id),
-                                step,
-                                rep,
-                                warm_lbl,
-                                row["total_cost"],
-                                row["time_ms"],
-                                row["valid"],
-                                status,
-                            )
+                            print(f"{'facebook_ego':12s} ego={str(ego_id):8s} step={step:02d} rep={rep} {warm_lbl:4s} cost={row['total_cost']:.2f} time_ms={row['time_ms']:.2f} valid={row['valid']} {status}")
                             if over:
                                 stop_steps = True
                                 break
@@ -450,7 +426,7 @@ def main() -> None:
 
     if out_path.exists():
         duration_s = _pc() - _t0
-        log_run_footer(logger, {"csv": out_path, "elapsed_sec": f"{duration_s:.2f}"})
+        print_footer({"csv": out_path, "elapsed_sec": f"{duration_s:.2f}"})
 
 
 if __name__ == "__main__":

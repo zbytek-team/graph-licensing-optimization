@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 from typing import Any
 
@@ -8,7 +7,6 @@ import networkx as nx
 class RealWorldDataLoader:
     def __init__(self, data_dir: str = "data") -> None:
         self.data_dir = Path(data_dir)
-        self.logger = logging.getLogger(__name__)
 
     def load_facebook_ego_network(self, ego_id: str) -> nx.Graph:
         facebook_dir = self.data_dir / "facebook"
@@ -39,8 +37,6 @@ class RealWorldDataLoader:
 
         self._load_circles(graph, facebook_dir, ego_id)
 
-        self.logger.info(f"Załadowano Facebook ego network {ego_id}: {len(graph.nodes())} węzłów, {len(graph.edges())} krawędzi")
-
         return graph
 
     def load_all_facebook_networks(self) -> dict[str, nx.Graph]:
@@ -59,9 +55,7 @@ class RealWorldDataLoader:
                 network = self.load_facebook_ego_network(ego_id)
                 networks[ego_id] = network
             except Exception:
-                self.logger.warning("Nie udało się załadować network %s", ego_id)
-
-        self.logger.info("Załadowano %d Facebook ego networks", len(networks))
+                pass
         return networks
 
     def get_facebook_network_stats(self) -> dict[str, dict[str, Any]]:

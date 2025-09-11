@@ -1,23 +1,22 @@
 from __future__ import annotations
 
+import csv
+import zipfile
 from pathlib import Path
 
 from .commons import ensure_dir, load_rows
-from glopt.logging_config import get_logger, setup_logging
-import csv
-import zipfile
 from .dynamic_warmcold import plot_dynamic_warm_cold
+from .plots_compare_configs import plot_compare_configs
 from .plots_cost_time import plot_cost_vs_n, plot_time_vs_n
 from .plots_density import plot_density_vs_time
 from .plots_heatmap import plot_cost_heatmap
 from .plots_license_mix import plot_license_mix
 from .plots_pareto import plot_pareto
 from .plots_profiles import plot_performance_profiles
-from .tables_aggregates import write_aggregates
-from .summary_pandas import write_pandas_summaries
 from .stats_tests import write_stats_reports
+from .summary_pandas import write_pandas_summaries
+from .tables_aggregates import write_aggregates
 from .time_scaling import write_time_scaling
-from .plots_compare_configs import plot_compare_configs
 
 
 def analyze_benchmark(csv_path: Path, rows: list[dict[str, object]]) -> None:
@@ -96,15 +95,13 @@ def analyze_dynamic(csv_path: Path, rows: list[dict[str, object]]) -> None:
 def main() -> None:
     runs_dir = Path("runs")
     csvs = sorted(runs_dir.glob("*/csv/*.csv"))
-    setup_logging(run_id=None)
-    logger = get_logger(__name__)
 
     if csvs:
         for csv_path in csvs:
             rows = load_rows(csv_path)
             run_dir = csv_path.parent.parent
             name = run_dir.name
-            logger.info("analyzing %s", csv_path)
+            print(f"analyzing {csv_path}")
             if name.endswith("_benchmark") or csv_path.stem.endswith("_benchmark") or name.endswith("_benchmark_real"):
                 analyze_benchmark(csv_path, rows)
             elif name.endswith("_dynamic") or name.endswith("_dynamic_real"):
@@ -112,26 +109,25 @@ def main() -> None:
             else:
                 analyze_benchmark(csv_path, rows)
     else:
-        logger.info("no CSVs under runs/*/csv — checking filtered_results.zip")
+        print("no CSVs under runs/*/csv — checking filtered_results.zip")
         zip_path = Path("filtered_results.zip")
         if zip_path.exists():
             with zipfile.ZipFile(zip_path) as z:
                 rows: list[dict[str, object]] = []
                 members = [n for n in z.namelist() if n.lower().endswith(".csv")]
                 if not members:
-                    logger.info("filtered_results.zip contains no CSV files")
+                    print("filtered_results.zip contains no CSV files")
                     return
                 # Read and enrich rows from all CSV files inside the zip
                 for name in members:
-                    logger.info("loading %s", name)
+                    print(f"loading {name}")
                     with z.open(name) as f:
-                        reader = csv.DictReader((line.decode("utf-8", "ignore") for line in f))
+                        reader = csv.DictReader(line.decode("utf-8", "ignore") for line in f)
                         for r in reader:
                             rows.append(r)
                 # Write a convenience combined CSV under runs/filtered_zip/csv
                 out_base = runs_dir / "filtered_zip"
                 csv_dir = out_base / "csv"
-                analysis_dir = out_base / "analysis"
                 ensure_dir(csv_dir)
                 out_csv = csv_dir / "filtered_combined.csv"
                 if rows:
@@ -139,12 +135,12 @@ def main() -> None:
                         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
                         w.writeheader()
                         w.writerows(rows)
-                    logger.info("wrote combined CSV: %s", out_csv)
+                    print(f"wrote combined CSV: {out_csv}")
                 # Enrich derived columns (density/avg_degree)
                 rows = load_rows(out_csv)
                 analyze_benchmark(out_csv, rows)
         else:
-            logger.info("no data to analyze")
+            print("no data to analyze")
 
 
 if __name__ == "__main__":
