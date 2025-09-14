@@ -8,13 +8,11 @@
 \end{description}
 
 \section{Powiązanie z naszym modelem}
-\noindent Model z rozdz.\,2 (\S\ref{sec:model-formal}) ogólnia RD poprzez ograniczenia pojemności grup i rodzinę licencji $\mathcal{L}$. W szczególności:
-\begin{theorem}
-Jeśli ograniczymy model do dwóch typów: indywidualnej ($c_1=1, m_1=k_1=1$) i „rzymskiej” ($c_g=2, m_g=1, k_g=\infty$), to minimalizacja $\cost(f)$ jest równoważna problemowi RD.
-\end{theorem}
-\begin{proof}[Szkic]
-Ustawienie $c_g=2$ odpowiada wadze $2$ w RD, a $c_1=1$ — wartości $1$. Brak ograniczeń pojemności ($k_g=\infty$) pozwala wierzchołkowi z etykietą 2 „pokrywać” dowolnie wielu sąsiadów $0$, a etykieta $1$ pokrywa jedynie siebie. Mapowanie etykiet $\{0,1,2\}$ na role (R/I/G) i odwrotnie jest obustronnie jednoznaczne i zachowuje koszt, więc optymalne rozwiązania pokrywają się.
-\end{proof}
+\noindent Model z rozdz.\,2 (\S\ref{sec:model-formal}) ogólnia RD poprzez ograniczenia pojemności grup i rodzinę licencji $\mathcal{L}$. W szczególności, prawdziwe jest następujące stwierdzenie (nieformalnie, w konwencji pracy):
+
+\paragraph{Twierdzenie (intuicyjnie).} Jeśli ograniczymy model do dwóch typów: indywidualnej ($c_1=1, m_1=k_1=1$) i „rzymskiej” ($c_g=2, m_g=1, k_g=\infty$), to minimalizacja $\cost(f)$ jest równoważna problemowi RD.
+
+\textit{Szkic uzasadnienia.} Ustawienie $c_g=2$ odpowiada wadze 2 w RD, a $c_1=1$ — wartości 1. Brak ograniczeń pojemności ($k_g=\infty$) pozwala wierzchołkowi z etykietą 2 „pokrywać” dowolnie wielu sąsiadów 0, a etykieta 1 pokrywa jedynie siebie. Mapowanie etykiet $\{0,1,2\}$ na role (R/I/G) i odwrotnie jest obustronnie jednoznaczne i zachowuje koszt, więc optymalne rozwiązania pokrywają się.
 
 \section{Złożoność i aproksymacje}
 \noindent MDS jest NP-zupełny i APX-trudny nawet na grafach o ograniczonym stopniu \cite{ALIMONTI2000123,chlebik2008}. Dominacja rzymska jest NP-trudna \cite{chambers2009} i dla wielu klas dziedziczy ograniczenia aproksymacyjne \cite{POUREIDI2023106363}. Ponieważ nasz model ogólnia RD (dodając limity pojemności), jest co najmniej tak trudny jak RD.
@@ -113,7 +111,7 @@ współużytkowników, co czyni problem znacznie bardziej złożonym.
 Należy zauważyć, że minimalny zbiór dominujący nie musi być jednoznaczny. Często bywa tak, że graf ma wiele różnych zbiorów dominujących o rozmiarze równym $\gamma(G)$ (jak na Rys.~\ref{fig:dominatingexample}, gdzie dwa różne zbiory czerwonych wierzchołków są minimalne). Problem znajdowania $\gamma(G)$ jest jednak dobrze określony i należy do klasy problemów NP-trudnych. Jego wersja decyzyjna sformułowana jest następująco: dla zadanego grafu $G$ oraz liczby całkowitej $k$ pytamy, czy istnieje zbiór dominujący o rozmiarze co najwyżej $k$. Jest to klasyczny problem NP-zupełny \cite{wikiDominatingSet, POUREIDI2023106363, PANDA2023337}. Oznacza to, że najprawdopodobniej (przy założeniu $P \neq NP$) nie istnieje algorytm wielomianowy rozwiązujący ten problem w ogólności. W praktyce stosuje się zatem algorytmy przybliżone lub ogranicza analizę do specjalnych klas grafów, dla których problem staje się prostszy. Znane są między innymi efektywne algorytmy zachłanne, które zapewniają rozwiązanie przybliżone z gwarantowanym współczynnikiem. Przykładem jest prosty algorytm zachłanny wybierający kolejno dominujące wierzchołki, osiągający przybliżenie rzędu $O(\ln n)$.
 
 
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \includegraphics[width=1\textwidth]{assets/dominating-set-example.png}
   \caption[Przykładowe zbiory dominujące]{%
@@ -170,7 +168,7 @@ Dla porównania można rozważyć inne strategie. Jeśli każdy wierzchołek kup
 Rysunek~\ref{fig:romandomatinonstarexamepl} ilustruje ten przykład i pokazuje, jak dominowanie rzymskie wskazuje optymalny wybór użytkownika pełniącego rolę lidera w centrum gwiazdy. W większych grafach kandydatów do roli właścicieli licencji grupowych jest więcej - ich odpowiedni dobór prowadzi już do właściwego problemu optymalizacji dominowania rzymskiego.
 
 
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \includegraphics[width=1\textwidth]{assets/stars.png}
   \caption{

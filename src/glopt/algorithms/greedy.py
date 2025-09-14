@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Any, cast
 
 import networkx as nx
@@ -14,7 +15,7 @@ class GreedyAlgorithm(Algorithm):
     def solve(
         self,
         graph: nx.Graph,
-        license_types: list[LicenseType],
+        license_types: Sequence[LicenseType],
         **_: Any,
     ) -> Solution:
         licenses = sorted(license_types, key=lambda lt: (-lt.max_capacity, lt.cost))
@@ -63,7 +64,7 @@ class GreedyAlgorithm(Algorithm):
         owner: Any,
         avail: set[Any],
         graph: nx.Graph,
-        licenses: list[LicenseType],
+        licenses: Sequence[LicenseType],
         degv: Any,
     ) -> LicenseGroup | None:
         ordered = sorted(avail, key=lambda n: int(degv[n]), reverse=True)
@@ -94,7 +95,7 @@ class GreedyAlgorithm(Algorithm):
         owner: Any,
         avail: set[Any],
         graph: nx.Graph,
-        license_types: list[LicenseType],
+        license_types: Sequence[LicenseType],
         degv: Any,
     ) -> LicenseGroup | None:
         for lt in sorted(license_types, key=lambda x: (x.cost, -x.max_capacity)):

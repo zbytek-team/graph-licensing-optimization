@@ -1,69 +1,54 @@
 \chapter{Podsumowanie i wnioski końcowe}
 
 \section{Podsumowanie pracy}
+Przedstawiono model optymalizacji kosztów licencji w sieciach społecznych oparty na reprezentacji grafowej. Zdefiniowano rodzinę typów licencji z ograniczeniami pojemności oraz sformalizowano funkcję celu minimalizującą łączny koszt. Wykazano powiązanie z problemem dominowania oraz dominowania rzymskiego w grafach, co motywuje zarówno trudność obliczeniową (NP-trudność), jak i dobór metod algorytmicznych.
 
-Celem niniejszej pracy magisterskiej było opracowanie oraz analiza grafowego modelu optymalizacji kosztów zakupu licencji oprogramowania (na przykładzie usług subskrypcyjnych takich jak \textit{Duolingo Super} czy \textit{Spotify Premium}) w sieciach społecznościowych. Problem ten przedstawiono jako rozszerzenie klasycznych problemów dominowania w grafach, w szczególności dominowania rzymskiego, uwzględniając dodatkowe ograniczenia dotyczące maksymalnej wielkości grup oraz specyficzne warunki kosztowe.
+Zaimplementowano i porównano zestaw metod: solver ILP dla małych instancji (punkt odniesienia), heurystyki konstrukcyjne (zachłanny, zbiór dominujący, losowy) oraz metaheurystyki (genetyczny, mrówkowy, tabu, symulowane wyżarzanie). Eksperymenty wykonano na grafach syntetycznych (losowe, małoświatowe, bezskalowe) i na sieciach rzeczywistych (ego-Facebook). Osobno przeanalizowano scenariusz dynamiczny, w którym graf ulega mutacjom w kolejnych krokach, oraz rozszerzenia modelu cenowego (warianty \texttt{roman\_p\_x}, konfiguracja \texttt{spotify}).
 
-W ramach realizacji celu pracy:
-
-\begin{itemize}
-    \item Zdefiniowano formalny model grafowy reprezentujący użytkowników oraz relacje społeczne, a także dokładne założenia dotyczące zakupu licencji indywidualnych oraz grupowych.
-    \item Dokonano szczegółowej analizy powiązań między analizowanym problemem a klasycznym oraz rzymskim dominowaniem, wskazując jednoznacznie na jego NP-trudność.
-    \item Opracowano oraz zaimplementowano szeroki wachlarz algorytmów rozwiązujących problem: od metod dokładnych (MIP) przez heurystyki zachłanne po metaheurystyki (algorytmy genetyczne, tabu search, symulowane wyżarzanie, ant colony optimization).
-    \item Przeprowadzono eksperymenty wykorzystujące zarówno dane rzeczywiste (\textit{SNAP, NetworkRepository}), jak i syntetyczne (\textit{Barabási-Albert, Erdős-Rényi, Watts-Strogatz}).
-    \item Przeprowadzono analizę dynamicznej wersji problemu, uwzględniając zmieniającą się strukturę sieci społecznościowej.
-    \item Przedstawiono rozszerzenia modelu obejmujące analizę różnych scenariuszy cenowych oraz wprowadzenie dodatkowych typów subskrypcji (np. Duo, Student).
-\end{itemize}
+Powstał zestaw narzędzi analitycznych do automatycznej agregacji wyników, generowania wykresów i tabel oraz eksportu figur do części tekstowej. Wyniki zebrano i omówiono w rozdziałach eksperymentalnych.
 
 \section{Najważniejsze wnioski}
-
-Najważniejsze wnioski płynące z przeprowadzonych badań to:
-
 \begin{itemize}
-    \item Problem optymalizacji zakupu licencji w grafach społecznościowych stanowi uogólnienie klasycznego problemu dominowania rzymskiego i jest silnie NP-trudny. Metody dokładne mają ograniczone zastosowanie do niewielkich instancji problemu.
-    \item Algorytmy zachłanne zapewniają szybkie i akceptowalne jakościowo rozwiązania dla dużych grafów, choć ustępują metaheurystykom pod względem jakości.
-    \item Metaheurystyki (w szczególności algorytmy genetyczne, tabu search, symulowane wyżarzanie i ACO) umożliwiają uzyskanie rozwiązań bliskich optymalnym przy rozsądnym czasie działania.
-    \item Dynamiczna wersja problemu jest istotna w praktycznych zastosowaniach, gdzie graf społecznościowy ulega zmianom; podejścia z warm-startem zapewniają dobrą stabilność i krótszy czas reakcji.
-    \item Wprowadzenie dodatkowych typów licencji (Duo, Student) oraz zmiany polityk cenowych istotnie wpływają na optymalne rozwiązania i pozwalają na obniżenie kosztów użytkowników oraz zwiększenie przychodów dostawców usług.
+  \item \textbf{Złożoność i punkt odniesienia.} Problem jest co najmniej tak trudny jak dominowanie rzymskie, co potwierdza potrzebę metod przybliżonych dla średnich i dużych instancji. ILP stanowi wiarygodny punkt odniesienia dla małych grafów; dla większych szybko przekracza limity czasu.
+  \item \textbf{Jakość vs czas.} Metaheurystyki osiągają najniższe koszty (zwłaszcza genetyczny i wyżarzanie), lecz są wolniejsze. Algorytm zachłanny jest dobrym kompromisem: bardzo szybki i tylko nieznacznie gorszy kosztowo w wielu przypadkach. Heurystyka zbioru dominującego plasuje się pomiędzy.
+  \item \textbf{Wpływ struktury grafu.} Grafy bezskalowe sprzyjają niższym kosztom (huby umożliwiają większe grupy). Grafy losowe i małoświatowe są trudniejsze kosztowo. Trendy te są spójne między scenariuszami statycznym i dynamicznym.
+  \item \textbf{Dynamika i warm start.} W scenariuszu dynamicznym umiarkowane mutacje prowadzą do stopniowego wzrostu trudności. Metaheurystyki z warm start utrzymują koszt stabilniej (a czasem poprawiają) względem przebiegów cold, co potwierdza korzyści z projekcji poprzedniego rozwiązania.
+  \item \textbf{Konfiguracje licencji.} Dla \texttt{roman\_p\_x} koszt na wierzchołek rośnie monotonicznie wraz z parametrem $p$. Konfiguracja \texttt{spotify} jest średnio droższa niż \texttt{duolingo\_super} ze względu na typ \emph{Duo} (dokładnie 2 osoby) i odmienną strukturę cen. Udział \emph{Family} sprzyja niższym kosztom, gdy struktura grafu pozwala na większe grupy.
 \end{itemize}
 
 \section{Wnioski praktyczne i rekomendacje}
-
-Z perspektywy praktycznej analizowany model może być użyteczny zarówno dla użytkowników platform subskrypcyjnych, jak i dostawców tych usług:
-
 \begin{itemize}
-    \item \textbf{Dla użytkowników:} Możliwość znaczącego zmniejszenia kosztów korzystania z usług poprzez efektywne organizowanie grup zakupowych zgodnie z analizowanymi strategiami optymalizacyjnymi.
-    \item \textbf{Dla dostawców usług:} Wykorzystanie wniosków z tej pracy do ustalania efektywnych polityk cenowych oraz wprowadzania nowych, dostosowanych do potrzeb użytkowników, planów subskrypcyjnych.
+  \item \textbf{Dobór metody do skali.} Dla bardzo małych sieci warto korzystać z ILP (kontrola jakości i walidacja). Dla średnich i dużych sieci zalecane są: zachłanny (gdy liczy się czas) lub metaheurystyki (gdy priorytetem jest koszt).
+  \item \textbf{Sieci ewoluujące.} W środowiskach dynamicznych rekomendowane są metaheurystyki z warm start (projekcja poprzedniego rozwiązania), które lepiej wykorzystują ciągłość w czasie. Dla szybkich reakcji operacyjnych można łączyć zachłanny jako inicjalizację z krótkim dogrzaniem metaheurystyki.
+  \item \textbf{Polityka licencji.} W sieciach z hubami opłaca się promować licencje rodzinne (większe grupy). Obecność planu \emph{Duo} zwiększa koszt średni — wskazane jest jego rozważne stosowanie (np. jako rezerwowy wariant tam, gdzie brakuje większych klastrów).
+  \item \textbf{Inżynieria uruchomień.} Warto stosować cache’owanie grafów, kontrolę limitów czasu i automatyczną analizę wyników. Dla porównań między konfiguracjami rekomendowana jest normalizacja przez koszt na wierzchołek.
 \end{itemize}
 
-\section{Ograniczenia i wyzwania przyszłych badań}
-
-Wśród głównych ograniczeń niniejszej pracy należy wymienić:
-
+\section{Ograniczenia pracy}
 \begin{itemize}
-    \item Ograniczone możliwości stosowania metod dokładnych (MIP) do grafów o dużych rozmiarach.
-    \item Trudność analizy globalnej optymalności uzyskiwanych rozwiązań ze względu na NP-trudność problemu.
-    \item Uproszczenia przyjęte w modelu społecznym (brak uwzględnienia bardziej złożonych dynamik społecznych i preferencji użytkowników).
+  \item Brak kompletnych wyników dla części \texttt{dynamic\_real}; analiza dynamiczna dotyczy obecnie grafów syntetycznych.
+  \item W rozszerzeniach nie uruchomiono modelu \texttt{tree} oraz nie wykonano wariantów \texttt{duolingo\_super} poza konfiguracją bazową.
+  \item Porównanie warm vs cold nie jest możliwe 1:1 dla tych samych metaheurystyk i kroków z uwagi na strukturę zebranych danych; wnioski dotyczą trajektorii oddzielnych.
+  \item Strojenie parametrów metaheurystyk było ograniczone; możliwe są dalsze zyski jakościowe po kalibracji.
 \end{itemize}
 
-Wyzwania przyszłych badań obejmują:
-
+\section{Kierunki dalszych badań}
 \begin{itemize}
-    \item Rozwój bardziej efektywnych metod metaheurystycznych oraz hybrydowych, umożliwiających uzyskiwanie jeszcze lepszych rozwiązań w krótszym czasie.
-    \item Uwzględnienie aspektów behawioralnych użytkowników (np. preferencje, chęć współdzielenia licencji).
-    \item Dalszą analizę dynamiczną z uwzględnieniem bardziej realistycznych scenariuszy zmian społecznych.
+  \item \textbf{Analiza dynamiczna na danych rzeczywistych.} Dokończenie \texttt{dynamic\_real}, ocena wpływu zaników i pojawień relacji w ego-sieciach.
+  \item \textbf{Algorytmy online i inkrementalne.} Projekt algorytmów z gwarancjami konkurencyjności dla napływających zmian (churn), szybka reoptymalizacja lokalna.
+  \item \textbf{Lepsze inicjalizacje i uczenie.} Uczenie modeli do przewidywania dobrych punktów startowych (meta-learning) oraz adaptacyjne strojenie parametrów metaheurystyk.
+  \item \textbf{Rozszerzenia modelu cenowego.} Nowe typy licencji i ograniczenia (np. limity współdzielenia per okres, różne cenniki warstwowe), koszty przełączeń między planami.
+  \item \textbf{Aspekty ekonomiczne i behawioralne.} Mechanizmy zachęt i stabilność koalicji, wymagania zgodności/regulacyjne, ograniczenia prywatności i polityki współdzielenia.
+  \item \textbf{Granice teoretyczne.} Analiza aproksymacyjna i dolne ograniczenia dla uogólnionych wariantów (z pojemnościami), charakterystyka trudnych klas instancji.
 \end{itemize}
 
-\section{Możliwości dalszego rozwoju modelu}
-
-Potencjalne kierunki rozwoju modelu obejmują między innymi:
-
+\section{Możliwości rozwoju modelu}
 \begin{itemize}
-    \item Integrację metod uczenia maszynowego i grafowych sieci neuronowych (GNN) do efektywnego rozwiązywania problemów optymalizacji w dużych sieciach społecznych.
-    \item Rozszerzenie analizowanych scenariuszy o dodatkowe typy licencji i pakietów usług z różnych branż (np. subskrypcje treści multimedialnych, usługi chmurowe).
-    \item Badanie wpływu zachowań użytkowników i mechanizmów zachęcających ich do współdzielenia licencji (np. zachęty finansowe, programy lojalnościowe).
+  \item Uwzględnienie zależności wielosąsiedzkich (grupy nie tylko w domknięciu $N[i]$), warianty z pośrednictwem, a także modelowanie zaufania i jakości krawędzi.
+  \item Integracja ograniczeń operacyjnych: budżety, limity na liczbę zmian między krokami, koszty migracji i rozwiązania mieszane (część stała, część dynamiczna).
+  \item Uogólnienie do hipergrafów lub grafów dwuwarstwowych (użytkownicy–plany), co umożliwia bogatsze relacje i reguły przypisań.
+  \item Automatyczny wybór algorytmu (portfolio) w zależności od cech instancji; równoległe i rozproszone uruchomienia dla dużej skali.
 \end{itemize}
 
-\section{Podsumowanie rozdziału}
-
-W niniejszym rozdziale dokonano kompleksowego podsumowania osiągniętych rezultatów. Wskazano główne osiągnięcia pracy oraz praktyczne implikacje wyników. Omówiono także ograniczenia przyjętych założeń oraz sformułowano możliwe kierunki dalszych badań, podkreślając potencjał praktyczny i naukowy opracowanego modelu optymalizacji kosztów zakupu licencji w sieciach społecznościowych.
+\section{Zamknięcie}
+Praca dostarcza spójnego modelu, przeglądu metod i solidnej warstwy eksperymentalnej dla optymalizacji licencji w sieciach społecznych. Wyniki wskazują, że w praktyce warto stosować proste heurystyki tam, gdzie kluczowy jest czas reakcji, oraz metaheurystyki z warm start w środowiskach dynamicznych, gdy priorytetem jest koszt. Dalsze prace powinny koncentrować się na pełnej analizie dynamicznej na danych rzeczywistych, rozszerzeniach modelu cenowego i rozwoju algorytmów online.

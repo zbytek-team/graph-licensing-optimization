@@ -1,6 +1,7 @@
 .PHONY: install test lint format typecheck clean \
-    benchmark benchmark_real dynamic dynamic_real \
+    benchmark benchmark_real dynamic dynamic_real trees \
     custom all_cli analyze report merge-runs check-python thesis-figs \
+    new-figures \
     all
 
 # ------------------------------------------------------------
@@ -54,6 +55,10 @@ dynamic:
 dynamic_real:
 	$(PYPATH) uv run -m glopt.cli.dynamic_real
 
+# Trees-only benchmark (tree graphs, includes tree DP)
+trees:
+	$(PYPATH) uv run -m glopt.cli.trees
+
 # ------------------------------------------------------------
 # CLI (single-run helpers)
 # ------------------------------------------------------------
@@ -96,6 +101,17 @@ results-readme:
 # Export curated set of figures to thesis assets
 thesis-figs:
 	$(PYTHON) scripts/analysis/export_thesis_figs.py
+
+# Generate a fresh set of figures into results/new_figures (or OUT=<dir>)
+# Options:
+#   OUT=results/new_figures_custom   # change output directory
+#   FIG_MAX_DRAW_NODES=300           # cap nodes drawn for large graphs
+#   ANALYZE_PDF=1                    # also emit PDFs next to PNGs
+new-figures:
+	# Use system Python for speed/stability; avoid slow `uv run` here
+	# Requires deps installed (run `make install` once).
+	$(PYPATH) MPLBACKEND=Agg FIG_MAX_DRAW_NODES=$(FIG_MAX_DRAW_NODES) ANALYZE_PDF=$(ANALYZE_PDF) \
+		$(PYTHON) -m scripts.analysis.mk_new_figures $(if $(OUT),--out $(OUT),)
 
 # Convenience
 all: install lint test benchmark analyze

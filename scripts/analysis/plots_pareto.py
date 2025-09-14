@@ -19,7 +19,7 @@ def plot_pareto(rows: list[dict[str, Any]], title: str, out_path: Path) -> None:
         except Exception:  # robust parsing
             continue
         pts.append((t, c, alg, d))
-    # Deduplicate identical (time, cost, algorithm) points to reduce O(n^2) effort
+    # Deduplicate identical (time, cost, algorithm) points to reduce work
     seen = set()
     uniq = []
     for t, c, alg, d in pts:
@@ -29,31 +29,28 @@ def plot_pareto(rows: list[dict[str, Any]], title: str, out_path: Path) -> None:
         seen.add(key)
         uniq.append((t, c, alg, d))
     pts = uniq
+
+    # Compute Pareto frontier in O(n log n): sort by time asc and keep running min cost
+    tc_pairs = sorted({(round(t, 6), round(c, 6)) for (t, c, _alg, _d) in pts})
     pareto = []
-    for i, (ti, ci, *_) in enumerate(pts):
-        dominated = False
-        for j, (tj, cj, *_) in enumerate(pts):
-            if j != i and tj <= ti and cj <= ci and (tj < ti or cj < ci):
-                dominated = True
-                break
-        if not dominated:
-            pareto.append((ti, ci))
+    best_c = float("inf")
+    for t, c in tc_pairs:
+        if c < best_c:
+            pareto.append((t, c))
+            best_c = c
     plt.figure(figsize=(6.5, 5))
     colors = {}
     import itertools
 
     palette = itertools.cycle([f"C{k}" for k in range(10)])
+    seen_labels: set[str] = set()
     for t, c, alg, _ in pts:
         if alg not in colors:
             colors[alg] = next(palette)
-        plt.scatter(
-            t,
-            c,
-            s=18,
-            alpha=0.8,
-            c=colors[alg],
-            label=alg if alg not in plt.gca().get_legend_handles_labels()[1] else "",
-        )
+        label = alg if alg not in seen_labels else ""
+        if label:
+            seen_labels.add(alg)
+        plt.scatter(t, c, s=18, alpha=0.8, c=colors[alg], label=label)
     if pareto:
         xs = [p[0] for p in pareto]
         ys = [p[1] for p in pareto]
