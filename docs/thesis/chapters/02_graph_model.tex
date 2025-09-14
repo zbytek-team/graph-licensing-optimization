@@ -2,11 +2,13 @@
 
 \section{Reprezentacja grafowa}
 
+\paragraph{Konwencje terminologiczne} W pracy słowo „licencja grupowa” oznacza typ umożliwiający współdzielenie dostępu przez właściciela oraz jego sąsiadów w grafie (wyłącznie sąsiedztwo bezpośrednie). „Pojemność” oznacza całkowity rozmiar grupy wraz z właścicielem (min–max). Dla czytelności stosujemy skróty nazw modeli: Erdős–Rényi (ER), Watts–Strogatz (WS), Barabási–Albert (BA).
+
 Aby formalnie opisać zjawisko współdzielenia licencji, sieć relacji społecznych modelujemy jako graf nieskierowany \( G = (V, E) \). Każdy wierzchołek \( v \in V \) reprezentuje pojedynczego użytkownika, natomiast krawędź \( \{u, v\} \in E \) oznacza, że użytkownicy \( u \) i \( v \) znajdują się w relacji umożliwiającej współdzielenie licencji - na przykład jako znajomi lub członkowie rodziny. Graf jest nieskierowany, ponieważ zakładamy symetryczność tej relacji: jeśli \( u \) zna \( v \), to również \( v \) zna \( u \).
 
 Przyjmujemy również, że graf \( G \) nie zawiera pętli, tj. \( \{v, v\} \notin E \) dla każdego \( v \in V \), ani krawędzi wielokrotnych - każda para użytkowników może być powiązana co najwyżej jedną krawędzią. Przykład takiej struktury zilustrowano na Rysunku \ref{fig:social_graph}.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.5\textwidth]{assets/graphmodelexample.png}
     \caption{Przykładowy graf relacji społecznych między użytkownikami.}

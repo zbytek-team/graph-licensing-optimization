@@ -1,3 +1,4 @@
+% Set up main font using Arial (requires LuaLaTeX or XeLaTeX)
 \usepackage{fontspec}
 \setmainfont{Arial}
 
@@ -78,45 +79,17 @@
     bibliography = {Wykaz literatury}
 }
 
-% Math + theorem environments
 \usepackage{amsmath}
-\usepackage{amsthm} % provides theorem + proof environments
-
-% Theorem-like environments (Polish names)
-\newtheorem{theorem}{Twierdzenie}[chapter]
-\newtheorem{lemma}{Lemat}[chapter]
-\newtheorem{corollary}{Wniosek}[chapter]
-\theoremstyle{definition}
-\newtheorem{definition}{Definicja}[chapter]
-\theoremstyle{remark}
-\newtheorem{remark}{Uwaga}[chapter]
-
-% Algorithms
 \usepackage{algorithm}
 \usepackage{algpseudocode}
-\usepackage{float} % for [H] placement and float styling
-\floatstyle{ruled}\restylefloat{algorithm}
-% Polish captions and labels for algorithms
-\makeatletter
-\floatname{algorithm}{Algorytm}
-\renewcommand{\listalgorithmname}{Spis algorytmów}
-% Use Polish labels in algpseudocode. Even if some algorithms
-% do not use \Require/\Ensure, keep consistent localization.
-\algrenewcommand\algorithmicrequire{Dane:}
-\algrenewcommand\algorithmicensure{Wynik:}
-\makeatother
-
-% Better table rules (\toprule, \midrule, \bottomrule)
-\usepackage{booktabs}
-
-% Map Unicode non-breaking hyphen (U+2011) to a safe TeX form
-\usepackage{newunicodechar}
-\newunicodechar{‑}{\mbox{-}}
 
 \newcommand{\Adj}{\mathrm{Adj}}
 \DeclareMathOperator{\cost}{cost}
 
-% Practical notes box
-\usepackage[most]{tcolorbox}
-\tcbset{colback=white, colframe=pantoneGray!60, sharp corners}
-\newtcolorbox{practical}[1][]{enhanced, breakable, title=Uwagi praktyczne, fonttitle=\bfseries, attach title to upper, colbacktitle=pantoneGray!10, #1}
+% Math + theorem environments
+\usepackage{amsmath}
+\usepackage{amsthm} % provides theorem + proof environments
+
+\usepackage{float}
+
+\usepackage{booktabs}

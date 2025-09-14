@@ -9,28 +9,25 @@ from .commons import GENERATE_PDF, ensure_dir
 
 
 def plot_density_vs_time(rows: list[dict[str, Any]], title: str, out_path: Path) -> None:
-    plt.figure(figsize=(6.5, 5))
-    colors = {}
-    import itertools
-
-    palette = itertools.cycle([f"C{k}" for k in range(10)])
+    # Group by algorithm to avoid O(n) scatter calls
+    by_alg: dict[str, tuple[list[float], list[float]]] = {}
     for r in rows:
         try:
-            alg = str(r["algorithm"])
+            alg = str(r.get("algorithm", ""))
             d = float(r.get("density", 0.0))
             t = float(r.get("time_ms", 0.0))
         except Exception:  # robust parsing
             continue
-        if alg not in colors:
-            colors[alg] = next(palette)
-        plt.scatter(
-            d,
-            t,
-            s=18,
-            alpha=0.8,
-            c=colors[alg],
-            label=alg if alg not in plt.gca().get_legend_handles_labels()[1] else "",
-        )
+        if not alg:
+            continue
+        xs, ys = by_alg.setdefault(alg, ([], []))
+        xs.append(d)
+        ys.append(t)
+    if not by_alg:
+        return
+    plt.figure(figsize=(6.5, 5))
+    for alg, (xs, ys) in sorted(by_alg.items()):
+        plt.scatter(xs, ys, s=18, alpha=0.8, label=alg)
     plt.yscale("log")
     plt.xlabel("density")
     plt.ylabel("time_ms (log)")

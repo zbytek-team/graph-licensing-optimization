@@ -1,182 +1,111 @@
 \appendix
 
-\chapter{Kod źródłowy algorytmów}
+\chapter{Aneks techniczny i replikowalność}
 
-W tym dodatku zamieszczono fragmenty kluczowych implementacji wykorzystanych w pracy algorytmów optymalizacji zakupu licencji.
+W aneksie zebrano informacje niezbędne do odtworzenia eksperymentów, szczegóły formatu danych, parametry domyślne oraz skrócone instrukcje korzystania z interfejsów CLI i skryptów analitycznych użytych w pracy.
 
-\subsection{Algorytm zachłanny (Greedy Algorithm)}
-
-Poniżej przedstawiono przykładową implementację prostego algorytmu zachłannego w języku Python:
-
-\begin{verbatim}
-import networkx as nx
-
-def greedy_license_assignment(G, cost_individual=167.99, cost_family=349.99, max_group=6):
-    individual_licenses = set()
-    group_licenses = {}
-    dominated = set()
-
-    # Sortowanie wierzchołków wg stopnia (malejąco)
-    nodes_sorted = sorted(G.degree, key=lambda x: x[1], reverse=True)
-
-    for node, degree in nodes_sorted:
-        if node in dominated:
-            continue
-
-        neighbors = set(G.neighbors(node)) - dominated
-        potential_group = {node} | neighbors
-
-        if 2 <= len(potential_group) <= max_group:
-            group_licenses[node] = potential_group
-            dominated.update(potential_group)
-        else:
-            individual_licenses.add(node)
-            dominated.add(node)
-
-    total_cost = len(individual_licenses) * cost_individual + len(group_licenses) * cost_family
-    return individual_licenses, group_licenses, total_cost
-\end{verbatim}
-
-\subsection{Fragment implementacji MIP (za pomocą biblioteki PuLP)}
-
-\begin{verbatim}
-import pulp
-
-def mip_license_optimization(G, cost_individual=167.99, cost_family=349.99, max_group=6):
-    prob = pulp.LpProblem("LicenseOptimization", pulp.LpMinimize)
-
-    # Zmienne decyzyjne
-    x = pulp.LpVariable.dicts('individual', G.nodes(), cat='Binary')
-    y = pulp.LpVariable.dicts('family', G.nodes(), cat='Binary')
-    z = pulp.LpVariable.dicts('member', (G.nodes(), G.nodes()), cat='Binary')
-
-    # Funkcja celu: minimalizacja kosztów
-    prob += pulp.lpSum([cost_individual * x[i] + cost_family * y[i] for i in G.nodes()])
-
-    # Ograniczenia
-    for i in G.nodes():
-        prob += x[i] + pulp.lpSum([z[j][i] for j in G.nodes() if j != i]) == 1
-
-    for i in G.nodes():
-        prob += pulp.lpSum([z[i][j] for j in G.neighbors(i)] + [y[i]]) <= max_group * y[i]
-
-    # Rozwiązanie
-    prob.solve()
-
-    individual_licenses = {i for i in G.nodes() if x[i].varValue == 1}
-    group_licenses = {i: {i} | {j for j in G.neighbors(i) if z[i][j].varValue == 1} for i in G.nodes() if y[i].varValue == 1}
-
-    total_cost = pulp.value(prob.objective)
-    return individual_licenses, group_licenses, total_cost
-\end{verbatim}
-
-\section{Dane testowe i parametry eksperymentów}
-
-Poniższa tabela zawiera szczegóły dotyczące użytych zestawów danych oraz parametrów eksperymentalnych.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-\textbf{Typ grafu} & \(|V|\) & \(|E|\) & \textbf{Typ} & \textbf{Parametry generowania} \\
-\hline
-Ego-Facebook & 4039 & 88234 & rzeczywisty & SNAP, Stanford \\
-Twitter subgraph & 5000 & 15000 & rzeczywisty & NetworkRepository \\
-Barabási-Albert & 500 & ~1500 & syntetyczny & \(m=3\) \\
-Erdős-Rényi & 500 & ~1250 & syntetyczny & \(p=0.01\) \\
-Watts-Strogatz & 500 & ~2000 & syntetyczny & \(k=4, p=0.1\) \\
-Graf pełny & 100 & 4950 & syntetyczny & kompletny \\
-\hline
-\end{tabular}
-\caption{Zestaw użytych grafów w eksperymentach}
-\end{table}
-
-\section{Szczegółowe wyniki eksperymentów}
-
-\subsection{Wyniki eksperymentów dla różnych algorytmów (przykładowe)}
-
-\begin{table}[h]
-\centering
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-\textbf{Graf (\(|V|=500\))} & \textbf{Zachłanny} & \textbf{Genetyczny} & \textbf{Tabu Search} & \textbf{Sim. Annealing} \\
-\hline
-Barabási-Albert & 9150 & 8450 & 8600 & 8550 \\
-Erdős-Rényi & 10100 & 9700 & 9800 & 9750 \\
-Watts-Strogatz & 8500 & 8100 & 8200 & 8150 \\
-Drzewo (tree) & 9300 & 9050 & 9150 & 9100 \\
-Graf pełny (100) & 3600 & 3510 & 3525 & 3515 \\
-\hline
-\end{tabular}
-\caption{Przykładowe wyniki (szczegóły w rozdz.\,6).}
-\end{table}
-
-\section{Wizualizacja przykładowego rozwiązania}
-
-Przykładowy kod generujący wizualizację grafu Watts-Strogatz z podziałem na licencje:
-
-\begin{verbatim}
-import networkx as nx
-import matplotlib.pyplot as plt
-
-G = nx.watts_strogatz_graph(50, 4, 0.1)
-individual, groups, _ = greedy_license_assignment(G)
-
-colors = []
-for node in G.nodes():
-    if node in individual:
-        colors.append('red')
-    elif node in groups:
-        colors.append('green')
-    else:
-        colors.append('blue')
-
-nx.draw(G, node_color=colors, with_labels=True)
-plt.show()
-\end{verbatim}
-
-Legenda:
+\section{Środowisko i budowanie}
 \begin{itemize}
-    \item Czerwony - licencja indywidualna
-    \item Zielony - właściciel licencji grupowej
-    \item Niebieski - członkowie grup
+  \item \textbf{Wersja Pythona}: 3.13 (wymagana; celowo wymuszana w projekcie).
+  \item \textbf{Zarządzanie zależnościami}: \texttt{uv}. Instalacja: \texttt{make install}.
+  \item \textbf{Kontrole jakości}: \texttt{make lint}, \texttt{make format}, \texttt{make typecheck}, \texttt{make test}.
+  \item \textbf{Wygodne cele}: \texttt{make benchmark}, \texttt{make dynamic}, \texttt{make analyze}, \texttt{make thesis-figs}.
 \end{itemize}
 
-\section{Dokumentacja techniczna}
-
-W tym dodatku znajdują się szczegóły dotyczące implementacji:
-
-\subsection{Struktura katalogów projektu}
-
+\section{Struktura repozytorium (wybór)}
 \begin{verbatim}
-|-- licencje-optymalizacja/
-    |-- src/
-        |-- algorithms/
-        |-- utils/
-    |-- data/
-    |-- results/
-    |-- main.py
+src/glopt/            # biblioteka: algorytmy, model, CLI
+  algorithms/         # ILP, greedy, randomized, dominating_set, GA, SA, Tabu, ACO, tree_dp
+  cli/                # entry points: benchmark, dynamic, ...
+  core/               # definicje Solution/LicenseType i operacje
+  dynamic_simulator.py# symulacja mutacji grafu i rebalance
+  license_config.py   # definicje pakietów licencyjnych
+scripts/analysis/     # skrypty analityczne i generowanie wykresów
+runs/                 # wyniki eksperymentów (CSV) z run_id w nazwie
+results/              # produkty analizy (figury, tabele)
+docs/thesis/          # pliki LaTeX i zasoby prac
+Makefile              # komendy uruchomieniowe i QA
 \end{verbatim}
 
-\subsection{Wymagane biblioteki}
-
-Przykładowy plik \texttt{requirements.txt}:
-
+\section{Interfejsy CLI i odtwarzanie wyników}
+\begin{itemize}
+  \item \texttt{benchmark}: eksperyment statyczny na grafach syntetycznych; zapis CSV do \texttt{runs/<run>/csv/}.
+  \item \texttt{dynamic}: symulacja dynamiczna z mutacjami grafu (\S\,\ref{chap:dynamic}); kroki i parametry w \texttt{src/glopt/cli/dynamic.py}.
+  \item \texttt{benchmark\_real}, \texttt{dynamic\_real}: warianty dla danych rzeczywistych (dynamic\_real — w toku).
+  \item \texttt{analyze-csv}: ogólna analiza CSV dowolnego runu do \texttt{results/}.
+\end{itemize}
+Przykładowe komendy:
 \begin{verbatim}
-networkx==3.2.1
-numpy==1.26.0
-matplotlib==3.8.0
-pulp==2.7.0
-pygad==3.2.0
+make benchmark
+make dynamic
+python -m scripts.analysis.analyze_csv --csv runs/<run>/csv/<run>.csv --out results/<name>
+python -m scripts.analysis.dynamic_analysis --csv <dyn.csv> --tag full --out results/dynamic_analysis \
+    --figdir docs/thesis/assets/figures/dynamic
+python -m scripts.analysis.model_extensions --csv runs/benchmark_all/csv/<..>.csv --out results/model_extensions \
+    --figdir docs/thesis/assets/figures/extensions
 \end{verbatim}
 
-\subsection{Instrukcja uruchomienia skryptów}
+\section{Format plików CSV}
+Wyniki zapisywane są w postaci tabelarycznej (CSV). Pola wspólne:
+\begin{itemize}
+  \item \texttt{run\_id}, \texttt{algorithm}, \texttt{graph}, \texttt{n\_nodes}, \texttt{n\_edges}, \texttt{graph\_params}
+  \item \texttt{license\_config}, \texttt{rep}, \texttt{seed}, \texttt{sample}, \texttt{graph\_seed}
+  \item \texttt{density}, \texttt{avg\_degree}, \texttt{clustering}, \texttt{components}
+  \item \texttt{total\_cost}, \texttt{cost\_per\_node}, \texttt{time\_ms}, \texttt{valid}, \texttt{issues}
+  \item \texttt{groups}, \texttt{group\_size\_mean}, \texttt{group\_size\_median}, \texttt{group\_size\_p90}
+  \item \texttt{license\_counts\_json}, \texttt{algo\_params\_json}, \texttt{warm\_start}, \texttt{notes}
+\end{itemize}
+Pola specyficzne dla dynamiki:
+\begin{itemize}
+  \item \texttt{step} (nr kroku), \texttt{mutation\_params\_json}, \texttt{mutations} (opis zmian w danym kroku).
+\end{itemize}
 
-\begin{verbatim}
-pip install -r requirements.txt
-python main.py
-\end{verbatim}
+\section{Konfiguracje licencji}
+Definicje w \texttt{src/glopt/license\_config.py}. Najważniejsze zestawy:
+\begin{itemize}
+  \item \texttt{duolingo\_super}: Individual (13.99; 1–1), Family (29.17; 2–6)
+  \item \texttt{spotify}: Individual (23.99; 1–1), Duo (30.99; 2–2), Family (37.99; 2–6)
+  \item \texttt{roman\_domination}: Solo (1.0; 1–1), Group (2.0; 2–99999)
+  \item \texttt{roman\_p\_x}: Solo (1.0; 1–1), Group ($p$; 2–99999) — skan po $p\in\{1.5,2.0,2.5,3.0\}$
+  \item \texttt{duolingo\_p\_x}: Individual (1.0; 1–1), Family ($p$; 2–6)
+\end{itemize}
 
-\section{Ścieżki wyników}
+\section{Parametry algorytmów (domyślne)}
+\begin{itemize}
+  \item \textbf{ILP}: solver CBC, opcjonalny \texttt{time\_limit}.
+  \item \textbf{Greedy}: bez parametrów, porządkowanie po stopniu, wybór najbardziej opłacalnej licencji.
+  \item \textbf{Randomized}: losowy przydział zgodny z pojemnościami; opcjonalny \texttt{seed}.
+  \item \textbf{Dominating Set}: heurystyka dominująca z doborem grup po koszt/rozmiar.
+  \item \textbf{Genetic}: \texttt{population\_size}=30, \texttt{generations}=40, \texttt{elite\_fraction}=0.2, \texttt{crossover\_rate}=0.6.
+  \item \textbf{Simulated Annealing}: \texttt{T0}=100, \texttt{cooling}=0.995, \texttt{T\_min}=0.001, \texttt{max\_iterations}=20\,000, \texttt{max\_stall}=2\,000.
+  \item \textbf{Tabu Search}: \texttt{max\_iterations}=1000, \texttt{tabu\_tenure}=20, \texttt{neighbors\_per\_iter}=10.
+  \item \textbf{Ant Colony}: \texttt{alpha}=1.0, \texttt{beta}=2.0, \texttt{evaporation}=0.5, \texttt{q0}=0.9, \texttt{num\_ants}=20, \texttt{max\_iterations}=100.
+\end{itemize}
+Metaheurystyki wspierają \emph{warm start} (przekazanie rozwiązania początkowego) w trybach benchmark i dynamic.
 
-Wyniki i wykresy generowane przez skrypty znajdują się w katalogach \texttt{results/} oraz \texttt{docs/thesis/assets/figures}.
+\section{Symulacja dynamiczna: parametry}
+Parametry w \texttt{src/glopt/cli/dynamic.py} i \texttt{dynamic\_simulator.py}:
+\begin{itemize}
+  \item Prawdopodobieństwa mutacji (przykładowe): \texttt{add\_nodes}=0.06, \texttt{remove\_nodes}=0.04, \texttt{add\_edges}=0.18, \texttt{remove\_edges}=0.12.
+  \item Limity zmian na krok skalowane z rozmiarem grafu: maks. dodawanych/usuwanych węzłów i krawędzi proporcjonalnie do \(n\) i \(|E|\).
+  \item Domyślnie \texttt{NUM\_STEPS}=50; w serii \texttt{dynamic\_20} — 100.
+  \item Agregowane metryki w każdym kroku: koszt, czas, statystyki rozmiarów grup, opis mutacji.
+\end{itemize}
+
+\section{Nazewnictwo runów i ścieżki}
+Id runu ma postać \texttt{YYYYMMDD\_HHMMSS\_<sufiks>}, np. \texttt{20250907\_014311\_dynamic}. Wyniki znajdują się w \texttt{runs/<id>/csv/<id>.csv}. Figury eksportowane do pracy: \texttt{docs/thesis/assets/figures/...}. Produkty analiz: \texttt{results/}.
+
+\section{Skrypty analityczne}
+\begin{itemize}
+  \item \texttt{analyze\_csv.py}: przegląd statyczny (koszt/czas vs \(n\), Pareto, heatmapy, profile wydajności).
+  \item \texttt{dynamic\_analysis.py}: trajektorie kosztu/czasu, intensywność mutacji, (opc.) przewaga warm.
+  \item \texttt{model\_extensions.py}: porównania konfiguracji (roman\_p\_x, spotify), krzywe kosztu vs \(p\), miks licencji.
+  \item \texttt{export\_thesis\_figs.py}: eksport wybranych figur do katalogu pracy.
+\end{itemize}
+
+\section{Uwagi replikacyjne}
+\begin{itemize}
+  \item Generatory grafów są deterministyczne względem \texttt{seed}; cache grafów przyspiesza uruchomienia (\texttt{data/graphs\_cache}).
+  \item Ustawienie zmiennej \texttt{ANALYZE\_PDF=1} dodaje wersje PDF figur obok PNG.
+  \item Dla bardzo dużych grafów ograniczono konfiguracje licencji i algorytmy zgodnie z rozdziałami eksperymentalnymi (limity czasu).
+\end{itemize}
