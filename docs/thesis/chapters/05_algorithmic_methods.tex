@@ -15,7 +15,7 @@ Algorytmy zastosowane w pracy można podzielić na cztery grupy:
 
 \paragraph{Konwencje nazewnicze} W dalszej części pracy stosujemy nazwy polskie algorytmów, a przy pierwszym użyciu podajemy w nawiasie odpowiednik angielski, np.: programowanie całkowitoliczbowe (ILP), algorytm zachłanny (Greedy), algorytm losowy (Randomized), heurystyka zbioru dominującego (Dominating Set), algorytm genetyczny (Genetic Algorithm), przeszukiwanie tabu (Tabu Search), algorytm mrówkowy (Ant Colony Optimization), symulowane wyżarzanie (Simulated Annealing).
 
-\section{Formalizacja problemu i konwencje}\label{sec:model-formal}
+\section{Formalizacja problemu i konwencje}\label{sec:alg-conventions}
 
 \paragraph{Definicja problemu}
 Problem składa się z grafu $G=(V,E)$ oraz zbioru typów licencji $\mathcal{L}=\{\ell_1,\dots,\ell_T\}$. Każda licencja $\ell$ ma trzy parametry: koszt $c_\ell>0$, minimalną pojemność $l_\ell$ i maksymalną pojemność $u_\ell$, gdzie $1\le l_\ell\le u_\ell$.
@@ -147,7 +147,7 @@ Z powodu dodatkowych ograniczeń ($[l_\ell,u_\ell]$, spójność), liczba rozwi�
 \]
 gdzie stała $c>1$ zależy od maksymalnego stopnia wierzchołków, zakresu rozmiarów licencji i limitu $L$ odbiorców. Ze względu na tę złożoność algorytm jest praktyczny tylko dla $n\le10$ i pełni rolę algorytmu referencyjnego.
 
-\subsection{Programowanie dynamiczne na drzewach (\texttt{tree\_dp})}\label{subsec:treedp}
+\subsection{Programowanie dynamiczne na drzewach (tree\_dp)}\label{subsec:treedp}
 Poniżej definiujemy stan, przejścia i złożoność. Rozważamy drzewo $T=(V,E)$ z korzeniem $r$ i kierujemy krawędzie od rodzica do dzieci. Dla $u\in V$ przez $\mathrm{ch}(u)$ oznaczamy dzieci i $d(u)=|\mathrm{ch}(u)|$.
 
 \paragraph{Stan DP}
@@ -243,7 +243,7 @@ Wadą algorytmu jest to, że podejmując lokalnie najlepsze decyzje, może przeg
 
 Najpierw budujemy kosztowo efektywny zbiór dominujący $D$ (maksymalizacja pokrycia w przeliczeniu na minimalny koszt na węzeł), następnie każdemu dominatorowi przypisujemy najtańszą dopuszczalną grupę; pozostałe węzły domykamy analogicznie. Definiujemy
 \[
-\mathrm{coverage}(v)=|(N[v]\cap U)|,\qquad \min\_\mathrm{cpn}(v)=\min\limits_{\ell\in\mathcal{L}\atop u_\ell\ge 1}\ \frac{c_\ell}{\min\{u_\ell,\,\mathrm{coverage}(v)\}}.
+\mathrm{coverage}(v)=|(N[v]\cap U)|,\qquad \min\_\mathrm{cpn}(v)=\min\limits_{\substack{\ell\in\mathcal{L} \\ u_\ell\ge 1}}\ \frac{c_\ell}{\min\{u_\ell,\,\mathrm{coverage}(v)\}}.
 \]
 Wybieramy $u$ maksymalizujące $\mathrm{coverage}(u)/\min\_\mathrm{cpn}(u)$. Złożoność typowo $\mathcal{O}(n^2T)$.
 

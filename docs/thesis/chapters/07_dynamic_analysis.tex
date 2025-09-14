@@ -4,7 +4,7 @@ W tym rozdziale przedstawiono analizę wariantu dynamicznego, w którym struktur
 
 \section{Założenia i model zmian}
 
-Symulacja dynamiki oparta jest o moduł \texttt{glopt.dynamic\_simulator} oraz skrypt uruchomieniowy \texttt{src/glopt/cli/dynamic.py}. W każdym kroku stosowane są mutacje grafu sterowane parametrami \texttt{MutationParams}: prawdopodobieństwa dodania/usupełnienia wierzchołków i krawędzi oraz limity maksymalnej liczby zmian na krok. W badaniu zastosowano parametry (por. \texttt{dynamic.py}):
+Symulacja dynamiki oparta jest o moduł glopt.dynamic\_simulator oraz skrypt uruchomieniowy src/glopt/cli/dynamic.py. W każdym kroku stosowane są mutacje grafu sterowane parametrami MutationParams: prawdopodobieństwa dodania/usupełnienia wierzchołków i krawędzi oraz limity maksymalnej liczby zmian na krok. W badaniu zastosowano parametry (por. dynamic.py):
 \begin{itemize}
   \item \texttt{ADD\_NODES\_PROB} = 0.06, \texttt{REMOVE\_NODES\_PROB} = 0.04
   \item \texttt{ADD\_EDGES\_PROB} = 0.18, \texttt{REMOVE\_EDGES\_PROB} = 0.12
@@ -30,14 +30,14 @@ Na rysunkach \ref{fig:dyn20_mut} i \ref{fig:full_mut} pokazano średnią liczbę
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.75\linewidth]{assets/figures/dynamic/dynamic20_mutation_intensity.png}
-  \caption{\texttt{dynamic\_20}: intensywność mutacji w czasie (średnia na wiersz).}
+\caption{dynamic 20: intensywność mutacji w czasie (średnia na wiersz).}
   \label{fig:dyn20_mut}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.75\linewidth]{assets/figures/dynamic/full_mutation_intensity.png}
-  \caption{\texttt{full}: intensywność mutacji w czasie (średnia na wiersz).}
+\caption{full: intensywność mutacji w czasie (średnia na wiersz).}
   \label{fig:full_mut}
 \end{figure}
 
@@ -45,7 +45,7 @@ Na rysunkach \ref{fig:dyn20_mut} i \ref{fig:full_mut} pokazano średnią liczbę
 
 Poniżej przedstawiono przykładowe trajektorie dla wybranych algorytmów. Linie pokazują wartość metryki w kolejnych krokach dla danego typu grafu i konfiguracji licencji.
 
-\subsection{\texttt{dynamic\_20}: \texttt{duolingo\_super}, graf \texttt{random}}
+\subsection{dynamic 20: Duolingo Super, graf random}
 
 \begin{figure}[H]
   \centering
@@ -65,7 +65,7 @@ Poniżej przedstawiono przykładowe trajektorie dla wybranych algorytmów. Linie
 
 W serii \texttt{dynamic\_20} zaobserwowano, że koszt na wierzchołek algorytmu zachłannego lekko rośnie w czasie (typowo $\approx$~$+0.9$ pkt między krokiem 0 a 100 dla grafu \texttt{random}), co odzwierciedla narastanie trudności po kolejnych mutacjach. Dla metaheurystyk z warm start (np. algorytm genetyczny) trend jest łagodniejszy, a nawet malejący w medianie, co wskazuje na skuteczniejsze wykorzystanie informacji z poprzedniego kroku.
 
-\subsection{\texttt{full}: \texttt{duolingo\_super}, graf \texttt{small\_world}}
+\subsection{full: Duolingo Super, graf small\_world}
 
 \begin{figure}[H]
   \centering
