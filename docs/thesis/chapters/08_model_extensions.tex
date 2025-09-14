@@ -20,7 +20,7 @@ Do przygotowania wykresów i zestawień użyto skryptu \texttt{scripts/analysis/
 \end{itemize}
 Wykresy zapisano w \texttt{docs/thesis/assets/figures/extensions/}.
 
-\section{Warianty \texttt{roman\_p\_x}}
+\section{Warianty roman\_p\_x}
 
 Rysunek \ref{fig:roman_group} pokazuje porównanie średniego \textit{cost per node} oraz \textit{time [ms]} (uśrednienie po instancjach) dla algorytmów i pięciu konfiguracji: \texttt{roman\_domination}, \texttt{roman\_p\_1\_5}, \texttt{roman\_p\_2\_0}, \texttt{roman\_p\_2\_5}, \texttt{roman\_p\_3\_0}. Rysunek \ref{fig:roman_curve} prezentuje zależność kosztu od parametru $p$ (krzywe per algorytm).
 
@@ -28,21 +28,21 @@ Rysunek \ref{fig:roman_group} pokazuje porównanie średniego \textit{cost per n
   \centering
   \includegraphics[width=0.48\linewidth]{assets/figures/extensions/roman_variants_cost.png}
   \includegraphics[width=0.48\linewidth]{assets/figures/extensions/roman_variants_time.png}
-  \caption{Warianty \texttt{roman\_p\_x}: koszt na wierzchołek i czas działania (per algorytm).}
+\caption{Warianty roman\_p\_x: koszt na wierzchołek i czas działania (per algorytm).}
   \label{fig:roman_group}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/extensions/roman_p_curve_cost_per_node.png}
-  \caption{\texttt{roman\_p\_x}: koszt na wierzchołek vs parametr $p$ (krzywe per algorytm).}
+\caption{roman\_p\_x: koszt na wierzchołek vs parametr $p$ (krzywe per algorytm).}
   \label{fig:roman_curve}
 \end{figure}
 
 \paragraph{Wyniki i obserwacje}
 Zgodnie z intuicją, wzrost parametru cenowego $p$ powoduje wzrost kosztu na wierzchołek w całym przekroju algorytmów. Mediana \textit{cost per node} (z \texttt{benchmark\_all}) dla wybranych wariantów kształtuje się przykładowo następująco: \texttt{roman\_p\_1\_5} $\approx0{,}308$, \texttt{roman\_p\_2\_0} $\approx0{,}400$, \texttt{roman\_p\_2\_5} $\approx0{,}476$, \texttt{roman\_p\_3\_0} $\approx0{,}537$. Różnice między algorytmami pozostają podobne do obserwacji z części statycznej: metaheurystyki uzyskują niższe koszty, kosztem dłuższego czasu obliczeń, podczas gdy heurystyki konstrukcyjne (zachłanny, dominating set) są szybsze, lecz nieco droższe.
 
-\section{Konfiguracja \texttt{spotify} i porównanie z \texttt{duolingo\_super}}
+\section{Konfiguracja Spotify i porównanie z Duolingo Super}
 
 Konfiguracja \texttt{spotify} obejmuje trzy typy licencji: \emph{Individual}, \emph{Duo} (dokładnie 2 osoby) i \emph{Family}. Rysunek \ref{fig:duo_spotify_cmp} porównuje \textit{cost per node} oraz \textit{time [ms]} między \texttt{spotify} a \texttt{duolingo\_super}. Na rysunku \ref{fig:spotify_mix} pokazano miks licencji (udział typów) per algorytm.
 
@@ -50,14 +50,14 @@ Konfiguracja \texttt{spotify} obejmuje trzy typy licencji: \emph{Individual}, \e
   \centering
   \includegraphics[width=0.48\linewidth]{assets/figures/extensions/duo_vs_spotify/compare_cost_per_node_duolingo_super_vs_spotify.png}
   \includegraphics[width=0.48\linewidth]{assets/figures/extensions/duo_vs_spotify/compare_time_ms_duolingo_super_vs_spotify.png}
-  \caption{Porównanie \texttt{duolingo\_super} vs \texttt{spotify}: koszt na wierzchołek i czas (średnio per algorytm).}
+\caption{Porównanie Duolingo Super vs Spotify: koszt na wierzchołek i czas (średnio per algorytm).}
   \label{fig:duo_spotify_cmp}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.75\linewidth]{assets/figures/extensions/spotify_license_mix.png}
-  \caption{\texttt{spotify}: udziały typów licencji per algorytm (Individual/Duo/Family).}
+\caption{Spotify: udziały typów licencji per algorytm (Individual/Duo/Family).}
   \label{fig:spotify_mix}
 \end{figure}
 

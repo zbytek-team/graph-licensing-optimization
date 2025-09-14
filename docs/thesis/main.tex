@@ -6,7 +6,7 @@
 \begin{document}
 
 % official template must be downloaded and placed in assets/titlepage.pdf
-\includepdf[pages=1]{assets/titlepage.pdf}
+\includepdf[pages=1,pagecommand={}]{assets/titlepage.pdf}
 
 % Include abstracts
 \input{frontmatter/abstract_pl}
@@ -33,6 +33,9 @@
 \input{chapters/09_conclusion}
 
 \printbibliography
+
+% Wpis dot. użycia narzędzi GenAI zgodnie z wytycznymi PG
+\nocite{genai_usage}
 
 % Appendices (additional materials, calculations, etc.)
 % \appendix
