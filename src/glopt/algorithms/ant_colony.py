@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 from typing import TYPE_CHECKING, Any, cast
+from collections.abc import Sequence
 
 from glopt.algorithms.greedy import GreedyAlgorithm
 from glopt.core import Algorithm, LicenseGroup, LicenseType, Solution
@@ -35,7 +36,7 @@ class AntColonyOptimization(Algorithm):
         self.max_iter = max_iterations
         self.validator = SolutionValidator(debug=False)
 
-    def solve(self, graph: nx.Graph, license_types: list[LicenseType], **kwargs: Any) -> Solution:
+    def solve(self, graph: nx.Graph, license_types: Sequence[LicenseType], **kwargs: Any) -> Solution:
         seed = kwargs.get("seed")
         if isinstance(seed, int):
             random.seed(seed)
@@ -84,7 +85,7 @@ class AntColonyOptimization(Algorithm):
     def _construct(
         self,
         graph: nx.Graph,
-        lts: list[LicenseType],
+        lts: Sequence[LicenseType],
         pher: dict[PKey, float],
         heur: dict[PKey, float],
     ) -> Solution:
@@ -125,7 +126,7 @@ class AntColonyOptimization(Algorithm):
     def _select_owner(
         self,
         uncovered: set[Any],
-        lts: list[LicenseType],
+        lts: Sequence[LicenseType],
         pher: dict[PKey, float],
         heur: dict[PKey, float],
     ) -> Any | None:
@@ -141,7 +142,7 @@ class AntColonyOptimization(Algorithm):
             scores[n] = acc / max(1, len(lts))
         return self._roulette_or_best(list(uncovered), scores)
 
-    def _select_license(self, owner: Any, lts: list[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> LicenseType | None:
+    def _select_license(self, owner: Any, lts: Sequence[LicenseType], pher: dict[PKey, float], heur: dict[PKey, float]) -> LicenseType | None:
         if not lts:
             return None
         scores = {lt: (pher.get((owner, lt.name), 1.0) ** self.alpha) * (heur.get((owner, lt.name), 1.0) ** self.beta) for lt in lts}
@@ -163,10 +164,10 @@ class AntColonyOptimization(Algorithm):
                 return c
         return random.choice(choices)
 
-    def _init_pher(self, graph: nx.Graph, lts: list[LicenseType]) -> dict[PKey, float]:
+    def _init_pher(self, graph: nx.Graph, lts: Sequence[LicenseType]) -> dict[PKey, float]:
         return {(n, lt.name): 1.0 for n in graph.nodes() for lt in lts}
 
-    def _init_heur(self, graph: nx.Graph, lts: list[LicenseType]) -> dict[PKey, float]:
+    def _init_heur(self, graph: nx.Graph, lts: Sequence[LicenseType]) -> dict[PKey, float]:
         h: dict[PKey, float] = {}
         degv = cast(Any, graph.degree)
         for n in graph.nodes():
@@ -191,7 +192,7 @@ class AntColonyOptimization(Algorithm):
                 if k in pher:
                     pher[k] += q
 
-    def _fallback_singletons(self, graph: nx.Graph, lts: list[LicenseType]) -> Solution:
+    def _fallback_singletons(self, graph: nx.Graph, lts: Sequence[LicenseType]) -> Solution:
         lt1 = min([x for x in lts if x.min_capacity <= 1] or lts, key=lambda x: x.cost)
         groups = [LicenseGroup(lt1, n, frozenset()) for n in graph.nodes()]
         return Solution(groups=tuple(groups))

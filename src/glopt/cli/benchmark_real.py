@@ -18,14 +18,21 @@ from glopt.license_config import LicenseConfigFactory
 RUN_ID: str | None = None
 ALGORITHM_CLASSES: list[str] = [
     "ILPSolver",
+    "GreedyAlgorithm",
+    "RandomizedAlgorithm",
+    "DominatingSetAlgorithm",
+    "AntColonyOptimization",
+    "SimulatedAnnealing",
+    "TabuSearch",
+    "GeneticAlgorithm",
 ]
 LICENSE_CONFIG_NAMES: list[str] = [
     "duolingo_super",
     "roman_domination",
 ]
-DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
-LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
-LICENSE_CONFIG_NAMES.extend(["duolingo_p_2_0", "duolingo_p_3_0"])
+# DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
+# LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
+# LICENSE_CONFIG_NAMES.extend(["duolingo_p_2_0", "duolingo_p_3_0"])
 
 TIMEOUT_SECONDS: float = 60.0
 REPEATS_PER_GRAPH: int = 2

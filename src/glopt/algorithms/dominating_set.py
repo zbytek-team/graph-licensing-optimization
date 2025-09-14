@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Any, cast
 
 import networkx as nx
@@ -11,7 +12,7 @@ class DominatingSetAlgorithm(Algorithm):
     def name(self) -> str:
         return "dominating_set_algorithm"
 
-    def solve(self, graph: nx.Graph, license_types: list[LicenseType], **kwargs: Any) -> Solution:
+    def solve(self, graph: nx.Graph, license_types: Sequence[LicenseType], **kwargs: Any) -> Solution:
         if graph.number_of_nodes() == 0:
             return Solution(groups=())
 
@@ -64,7 +65,7 @@ class DominatingSetAlgorithm(Algorithm):
 
         return SolutionBuilder.create_solution_from_groups(groups)
 
-    def _find_cost_effective_dominating_set(self, graph: nx.Graph, license_types: list[LicenseType]) -> set[Any]:
+    def _find_cost_effective_dominating_set(self, graph: nx.Graph, license_types: Sequence[LicenseType]) -> set[Any]:
         nodes = set(graph.nodes())
         uncovered = nodes.copy()
         dominating_set = set()
@@ -101,7 +102,7 @@ class DominatingSetAlgorithm(Algorithm):
 
         return dominating_set
 
-    def _calculate_min_cost_per_node(self, group_size: int, license_types: list[LicenseType]) -> float:
+    def _calculate_min_cost_per_node(self, group_size: int, license_types: Sequence[LicenseType]) -> float:
         min_cost = float("inf")
 
         for license_type in license_types:
@@ -111,7 +112,7 @@ class DominatingSetAlgorithm(Algorithm):
 
         return min_cost if min_cost != float("inf") else 0
 
-    def _find_best_cost_assignment(self, graph: nx.Graph, owner: Any, available_nodes: set[Any], license_types: list[LicenseType]) -> tuple[LicenseType, set[Any]] | None:
+    def _find_best_cost_assignment(self, graph: nx.Graph, owner: Any, available_nodes: set[Any], license_types: Sequence[LicenseType]) -> tuple[LicenseType, set[Any]] | None:
         """Find the best (lowest cost-per-node) assignment for an owner.
 
         Args:
@@ -162,7 +163,7 @@ class DominatingSetAlgorithm(Algorithm):
 
         return group_members
 
-    def _find_cheapest_single_license(self, license_types: list[LicenseType]) -> LicenseType:
+    def _find_cheapest_single_license(self, license_types: Sequence[LicenseType]) -> LicenseType:
         single_licenses = [lt for lt in license_types if lt.min_capacity <= 1 <= lt.max_capacity]
 
         if not single_licenses:

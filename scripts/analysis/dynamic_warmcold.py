@@ -9,6 +9,20 @@ import matplotlib.pyplot as plt
 from .commons import GENERATE_PDF, ensure_dir
 
 
+def _to_int(x, default: int = 0) -> int:
+    try:
+        return int(float(x))
+    except Exception:
+        return default
+
+
+def _to_float(x, default: float = 0.0) -> float:
+    try:
+        return float(x)
+    except Exception:
+        return default
+
+
 def plot_dynamic_warm_cold(rows: list[dict[str, Any]], title_prefix: str, out_dir: Path) -> None:
     ensure_dir(out_dir)
     # Group by algorithm and warm_start flag
@@ -24,9 +38,9 @@ def plot_dynamic_warm_cold(rows: list[dict[str, Any]], title_prefix: str, out_di
     for alg, modes in by_alg.items():
         plt.figure(figsize=(8, 5))
         for warm in (True, False):
-            seq = sorted(modes.get(warm, []), key=lambda x: int(float(x.get("step", 0))))
-            xs = [int(float(r.get("step", 0))) for r in seq]
-            costs = [float(r.get("total_cost", 0.0)) for r in seq]
+            seq = sorted(modes.get(warm, []), key=lambda x: _to_int(x.get("step"), 0))
+            xs = [_to_int(r.get("step"), 0) for r in seq]
+            costs = [_to_float(r.get("total_cost"), 0.0) for r in seq]
             if xs:
                 plt.plot(xs, costs, marker="o", label=f"{'warm' if warm else 'cold'}")
         plt.xlabel("step")
@@ -42,9 +56,9 @@ def plot_dynamic_warm_cold(rows: list[dict[str, Any]], title_prefix: str, out_di
 
         plt.figure(figsize=(8, 5))
         for warm in (True, False):
-            seq = sorted(modes.get(warm, []), key=lambda x: int(float(x.get("step", 0))))
-            xs = [int(float(r.get("step", 0))) for r in seq]
-            times = [float(r.get("time_ms", 0.0)) for r in seq]
+            seq = sorted(modes.get(warm, []), key=lambda x: _to_int(x.get("step"), 0))
+            xs = [_to_int(r.get("step"), 0) for r in seq]
+            times = [_to_float(r.get("time_ms"), 0.0) for r in seq]
             if xs:
                 plt.plot(xs, times, marker="o", label=f"{'warm' if warm else 'cold'}")
         plt.xlabel("step")

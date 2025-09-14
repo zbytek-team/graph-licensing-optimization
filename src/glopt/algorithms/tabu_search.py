@@ -1,4 +1,5 @@
 from collections import deque
+from collections.abc import Sequence
 from typing import Any
 
 import networkx as nx
@@ -18,7 +19,7 @@ class TabuSearch(Algorithm):
     def solve(
         self,
         graph: nx.Graph,
-        license_types: list[LicenseType],
+        license_types: Sequence[LicenseType],
         **kwargs: Any,
     ) -> Solution:
         import random

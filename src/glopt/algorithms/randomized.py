@@ -1,4 +1,5 @@
 import random
+from collections.abc import Sequence
 from typing import Any
 
 import networkx as nx
@@ -17,7 +18,7 @@ class RandomizedAlgorithm(Algorithm):
         if seed is not None:
             random.seed(seed)
 
-    def solve(self, graph: nx.Graph, license_types: list[LicenseType], **kwargs: Any) -> Solution:
+    def solve(self, graph: nx.Graph, license_types: Sequence[LicenseType], **kwargs: Any) -> Solution:
         if graph.number_of_nodes() == 0:
             return Solution(groups=())
 
@@ -57,7 +58,7 @@ class RandomizedAlgorithm(Algorithm):
         node: Any,
         uncovered_nodes: set[Any],
         graph: nx.Graph,
-        license_types: list[LicenseType],
+        license_types: Sequence[LicenseType],
     ) -> tuple[LicenseType, set[Any]] | None:
         neighbors = set(graph.neighbors(node)) & uncovered_nodes
         available_nodes = neighbors | {node}
@@ -104,7 +105,7 @@ class RandomizedAlgorithm(Algorithm):
 
         return group_members
 
-    def _find_cheapest_single_license(self, license_types: list[LicenseType]) -> LicenseType:
+    def _find_cheapest_single_license(self, license_types: Sequence[LicenseType]) -> LicenseType:
         single_licenses = [lt for lt in license_types if lt.min_capacity <= 1 <= lt.max_capacity]
 
         if not single_licenses:
