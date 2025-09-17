@@ -46,9 +46,9 @@
 \definecolor{pantoneGray}{HTML}{75787B}
 \definecolor{pantone1797}{HTML}{C8102E}
 
-% Enable graphics support and define image path
+% Enable graphics support and define image paths used across chapters
 \usepackage{graphicx}
-\graphicspath{{assets/images/}}
+\graphicspath{{assets/}{assets/images/}{assets/figures/}}
 
 % Configure captions for tables and figures
 \usepackage{caption}
@@ -87,9 +87,19 @@
 \DeclareMathOperator{\cost}{cost}
 
 % Math + theorem environments
-\usepackage{amsmath}
 \usepackage{amsthm} % provides theorem + proof environments
 
 \usepackage{float}
 
 \usepackage{booktabs}
+
+% Micro-typographic enhancements and proper localized quotes
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% Hyperlinks (should be loaded late)
+\usepackage[hidelinks]{hyperref}
+
+% Diagrams and flowcharts
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}

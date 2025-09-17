@@ -20,6 +20,15 @@ class MutationParams:
     max_nodes_remove: int = 2
     max_edges_add: int = 5
     max_edges_remove: int = 3
+    # Realistic dynamics modes
+    # nodes: 'random' (uniform attachment) | 'preferential' (degree-proportional)
+    mode_nodes: str = "random"
+    # edges: 'random' | 'preferential' (by degree product) | 'triadic' (closure) | 'rewire_ws' (Watts–Strogatz style)
+    mode_edges: str = "random"
+    # parameters for modes
+    add_node_attach_m: int = 2  # how many neighbors to attach per new node (avg)
+    triadic_trials: int = 20    # attempts per added edge in triadic closure
+    rewire_prob: float = 0.1    # probability per rewired edge in 'rewire_ws'
 
 
 @dataclass
@@ -111,8 +120,15 @@ class DynamicNetworkSimulator:
 
         if random.random() < self.mutation_params.add_edges_prob:
             num_add = random.randint(1, self.mutation_params.max_edges_add)
-            added_edges = self._add_edges(graph, num_add)
-            mutations.append(f"Added {len(added_edges)} edges")
+            if self.mutation_params.mode_edges == "rewire_ws":
+                addc, removec = self._rewire_edges(graph, num_add)
+                if addc:
+                    mutations.append(f"Added {addc} edges")
+                if removec:
+                    mutations.append(f"Removed {removec} edges")
+            else:
+                added_edges = self._add_edges(graph, num_add)
+                mutations.append(f"Added {len(added_edges)} edges")
 
         if random.random() < self.mutation_params.remove_edges_prob and graph.number_of_edges() > 0:
             num_remove = random.randint(1, min(self.mutation_params.max_edges_remove, graph.number_of_edges()))
@@ -130,12 +146,39 @@ class DynamicNetworkSimulator:
             self.next_node_id += 1
             graph.add_node(new_node)
             new_nodes.append(new_node)
-
             if existing_nodes:
-                num_connections = random.randint(1, min(3, len(existing_nodes)))
-                neighbors = random.sample(existing_nodes, num_connections)
-                for neighbor in neighbors:
-                    graph.add_edge(new_node, neighbor)
+                m = max(1, min(self.mutation_params.add_node_attach_m, len(existing_nodes)))
+                if self.mutation_params.mode_nodes == "preferential":
+                    # choose neighbors with prob ~ degree+1
+                    deg = graph.degree
+                    weights = [deg[v] + 1 for v in existing_nodes]
+                    total = sum(weights)
+                    chosen: set[int] = set()
+                    # sample without replacement
+                    for _k in range(m):
+                        if not existing_nodes:
+                            break
+                        r = random.uniform(0, total)
+                        acc = 0.0
+                        pick_idx = 0
+                        for idx, w in enumerate(weights):
+                            acc += w
+                            if acc >= r:
+                                pick_idx = idx
+                                break
+                        v = existing_nodes[pick_idx]
+                        if v not in chosen:
+                            graph.add_edge(new_node, v)
+                            chosen.add(v)
+                        # remove picked to avoid duplicates
+                        total -= weights[pick_idx]
+                        existing_nodes.pop(pick_idx)
+                        weights.pop(pick_idx)
+                else:
+                    num_connections = random.randint(1, m)
+                    neighbors = random.sample(existing_nodes, num_connections)
+                    for neighbor in neighbors:
+                        graph.add_edge(new_node, neighbor)
 
         return new_nodes
 
@@ -154,15 +197,83 @@ class DynamicNetworkSimulator:
         if len(nodes) < 2:
             return added_edges
 
-        attempts = 0
-        while len(added_edges) < num_edges and attempts < num_edges * 10:
-            node1, node2 = random.sample(nodes, 2)
-            if not graph.has_edge(node1, node2):
-                graph.add_edge(node1, node2)
-                added_edges.append((node1, node2))
-            attempts += 1
+        mode = self.mutation_params.mode_edges
+        if mode == "random":
+            attempts = 0
+            while len(added_edges) < num_edges and attempts < num_edges * 10:
+                u, v = random.sample(nodes, 2)
+                if not graph.has_edge(u, v):
+                    graph.add_edge(u, v)
+                    added_edges.append((u, v))
+                attempts += 1
+        elif mode == "preferential":
+            # pick pairs with prob ~ (deg(u)+1)*(deg(v)+1)
+            attempts = 0
+            while len(added_edges) < num_edges and attempts < num_edges * 20:
+                u, v = random.sample(nodes, 2)
+                if graph.has_edge(u, v):
+                    attempts += 1
+                    continue
+                deg = graph.degree
+                w = (deg[u] + 1) * (deg[v] + 1)
+                # normalize by an upper bound; accept with prob min(1, w/W)
+                # choose W as (max_deg+1)^2
+                max_deg = max((deg[x] for x in nodes), default=1)
+                accept_p = min(1.0, w / float((max_deg + 1) ** 2))
+                if random.random() < accept_p:
+                    graph.add_edge(u, v)
+                    added_edges.append((u, v))
+                attempts += 1
+        elif mode == "triadic":
+            trials = max(1, self.mutation_params.triadic_trials)
+            attempts = 0
+            while len(added_edges) < num_edges and attempts < num_edges * trials:
+                w = random.choice(nodes)
+                neigh = list(graph.neighbors(w))
+                if len(neigh) >= 2:
+                    u, v = random.sample(neigh, 2)
+                    if not graph.has_edge(u, v):
+                        graph.add_edge(u, v)
+                        added_edges.append((u, v))
+                attempts += 1
+        else:
+            # fallback to random
+            attempts = 0
+            while len(added_edges) < num_edges and attempts < num_edges * 10:
+                u, v = random.sample(nodes, 2)
+                if not graph.has_edge(u, v):
+                    graph.add_edge(u, v)
+                    added_edges.append((u, v))
+                attempts += 1
 
         return added_edges
+
+    def _rewire_edges(self, graph: nx.Graph, num_ops: int) -> tuple[int, int]:
+        # Perform up to num_ops rewirings: remove a random existing edge and add a new one from its endpoint to random other node
+        added = 0
+        removed = 0
+        edges = list(graph.edges())
+        nodes = list(graph.nodes())
+        if not edges or len(nodes) < 3:
+            return (0, 0)
+        ops = 0
+        while ops < num_ops and edges:
+            u, v = random.choice(edges)
+            if graph.has_edge(u, v):
+                graph.remove_edge(u, v)
+                removed += 1
+            # choose endpoint to rewire from
+            a = u if random.random() < 0.5 else v
+            # try a few attempts to connect to a non-neighbor
+            for _ in range(6):
+                b = random.choice(nodes)
+                if b != a and not graph.has_edge(a, b):
+                    graph.add_edge(a, b)
+                    added += 1
+                    break
+            ops += 1
+            edges = list(graph.edges())
+        return (added, removed)
 
     def _remove_edges(self, graph: nx.Graph, num_edges: int) -> list[tuple[int, int]]:
         edges_to_remove = random.sample(list(graph.edges()), num_edges)
