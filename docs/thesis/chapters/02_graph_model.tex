@@ -15,6 +15,8 @@ Przyjmujemy również, że graf \( G \) nie zawiera pętli, tj. \( \{v, v\} \not
     \label{fig:social_graph}
 \end{figure}
 
+\paragraph{Przykład (ilustracja doboru grup).} Rozważmy graf z rys.\,\ref{fig:social_graph} i konfigurację \texttt{duolingo\_super} (\emph{Individual} 1–1, \emph{Family} 2–6). Jeśli węzeł $u$ ma czterech sąsiadów i wszyscy są wzajemnie niepołączeni, opłaca się utworzyć grupę rodzinną o rozmiarze 5 (właściciel + 4 członków). Gdyby zaś sąsiedzi tworzyli gęstą klikę i pojawiały się konflikty (np. ograniczone możliwości pojemności u różnych właścicieli), heurystyki preferujące \emph{unikalne pokrycie} będą wybierały kilku właścicieli o mniejszych grupach. Takie scenariusze omówiono na rysunkach w rozdz.\,\ref{chap:algorithms} oraz w części eksperymentalnej.
+
 Opisana reprezentacja, w której wierzchołki odpowiadają jednostkom, a krawędzie bezpośrednim relacjom umożliwiającym interakcję, jest powszechnie stosowana w analizie sieci społecznościowych \cite{Brandes2004, NETTLETON20131}. Takie ujęcie pozwala formalnie modelować i badać zjawiska zachodzące w społecznościach użytkowników usług cyfrowych.
 
 W przyjętym modelu zakłada się, że współdzielenie licencji może odbywać się wyłącznie między osobami połączonymi bezpośrednią krawędzią w grafie. Oznacza to, że użytkownicy muszą znać się bezpośrednio i mieć wzajemne zaufanie, co jest istotne na przykład w przypadku przekazywania danych logowania lub zapraszania do planu rodzinnego. Relacje pośrednie, w których użytkownicy są powiązani poprzez wspólnych znajomych (np. \( A \sim B \) oraz \( B \sim C \), lecz brak bezpośredniego powiązania \( A \sim C \)), nie są uwzględniane w analizie. Oznacza to, że dla danego grafu \( G = (V, E) \),
@@ -25,6 +27,14 @@ Mimo że w praktyce relacje pośrednie - takie jak ścieżki długości większe
 Graf społecznościowy nie musi być pełny - dopuszcza się dowolną strukturę odpowiadającą rzeczywistym relacjom społecznym. W analizie istotną rolę odgrywa stopień wierzchołków, ponieważ decyduje on o liczbie osób, którym dany użytkownik może udostępnić swoją licencję. Dla wierzchołka \( v \in V \), jego stopień oznaczamy przez \( \deg(v) \), co odpowiada liczbie sąsiadów użytkownika \( v \) w grafie \( G = (V, E) \).
 
 Należy jednak zauważyć, że nawet w przypadku wysokiego stopnia \( \deg(v) \), użytkownik niekoniecznie może współdzielić licencję ze wszystkimi swoimi sąsiadami. Ograniczenia techniczne, takie jak limity liczby współużytkowników narzucane przez dostawcę usługi, sprawiają, że liczba osób objętych jedną licencją grupową pozostaje ograniczona. W analizowanym modelu można zatem przyjąć dodatkowy parametr \( k \), oznaczający maksymalną liczbę osób, z którymi użytkownik może dzielić licencję.
+
+\subsection{Typy licencji i parametry pojemności — definicja na wstępie}
+\label{sec:license-early-def}
+Już na wstępie formalizujemy rodzinę dopuszczalnych typów licencji jako zbiór
+\[
+\mathcal{L} = \bigl\{\, t = (c_t,\, m_t,\, k_t)\,\bigr\},
+\]
+gdzie \(c_t\) oznacza koszt licencji typu \(t\), zaś \(m_t\) i \(k_t\) to — odpowiednio — minimalna oraz maksymalna liczba użytkowników w grupie (\emph{wraz z właścicielem}). Dla czytelności będziemy także używać skrótu \( (c_t,\, l_t,\, u_t) \) na \( (c_t,\, m_t,\, k_t) \). Licencja indywidualna jest szczególnym przypadkiem z \(m_t=k_t=1\). Parametry \(m_t\) i \(k_t\) są kluczowe dla zrozumienia ograniczeń modelu i pojawiają się w dalszych rozważaniach (por. wykaz symboli na początku pracy).
 
 
 \section{Definicja problemu}
@@ -103,41 +113,66 @@ W analizie przyjmujemy $m$ oraz $k$ jako zmienne parametry. Nawet jeśli użytko
 
 \subsection{Struktura kosztów i modele cenowe}
 
-W analizowanym problemie istotnym elementem jest sposób odwzorowania polityki cenowej dostawców usług. Różne plany subskrypcyjne charakteryzują się nie tylko innym kosztem, ale również odmiennym zakresem liczby użytkowników $k$, którzy mogą korzystać z jednej licencji. Dodatkowo wprowadzone zostało wspomniane już wcześniej ograniczenie dolne $m$, które definiuje minimalną liczbę użytkowników planu. Mimo że w rzeczywistości takie ograniczenia nie są formalnie narzucane, w prezentowanym modelu pełnią ważną rolę. Pozwalają lepiej uchwycić ekonomiczny sens wyboru licencji grupowych, gdyż w praktyce ich wykorzystanie przez jedną osobę jest nieopłacalne i w rzeczywistości raczej takei sytuacje nie zachodzą. Przykładowo, dla planów typu Duo czy Family naturalne jest przyjęcie $m=2$, mimo że użytkownik technicznie mógłby korzystać z takiej subskrypcji samodzielnie. Formalnie rodzinę typów licencji opisać można jako
-\[
-\mathcal{L} = \{\, t = (c_t, m_t, k_t) \,\},
-\]
-gdzie $c_t$ oznacza koszt licencji typu $t$, a $m_t$ i $k_t$ określają odpowiednio minimalną i maksymalną liczbę użytkowników w grupie (łącznie z właścicielem). Licencja indywidualna jest szczególnym przypadkiem z $m_t = k_t = 1$.
+W analizowanym problemie istotnym elementem jest sposób odwzorowania polityki cenowej dostawców usług. Różne plany subskrypcyjne charakteryzują się nie tylko innym kosztem, ale również odmiennym zakresem liczby użytkowników \(k\), którzy mogą korzystać z jednej licencji. Wprowadziliśmy już parametry \(m_t\) i \(k_t\) (Sec.~\ref{sec:license-early-def}), które określają — odpowiednio — minimalną i maksymalną liczebność grupy (z właścicielem). Mimo że w rzeczywistości ograniczenie dolne \(m_t\) zwykle nie jest egzekwowane formalnie, w modelu pełni ważną rolę: zapobiega nieopłacalnemu używaniu planu grupowego przez jedną osobę. Dla planów typu Duo czy Family naturalne jest przyjęcie \(m_t=2\), choć użytkownik technicznie mógłby korzystać z subskrypcji samodzielnie.
 
 W testach syntetycznych wartości $c_t$, $m_t$ i $k_t$ ustalane są eksperymentalnie, co pozwala badać zachowanie algorytmów w różnych wariantach cenowych i strukturalnych. W testach na danych rzeczywistych stosowane są faktyczne ceny subskrypcji (np. Spotify, Duolingo). Dla wariantu teoretycznego odpowiadającego dominacji rzymskiej koszty są znormalizowane względem licencji indywidualnej, co umożliwia powiązanie modelu z klasycznymi zagadnieniami teorii grafów. Przykłady zestawiono w Tabeli~\ref{tab:license_models}.
 
 \begin{table}[h!]
 \centering
-\caption{Przykładowe modele licencji dla usług rzeczywistych i modelu teoretycznego}
+\caption{Przykładowe modele licencji dla usług rzeczywistych (z walutą i datą) oraz wariantu teoretycznego}
 \label{tab:license_models_real}
 \begin{tabular}{lccc}
 \hline
 \textbf{Typ licencji} & \textbf{Koszt $c_t$} & \textbf{Min $m_t$} & \textbf{Max $k_t$} \\
 \hline
-\multicolumn{4}{c}{\textit{Spotify (ceny w PLN)}} \\
-Individual & 23.99 & 1 & 1 \\
-Duo        & 30.99 & 2 & 2 \\
-Family     & 37.99 & 2 & 6 \\
+\multicolumn{4}{c}{\textit{Spotify (PLN, stan na 2025-09-15; źr.: \cite{spotify_pl_premium_2025})}} \\
+Individual & 23{,}99 & 1 & 1 \\
+Duo        & 30{,}99 & 2 & 2 \\
+Family     & 37{,}99 & 2 & 6 \\
 \hline
-\multicolumn{4}{c}{\textit{Duolingo Super (ceny w PLN)}} \\
-Individual & 13.99 & 1 & 1 \\
-Family     & 29.17 & 2 & 6 \\
+\multicolumn{4}{c}{\textit{Duolingo Super (ceny zależne od regionu/sklepu; brak jednolitego cennika publicznego\footnotemark)}} \\
+Individual & — & 1 & 1 \\
+Family     & — & 2 & 6 \\
 \hline
 \multicolumn{4}{c}{\textit{Model teoretyczny (koszty znormalizowane)}} \\
 Solo       & 1.0   & 1 & 1 \\
 Group      & 2.0   & 2 & 999 \\
 \hline
 \end{tabular}
+\footnotetext{Przykładowo, w USA na dzień 2025-09-15 plan Spotify kosztuje: Individual \$11{.}99/mies., Duo \$16{.}99/mies., Family \$19{.}99/mies. (\cite{spotify_us_pricing_2025}); Duolingo Family Plan dopuszcza do 6 użytkowników bez wymogu wspólnego gospodarstwa domowego (\cite{duolingo_family_blog}), a ceny Super/Family różnią się w zależności od kraju i platformy (App Store/Google Play).}
 \end{table}
 
 W przypadku usług rzeczywistych koszty planów grupowych są znacznie niższe niż suma odpowiadających im licencji indywidualnych. Na przykład plan Spotify Family pozwala na współdzielenie subskrypcji przez maksymalnie sześć osób przy koszcie $37{,}99$ PLN, co czyni go zdecydowanie bardziej opłacalnym od planu indywidualnego ($23{,}99$ PLN). Podobna sytuacja występuje w przypadku Duolingo Super Family.
 
 W modelu teoretycznym opartym na dominacji rzymskiej koszty są podane w jednostkach względnych. Licencja indywidualna ma koszt $1.0$, a licencja grupowa koszt $2.0$, co odpowiada klasycznemu przypisaniu wag w problemie dominacji rzymskiej. W ramach przeprowadzanych eksperymentów etykieta „2” będzie zmieniała swoją wartość jako wielokrotność kosztu ceny indywidualnej, co pozwala na analizę różnych wariantów tego zagadnienia.
+
+Warto podkreślić, że w przypadku \textbf{Duolingo} nie występuje wariant \emph{dwuosobowy (Duo)} — w naszym modelu jest on zatem nieobecny (uwzględniamy tylko \emph{Individual} oraz \emph{Family}). Dla \textbf{Spotify} wariant \emph{Duo} jest natomiast częścią podstawowej oferty i został włączony do analizy.
+
+\subsection{Ograniczenia usług w praktyce i ich wpływ na model}
+\label{sec:service-constraints}
+W podstawowej wersji modelu zakładamy pełną „dzielność” licencji rodzinnych: właściciel może obsłużyć dowolny podzbiór swoich sąsiadów w grafie, o ile mieści się on w granicach \([m_t, k_t]\). W rzeczywistych usługach pojawiają się jednak dodatkowe ograniczenia regulaminowe:
+\begin{itemize}
+  \item \textbf{Spotify Duo/Family:} członkowie muszą mieszkać pod \emph{tym samym adresem}; podczas dołączania wymagane jest potwierdzenie adresu (okresowo weryfikowane) \cite{spotify_duo_legal,spotify_us_pricing_2025}. Ograniczenie to ma charakter lokalizacyjny i w praktyce zawęża dopuszczalne grupy do osób współzamieszkujących.
+  \item \textbf{Duolingo Family Plan:} do planu można zapraszać dowolne osoby (brak wymogu wspólnego gospodarstwa domowego), do 6 kont w ramach jednej opłaty rocznej \cite{duolingo_family_blog}. Ograniczenia mają charakter liczebnościowy, nie lokalizacyjny.
+\end{itemize}
+
+\paragraph{Modelowanie.} Tego typu wymogi można ująć jako dodatkowe predykaty na grupach. Niech \(a:V\to A\) oznacza atrybut \emph{gospodarstwa domowego} (np. adres), a \(h:V\to H\) — inny atrybut przynależności (np. rodzina/klasa). Wersja z weryfikacją adresu wymusza dla każdej grupy \(S\) i właściciela \(u\): \(\forall v\in S\,\,(a(v)=a(u))\). Tym samym wybór grup ogranicza się do przecięć \(N[u]\) z klasami równoważności \(a^{-1}(\alpha)\). W ILP implementujemy to przez dodatkowe ograniczenia łączące zmienne przydziału z wartościami \(a(\cdot)\). W przypadku braku wymogu współlokalizacji (Duolingo) warunek ten pomijamy.
+
+\paragraph{Wpływ na rozwiązywalność.} Dodatkowe predykaty zmniejszają przestrzeń rozwiązań (łatwiejsze ograniczenie heurystyk), ale mogą też utrudnić osiągnięcie pokrycia w grafach o słabej mieszalności atrybutów (ryzyko niedostatecznej liczby sąsiadów spełniających warunek \(a(\cdot)\)). W eksperymentach głównych rozważamy wariant bez atrybutu adresowego, a wariant z atrybutem traktujemy jako rozszerzenie modelu (Sec.~\ref{sec:model-extensions}).
+
+\subsection{Warianty planów i założenia rozliczeń}
+\label{sec:plans-billing}
+\paragraph{Plany miesięczne vs roczne.} Rzeczywiste usługi oferują różne cykle rozliczeń. Spotify rozlicza standardowo \emph{miesięcznie} (Individual/Duo/Family), z opcjonalnymi planami specjalnymi (np. Student, por. niżej). Duolingo Family Plan jest rozliczany \emph{rocznie} z góry przez jednego menedżera planu (jedna opłata roczna; członkowie mają odrębne konta z pełnymi benefitami) \cite{duolingo_family_blog}. Na potrzeby porównań sprowadzamy koszty do \emph{efektywnego kosztu jednostkowego} (np. miesięcznego), co umożliwia porównywanie konfiguracji przy zachowaniu realizmu ekonomicznego (różne cykle rozliczeń).
+
+\paragraph{Plany specjalne i dlaczego pominięte.} Nie uwzględniamy w modelu planów wymagających zewnętrznej weryfikacji uprawnień lub silnie regionalnych bundle, ponieważ nie wpływają one na mechanikę \emph{współdzielenia w grupie} w sensie grafowym i zaburzałyby porównywalność kosztów:
+\begin{itemize}
+  \item \textbf{Spotify Student} — plan \emph{pojedynczy} (dla jednego użytkownika, z weryfikacją SheerID i limitami czasowymi odnowień), dodatkowo w USA powiązany z dostępem do Hulu (With Ads) \cite{spotify_us_student_site,spotify_student_support}. Brak aspektu grupowego czyni go mniej relewantnym dla optymalizacji na grafie; można go traktować jak szczególną licencję indywidualną o innym koszcie.
+  \item \textbf{Promocje, bundling, płatności przez operatorów} — silnie zależne od regionu i okresu (czasowe zniżki, triale, bundle). Dla przejrzystości stosujemy ceny katalogowe zweryfikowane na konkretną datę (por. tabela) i pomijamy rabaty promocyjne.
+\end{itemize}
+
+\paragraph{Założenie synchronizacji (okres i chwila zakupu).} W wariancie bazowym przyjmujemy, że wszyscy użytkownicy kupują licencje \emph{w tej samej chwili} i \emph{na identyczny okres} (dla rodzin: pełny okres rozliczeniowy). Konsekwencje: (i) można porównywać koszty wprost na jednym horyzoncie, (ii) odpada kalibracja przepływów czasu i częściowych okresów, (iii) upraszczamy ILP (brak indeksowania czasowego). Gdyby dopuścić niesynchroniczne zakupy i wygasanie licencji w różnych chwilach, model przekształca się w problem \emph{czasowo-indeksowany} (zmienne i ograniczenia per slot czasu), bliski rozdziałowi o dynamice (por. Rozdz.~\ref{chap:dynamic}).
+
+\paragraph{Struktura kont/profili.} W usługach rodzinnych każdy członek korzysta z \emph{oddzielnego konta} w ramach planu (to nie są „profile” współdzielące jedno konto). W Spotify członkowie Family/Duo mają własne konta Premium, ale muszą potwierdzić \emph{ten sam adres} i zgodność kraju/regionu \cite{spotify_family_address_verification}. W Duolingo członkowie Family mają własne konta z pełnymi benefitami Super i brak wymogu wspólnego gospodarstwa domowego \cite{duolingo_family_blog}.
 
 
 % \subsection{Zakup jednoczesny i sekwencyjny}

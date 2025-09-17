@@ -1,77 +1,93 @@
 \chapter{Rozszerzenia modelu i dodatkowe konfiguracje}\label{chap:extensions}
 
-W tym rozdziale przeanalizowano dodatkowe konfiguracje licencyjne rozszerzające bazowy model. W szczególności rozważono:
+Przyjęty w poprzednich rozdziałach model zakładał dwa rodzaje licencji (\texttt{duolingo\_super} i \texttt{roman\_domination}). W praktyce istnieje wiele wariantów subskrypcji o różnych cenach i limitach grupowych. Niniejszy rozdział opisuje rozszerzenia modelu uwzględniające:
 \begin{itemize}
-  \item warianty \texttt{roman\_domination} o parametrach cenowych $p\in\{1{,}5,2{,}0,2{,}5,3{,}0\}$ (oznaczenia \texttt{roman\_p\_x}),
-  \item konfigurację \texttt{spotify} obejmującą licencje \emph{Individual}, \emph{Duo} (dokładnie 2 osoby) i \emph{Family} (grupa rodzinna),
-  \item porównanie z bazową \texttt{duolingo\_super}.
+  \item różne poziomy ceny licencji grupowej w wariancie \texttt{roman\_domination} (parametr $p$),
+  \item dodatkowy plan Duo występujący w ofercie serwisu Spotify,
+  \item trzy warianty subskrypcji platformy Netflix.
 \end{itemize}
 
-\paragraph{Dane i ograniczenia} Analiza wykorzystuje istniejące wyniki z folderu \texttt{runs/}: zestawy \texttt{benchmark\_all} (instancje syntetyczne, scenariusz statyczny) oraz \texttt{dynamic\_20} i \texttt{20250907\_014311\_dynamic} (scenariusz dynamiczny). Część \texttt{dynamic\_real} nie została jeszcze ukończona i nie jest tu używana. W obecnych wynikach nie ma wariantów \texttt{duolingo\_super} innych niż konfiguracja bazowa. Graf \texttt{tree} nie był dotąd uruchamiany w rozszerzeniach i nie jest raportowany.
-
-\section{Metodyka}
-
-Do przygotowania wykresów i zestawień użyto skryptu \texttt{scripts/analysis/model\_extensions.py}, który:
-\begin{itemize}
-  \item agreguje \textit{cost per node} oraz \textit{time [ms]} per algorytm dla wskazanych konfiguracji,
-  \item rysuje porównania grupowe (słupki) między wieloma konfiguracjami,
-  \item w przypadku \texttt{roman\_p\_x} tworzy krzywą kosztu w funkcji parametru $p$ dla każdego algorytmu,
-  \item wylicza i wizualizuje miks typów licencji (udziały) dla konfiguracji \texttt{spotify}.
-\end{itemize}
-Wykresy zapisano w \texttt{docs/thesis/assets/figures/extensions/}.
+Eksperymenty obejmujące te warianty zostały zaplanowane, lecz na moment powstawania rozdziału nie są jeszcze dostępne pliki wynikowe z przebiegu testów. Dlatego część sekcji dotyczących analizy i wyników oznaczono jako TODO.
 
 \section{Warianty roman\_p\_x}
 
-Rysunek \ref{fig:roman_group} pokazuje porównanie średniego \textit{cost per node} oraz \textit{time [ms]} (uśrednienie po instancjach) dla algorytmów i pięciu konfiguracji: \texttt{roman\_domination}, \texttt{roman\_p\_1\_5}, \texttt{roman\_p\_2\_0}, \texttt{roman\_p\_2\_5}, \texttt{roman\_p\_3\_0}. Rysunek \ref{fig:roman_curve} prezentuje zależność kosztu od parametru $p$ (krzywe per algorytm).
+W bazowej konfiguracji \texttt{roman\_domination} występują dwa typy licencji:
+\begin{itemize}
+  \item \textbf{Solo} -- koszt 1,0 jednostki za jedną osobę,
+  \item \textbf{Group} -- koszt 2,0 jednostki niezależnie od liczby osób (nieograniczona pojemność).
+\end{itemize}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.48\linewidth]{assets/figures/extensions/roman_variants_cost.png}
-  \includegraphics[width=0.48\linewidth]{assets/figures/extensions/roman_variants_time.png}
-\caption{Warianty roman\_p\_x: koszt na wierzchołek i czas działania (per algorytm).}
-  \label{fig:roman_group}
-\end{figure}
+Warianty \texttt{roman\_p\_x} wprowadzają parametr $p > 1$, określający koszt licencji grupowej. W kodzie systemu wartość $p$ jest definiowana w nazwie konfiguracji: \texttt{roman\_p\_1\_5}, \texttt{roman\_p\_2\_5}, \texttt{roman\_p\_3\_0} odpowiadają odpowiednio kosztom 1,5; 2,5; 3,0 dla licencji grupowej. Pozostałe parametry (nielimitowana pojemność, koszt licencji Solo = 1,0) pozostają niezmienione.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\linewidth]{assets/figures/extensions/roman_p_curve_cost_per_node.png}
-\caption{roman\_p\_x: koszt na wierzchołek vs parametr $p$ (krzywe per algorytm).}
-  \label{fig:roman_curve}
-\end{figure}
+Wzrost parametru $p$ powoduje większą relatywną opłacalność licencji Solo; w związku z tym oczekuje się, że dla wyższych $p$ algorytmy będą tworzyć mniejsze grupy, a w skrajnym przypadku (duży $p$) możliwy jest powrót do wariantu z dominacją klasyczną. Planowane analizy obejmują:
+\begin{itemize}
+  \item zależność kosztu na wierzchołek od wielkości grafu dla poszczególnych $p$,
+  \item porównanie rozkładu wielkości grup przy różnych wartościach $p$,
+  \item badanie udziału licencji Solo vs. Group w rozwiązaniach.
+\end{itemize}
 
-\paragraph{Wyniki i obserwacje}
-Zgodnie z intuicją, wzrost parametru cenowego $p$ powoduje wzrost kosztu na wierzchołek w całym przekroju algorytmów. Mediana \textit{cost per node} (z \texttt{benchmark\_all}) dla wybranych wariantów kształtuje się przykładowo następująco: \texttt{roman\_p\_1\_5} $\approx0{,}308$, \texttt{roman\_p\_2\_0} $\approx0{,}400$, \texttt{roman\_p\_2\_5} $\approx0{,}476$, \texttt{roman\_p\_3\_0} $\approx0{,}537$. Różnice między algorytmami pozostają podobne do obserwacji z części statycznej: metaheurystyki uzyskują niższe koszty, kosztem dłuższego czasu obliczeń, podczas gdy heurystyki konstrukcyjne (zachłanny, dominating set) są szybsze, lecz nieco droższe.
+\emph{TODO: rysunki i tabele opisujące te analizy zostaną dodane w finalnej wersji pracy.}
 
-\section{Konfiguracja Spotify i porównanie z Duolingo Super}
+\section{Konfiguracja Spotify}
 
-Konfiguracja \texttt{spotify} obejmuje trzy typy licencji: \emph{Individual}, \emph{Duo} (dokładnie 2 osoby) i \emph{Family}. Rysunek \ref{fig:duo_spotify_cmp} porównuje \textit{cost per node} oraz \textit{time [ms]} między \texttt{spotify} a \texttt{duolingo\_super}. Na rysunku \ref{fig:spotify_mix} pokazano miks licencji (udział typów) per algorytm.
+W usłudze Spotify występują trzy rodzaje licencji:
+\begin{itemize}
+  \item \textbf{Individual} -- cena 23,99 (jedna osoba, pojemność 1),
+  \item \textbf{Duo} -- cena 30,99 (dokładnie 2 użytkowników, pojemność 2),
+  \item \textbf{Family} -- cena 37,99 (od 2 do 6 osób).
+\end{itemize}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.48\linewidth]{assets/figures/extensions/duo_vs_spotify/compare_cost_per_node_duolingo_super_vs_spotify.png}
-  \includegraphics[width=0.48\linewidth]{assets/figures/extensions/duo_vs_spotify/compare_time_ms_duolingo_super_vs_spotify.png}
-\caption{Porównanie Duolingo Super vs Spotify: koszt na wierzchołek i czas (średnio per algorytm).}
-  \label{fig:duo_spotify_cmp}
-\end{figure}
+W planie Duo dwóch abonentów dzieli wspólny plan, zachowując oddzielne konta premium. Wymagane jest, aby obie osoby mieszkały pod tym samym adresem. Dostępność licencji Duo wprowadza nową strategię grupowania: optymalny algorytm może preferować tworzenie par (pojemność 2) zamiast większych grup (pojemność 6).
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.75\linewidth]{assets/figures/extensions/spotify_license_mix.png}
-\caption{Spotify: udziały typów licencji per algorytm (Individual/Duo/Family).}
-  \label{fig:spotify_mix}
-\end{figure}
+\emph{TODO: eksperymenty obejmą porównanie kosztów i czasów dla tej konfiguracji z poprzednimi wariantami. Rysunki (koszt na wierzchołek i czas vs $n$, fronty Pareto) zostaną dołączone po uzyskaniu wyników.}
 
-\paragraph{Wyniki i interpretacja}
-W przekroju instancji syntetycznych (\texttt{benchmark\_all}) mediana \textit{cost per node} dla \texttt{duolingo\_super} wynosi około $6{,}81$, natomiast dla \texttt{spotify} około $8{,}95$. Wyższy koszt w \texttt{spotify} wynika z inaczej ukształtowanego cennika oraz dodatkowego typu \emph{Duo} ograniczonego do par (brak możliwości dalszego skalowania grupy). Udział \emph{Duo} zależy od algorytmu: dla metod konstrukcyjnych i metaheurystyk typowo 10–12\%, zaś dla algorytmu losowego sięga około 26\%. Z kolei \emph{Family} dominuje w rozwiązaniach ILP (ok. 86\%), co wskazuje, że przy sprzyjającej strukturze grafu optymalne jest formowanie większych grup rodzinnych. Czas obliczeń jest porównywalny między konfiguracjami, zależny głównie od wybranego algorytmu oraz rozmiaru/gęstości grafu.
+\section{Konfiguracja Netflix}
 
-\section{Uwaga o wariantach \texttt{duolingo\_super}}
+Subskrypcja platformy Netflix została uproszczona do trzech planów:
+\begin{itemize}
+  \item \textbf{StdWithAds} -- cena 7,99 (dla 1 użytkownika),
+  \item \textbf{Standard} -- cena 17,99 (dla 2 użytkowników, pojemność 2),
+  \item \textbf{Premium} -- cena 24,99 (dla 2--4 użytkowników, pojemność 4).
+\end{itemize}
 
-W aktualnym zestawie wyników brak uruchomień wariantów \texttt{duolingo\_super} innych niż konfiguracja bazowa. W przypadku dodania alternatywnych parametrów (np. zmienione progi pojemności i ceny), proponuje się powtórzyć powyższą procedurę porównawczą: porównania grupowe (koszt/czas per algorytm), wykresy miksu licencji oraz – w scenariuszu dynamicznym – trajektorie kosztu w czasie z rozróżnieniem warm/cold (jeśli dostępne).
+W odróżnieniu od Spotify, Netflix nie oferuje licencji rodziny o pojemności 6 ani nieograniczonych planów grupowych.
 
-\section{Wnioski}
+\emph{TODO: modele testowe będą analizować, w jakim stopniu ograniczenie do małych grup (2--4 osoby) wpływa na strukturę rozwiązania i koszt w porównaniu z wariantem \texttt{duolingo\_super}.}
+
+\section{Metodyka eksperymentów}
+
+Testy z rozszerzonymi konfiguracjami zaplanowano zarówno w wariancie statycznym (benchmark), jak i dynamicznym:
 
 \begin{itemize}
-  \item Warianty \texttt{roman\_p\_x} wykazują monotoniczny wzrost kosztu wraz ze wzrostem parametru $p$, zgodnie z oczekiwaniami; relatywna przewaga algorytmów pozostaje zbliżona do obserwacji z części statycznej.
-  \item Konfiguracja \texttt{spotify} jest średnio droższa na wierzchołek niż \texttt{duolingo\_super}, co wynika z obecności licencji \emph{Duo} (para) i innej struktury cenowej; przy strukturach grafu sprzyjających większym grupom przewagę kosztową zapewnia \emph{Family}.
-  \item Brak wariantów \texttt{duolingo\_super} w obecnych wynikach ogranicza porównania; po ich dodaniu rekomenduje się analogiczną analizę jak dla \texttt{roman\_p\_x} i \texttt{spotify}.
+\item \textbf{Benchmark (statyczny)} -- dla rozmiarów $n = \{20, 50, 100, 200\}$, po 2 próbki na rozmiar i 1 powtórzenie. Algorytmy to ten sam zestaw co w rozdziale \ref{chap:experiments} (\textbf{ILPSolver}, \textbf{GreedyAlgorithm}, \textbf{RandomizedAlgorithm}, \textbf{DominatingSetAlgorithm}, \textbf{AntColonyOptimization}, \textbf{SimulatedAnnealing}, \textbf{TabuSearch}, \textbf{GeneticAlgorithm}). Czas obliczeń ograniczono do 45 s. Rejestrowane metryki: koszt całkowity, czas wykonania, koszt na węzeł, liczba grup i ich rozkład.
+
+\item \textbf{Dynamiczne rozszerzenia} -- symulacje dynamiczne z rozmiarami $n = \{40, 80, 160\}$, liczbą kroków 15 i pojedynczym powtórzeniem. Mutacje odbywają się z parametrami identycznymi jak w rozdziale \ref{chap:dynamic} (niski poziom intensywności). Dla wariantów dynamicznych planowane są wykresy ewolucji kosztu i czasu w funkcji kroku oraz analiza wpływu warm startu na metaheurystyki.
 \end{itemize}
+
+\section{Prognozy i oczekiwane efekty}
+
+Choć wyniki nie są jeszcze dostępne, na podstawie dotychczasowych obserwacji można sformułować kilka prognoz:
+
+\begin{itemize}
+\item \textbf{Wpływ parametru $p$ w roman\_p\_x} -- wzrost $p$ powinien prowadzić do zmniejszenia udziału licencji grupowej, a tym samym do wzrostu kosztu na węzeł. Iloraz $p/2$ wyznacza granicę opłacalności korzystania z licencji Solo versus Group.
+
+\item \textbf{Duo w Spotify} -- obecność planu Duo (pojemność 2) prawdopodobnie obniży koszt w porównaniu z wersją \texttt{duolingo\_super} (która ma tylko pojemność 1 i 6). Algorytmy będą częściej tworzyć pary niż większe grupy, co może wpływać na czas (mniej złożone decyzje) oraz liczbę licencji Family w rozwiązaniu.
+
+\item \textbf{Netflix} -- w konfiguracji Netflix spodziewany jest większy rozrzut wyników; ograniczenie Premium do 4 osób i brak licencji z nieograniczoną pojemnością może utrudnić pokrycie w bardzo gęstych grafach. Różnice między planami Standard i Premium mogą zależeć od wielkości grup.
+
+\item \textbf{Algorytm ILPSolver} -- dla nowych konfiguracji kosztowych spodziewane jest, że ILP utrzyma przewagę jakościową dla małych grafów (jak w rozdziale \ref{chap:experiments}), ale będzie jeszcze bardziej ograniczony czasowo, ponieważ nowe warianty licencji zwiększą liczbę możliwych kombinacji.
+\end{itemize}
+
+\section{Planowane elementy graficzne i tabele (placeholdery)}
+
+Do finalnej wersji rozdziału dodane zostaną następujące elementy:
+
+\begin{itemize}
+\item wykresy pudełkowe kosztu i czasu dla każdej konfiguracji (\texttt{roman\_p\_1\_5}, \texttt{roman\_p\_2\_5}, \texttt{roman\_p\_3\_0}, \texttt{spotify}, \texttt{netflix}),
+\item linie trendu kosztu i czasu w funkcji liczby węzłów (dla statycznych eksperymentów),
+\item fronty Pareto (koszt vs czas) dla poszczególnych konfiguracji,
+\item wykresy pokazujące udział licencji Individual/Duo/Family w rozwiązaniu (dla Spotify i Netflix),
+\item w wariancie dynamicznym: koszt i czas vs krok symulacji, podobnie jak w rozdziale \ref{chap:dynamic}.
+\end{itemize}
+
+\emph{TODO: rysunki i tabele zostaną wstawione po zakończeniu obliczeń.}

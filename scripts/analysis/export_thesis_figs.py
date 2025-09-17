@@ -81,6 +81,16 @@ def export_figures(
         _copy_if_exists(bg / f"compare_cost_per_node_duolingo_super_vs_roman_domination_{g}.png", out_dir / f"br_compare_cost_duo_vs_roman_{g}.png")
         _copy_if_exists(bg / f"compare_time_ms_duolingo_super_vs_roman_domination_{g}.png", out_dir / f"br_compare_time_duo_vs_roman_{g}.png")
 
+    # Dynamic: mutation intensity and cost delta vs mutation
+    dyn = results_dir / "dynamic_20"
+    if dyn.exists():
+        _copy_if_exists(Path("docs/thesis/assets/figures/dynamic/dynamic20_mutation_intensity.png"), out_dir / "dynamic20_mutation_intensity.png")
+        _copy_if_exists(Path("docs/thesis/assets/figures/dynamic/dynamic20_cost_delta_vs_mutation.png"), out_dir / "dynamic20_cost_delta_vs_mutation.png")
+    full = results_dir / "dynamic_full"
+    if full.exists():
+        _copy_if_exists(Path("docs/thesis/assets/figures/dynamic/full_mutation_intensity.png"), out_dir / "full_mutation_intensity.png")
+        _copy_if_exists(Path("docs/thesis/assets/figures/dynamic/full_cost_delta_vs_mutation.png"), out_dir / "full_cost_delta_vs_mutation.png")
+
 
 def main() -> None:
     export_figures()

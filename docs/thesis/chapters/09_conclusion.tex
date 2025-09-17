@@ -1,54 +1,157 @@
-\chapter{Podsumowanie i wnioski końcowe}
+\chapter{Wnioski}\label{chap:conclusion}
 
-\section{Podsumowanie pracy}
-Przedstawiono model optymalizacji kosztów licencji w sieciach społecznych oparty na reprezentacji grafowej. Zdefiniowano rodzinę typów licencji z ograniczeniami pojemności oraz sformalizowano funkcję celu minimalizującą łączny koszt. Wykazano powiązanie z problemem dominowania oraz dominowania rzymskiego w grafach, co motywuje zarówno trudność obliczeniową (NP-trudność), jak i dobór metod algorytmicznych.
+Niniejsza praca przedstawiła kompleksowe podej\subsection{Rozszerzenia\subsection{Walidacja empiryczna}
 
-Zaimplementowano i porównano zestaw metod: solver ILP dla małych instancji (punkt odniesienia), heurystyki konstrukcyjne (zachłanny, zbiór dominujący, losowy) oraz metaheurystyki (genetyczny, mrówkowy, tabu, symulowane wyżarzanie). Eksperymenty wykonano na grafach syntetycznych (losowe, małoświatowe, bezskalowe) i na sieciach rzeczywistych (ego-Facebook). Osobno przeanalizowano scenariusz dynamiczny, w którym graf ulega mutacjom w kolejnych krokach, oraz rozszerzenia modelu cenowego (warianty \texttt{roman\_p\_x}, konfiguracja \texttt{spotify}).
+Kompleksowa walidacja empiryczna wymagałaby eksperymentów na szerszym spektrum rzeczywistych sieci społecznościowych z różnych platform i domen zastosowań, co pozwoliłoby na weryfikację ogólności uzyskanych wyników. Badanie rzeczywistego zachowania użytkowników w kontekście rekomendacji optymalnych grup licencyjnych stanowi kluczowy element w ocenie praktycznej wartości opracowanych metod.
 
-Powstał zestaw narzędzi analitycznych do automatycznej agregacji wyników, generowania wykresów i tabel oraz eksportu figur do części tekstowej. Wyniki zebrano i omówiono w rozdziałach eksperymentalnych.
+Długoterminowe obserwacje ewolucji sieci i skuteczności różnych strategii w czasie dostarczyłyby cennych informacji o stabilności proponowanych rozwiązań w dynamicznym środowisku rzeczywistych aplikacji. Analiza różnic w strukturach kosztowych i ich wpływu na optymalne strategie między różnymi usługami mogłaby ujawnić uniwersalne wzorce oraz specyficzne dla branży charakterystyki, które należy uwzględnić przy projektowaniu systemów optymalizacyjnych.e}
 
-\section{Najważniejsze wnioski}
+Perspektywiczne kierunki badań teoretycznych obejmują wyprowadzenie gwarancji aproksymacji dla zastosowanych heurystyk, szczególnie w kontekście różnych klas grafów, co mogłoby zapewnić teoretyczne uzasadnienie obserwowanych empirycznie wyników. Uwzględnienie niepewności w strukturze sieci i preferencjach użytkowników poprzez formułowanie stochastyczne problemu stanowi naturalny następny krok w rozwoju modelu.
+
+Rozszerzenie o wielokryterialność -- dodatkowe cele optymalizacyjne takie jak sprawiedliwość podziału czy minimalizacja ryzyka -- mogłoby uczynić model bardziej realistycznym z perspektywy praktycznych zastosowań. Modelowanie dodatkowych ograniczeń regulacyjnych i biznesowych charakterystycznych dla konkretnych platform pozwoliłoby na lepsze dopasowanie rozwiązań do rzeczywistych wymagań różnych usług cyfrowych.blemu optymalizacji kosztów licencji grupowych w sieciach społecznościowych, łącząc klasyczne zagadnienia z teorii grafów z praktycznymi wyzwaniami współczesnych platform cyfrowych. Przeprowadzone badania obejmowały zarówno analizę teoretyczną, jak i szeroko zakrojone eksperymenty empiryczne na danych syntetycznych i rzeczywistych.
+
+\section{Podsumowanie osiągnięć}
+
+\subsection{Model teoretyczny i jego właściwości}
+
+Zaproponowany model stanowi naturalne uogólnienie klasycznego problemu dominowania rzymskiego w grafach, wprowadzając ograniczenia pojemności grup oraz różnorodne typy licencji odpowiadające rzeczywistym ofertom subskrypcyjnym. Udało się sformalizować problem jako zadanie programowania całkowitoliczbowego z jasno zdefiniowanymi ograniczeniami pokrycia, pojemności i aktywacji grup.
+
+Szczególnie istotne okazało się wykazanie związku z dominowaniem rzymskim -- w przypadku ograniczenia do dwóch typów licencji (indywidualnej o koszcie 1 i grupowej o koszcie $p$ z nieograniczoną pojemnością) nasz problem redukuje się do klasycznego RD. Ta obserwacja pozwoliła na identyfikację złożoności obliczeniowej: problem jest co najmniej NP-trudny jako uogólnienie dominowania rzymskiego, co uzasadnia stosowanie metod heurystycznych i metaheurystycznych. Dodatkowo opracowano efektywny algorytm dokładny dla drzew wykorzystujący programowanie dynamiczne o złożoności wielomianowej.
+
+\subsection{Spektrum metod algorytmicznych}
+
+Praca zaprezentowała kompleksowy przegląd metod rozwiązywania problemu, od algorytmów dokładnych po zaawansowane metaheurystyki. Wśród metod dokładnych ILPSolver okazał się najskuteczniejszy dla małych i średnich grafów (do około 200 węzłów), osiągając najniższe koszty kosztem znacznie dłuższego czasu obliczeń.
+
+Heurystyki konstrukcyjne, reprezentowane przez GreedyAlgorithm i DominatingSetAlgorithm, zapewniają bardzo krótkie czasy wykonania rzędu milisekund przy akceptowalnej jakości rozwiązań, czyniąc je praktycznymi dla zastosowań wymagających szybkiej odpowiedzi. Z kolei wśród metaheurystyk AntColonyOptimization wykazał najlepsze właściwości, osiągając rozwiązania bliskie optymalnym przy umiarkowanym czasie obliczeń. TabuSearch i GeneticAlgorithm oferują dobry kompromis między jakością a czasem wykonania.
+
+Ważną rolę odegrał RandomizedAlgorithm jako baseline, który skutecznie potwierdził wartość wszystkich pozostałych metod, osiągając znacząco wyższe koszty od każdej z nich.
+
+\subsection{Wyniki eksperymentalne dla scenariusza statycznego}
+
+Przeprowadzone eksperymenty na grafach syntetycznych i rzeczywistych sieciach ego z Facebooka ujawniły spójne wzorce wydajnościowe. Pod względem jakości rozwiązań wyłoniła się jasna hierarchia: ILPSolver osiągał najlepsze wyniki, za nim plasował się AntColonyOptimization, następnie TabuSearch w równorzędności z GeneticAlgorithm, dalej SimulatedAnnealing, DominatingSetAlgorithm i GreedyAlgorithm, a na końcu znacznie gorszy RandomizedAlgorithm jako baseline.
+
+Hierarchia czasowa przedstawiała się odwrotnie -- najszybsze okazały się GreedyAlgorithm i RandomizedAlgorithm, następnie DominatingSetAlgorithm i SimulatedAnnealing, potem ILPSolver, GeneticAlgorithm, TabuSearch, a najwolniejszy był AntColonyOptimization.
+
+Struktura grafu miała istotny wpływ na trudność problemu. Grafy bezskalowe (Barabási-Albert) ze względu na obecność hubów umożliwiały tworzenie większych grup i osiągnięcie niższych kosztów na węzeł, podczas gdy grafy losowe (Erdős-Rényi) i małoświatowe (Watts-Strogatz) wykazywały większą trudność optymalizacyjną. W kontekście skalowalności metaheurystyki wykazały wykładniczy wzrost czasu z rozmiarem grafu, podczas gdy heurystyki konstrukcyjne zachowały praktycznie stałe czasy wykonania.
+
+Analiza statystyczna potwierdziła istotność obserwowanych różnic, z 95-procentowymi przedziałami ufności nie nakładającymi się między kluczowymi grupami algorytmów.
+
+\subsection{Symulacja dynamiczna}
+
+Badania scenariusza dynamicznego dla niskiej intensywności mutacji przyniosły następujące obserwacje:
+
 \begin{itemize}
-  \item \textbf{Złożoność i punkt odniesienia.} Problem jest co najmniej tak trudny jak dominowanie rzymskie, co potwierdza potrzebę metod przybliżonych dla średnich i dużych instancji. ILP stanowi wiarygodny punkt odniesienia dla małych grafów; dla większych szybko przekracza limity czasu.
-  \item \textbf{Jakość vs czas.} Metaheurystyki osiągają najniższe koszty (zwłaszcza genetyczny i wyżarzanie), lecz są wolniejsze. Algorytm zachłanny jest dobrym kompromisem: bardzo szybki i tylko nieznacznie gorszy kosztowo w wielu przypadkach. Heurystyka zbioru dominującego plasuje się pomiędzy.
-  \item \textbf{Wpływ struktury grafu.} Grafy bezskalowe sprzyjają niższym kosztom (huby umożliwiają większe grupy). Grafy losowe i małoświatowe są trudniejsze kosztowo. Trendy te są spójne między scenariuszami statycznym i dynamicznym.
-  \item \textbf{Dynamika i warm start.} W scenariuszu dynamicznym umiarkowane mutacje prowadzą do stopniowego wzrostu trudności. Metaheurystyki z warm start utrzymują koszt stabilniej (a czasem poprawiają) względem przebiegów cold, co potwierdza korzyści z projekcji poprzedniego rozwiązania.
-  \item \textbf{Konfiguracje licencji.} Dla \texttt{roman\_p\_x} koszt na wierzchołek rośnie monotonicznie wraz z parametrem $p$. Konfiguracja \texttt{spotify} jest średnio droższa niż \texttt{duolingo\_super} ze względu na typ \emph{Duo} (dokładnie 2 osoby) i odmienną strukturę cen. Udział \emph{Family} sprzyja niższym kosztom, gdy struktura grafu pozwala na większe grupy.
+\item \textbf{Stabilność prostych heurystyk}: GreedyAlgorithm i DominatingSetAlgorithm utrzymały stabilne wyniki przy minimalnych czasach obliczeń, czyniąc je preferowanymi w aplikacjach czasu rzeczywistego.
+
+\item \textbf{Marginalna przewaga metaheurystyk}: W środowisku dynamicznym różnice jakościowe między metaheurystykami a heurystykami konstrukcyjnymi uległy zmniejszeniu, podczas gdy różnice czasowe pozostały znaczące.
+
+\item \textbf{Utrata przewagi ILP}: ILPSolver w scenariuszu dynamicznym nie zachował wyraźnej przewagi jakościowej obserwowanej w przypadku statycznym, przy jednoczesnym skróceniu czasu obliczeń.
+
+\item \textbf{Wpływ struktury}: Hierarchia trudności typów grafów pozostała zgodna z obserwacjami statycznymi.
 \end{itemize}
 
-\section{Wnioski praktyczne i rekomendacje}
+\emph{TODO: Wyniki dla średniej i wysokiej intensywności mutacji oraz symulacji realistycznych (pref\_triadic, pref\_pref, rand\_rewire) zostaną uzupełnione po zakończeniu obliczeń. Oczekuje się, że wyższa intensywność zmian będzie faworyzować algorytmy o krótszym czasie wykonania kosztem jakości rozwiązań.}
+
+\section{Implikacje praktyczne}
+
+\subsection{Strategia wyboru algorytmu}
+
+Na podstawie przeprowadzonych badań można sformułować praktyczne wytyczne wyboru algorytmu w zależności od charakterystyki problemu:
+
 \begin{itemize}
-  \item \textbf{Dobór metody do skali.} Dla bardzo małych sieci warto korzystać z ILP (kontrola jakości i walidacja). Dla średnich i dużych sieci zalecane są: zachłanny (gdy liczy się czas) lub metaheurystyki (gdy priorytetem jest koszt).
-  \item \textbf{Sieci ewoluujące.} W środowiskach dynamicznych rekomendowane są metaheurystyki z warm start (projekcja poprzedniego rozwiązania), które lepiej wykorzystują ciągłość w czasie. Dla szybkich reakcji operacyjnych można łączyć zachłanny jako inicjalizację z krótkim dogrzaniem metaheurystyki.
-  \item \textbf{Polityka licencji.} W sieciach z hubami opłaca się promować licencje rodzinne (większe grupy). Obecność planu \emph{Duo} zwiększa koszt średni — wskazane jest jego rozważne stosowanie (np. jako rezerwowy wariant tam, gdzie brakuje większych klastrów).
-  \item \textbf{Inżynieria uruchomień.} Warto stosować cache’owanie grafów, kontrolę limitów czasu i automatyczną analizę wyników. Dla porównań między konfiguracjami rekomendowana jest normalizacja przez koszt na wierzchołek.
+\item \textbf{Małe sieci (< 50 węzłów)}: ILPSolver zapewnia optymalne rozwiązania przy akceptowalnym czasie obliczeń.
+
+\item \textbf{Średnie sieci (50-200 węzłów)}: AntColonyOptimization lub TabuSearch oferują najlepszy kompromis między jakością a czasem.
+
+\item \textbf{Duże sieci (> 200 węzłów)}: GreedyAlgorithm lub DominatingSetAlgorithm są jedynymi praktycznymi opcjami ze względu na ograniczenia czasowe.
+
+\item \textbf{Aplikacje czasu rzeczywistego}: Heurystyki konstrukcyjne pozostają bezalternatywne ze względu na czasy wykonania rzędu milisekund.
+
+\item \textbf{Sieci dynamiczne}: Preferowane są szybkie algoritmy ze względu na konieczność częstego przeliczania rozwiązań.
 \end{itemize}
 
-\section{Ograniczenia pracy}
+\subsection{Znaczenie dla branży}
+
+Wyniki pracy mają bezpośrednie zastosowanie dla platform oferujących licencje grupowe. Zautomatyzowane systemy rekomendacji mogą wykorzystać przedstawione algorytmy do sugerowania optymalnych konfiguracji grup, znacząco obniżając koszty dla użytkowników końcowych. Analiza wpływu parametrów licencji (ceny, pojemności) na zachowania użytkowników może wspierać decyzje biznesowe dotyczące struktury cenowej, umożliwiając platformom optymalne pozycjonowanie swojej oferty.
+
+Modele optymalizacyjne mogą również służyć do prognozowania rozkładu typów licencji w populacji użytkowników, co jest kluczowe dla planowania przychodów i zarządzania zasobami. W aplikacjach o zmiennej strukturze użytkowników, takich jak zespoły projektowe czy organizacje edukacyjne, szybkie algorytmy umożliwiają adaptacyjne zarządzanie licencjami w czasie rzeczywistym.
+
+\section{Ograniczenia i założenia}
+
+\subsection{Ograniczenia modelu}
+
+Zaproponowany model, mimo swojej ogólności, charakteryzuje się pewnymi uproszczeniami w stosunku do rzeczywistości. Model zakłada statyczną strukturę cen licencji, podczas gdy w praktyce mogą one podlegać zmianom czasowym, promocjom czy zniżkom wolumenowym, co może znacząco wpływać na optymalne strategie grupowania.
+
+Algorytmy mają dostęp do kompletnej struktury sieci społecznej, co może nie być realistyczne w kontekście prywatności użytkowników i ograniczeń dostępu do danych o relacjach między użytkownikami. Model nie uwzględnia również indywidualnych preferencji użytkowników czy różnic w gotowości do płacenia, które mogą być równie istotne jak czynniki ekonomiczne.
+
+Dodatkowo nie modelowano ograniczeń regulacyjnych wynikających z regulaminów usług, takich jak wymóg wspólnego adresu w przypadku Netflix czy ograniczenia geograficzne, które w praktyce mogą znacząco ograniczać możliwe konfiguracje grup.
+
+\subsection{Ograniczenia eksperymentalne}
+
+Przeprowadzone eksperymenty charakteryzowały się określonymi ograniczeniami metodologicznymi. Zastosowano domyślne parametry metaheurystyk bez specjalistycznego dostrajania, co mogło wpłynąć na ich względną wydajność i nie odzwierciedlać pełnego potencjału tych metod. Ograniczony zakres danych rzeczywistych -- eksperymenty wykorzystały jedynie sieci ego z Facebooka -- oznacza, że weryfikacja na innych platformach społecznościowych może przynieść odmienne wyniki ze względu na różnice w strukturze i charakterystyce sieci.
+
+Wprowadzone limity czasowe wykonania mogły również przedwcześnie przerywać potencjalnie skuteczne poszukiwania metaheurystyk, szczególnie w przypadku większych instancji problemu, gdzie algorytmy te mogłyby osiągnąć lepsze wyniki przy dłuższym czasie działania.
+
+\section{Kierunki przyszłych badań}
+
+\subsection{Rozszerzenia teoretyczne}
+
 \begin{itemize}
-  \item Brak kompletnych wyników dla części \texttt{dynamic\_real}; analiza dynamiczna dotyczy obecnie grafów syntetycznych.
-  \item W rozszerzeniach nie uruchomiono modelu \texttt{tree} oraz nie wykonano wariantów \texttt{duolingo\_super} poza konfiguracją bazową.
-  \item Porównanie warm vs cold nie jest możliwe 1:1 dla tych samych metaheurystyk i kroków z uwagi na strukturę zebranych danych; wnioski dotyczą trajektorii oddzielnych.
-  \item Strojenie parametrów metaheurystyk było ograniczone; możliwe są dalsze zyski jakościowe po kalibracji.
+\item \textbf{Analiza aproksymacyjna}: Wyprowadzenie teoretycznych gwarancji aproksymacji dla zastosowanych heurystyk, szczególnie w kontekście różnych klas grafów.
+
+\item \textbf{Warianty stochastyczne}: Uwzględnienie niepewności w strukturze sieci i preferencjach użytkowników poprzez formułowanie stochastyczne problemu.
+
+\item \textbf{Wielokryterialność}: Rozszerzenie modelu o dodatkowe cele optymalizacyjne (np. sprawiedliwość podziału, minimalizacja ryzyka).
+
+\item \textbf{Ograniczenia praktyczne}: Modelowanie dodatkowych ograniczeń regulacyjnych i biznesowych charakterystycznych dla konkretnych platform.
 \end{itemize}
 
-\section{Kierunki dalszych badań}
+\subsection{Usprawnienia algorytmiczne}
+
+Obiecujące kierunki rozwoju algorytmicznego obejmują hybrydowe podejścia łączące szybkość heurystyk z jakością metaheurystyk poprzez adaptacyjne przełączanie między metodami w zależności od charakterystyki instancji. Takie systemy mogłyby automatycznie wybierać najodpowiedniejszą strategię na podstawie właściwości grafu i ograniczeń czasowych.
+
+Opracowanie algorytmów online dla scenariuszy, w których struktura sieci ujawnia się stopniowo lub gdzie decyzje muszą być podejmowane bez pełnej informacji, odpowiada na rzeczywiste potrzeby dynamicznych środowisk cyfrowych. Wykorzystanie architektury wielordzeniowej do przyspieszenia metaheurystyk, szczególnie algorytmów populacyjnych, mogłoby znacząco poprawić ich praktyczną użyteczność.
+
+Zastosowanie technik uczenia maszynowego do przewidywania skuteczności algorytmów dla konkretnych instancji lub do inteligentnego dostrajania parametrów stanowi naturalny kierunek ewolucji w era sztucznej inteligencji, umożliwiający stworzenie bardziej adaptacyjnych i efektywnych systemów optymalizacyjnych.
+
+\subsection{Walidacja empiryczna}
+
 \begin{itemize}
-  \item \textbf{Analiza dynamiczna na danych rzeczywistych.} Dokończenie \texttt{dynamic\_real}, ocena wpływu zaników i pojawień relacji w ego-sieciach.
-  \item \textbf{Algorytmy online i inkrementalne.} Projekt algorytmów z gwarancjami konkurencyjności dla napływających zmian (churn), szybka reoptymalizacja lokalna.
-  \item \textbf{Lepsze inicjalizacje i uczenie.} Uczenie modeli do przewidywania dobrych punktów startowych (meta-learning) oraz adaptacyjne strojenie parametrów metaheurystyk.
-  \item \textbf{Rozszerzenia modelu cenowego.} Nowe typy licencji i ograniczenia (np. limity współdzielenia per okres, różne cenniki warstwowe), koszty przełączeń między planami.
-  \item \textbf{Aspekty ekonomiczne i behawioralne.} Mechanizmy zachęt i stabilność koalicji, wymagania zgodności/regulacyjne, ograniczenia prywatności i polityki współdzielenia.
-  \item \textbf{Granice teoretyczne.} Analiza aproksymacyjna i dolne ograniczenia dla uogólnionych wariantów (z pojemnościami), charakterystyka trudnych klas instancji.
+\item \textbf{Większe zbiory danych}: Eksperymenty na szerszym spektrum rzeczywistych sieci społecznościowych z różnych platform i domen zastosowań.
+
+\item \textbf{Studia użytkowników}: Badanie rzeczywistego zachowania użytkowników w kontekście rekomendacji optymalnych grup licencyjnych.
+
+\item \textbf{Analiza longitudinalna}: Długoterminowe obserwacje ewolucji sieci i skuteczności różnych strategii w czasie.
+
+\item \textbf{Porównanie międzyplatformowe}: Analiza różnic w strukturach kosztowych i ich wpływu na optymalne strategie między różnymi usługami.
 \end{itemize}
 
-\section{Możliwości rozwoju modelu}
-\begin{itemize}
-  \item Uwzględnienie zależności wielosąsiedzkich (grupy nie tylko w domknięciu $N[i]$), warianty z pośrednictwem, a także modelowanie zaufania i jakości krawędzi.
-  \item Integracja ograniczeń operacyjnych: budżety, limity na liczbę zmian między krokami, koszty migracji i rozwiązania mieszane (część stała, część dynamiczna).
-  \item Uogólnienie do hipergrafów lub grafów dwuwarstwowych (użytkownicy–plany), co umożliwia bogatsze relacje i reguły przypisań.
-  \item Automatyczny wybór algorytmu (portfolio) w zależności od cech instancji; równoległe i rozproszone uruchomienia dla dużej skali.
-\end{itemize}
+\section{Rozszerzenia modelu}
 
-\section{Zamknięcie}
-Praca dostarcza spójnego modelu, przeglądu metod i solidnej warstwy eksperymentalnej dla optymalizacji licencji w sieciach społecznych. Wyniki wskazują, że w praktyce warto stosować proste heurystyki tam, gdzie kluczowy jest czas reakcji, oraz metaheurystyki z warm start w środowiskach dynamicznych, gdy priorytetem jest koszt. Dalsze prace powinny koncentrować się na pełnej analizie dynamicznej na danych rzeczywistych, rozszerzeniach modelu cenowego i rozwoju algorytmów online.
+\emph{TODO: Ta sekcja zostanie uzupełniona po uzyskaniu wyników dla dodatkowych konfiguracji licencyjnych (roman\_p\_x, Spotify, Netflix).} Oczekuje się, że wzrost parametru $p$ w wariantach roman\_p\_x będzie prowadził do monotonicznego wzrostu kosztu na węzeł i zmniejszenia udziału licencji grupowych w optymalnych rozwiązaniach.
+
+Wprowadzenie planu o pojemności 2 w konfiguracji Spotify może potencjalnie obniżyć całkowite koszty poprzez lepsze dopasowanie do małych grup naturalnie występujących w strukturze sieci społecznych. Z kolei brak planów o wysokiej pojemności w ofercie Netflix może skutkować wyższymi kosztami na węzeł, szczególnie w gęstych fragmentach sieci, gdzie duże grupy mogłyby znacząco obniżyć indywidualne obciążenie finansowe użytkowników.
+
+\section{Wkład pracy}
+
+Niniejsza praca wnosi następujące elementy do stanu wiedzy:
+
+\begin{enumerate}
+\item \textbf{Formalizacja teoretyczna}: Po raz pierwszy sformalizowano problem optymalizacji licencji grupowych jako uogólnienie dominowania rzymskiego z ograniczeniami pojemności.
+
+\item \textbf{Kompleksowa analiza algorytmiczna}: Przeprowadzono systematyczne porównanie szerokiego spektrum metod rozwiązywania na reprezentatywnych zbiorach danych.
+
+\item \textbf{Analiza dynamiczna}: Wprowadzono i zbadano wariant dynamiczny problemu, odzwierciedlający rzeczywiste warunki ewoluujących sieci społecznościowych.
+
+\item \textbf{Wytyczne praktyczne}: Sformułowano konkretne rekomendacje wyboru algorytmu w zależności od charakterystyki problemu i ograniczeń czasowych.
+
+\item \textbf{Implementacja referencyjna}: Opracowano kompletną bibliotekę implementującą wszystkie badane algorytmy, umożliwiającą replikację i kontynuację badań.
+\end{enumerate}
+
+\section{Słowo końcowe}
+
+Przedstawione badania dowodzą, że problem optymalizacji licencji grupowych stanowi bogaty obszar badawczy łączący teorię grafów, algorytmikę i praktyczne zastosowania w gospodarce cyfrowej. Mimo złożoności obliczeniowej problemu, odpowiedni dobór metod algorytmicznych umożliwia uzyskanie rozwiązań o wysokiej jakości w akceptowalnym czasie.
+
+Szczególnie istotne jest zaobserwowane rozróżnienie między scenariuszami statycznymi a dynamicznymi: podczas gdy w przypadku statycznym metaheurystyki oferują wyraźną przewagę jakościową nad prostymi heurystykami, w środowisku dynamicznym różnice te ulegają zmniejszeniu, faworyzując szybkie algorytmy konstrukcyjne.
+
+Rosnące znaczenie modeli subskrypcyjnych w gospodarce cyfrowej oraz trendy w kierunku personalizacji i optymalizacji kosztów dla użytkowników końcowych czynią przedstawiony obszar badawczy szczególnie aktualnym. Opracowane metody i wyniki stanowią solidną podstawę dla dalszych prac badawczych oraz praktycznych implementacji w rzeczywistych systemach.
