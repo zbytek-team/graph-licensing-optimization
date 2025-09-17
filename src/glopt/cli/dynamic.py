@@ -56,6 +56,11 @@ ADD_EDGES_PROB: float = 0.18
 REMOVE_EDGES_PROB: float = 0.12
 RANDOM_SEED: int = 123
 
+# Realistic mutation modes (overridable from pipelines): "random" | "preferential"
+MODE_NODES: str = "random"
+# "random" | "preferential" | "triadic" | "rewire_ws"
+MODE_EDGES: str = "random"
+
 
 def _adjust_params(name: str, n: int, base: dict[str, Any]) -> dict[str, Any]:
     p = dict(base)
@@ -393,6 +398,8 @@ def main() -> None:
                             max_nodes_remove=max(1, int(0.015 * max(1, n))),
                             max_edges_add=max(1, int(0.03 * max(1, G0.number_of_edges() or n))),
                             max_edges_remove=max(1, int(0.02 * max(1, G0.number_of_edges() or n))),
+                            mode_nodes=MODE_NODES,
+                            mode_edges=MODE_EDGES,
                         ),
                         seed=RANDOM_SEED,
                     )

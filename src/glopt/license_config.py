@@ -21,9 +21,14 @@ class LicenseConfigFactory:
             LicenseType("Duo", 30.99, 2, 2, LicenseConfigFactory.GREEN),
             LicenseType("Family", 37.99, 2, 6, LicenseConfigFactory.BLUE),
         ],
+        "netflix": lambda: [
+            LicenseType("StdWithAds", 7.99, 1, 1, LicenseConfigFactory.RED),
+            LicenseType("Standard", 17.99, 2, 2, LicenseConfigFactory.GREEN),
+            LicenseType("Premium", 24.99, 2, 4, LicenseConfigFactory.BLUE),
+        ],
         "roman_domination": lambda: [
             LicenseType("Solo", 1.0, 1, 1, LicenseConfigFactory.BLUE),
-            LicenseType("Group", 2.0, 2, 99999, LicenseConfigFactory.RED),
+            LicenseType("Group", 2.0, 2, 999999, LicenseConfigFactory.RED),
         ],
     }
 
@@ -40,7 +45,7 @@ class LicenseConfigFactory:
                 raise ValueError(f"Invalid roman price '{name}'. Available: {available} or roman_p_<x_y>")
             return [
                 LicenseType("Solo", 1.0, 1, 1, cls.BLUE),
-                LicenseType("Group", p_val, 2, 99999, cls.RED),
+                LicenseType("Group", p_val, 2, 999999, cls.RED),
             ]
         # Duolingo-style sweep with capacity limited to 6: duolingo_p_2_0 → group=2.0× solo, cap=6
         if name.startswith("duolingo_p_"):

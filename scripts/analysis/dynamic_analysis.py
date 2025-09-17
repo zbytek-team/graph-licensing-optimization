@@ -98,6 +98,97 @@ def mutation_intensity(rows: list[dict[str, Any]]) -> dict[int, dict[str, float]
     return out
 
 
+def normalized_mutation(row: dict[str, Any]) -> float:
+    """Return a scalar mutation intensity in (0, +inf) normalized by graph size.
+    intensity = 0.5 * (nodes_changed / max(1,n)) + 0.5 * (edges_changed / max(1,m))
+    where changed are counts of added+removed in this step.
+    """
+    try:
+        n = int(float(row.get("n_nodes", 0)))
+    except Exception:
+        n = 0
+    try:
+        m = int(float(row.get("n_edges", 0)))
+    except Exception:
+        m = 0
+    muts = _parse_mutations_cell(str(row.get("mutations", "")))
+    nodes_changed = float(muts.get("nodes_added", 0) + muts.get("nodes_removed", 0))
+    edges_changed = float(muts.get("edges_added", 0) + muts.get("edges_removed", 0))
+    frac_nodes = nodes_changed / max(1.0, float(n))
+    frac_edges = edges_changed / max(1.0, float(m))
+    return 0.5 * frac_nodes + 0.5 * frac_edges
+
+
+def plot_cost_delta_vs_mutation(rows: list[dict[str, Any]], title: str, out_path: Path) -> None:
+    # Build mapping (key, step) -> cost_per_node
+    def _key(r: dict[str, Any]) -> tuple[str, str, str, str, bool]:
+        return (
+            str(r.get("run_id", "")),
+            str(r.get("license_config", "")),
+            str(r.get("graph", "")),
+            str(r.get("algorithm", "")),
+            str(r.get("warm_start", "False")) in {"True", "true", "1"},
+        )
+
+    by_key: dict[tuple[str, str, str, str, bool], dict[int, float]] = defaultdict(dict)
+    by_row: dict[tuple[str, str, str, str, bool], dict[int, dict[str, Any]]] = defaultdict(dict)
+    for r in rows:
+        try:
+            step = int(float(r.get("step", 0)))
+            cpn = float(r.get("cost_per_node", r.get("total_cost", 0.0)))
+            k = _key(r)
+            by_key[k][step] = cpn
+            by_row[k][step] = r
+        except Exception:
+            continue
+
+    X: list[float] = []
+    Y: list[float] = []
+    C: list[str] = []  # color by warm/cold
+    for k, series in by_key.items():
+        steps = sorted(series.keys())
+        for s in steps:
+            if s == 0:
+                continue
+            prev = series.get(s - 1)
+            cur = series.get(s)
+            if prev is None or cur is None:
+                continue
+            delta = cur - prev
+            mut = normalized_mutation(by_row[k][s])
+            X.append(mut)
+            Y.append(delta)
+            C.append("warm" if k[-1] else "cold")
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    plt.figure(figsize=(8.5, 5.0))
+    xs = np.array(X, dtype=float)
+    ys = np.array(Y, dtype=float)
+    colors = np.array(["tab:orange" if c == "warm" else "tab:blue" for c in C])
+    plt.scatter(xs, ys, c=colors, alpha=0.55, s=16, edgecolors="none")
+    # simple global trend line
+    try:
+        mask = np.isfinite(xs) & np.isfinite(ys)
+        if mask.sum() >= 2:
+            a, b = np.polyfit(xs[mask], ys[mask], deg=1)
+            xr = np.linspace(xs[mask].min(), xs[mask].max(), 100)
+            plt.plot(xr, a * xr + b, color="black", linewidth=1.2, label=f"trend: y={a:.2f}x{b:+.2f}")
+    except Exception:
+        pass
+    plt.xlabel("intensywność mutacji na krok [ułamki węzłów/krawędzi]")
+    plt.ylabel("Δ kosztu na wierzchołek (step) [jedn.]")
+    plt.title(title)
+    plt.legend(loc="best")
+    plt.tight_layout()
+    ensure_dir(out_path.parent)
+    plt.savefig(out_path.with_suffix(".png"), dpi=220)
+    if GENERATE_PDF:
+        plt.savefig(out_path.with_suffix(".pdf"))
+    plt.close()
+
+
 def plot_mutation_intensity(intensity: dict[int, dict[str, float]], title: str, out_path: Path) -> None:
     steps = sorted(intensity.keys())
     series = {
@@ -283,10 +374,12 @@ def main() -> None:
         inten = mutation_intensity(rows)
         plot_mutation_intensity(inten, title=f"{tag}: intensywność mutacji w czasie", out_path=fig_root / f"{tag}_mutation_intensity")
 
+        # Cost delta vs mutation intensity
+        plot_cost_delta_vs_mutation(rows, title=f"{tag}: Δ kosztu/node vs intensywność mutacji", out_path=fig_root / f"{tag}_cost_delta_vs_mutation")
+
         # Warm advantage summaries
         write_warm_advantage(rows, dataset=tag, out_csv=out_root / f"{tag}_warm_advantage.csv")
 
 
 if __name__ == "__main__":
     main()
-
