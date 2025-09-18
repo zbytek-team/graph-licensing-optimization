@@ -15,19 +15,19 @@ gdzie:
 \end{itemize}
 
 \begin{table}[h]
-\centering
-\caption{Przykładowe zakresy parametrów generatorów grafów syntetycznych.}
-\begin{tabular}{@{}lll@{}}
-\toprule
-Model & Parametry & Zakres w eksperymentach \\
-\midrule
-Erdős--Rényi  & $n, p$ & $n \in \{20,40,60,\dots,200,300,400,500,600,800,1000\}$; $p=0.1$ \\
-Barabási--Albert & $n, m$ & $n \in \{20,40,60,\dots,200,300,400,500,600,800,1000\}$; $m=2.0$ \\
-Watts--Strogatz & $n, k, p$ & $n \in \{20,40,60,\dots,200,300,400,500,600,800,1000\}$; $k=4$; $p=0.1$ \\
-\bottomrule
-\end{tabular}
+  \centering
+  \caption{Przykładowe zakresy parametrów generatorów grafów syntetycznych.}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Model            & Parametry & Zakres w eksperymentach                                                 \\
+    \midrule
+    Erdős--Rényi     & $n, p$    & $n \in \{20,40,60,\dots,200,300,400,500,600,800,1000\}$; $p=0.1$        \\
+    Barabási--Albert & $n, m$    & $n \in \{20,40,60,\dots,200,300,400,500,600,800,1000\}$; $m=2.0$        \\
+    Watts--Strogatz  & $n, k, p$ & $n \in \{20,40,60,\dots,200,300,400,500,600,800,1000\}$; $k=4$; $p=0.1$ \\
+    \bottomrule
+  \end{tabular}
 
-\label{tab:gen-ranges}
+  \label{tab:gen-ranges}
 \end{table}
 
 Najważniejsze właściwości poszczególnych modeli oraz rola parametrów z Tabeli~\ref{tab:gen-ranges} zostały omówione w kolejnych podrozdziałach, z osobnym opisem dla każdego typu grafu.
@@ -63,10 +63,10 @@ Grafy WS generowane do testów miały parametry dobrane w taki sposób, aby moż
 
 \IfFileExists{barabasi_n100_m2_example.png}{%
   \begin{figure}[ht]
-  \centering
-  \includegraphics[width=0.4\textwidth]{barabasi_n100_m2_example.png}
-  \caption{Przykład grafu Barabási--Albert ($n=100$, $m=2$) wygenerowanego syntetycznie. Widoczne jest istnienie kilku węzłów o wysokim stopniu (hubów) oraz licznych węzłów peryferyjnych o małej liczbie połączeń.}
-  \label{fig:ba100m2}
+    \centering
+    \includegraphics[width=0.4\textwidth]{barabasi_n100_m2_example.png}
+    \caption{Przykład grafu Barabási--Albert ($n=100$, $m=2$) wygenerowanego syntetycznie. Widoczne jest istnienie kilku węzłów o wysokim stopniu (hubów) oraz licznych węzłów peryferyjnych o małej liczbie połączeń.}
+    \label{fig:ba100m2}
   \end{figure}
 }{% brak pliku — pomiń ilustrację
 }

@@ -37,13 +37,13 @@ Analiza statystyczna potwierdziła istotność obserwowanych różnic, z 95-proc
 Badania scenariusza dynamicznego dla niskiej intensywności mutacji przyniosły następujące obserwacje:
 
 \begin{itemize}
-\item \textbf{Stabilność prostych heurystyk}: GreedyAlgorithm i DominatingSetAlgorithm utrzymały stabilne wyniki przy minimalnych czasach obliczeń, czyniąc je preferowanymi w aplikacjach czasu rzeczywistego.
+  \item \textbf{Stabilność prostych heurystyk}: GreedyAlgorithm i DominatingSetAlgorithm utrzymały stabilne wyniki przy minimalnych czasach obliczeń, czyniąc je preferowanymi w aplikacjach czasu rzeczywistego.
 
-\item \textbf{Marginalna przewaga metaheurystyk}: W środowisku dynamicznym różnice jakościowe między metaheurystykami a heurystykami konstrukcyjnymi uległy zmniejszeniu, podczas gdy różnice czasowe pozostały znaczące.
+  \item \textbf{Marginalna przewaga metaheurystyk}: W środowisku dynamicznym różnice jakościowe między metaheurystykami a heurystykami konstrukcyjnymi uległy zmniejszeniu, podczas gdy różnice czasowe pozostały znaczące.
 
-\item \textbf{Utrata przewagi ILP}: ILPSolver w scenariuszu dynamicznym nie zachował wyraźnej przewagi jakościowej obserwowanej w przypadku statycznym, przy jednoczesnym skróceniu czasu obliczeń.
+  \item \textbf{Utrata przewagi ILP}: ILPSolver w scenariuszu dynamicznym nie zachował wyraźnej przewagi jakościowej obserwowanej w przypadku statycznym, przy jednoczesnym skróceniu czasu obliczeń.
 
-\item \textbf{Wpływ struktury}: Hierarchia trudności typów grafów pozostała zgodna z obserwacjami statycznymi.
+  \item \textbf{Wpływ struktury}: Hierarchia trudności typów grafów pozostała zgodna z obserwacjami statycznymi.
 \end{itemize}
 
 \emph{TODO: dodać wyniki: dynamic\_medium, dynamic\_high, pref\_triadic, pref\_pref, rand\_rewire.}
@@ -55,15 +55,15 @@ Badania scenariusza dynamicznego dla niskiej intensywności mutacji przyniosły 
 Na podstawie przeprowadzonych badań można sformułować praktyczne wytyczne wyboru algorytmu w zależności od charakterystyki problemu:
 
 \begin{itemize}
-\item \textbf{Małe sieci (< 50 węzłów)}: ILPSolver zapewnia optymalne rozwiązania przy akceptowalnym czasie obliczeń.
+  \item \textbf{Małe sieci (< 50 węzłów)}: ILPSolver zapewnia optymalne rozwiązania przy akceptowalnym czasie obliczeń.
 
-\item \textbf{Średnie sieci (50-200 węzłów)}: AntColonyOptimization lub TabuSearch oferują najlepszy kompromis między jakością a czasem.
+  \item \textbf{Średnie sieci (50-200 węzłów)}: AntColonyOptimization lub TabuSearch oferują najlepszy kompromis między jakością a czasem.
 
-\item \textbf{Duże sieci (> 200 węzłów)}: GreedyAlgorithm lub DominatingSetAlgorithm są jedynymi praktycznymi opcjami ze względu na ograniczenia czasowe.
+  \item \textbf{Duże sieci (> 200 węzłów)}: GreedyAlgorithm lub DominatingSetAlgorithm są jedynymi praktycznymi opcjami ze względu na ograniczenia czasowe.
 
-\item \textbf{Aplikacje czasu rzeczywistego}: Heurystyki konstrukcyjne pozostają bezalternatywne ze względu na czasy wykonania rzędu milisekund.
+  \item \textbf{Aplikacje czasu rzeczywistego}: Heurystyki konstrukcyjne pozostają bezalternatywne ze względu na czasy wykonania rzędu milisekund.
 
-\item \textbf{Sieci dynamiczne}: Preferowane są szybkie algoritmy ze względu na konieczność częstego przeliczania rozwiązań.
+  \item \textbf{Sieci dynamiczne}: Preferowane są szybkie algoritmy ze względu na konieczność częstego przeliczania rozwiązań.
 \end{itemize}
 
 \subsection{Znaczenie dla branży}
@@ -93,13 +93,13 @@ Wprowadzone limity czasowe wykonania mogły również przedwcześnie przerywać 
 \subsection{Rozszerzenia teoretyczne}
 
 \begin{itemize}
-\item \textbf{Analiza aproksymacyjna}: Wyprowadzenie teoretycznych gwarancji aproksymacji dla zastosowanych heurystyk, szczególnie w kontekście różnych klas grafów.
+  \item \textbf{Analiza aproksymacyjna}: Wyprowadzenie teoretycznych gwarancji aproksymacji dla zastosowanych heurystyk, szczególnie w kontekście różnych klas grafów.
 
-\item \textbf{Warianty stochastyczne}: Uwzględnienie niepewności w strukturze sieci i preferencjach użytkowników poprzez formułowanie stochastyczne problemu.
+  \item \textbf{Warianty stochastyczne}: Uwzględnienie niepewności w strukturze sieci i preferencjach użytkowników poprzez formułowanie stochastyczne problemu.
 
-\item \textbf{Wielokryterialność}: Rozszerzenie modelu o dodatkowe cele optymalizacyjne (np. sprawiedliwość podziału, minimalizacja ryzyka).
+  \item \textbf{Wielokryterialność}: Rozszerzenie modelu o dodatkowe cele optymalizacyjne (np. sprawiedliwość podziału, minimalizacja ryzyka).
 
-\item \textbf{Ograniczenia praktyczne}: Modelowanie dodatkowych ograniczeń regulacyjnych i biznesowych charakterystycznych dla konkretnych platform.
+  \item \textbf{Ograniczenia praktyczne}: Modelowanie dodatkowych ograniczeń regulacyjnych i biznesowych charakterystycznych dla konkretnych platform.
 \end{itemize}
 
 \subsection{Usprawnienia algorytmiczne}
@@ -113,13 +113,13 @@ Zastosowanie technik uczenia maszynowego do przewidywania skuteczności algorytm
 \subsection{Walidacja empiryczna}
 
 \begin{itemize}
-\item \textbf{Większe zbiory danych}: Eksperymenty na szerszym spektrum rzeczywistych sieci społecznościowych z różnych platform i domen zastosowań.
+  \item \textbf{Większe zbiory danych}: Eksperymenty na szerszym spektrum rzeczywistych sieci społecznościowych z różnych platform i domen zastosowań.
 
-\item \textbf{Studia użytkowników}: Badanie rzeczywistego zachowania użytkowników w kontekście rekomendacji optymalnych grup licencyjnych.
+  \item \textbf{Studia użytkowników}: Badanie rzeczywistego zachowania użytkowników w kontekście rekomendacji optymalnych grup licencyjnych.
 
-\item \textbf{Analiza longitudinalna}: Długoterminowe obserwacje ewolucji sieci i skuteczności różnych strategii w czasie.
+  \item \textbf{Analiza longitudinalna}: Długoterminowe obserwacje ewolucji sieci i skuteczności różnych strategii w czasie.
 
-\item \textbf{Porównanie międzyplatformowe}: Analiza różnic w strukturach kosztowych i ich wpływu na optymalne strategie między różnymi usługami.
+  \item \textbf{Porównanie międzyplatformowe}: Analiza różnic w strukturach kosztowych i ich wpływu na optymalne strategie między różnymi usługami.
 \end{itemize}
 
 \section{Rozszerzenia modelu}
@@ -133,15 +133,15 @@ Wprowadzenie planu o pojemności 2 w konfiguracji Spotify może potencjalnie obn
 Niniejsza praca wnosi następujące elementy do stanu wiedzy:
 
 \begin{enumerate}
-\item \textbf{Formalizacja teoretyczna}: Po raz pierwszy sformalizowano problem optymalizacji licencji grupowych jako uogólnienie dominowania rzymskiego z ograniczeniami pojemności.
+  \item \textbf{Formalizacja teoretyczna}: Po raz pierwszy sformalizowano problem optymalizacji licencji grupowych jako uogólnienie dominowania rzymskiego z ograniczeniami pojemności.
 
-\item \textbf{Kompleksowa analiza algorytmiczna}: Przeprowadzono systematyczne porównanie szerokiego spektrum metod rozwiązywania na reprezentatywnych zbiorach danych.
+  \item \textbf{Kompleksowa analiza algorytmiczna}: Przeprowadzono systematyczne porównanie szerokiego spektrum metod rozwiązywania na reprezentatywnych zbiorach danych.
 
-\item \textbf{Analiza dynamiczna}: Wprowadzono i zbadano wariant dynamiczny problemu, odzwierciedlający rzeczywiste warunki ewoluujących sieci społecznościowych.
+  \item \textbf{Analiza dynamiczna}: Wprowadzono i zbadano wariant dynamiczny problemu, odzwierciedlający rzeczywiste warunki ewoluujących sieci społecznościowych.
 
-\item \textbf{Wytyczne praktyczne}: Sformułowano konkretne rekomendacje wyboru algorytmu w zależności od charakterystyki problemu i ograniczeń czasowych.
+  \item \textbf{Wytyczne praktyczne}: Sformułowano konkretne rekomendacje wyboru algorytmu w zależności od charakterystyki problemu i ograniczeń czasowych.
 
-\item \textbf{Implementacja referencyjna}: Opracowano kompletną bibliotekę implementującą wszystkie badane algorytmy, umożliwiającą replikację i kontynuację badań.
+  \item \textbf{Implementacja referencyjna}: Opracowano kompletną bibliotekę implementującą wszystkie badane algorytmy, umożliwiającą replikację i kontynuację badań.
 \end{enumerate}
 
 \section{Słowo końcowe}
