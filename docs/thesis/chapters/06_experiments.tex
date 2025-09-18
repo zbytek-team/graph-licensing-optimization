@@ -8,7 +8,9 @@ Badania eksperymentalne przeprowadzono na komputerze wyposażonym w procesor Int
 
 \subsection{Protokół badawczy}
 
-W celu zapewnienia kontrolowanych warunków eksperymentalnych, każdy algorytm uruchamiano w oddzielnym procesie systemowym z ustalonym limitem czasu wykonania wynoszącym 60 sekund. Przekroczenie tego limitu skutkowało oznaczeniem wyniku jako \texttt{timeout} i wykluczeniem go z analizy. Aby poprawić jakość rozwiązań początkowych, wszystkie algorytmy metaheurystyczne wykorzystywały technikę warm start, inicjalizując się rozwiązaniem uzyskanym przez algorytm zachłanny. Schemat powtórzeń eksperymentalnych przedstawiał się następująco:
+W celu zapewnienia kontrolowanych warunków eksperymentalnych, każdy algorytm uruchamiano w oddzielnym procesie systemowym z ustalonym limitem czasu wykonania wynoszącym 60 sekund. Przekroczenie tego limitu skutkowało oznaczeniem wyniku jako \texttt{timeout} i wykluczeniem go z analizy.
+
+Schemat powtórzeń eksperymentalnych przedstawiał się następująco:
 
 \begin{itemize}
 \item \textbf{Grafy syntetyczne}: 3 próbki na rozmiar, 2 powtórzenia na próbkę
@@ -25,21 +27,30 @@ Aby ocenić, czy zaobserwowane różnice w wydajności algorytmów mają charakt
 
 Dla zbioru syntetycznego każda metoda miała co najmniej 100 obserwacji, co pozwoliło wyznaczyć wiarygodne 95-procentowe przedziały ufności:
 
-\begin{itemize}
-\item \textbf{ILPSolver}: średni koszt 1033 ± 269 (std ≈ 1371), czas 2492 ms ± 851 ms
-\item \textbf{AntColonyOptimization}: średni koszt 1169 ± 149 (std ≈ 1115), czas 5124 ms ± 1232 ms
-\item \textbf{TabuSearch}: średni koszt 1648 ± 259, czas 3298 ms ± 683 ms
-\item \textbf{DominatingSetAlgorithm}: średni koszt 1678 ± 251, czas 16,7 ms ± 5,1 ms
-\item \textbf{GreedyAlgorithm}: średni koszt 1706 ± 256, czas 0,96 ms ± 0,19 ms
-\end{itemize}
+\begin{table}[H]
+\caption{Średnie koszty i czasy wykonania (ze standardowym odchyleniem) dla wybranych algorytmów na grafach syntetycznych.}
+\label{tab:synthetic_alg_performance}
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Algorytm} & \textbf{Średni koszt $\pm$ std} & \textbf{Czas [ms] $\pm$ std} \\
+\midrule
+ILPSolver & 1033 $\pm$ 269 & 2492 $\pm$ 851 \\
+AntColonyOptimization & 1169 $\pm$ 149 & 5124 $\pm$ 1232 \\
+TabuSearch & 1648 $\pm$ 259 & 3298 $\pm$ 683 \\
+DominatingSetAlgorithm & 1678 $\pm$ 251 & 16,7 $\pm$ 5,1 \\
+GreedyAlgorithm & 1706 $\pm$ 256 & 0,96 $\pm$ 0,19 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 Analiza przedziałów ufności wykazuje brak ich nakładania się między ILPSolverem a pozostałymi algorytmami, co stanowi silny dowód na systematyczną przewagę jakościową tej metody. Podobnie, różnice w wydajności między poszczególnymi metaheurystykami przewyższają szerokość ich przedziałów ufności, co świadczy o istotności statystycznej zaobserwowanych różnic.
 
-Dla grafów ego z serwisu Facebook zastosowano mniejszą liczbę powtórzeń (12--20), co rezultuje szerszymi przedziałami ufności. Na przykład algorytm AntColonyOptimization osiągnął średni koszt 1155 ± 432 przy czasie wykonania 14~055 ms ± 8685 ms, podczas gdy TabuSearch uzyskał średni koszt 1463 ± 679 przy czasie 17~777 ms ± 10~432 ms. Należy zauważyć, że ILPSolver został uruchomiony jedynie dwukrotnie, w związku z czym jego zerowe odchylenie standardowe i przedział ufności dla kosztu nie mogą być interpretowane jako wskaźniki stabilności algorytmu.
+Dla grafów ego z serwisu Facebook zastosowano mniejszą liczbę powtórzeń (12--20), co rezultuje szerszymi przedziałami ufności. Na przykład algorytm AntColonyOptimization osiągnął średni koszt 1155 ± 432 przy czasie wykonania 14~055 ms ± 8685 ms, podczas gdy TabuSearch uzyskał średni koszt 1463 ± 679 przy czasie 17~777 ms ± 10~432 ms. W przypadku ILPSolvera, tylko jedna instancja została ukończona w zadanym limicie czasu 60 sekund, natomiast pozostałe zakończyły się przekroczeniem limitu. Z tego względu ILPSolver nie jest uwzględniany w dalszej analizie porównawczej dla grafów ego.
 
 \paragraph{Weryfikacja hipotez statystycznych}
 
-Dla zbioru grafów syntetycznych zastosowano test Friedmana, analizując rangi kosztów i czasów wykonania z traktowaniem każdej instancji grafu jako osobnego bloku eksperymentalnego. Uzyskane wyniki wykazują istotność statystyczną na poziomie $p < 0{,}001$, co pozwala odrzucić hipotezę zerową o braku różnic między algorytmami. Przeprowadzony następnie test post-hoc Nemenyiego ujawnił następujące zależności:
+Dla zbioru grafów syntetycznych zastosowano test Friedmana \cite{friedman1937}, analizując rangi kosztów i czasów wykonania z traktowaniem każdej instancji grafu jako osobnego bloku eksperymentalnego. Uzyskane wyniki wykazują istotność statystyczną na poziomie $p < 0{,}001$, co pozwala odrzucić hipotezę zerową o braku różnic między algorytmami. Przeprowadzony następnie test post-hoc Nemenyiego \cite{nemenyi1963}, zgodnie z rekomendacjami przeglądowymi dla porównań wielu algorytmów \cite{demsar2006}, ujawnił następujące zależności:
 
 \begin{itemize}
 \item \textbf{ILPSolver} różni się istotnie od wszystkich pozostałych metod
@@ -49,51 +60,13 @@ Dla zbioru grafów syntetycznych zastosowano test Friedmana, analizując rangi k
 
 Ze względu na ograniczoną liczbę obserwacji dla grafów ego, zastosowane testy charakteryzują się mniejszą mocą statystyczną. Niemniej jednak wstępne wyniki sugerują zachowanie podobnej hierarchii wydajności algorytmów.
 
-\subsection{Konfiguracja parametrów algorytmów}
-
-W ramach prowadzonych eksperymentów zastosowano parametry domyślne biblioteki glopt dla wszystkich algorytmów metaheurystycznych. Świadomie zrezygnowano z przeprowadzenia specjalistycznego dostrajania parametrów, co stanowi uzasadniony kompromis między czasochłonnością badań a ich kompletnością:
-
-\paragraph{AntColonyOptimization}
-\begin{itemize}
-\item Liczba mrówek: 20--30
-\item Współczynnik parowania feromonu: 0.5
-\item $\alpha = 1.0$ (wpływ feromonów)
-\item $\beta = 2.0$ (wpływ heurystyki)
-\item $q_0 = 0.9$ (prawdopodobieństwo wyboru najlepszego)
-\item Długość ścieżki równa liczbie węzłów
-\end{itemize}
-
-\paragraph{GeneticAlgorithm}
-\begin{itemize}
-\item Populacja: 50 osobników
-\item Krzyżowanie: 80\%
-\item Mutacja: 20\%
-\item Liczba pokoleń: 100
-\item Selekcja: turniej (k=3)
-\end{itemize}
-
-\paragraph{TabuSearch}
-\begin{itemize}
-\item Długość listy tabu: około 10 elementów
-\item Liczba iteracji: 1,000
-\item Liczba sąsiadów na iterację: 10
-\end{itemize}
-
-\paragraph{SimulatedAnnealing}
-\begin{itemize}
-\item Temperatura początkowa: 1.0
-\item Współczynnik chłodzenia: 0.95
-\item Liczba iteracji: 1,000
-\item Maksymalna liczba iteracji bez poprawy: 2,000
-\end{itemize}
-
 \section{Ograniczenia badań}
 
 \subsection{Ograniczenia metodologiczne}
 
-Przeprowadzone eksperymenty charakteryzują się kilkoma istotnymi ograniczeniami metodologicznymi. Po pierwsze, badania obejmowały jedynie trzy klasy grafów syntetycznych oraz 10 rzeczywistych sieci ego, co stanowi reprezentatywną, lecz ograniczoną próbę możliwych struktur sieciowych. Pominięto inne istotne rodzaje grafów, takie jak struktury z hiper-krawędziami, grafy skierowane czy sieci wielowarstwowe, przez co uzyskane wyniki mogą nie być w pełni reprezentatywne dla grafów o zasadniczo odmiennej topologii.
+Przeprowadzone eksperymenty charakteryzują się kilkoma istotnymi ograniczeniami metodologicznymi. Po pierwsze, badania obejmowały jedynie trzy klasy grafów syntetycznych oraz 10 rzeczywistych sieci ego, co stanowi reprezentatywną, lecz ograniczoną próbę możliwych struktur sieciowych. Pominięto inne istotne rodzaje grafów, takie jak drzewa, struktury z hiper-krawędziami, grafy skierowane czy sieci wielowarstwowe, przez co uzyskane wyniki mogą nie być w pełni reprezentatywne dla grafów o zasadniczo odmiennej topologii.
 
-Po drugie, algorytm ILPSolver testowano wyłącznie na grafach małej wielkości, co uniemożliwia ocenę jego efektywności na sieciach większych rozmiarów. Jednocześnie algorytmy metaheurystyczne dla instancji o wielkości $n > 1000$ mogą wymagać dodatkowego dostrojenia parametrów w celu osiągnięcia optymalnej wydajności. Dodatkowo zakres analizy ograniczono do dwóch głównych konfiguracji licencyjnych: \emph{duolingo\_super} oraz \emph{roman\_domination}, co nie wyczerpuje pełnego spektrum możliwych modeli cenowych.
+Po drugie, algorytm ILPSolver testowano wyłącznie na grafach małej wielkości, co uniemożliwia ocenę jego efektywności na sieciach większych rozmiarów. Jednocześnie algorytmy metaheurystyczne dla instancji o wielkości $n > 1000$ mogą wymagać dodatkowego dostrojenia parametrów w celu osiągnięcia optymalnej wydajności.
 
 \subsection{Ograniczenia techniczne i pomiarowe}
 
@@ -117,7 +90,7 @@ Dla obu kolekcji danych zastosowano jednolitą procedurę filtracji, wykluczają
 
 \section{Analiza wyników dla grafów syntetycznych}
 
-Po zastosowaniu procedur filtracji na zbiorze grafów syntetycznych uzyskano ponad 12 tysięcy prawidłowych uruchomień algorytmów, z których 1972 dotyczyło konfiguracji licencyjnej \emph{duolingo\_super}. W dalszej analizie skupiono się na wynikach uzyskanych dla tej konfiguracji jako najbardziej reprezentatywnej.
+Po zastosowaniu procedur filtracji na zbiorze grafów syntetycznych uzyskano 1972 prawidłowych uruchomień algorytmów, które dotyczyły konfiguracji licencyjnej \emph{duolingo\_super}.
 
 \subsection{Analiza rozkładów kosztów i czasów wykonania}
 
@@ -126,11 +99,11 @@ Rysunek \ref{fig:synthetic_cost_boxplot} przedstawia rozkład całkowitych koszt
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/synthetic_cost_boxplot.png}
-  \caption{Całkowity koszt według algorytmu dla konfiguracji duolingo\_super (grafy syntetyczne).}
+  \caption{Całkowity koszt według algorytmu dla konfiguracji duolingo\_super.}
   \label{fig:synthetic_cost_boxplot}
 \end{figure}
 
-Analiza czasów wykonania, przedstawiona na rysunku \ref{fig:synthetic_time_boxplot} w skali logarytmicznej, ujawnia wyraźne zróżnicowanie wydajnościowe algorytmów. Metody Greedy oraz Randomized wykazują niekwestionowaną dominację pod względem szybkości działania, podczas gdy algorytmy metaheurystyczne i ILPSolver wymagają czasu wykonania mierzonego w sekundach lub dziesiątkach sekund.
+Analiza czasów wykonania, przedstawiona na rysunku \ref{fig:synthetic_time_boxplot} w skali logarytmicznej, ujawnia wyraźne zróżnicowanie wydajnościowe algorytmów. Metody Greedy oraz Randomized zdecydowanie dominują pod względem szybkości. Warto zauważyć, że średni czas działania algorytmów \textbf{AntColonyOptimization} i \textbf{TabuSearch} bywa wyższy niż \textbf{ILPSolvera} ze względu na limit 60 s. Czas ILP rósł szybciej wraz z liczbą węzłów, przez co wiele uruchomień zakończyło się statusem \texttt{timeout} i zostało wykluczonych z analizy. Średnia liczona jest więc głównie dla mniejszych instancji. Z kolei \textbf{TabuSearch} i \textbf{AntColonyOptimization} zwiększały czas wolniej, częściej kończąc tuż poniżej limitu, co powoduje, że ich średni czas oscyluje bliżej granicy 60 s i finalnie przewyższa średni czas ILP przy większej liczbie próbek.
 
 \begin{figure}[H]
   \centering
@@ -141,7 +114,7 @@ Analiza czasów wykonania, przedstawiona na rysunku \ref{fig:synthetic_time_boxp
 
 \subsection{Zależność wydajności od wielkości grafu}
 
-Analiza wpływu liczby węzłów na średni koszt rozwiązań, przedstawiona na rysunku \ref{fig:synthetic_cost_vs_nodes}, wykazuje tendencję wzrostową kosztów wraz ze zwiększaniem się rozmiaru grafu. \textbf{ILPSolver} utrzymuje pozycję lidera pod względem jakości rozwiązań dla grafów o wielkości do około $n \approx 200$ węzłów. \textbf{AntColonyOptimization} plasuje się na drugiej pozycji, jednak dla grafów większych rozmiarów obserwuje się stopniowy wzrost generowanych kosztów. Pozostałe algorytmy metaheurystyczne tworzą względnie zwartą grupę wyników, podczas gdy metody Greedy i Randomized charakteryzują się stałym, lecz wysokim poziomem kosztów niezależnie od rozmiaru grafu.
+Analiza wpływu liczby węzłów na średni koszt rozwiązań, przedstawiona na rysunku \ref{fig:synthetic_cost_vs_nodes}, wykazuje tendencję wzrostową kosztów wraz ze zwiększaniem się rozmiaru grafu. \textbf{ILPSolver} utrzymuje pozycję lidera pod względem jakości rozwiązań dla grafów o wielkości do około $n \approx 200$ węzłów. \textbf{AntColonyOptimization} plasuje się na drugiej pozycji, jednak dla grafów większych rozmiarów obserwuje się stopniowy wzrost generowanych kosztów. Pozostałe algorytmy metaheurystyczne tworzą względnie zwartą grupę wyników. Co istotne, \textbf{GreedyAlgorithm} osiąga koszty jedynie nieznacznie wyższe od metaheurystyk i pozostaje jakościowo konkurencyjny w całym badanym zakresie rozmiarów. Wyraźnie gorsze rezultaty notuje jedynie \textbf{RandomizedAlgorithm}, którego koszt utrzymuje się na istotnie wyższym poziomie niezależnie od liczby węzłów.
 
 \begin{figure}[H]
   \centering
@@ -150,23 +123,23 @@ Analiza wpływu liczby węzłów na średni koszt rozwiązań, przedstawiona na 
   \label{fig:synthetic_cost_vs_nodes}
 \end{figure}
 
-Analogicznie, czasy obliczeń pokazane na rysunku \ref{fig:synthetic_time_vs_nodes} w skali logarytmicznej rosną niemal liniowo z liczbą węzłów dla metaheurystyk. Greedy i Randomized są prawie niezależne od rozmiaru, a DominatingSetAlgorithm i SimulatedAnnealing plasują się pośrodku.
+Analogicznie, czasy obliczeń pokazane na rysunku \ref{fig:synthetic_time_vs_nodes} na osi logarytmicznej rosną wolno (w przybliżeniu logarytmicznie) wraz z liczbą węzłów. \textbf{GreedyAlgorithm} i \textbf{RandomizedAlgorithm} pozostają niemal niezależne od rozmiaru, a \textbf{DominatingSetAlgorithm} rośnie umiarkowanie. Wysoki koszt czasowy \textbf{AntColonyOptimization} wynika w dużej mierze z braku równoległości w implementacji. Algorytm działa w jednym wątku i nie wykorzystuje niezależnej ewaluacji mrówek. Równoleglenie (wielowątkowość/multiprocessing lub wektoryzacja) powinno istotnie obniżyć czas i spłaszczyć krzywą.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/synthetic_time_vs_nodes.png}
-  \caption{Średni czas wykonania vs liczba węzłów (grafy syntetyczne).}
+  \caption{Średni czas wykonania vs liczba węzłów.}
   \label{fig:synthetic_time_vs_nodes}
 \end{figure}
 
 \subsection{Kompromis koszt--czas}
 
-Wykres Pareto (rys. \ref{fig:synthetic_pareto}) ilustruje zależność między kosztem a czasem. Najkorzystniejsze punkty należą do \textbf{ILPSolvera} i \textbf{AntColonyOptimization}, lecz czas drugiego z nich jest wielokrotnie większy. \textbf{TabuSearch} i \textbf{GeneticAlgorithm} zapewniają przyzwoite koszty przy umiarkowanych czasach, natomiast Greedy i Randomized pozostają najszybsze kosztem jakości.
+Wykres Pareto (rys. \ref{fig:synthetic_pareto}) ilustruje zależność między kosztem a czasem. Najkorzystniejsze punkty należą do \textbf{ILPSolvera} i \textbf{AntColonyOptimization}, lecz czas drugiego z nich jest wielokrotnie większy. \textbf{TabuSearch} i \textbf{GeneticAlgorithm} zapewniają przyzwoite koszty przy umiarkowanych czasach, natomiast Greedy i Randomized pozostają najszybsze.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/synthetic_pareto.png}
-  \caption{Całkowity koszt vs czas wykonania (grafy syntetyczne).}
+  \caption{Całkowity koszt vs czas wykonania.}
   \label{fig:synthetic_pareto}
 \end{figure}
 
@@ -322,7 +295,7 @@ Grafy bezskalowe pozwalają na niższe koszty niż losowe czy małoświatowe —
 
 \subsection{Komentarz interpretacyjny i porównanie metod}
 \label{subsec:interpretation}
-Poniżej syntetyzujemy wnioski z wykresów (Rys.\,\ref{fig:random_performance}–\ref{fig:small_world_performance}, \ref{fig:pareto_analysis}, \ref{fig:facebook_results}):
+Poniżej syntetyzujemy wnioski z wykresów (Rys.\,\ref{fig:random_performance}--\ref{fig:small_world_performance}, \ref{fig:pareto_analysis}, \ref{fig:facebook_results}):
 \begin{itemize}
   \item \textbf{Greedy vs DS.} Na grafach bezskalowych (BA) prosta kolejność po stopniu jest bardzo skuteczna (Greedy \approx DS), gdyż kilku hubów zapewnia duże grupy rodzinne o niskim koszcie per osoba. W sieciach małoświatowych (WS) i losowych (ER) DS z kryterium \(\mathrm{coverage}/\mathrm{cost}\) częściej wybiera węzły o dobrym \emph{unikalnym} zasięgu, co obniża koszt bardziej niż Greedy.
   \item \textbf{Metaheurystyki.} GA/SA/TS/ACO zwykle poprawiają koszt względem Greedy/DS, szczególnie przy ograniczonych pojemnościach i mieszanej ofercie licencji, kosztem dłuższego czasu (fronty Pareto wskazują wyraźny kompromis między kosztem a czasem).

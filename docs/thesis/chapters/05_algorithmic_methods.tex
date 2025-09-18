@@ -2,21 +2,21 @@
 
 W tym rozdziale przedstawiono wszystkie algorytmy zastosowane w pracy. Każdy algorytm opisano wraz z jego główną ideą, parametrami oraz analizą złożoności obliczeniowej.
 
-Algorytmy zastosowane w pracy można podzielić na cztery grupy:
+
+Algorytmy zastosowane w pracy można podzielić na trzy grupy:
 \begin{enumerate}
-  \item \textbf{Metody dokładne} -- gwarantują znalezienie optymalnego rozwiązania: algorytm naiwny i programowanie całkowitoliczbowe (ILP)
-  \item \textbf{Metody dla drzew} -- programowanie dynamiczne na grafach drzewiastych
-  \item \textbf{Heurystyki konstrukcyjne} -- szybkie metody budujące rozwiązanie krok po kroku: algorytm zachłanny, zbiór dominujący, algorytm losowy
-  \item \textbf{Metaheurystyki} -- zaawansowane metody przeszukujące przestrzeń rozwiązań: algorytm genetyczny, przeszukiwanie tabu, algorytm mrówkowy, symulowane wyżarzanie
+  \item \textbf{Metody dokładne} -- gwarantują znalezienie optymalnego rozwiązania: algorytm naiwny i programowanie całkowitoliczbowe (ILP).
+  \item \textbf{Heurystyki konstrukcyjne} -- szybkie metody budujące rozwiązanie krok po kroku: algorytm zachłanny, zbiór dominujący, algorytm losowy.
+  \item \textbf{Metaheurystyki} -- zaawansowane metody przeszukujące przestrzeń rozwiązań: algorytm genetyczny, przeszukiwanie tabu, algorytm mrówkowy, symulowane wyżarzanie.
 \end{enumerate}
 
-\section{Formalizacja problemu}\label{sec:alg-conventions}
+% \section{Formalizacja problemu}\label{sec:alg-conventions}
 
-Problem składa się z grafu $G=(V,E)$ oraz zbioru typów licencji $\mathcal{L}=\{\ell_1,\dots,\ell_T\}$. Każda licencja $\ell$ ma trzy parametry: koszt $c_\ell>0$, minimalną pojemność $l_\ell$ i maksymalną pojemność $u_\ell$, gdzie $1\le l_\ell\le u_\ell$.
+% Problem składa się z grafu $G=(V,E)$ oraz zbioru typów licencji $\mathcal{L}=\{\ell_1,\dots,\ell_T\}$. Każda licencja $\ell$ ma trzy parametry: koszt $c_\ell>0$, minimalną pojemność $l_\ell$ i maksymalną pojemność $u_\ell$, gdzie $1\le l_\ell\le u_\ell$.
 
-Grupa licencyjna składa się z właściciela $i$ (który kupuje licencję $\ell$) oraz członków grupy wybranych spośród sąsiadów właściciela. Oznaczając przez $N[i]$ zbiór składający się z wierzchołka $i$ i wszystkich jego sąsiadów, grupa licencyjna to podzbiór $G\subseteq N[i]$ taki, że właściciel $i$ należy do grupy ($i\in G$) oraz rozmiar grupy mieści się w dozwolonym zakresie ($l_\ell\le |G|\le u_\ell$).
+% Grupa licencyjna składa się z właściciela $i$ (który kupuje licencję $\ell$) oraz członków grupy wybranych spośród sąsiadów właściciela. Oznaczając przez $N[i]$ zbiór składający się z wierzchołka $i$ i wszystkich jego sąsiadów, grupa licencyjna to podzbiór $G\subseteq N[i]$ taki, że właściciel $i$ należy do grupy ($i\in G$) oraz rozmiar grupy mieści się w dozwolonym zakresie ($l_\ell\le |G|\le u_\ell$).
 
-Rozwiązaniem problemu jest taki zbiór grup $\mathcal{S}$, że każdy wierzchołek grafu należy do dokładnie jednej grupy. Koszt rozwiązania to suma kosztów wszystkich utworzonych grup: $\cost(\mathcal{S})=\sum\limits_{(i,\ell,G)\in\mathcal{S}} c_\ell$.
+% Rozwiązaniem problemu jest taki zbiór grup $\mathcal{S}$, że każdy wierzchołek grafu należy do dokładnie jednej grupy. Koszt rozwiązania to suma kosztów wszystkich utworzonych grup: $\cost(\mathcal{S})=\sum\limits_{(i,\ell,G)\in\mathcal{S}} c_\ell$.
 
 \section{Metody dokładne}
 
@@ -27,10 +27,10 @@ Algorytm naiwny to najprostsza metoda dokładna, która sprawdza wszystkie możl
 \paragraph{Idea metody}
 Algorytm systematycznie przegląda wszystkie możliwe podziały wierzchołków grafu na grupy licencyjne:
 \begin{enumerate}
-  \item Generuje wszystkie partycje zbioru wierzchołków
-  \item Dla każdej partycji sprawdza wszystkie możliwe przypisania licencji
-  \item Weryfikuje poprawność rozwiązania (ograniczenia spójności i pojemności)
-  \item Oblicza koszt i zapamiętuje najlepsze rozwiązanie
+  \item Generuje wszystkie partycje zbioru wierzchołków.
+  \item Dla każdej partycji sprawdza wszystkie możliwe przypisania licencji.
+  \item Weryfikuje poprawność rozwiązania.
+  \item Oblicza koszt i zapamiętuje najlepsze rozwiązanie.
 \end{enumerate}
 
 \begin{algorithm}[H]
@@ -40,7 +40,7 @@ Algorytm systematycznie przegląda wszystkie możliwe podziały wierzchołków g
 \Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
 \If{$|V| > 10$} \State \Return błąd -- graf zbyt duży \EndIf
 \State $best\_cost \gets \infty$, $best\_solution \gets \emptyset$
-\For{każdą partycję $P = \{P_1, P_2, \dots, P_k\}$ zbioru $V$}
+\For{każda partycja $P = \{P_1, P_2, \dots, P_k\}$ zbioru $V$}
   \For{każde przypisanie licencji do bloków partycji}
     \If{rozwiązanie spełnia wszystkie ograniczenia}
       \State $cost \gets$ oblicz koszt rozwiązania
@@ -54,13 +54,13 @@ Algorytm systematycznie przegląda wszystkie możliwe podziały wierzchołków g
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Złożoność i ograniczenia}
+\paragraph{Złożoność}
 Algorytm ma złożoność nadwykładniczą $O(c^n)$ ze względu na konieczność przeglądu wszystkich partycji zbioru wierzchołków. Z tego powodu praktyczny jest tylko dla grafów o maksymalnie 10 wierzchołkach. Używany głównie jako punkt odniesienia do walidacji innych algorytmów.
 
 
 \subsection{Programowanie całkowitoliczbowe (ILP)}\label{subsec:ilp}
 
-Programowanie całkowitoliczbowe (Integer Linear Programming, ILP) to metoda dokładna, która formułuje problem jako zadanie optymalizacji liniowej ze zmiennymi całkowitoliczbowymi. Gwarantuje znalezienie optymalnego rozwiązania.
+Programowanie całkowitoliczbowe to metoda dokładna, która formułuje problem jako zadanie optymalizacji liniowej ze zmiennymi całkowitoliczbowymi. Gwarantuje znalezienie optymalnego rozwiązania.
 
 \paragraph{Idea metody}
 Algorytm minimalizuje łączny koszt wszystkich utworzonych grup licencyjnych używając dwóch typów zmiennych binarnych:
@@ -77,57 +77,13 @@ Model matematyczny (dla $N[i] = N(i) \cup \{i\}$):
 & x_{i,i,\ell} = a_{i,\ell} && \forall i\in V,\ \ell\in\mathcal{L} \quad \text{(właściciel w grupie)}
 \end{align}
 
-\paragraph{Złożoność i zastosowanie}
+\paragraph{Złożoność}
 Liczba zmiennych rośnie jako $O(|V| \cdot |\mathcal{L}| \cdot \Delta)$, gdzie $\Delta$ to maksymalny stopień wierzchołka. Dla dużych i gęstych grafów czas obliczeń może być znaczny. Metoda używana jako:
 \begin{itemize}
-  \item Punkt odniesienia dla oceny jakości innych algorytmów
-  \item Rozwiązanie dla małych instancji (do około 100-200 wierzchołków)
-  \item Generator górnych ograniczeń dla heurystyk
+  \item punkt odniesienia dla oceny jakości innych algorytmów,
+  \item rozwiązanie dla małych instancji (do około 100-200 wierzchołków),
+  \item generator górnych ograniczeń dla heurystyk.
 \end{itemize}
-Dla większych instancji stosuje się ograniczenie czasu działania solvera.
-
-\section{Metody dla drzew}
-
-\subsection{Programowanie dynamiczne na drzewach}\label{subsec:treedp}
-Poniżej definiujemy stan, przejścia i złożoność. Rozważamy drzewo $T=(V,E)$ z korzeniem $r$ i kierujemy krawędzie od rodzica do dzieci. Dla $u\in V$ przez $\mathrm{ch}(u)$ oznaczamy dzieci i $d(u)=|\mathrm{ch}(u)|$.
-
-\paragraph{Stan DP}
-Rozważamy dwa stany dla każdego $u$:
-\begin{itemize}
-  \item $F(u)$ - minimalny koszt pokrycia poddrzewa $T_u$, gdy $u$ jest włączony do grupy \emph{rodzica} (nie może być właścicielem).
-  \item $G(u)$ - minimalny koszt pokrycia $T_u$, gdy $u$ \emph{nie} jest włączony do grupy rodzica (może zostać właścicielem i dołączyć część dzieci).
-\end{itemize}
-
-\paragraph{Przejścia} Jeśli $u$ zostaje właścicielem z licencją $\ell$, wybieramy podzbiór dzieci $S\subseteq \mathrm{ch}(u)$ do dołączenia do grupy $u$ (pozostałe dzieci rozwiązujemy niezależnie). Warunek pojemności: $l_\ell \le 1+|S| \le u_\ell$.
-\[
-\textstyle\mathrm{Own}(u,\ell) \;=\; c_\ell\; +\! \sum\limits_{v\in S} F(v)\; +\! \sum\limits_{v\in \mathrm{ch}(u)\setminus S} G(v),\qquad S\subseteq\mathrm{ch}(u).
-\]
-Wtedy:
-\[
-F(u)= \sum\limits_{v\in\mathrm{ch}(u)} G(v),\qquad
-G(u)= \min\limits_{\ell\in\mathcal{L}}\ \min\limits_{\substack{S\subseteq\mathrm{ch}(u) \\ l_\ell\le 1+|S|\le u_\ell}} \Bigl[ c_\ell + \sum\limits_{v\in S} F(v) + \sum\limits_{v\notin S} G(v) \Bigr].
-\]
-Stan korzenia: wynik końcowy to $G(r)$.
-
-\paragraph{Złożoność} Dla każdego $u$ i licencji enumerujemy podzbiory $S\subseteq\mathrm{ch}(u)$ - koszt $\sum_u T\cdot 2^{d(u)}$, więc $\mathcal{O}\bigl(|V|\cdot T\cdot 2^{d_{\max}}\bigr)$. Dla stałego $d_{\max}$ czas jest liniowy względem $|V|\cdot T$. Pamięć: $\mathcal{O}(|V|)$.
-
-\begin{algorithm}[H]
-\caption{Programowanie dynamiczne na drzewach}
-\label{alg:treedp}
-\begin{algorithmic}[1]
-\Require drzewo $T=(V,E)$, typy licencji $\mathcal{L}$
-\State wybierz korzeń $r$ i obliczaj dla każdego $u$ w porządku postorder:
-\For{każdy wierzchołek $u$ (od liści do korzenia)}
-  \State oblicz minimalny koszt pokrycia poddrzewa $u$ dla wszystkich możliwych konfiguracji
-  \State rozważ $u$ jako właściciela różnych typów licencji z różnymi podzbiorami dzieci
-  \State rozważ $u$ jako członka grupy rodzica
-\EndFor
-\State \Return optymalny koszt i rozwiązanie dla korzenia $r$
-\end{algorithmic}
-\end{algorithm}
-
-\paragraph{Uwagi praktyczne}
-Metoda zapewnia optimum na drzewach. W zastosowaniach praktycznych bywa użyteczna także na grafach bliskich drzewom po zastosowaniu heurystyk dekompozycji (np. usunięcie krawędzi o małym znaczeniu), lecz wtedy traci się gwarancję optymalności.
 
 \section{Heurystyki konstrukcyjne}
 
@@ -147,18 +103,17 @@ Algorytm działa według następującej strategii:
 
 Algorytm nie ma parametrów do dostrajania — wszystkie decyzje są podejmowane deterministycznie na podstawie struktury grafu i kosztów licencji.
 
-\paragraph{Porządek wierzchołków}
 Sortowanie według stopnia wierzchołka (liczby sąsiadów) sprawdza się dobrze w praktyce, ponieważ wierzchołki o wysokim stopniu mogą tworzyć większe, bardziej efektywne grupy licencyjne.
 
 \paragraph{Złożoność}
-Algorytm ma złożoność czasową $O(nT + m\log n)$, gdzie $n$ to liczba wierzchołków, $T$ to liczba typów licencji, a $m$ to liczba krawędzi. Zużywa $O(n)$ pamięci.
+Algorytm ma złożoność czasową $O(nT + m\log n)$, gdzie $n$ to liczba wierzchołków, $T$ to liczba typów licencji, a $m$ to liczba krawędzi.
 
 \begin{algorithm}[H]
 \caption{Algorytm zachłanny}
 \label{alg:greedy}
 \begin{algorithmic}[1]
 \Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
-\State posortuj wierzchołki malejąco według stopnia (najlepiej połączone pierwsze)
+\State posortuj wierzchołki malejąco według stopnia
 \State $niepokryte \gets V$
 \For{każdy wierzchołek $v$ w posortowanej kolejności}
   \If{$v$ już pokryty} \textbf{continue} \EndIf
@@ -183,9 +138,9 @@ Algorytm zachłanny jest bardzo szybki i daje stabilne wyniki. Z tego powodu cz�
 \end{itemize}
 Wadą algorytmu jest to, że podejmując lokalnie najlepsze decyzje, może przegapić lepsze rozwiązania globalne.
 
-\subsection{Heurystyka zbioru dominującego (\texttt{dominating\_set})}\label{subsec:ds}
+\subsection{Heurystyka zbioru dominującego}\label{subsec:ds}
 
-Algorytm najpierw buduje zbiór dominujący grafuzyskując wierzchołki o najlepszej efektywności kosztowej (stosunek liczby pokrywanych sąsiadów do minimalnego kosztu na węzeł). Następnie każdemu dominatorowi przypisuje najtańszą dopuszczalną licencję i tworzy grupę.
+Algorytm najpierw buduje zbiór dominujący grafu zyskując wierzchołki o najlepszej efektywności kosztowej (stosunek liczby pokrywanych sąsiadów do minimalnego kosztu na węzeł). Następnie każdemu dominatorowi przypisuje najtańszą dopuszczalną licencję i tworzy grupę.
 
 \begin{algorithm}[H]
 \caption{Zbiór dominujący -- heurystyka z przypisaniem grup}
@@ -207,12 +162,11 @@ Algorytm najpierw buduje zbiór dominujący grafuzyskując wierzchołki o najlep
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Uwagi praktyczne}
-Budowanie rozwiązania wokół \emph{maksymalnego} zbioru dominującego (niekoniecznie minimalnego) jest typową praktyką heurystyczną \cite{haynes1998domination}. Nasza wersja używa kryterium efektywności kosztowej i po doborze $D$ przypisuje grupy zgodnie z ograniczeniami pojemności. Metoda sprzyja niskim kosztom na grafach o wyraźnych „centrach” (BA) i niewielkich średnicach (WS), jest szybka, lecz podatna na wybór porządku; zwykle warto łączyć ją z rozgrzewką zachłanną lub lokalną poprawą.
+Budowanie rozwiązania wokół \emph{maksymalnego} zbioru dominującego (niekoniecznie minimalnego) jest typową praktyką heurystyczną \cite{haynes1998domination}. Nasza wersja używa kryterium efektywności kosztowej i po doborze $D$ przypisuje grupy zgodnie z ograniczeniami pojemności.
 
 \subsection{Algorytm losowy}\label{subsec:random}
 
-Algorytm losowy służy jako punkt odniesienia (baseline) do oceny jakości innych metod. Jeśli którykolwiek algorytm osiąga gorsze wyniki niż losowy wybór, oznacza to fundamentalną wadę w jego implementacji lub doborze parametrów.
+Algorytm losowy służy jako punkt odniesienia do oceny jakości innych metod. Jeśli którykolwiek algorytm osiąga gorsze wyniki niż losowy wybór, oznacza to fundamentalną wadę w jego implementacji lub doborze parametrów.
 
 Algorytm przetwarza wierzchołki w losowej kolejności i dla każdego z nich losowo wybiera typ licencji oraz członków grupy. Gdy losowy wybór nie jest możliwy, używa strategii zachłannej jako fallback.
 
@@ -225,10 +179,10 @@ Algorytm przetwarza wierzchołki w losowej kolejności i dla każdego z nich los
 \For{node w kolejności $\pi$}
   \If{$node\notin U$} \textbf{continue}\EndIf
   \State $S\gets(N(node)\cup\{node\})\cap U$
-  \If{$\exists$ dopuszczalna licencja}
+  \If{istnieje dopuszczalna licencja}
     \State wylosuj $\ell$ i rozmiar $s\in[l_\ell,\min\{|S|,u_\ell\}]$, dobierz losowych członków
   \Else
-    \State zrób mały krok zachłanny - wybierz najtańszą dopuszczalną grupę
+    \State wybierz najtańszą dopuszczalną grupę
   \EndIf
   \State dodaj grupę, zaktualizuj $U$
 \EndFor
@@ -236,34 +190,25 @@ Algorytm przetwarza wierzchołki w losowej kolejności i dla każdego z nich los
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Rola w badaniach}
-Algorytm losowy nie ma na celu znajdowania dobrych rozwiązań. Jest używany wyłącznie jako baseline do weryfikacji, że inne algorytmy rzeczywiście dodają wartość ponad przypadkowy wybór. Każda metoda, która osiąga gorsze wyniki niż algorytm losowy, powinna zostać odrzucona lub przeprojektowana.
 
 \section{Metaheurystyki}
 
 Metaheurystyki to zaawansowane algorytmy przeszukujące przestrzeń rozwiązań w sposób inteligentny. W przeciwieństwie do heurystyk konstrukcyjnych, które budują rozwiązanie od zera, metaheurystyki zaczynają od pewnego rozwiązania i systematycznie je poprawiają.
 
 \paragraph{Dobór parametrów}
-Parametry metaheurystyk zostały dobrane eksperymentalnie na podstawie testów na grafach różnych rozmiarów. Używane są standardowe wartości z literatury, dostosowane do specyfiki problemu licencyjnego.
-
-\paragraph{Reprezentacja rozwiązania}
-Wszystkie metaheurystyki używają tego samego sposobu reprezentacji rozwiązania:
-\begin{itemize}
-  \item Wektor właścicieli $a$ -- dla każdego wierzchołka przechowuje informację o tym, czy jest właścicielem grupy i jakiej licencji używa
-  \item Wektor przypisań $p$ -- dla każdego wierzchołka przechowuje informację o tym, do której grupy należy
-\end{itemize}
+Parametry metaheurystyk zostały dobrane eksperymentalnie na podstawie testów na grafach różnych rozmiarów.
 
 \paragraph{Operacje modyfikacji rozwiązania}
 Metaheurystyki poprawiają rozwiązanie stosując następujące operacje:
 \begin{itemize}
-  \item \texttt{change\_license} -- zmiana typu licencji używanej przez właściciela grupy
-  \item \texttt{move\_member} -- przeniesienie członka z jednej grupy do drugiej
-  \item \texttt{swap\_members} -- zamiana miejscami dwóch członków z różnych grup
-  \item \texttt{merge\_groups}$(i,k)$ / \texttt{split\_group}$(i)$: scal dwie grupy w jedną (jeśli $\le u_\ell$) lub rozdziel na dwie dopuszczalne.
+  \item zmiana typu licencji używanej przez właściciela grupy
+  \item przeniesienie członka z jednej grupy do drugiej
+  \item zamiana miejscami dwóch członków z różnych grup
+  \item scal dwie grupy w jedną lub rozdziel na dwie dopuszczalne.
 \end{itemize}
 
-\subsection{Algorytm genetyczny (\texttt{genetic})}\label{subsec:ga}
-Populacja rozwiązań z elityzmem, selekcją turniejową, krzyżowaniem (łączenie grup rodziców według efektywności i domknięcie greedy na niepokrytych) oraz mutacją w przestrzeni sąsiedztw; start z heurystyki zachłannej i opcjonalnego warm-startu \cite{holland1975,goldberg1989}.
+\subsection{Algorytm genetyczny}\label{subsec:ga}
+Populacja rozwiązań z elityzmem, selekcją turniejową, krzyżowaniem oraz mutacją w przestrzeni sąsiedztw; start z heurystyki zachłannej \cite{holland1975,goldberg1989}.
 
 \paragraph{Parametry}
 Wielkość populacji (30), liczba pokoleń (40), udział elity (20\%) oraz prawdopodobieństwo krzyżowania (60\%).
@@ -292,10 +237,9 @@ Wielkość populacji (30), liczba pokoleń (40), udział elity (20\%) oraz prawd
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Uwagi praktyczne}
-Algorytm genetyczny dobrze równoważy eksplorację nowych rozwiązań z eksploatacją znalezionych. Najlepsze wyniki uzyskuje przy umiarkowanym budżecie czasowym i dobrym rozwiązaniu początkowym.
 
-\subsection{Przeszukiwanie tabu (\texttt{tabu\_search})}\label{subsec:tabu}
+
+\subsection{Przeszukiwanie tabu}\label{subsec:tabu}
 Lokalne przeszukiwanie z tabu-listą i kryterium aspiracji \cite{glover1989}; w każdej iteracji wybierany jest najlepszy sąsiad spoza tabu albo poprawiający dotychczas najlepsze rozwiązanie. \emph{Ruch} to jedna z operacji sąsiedztwa zdefiniowanych wyżej, a \emph{kluczem tabu} jest para opisująca odwrócony przydział $(j, i\to k)$ albo zmiana licencji $(i,\ell\to\ell')$. Złożoność $O(I\cdot k\cdot C)$ dla \(I\) iteracji, \(k\) sąsiadów i kosztu oceny \(C\).
 
 \paragraph{Parametry}
@@ -328,14 +272,12 @@ Maksymalna liczba iteracji (1000), długość listy tabu (20) oraz liczba badany
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Uwagi praktyczne}
-Przeszukiwanie tabu sprawdza się na dużych instancjach dzięki systematycznemu unikaniu cykli. Kluczowe jest odpowiednie dobranie długości listy tabu i zastosowanie kryterium aspiracji dla ruchów poprawiających najlepsze rozwiązanie.
 
-\subsection{Algorytm mrówkowy (\texttt{ant\_colony\_optimization})}\label{subsec:aco}
-Mrówki konstruują rozwiązania sterowane feromonem \(\tau\) i heurystyką \(\eta\) \cite{dorigo1997}; po każdej iteracji następuje parowanie (parametr \texttt{evaporation}) i depozycja proporcjonalna do odwrotności kosztu najlepszego rozwiązania. Złożoność w przybliżeniu \(O(\text{iter}\times\text{ants}\times(|V|+|E|+T))\).
+\subsection{Algorytm mrówkowy}\label{subsec:aco}
+Mrówki konstruują rozwiązania sterowane feromonem \(\tau\) i heurystyką \(\eta\) \cite{dorigo1997}; po każdej iteracji następuje parowanie i depozycja proporcjonalna do odwrotności kosztu najlepszego rozwiązania. Złożoność w przybliżeniu \(O(\text{iter}\times\text{ants}\times(|V|+|E|+T))\).
 
 \paragraph{Parametry}
-Wpływ feromonu α=1, wpływ heurystyki β=2, tempo parowania (0.5), prawdopodobieństwo wyboru zachłannego q₀=0.9 oraz liczba mrówek (20).
+Wpływ feromonu α=1, wpływ heurystyki β=2, tempo parowania (0.5), prawdopodobieństwo wyboru zachłannego q$_0$=0.9 oraz liczba mrówek (20).
 
 \begin{algorithm}[H]
 \caption{Algorytm mrówkowy}
@@ -364,10 +306,7 @@ Wpływ feromonu α=1, wpływ heurystyki β=2, tempo parowania (0.5), prawdopodob
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Uwagi praktyczne}
-ACO dobrze radzi sobie na grafach, gdzie lokalne wskazówki (np. stopnie wierzchołków czy koszt jednostkowy licencji) korelują z jakością globalną. Wysokie \texttt{alpha} wzmacnia eksploatację już odkrytych ścieżek, natomiast wyższe \texttt{beta} i niższe \texttt{q0} zwiększają eksplorację. Zbyt wolne parowanie może prowadzić do zastoju, zbyt szybkie - do braku konsolidacji feromonu.
-
-\subsection{Symulowane wyżarzanie (\texttt{simulated\_annealing})}\label{subsec:sa}
+\subsection{Symulowane wyżarzanie }\label{subsec:sa}
 Start z rozwiązania zachłannego, następnie ruchy sąsiedztwa z akceptacją pogorszeń zależną od temperatury \(T\) i schładzaniem \(T\leftarrow \alpha T\) \cite{kirkpatrick1983}. Złożoność \(O(I\cdot C)\) dla \(I\) iteracji i kosztu oceny \(C\).
 
 \paragraph{Parametry}
@@ -383,13 +322,7 @@ Temperatura początkowa (100.0), współczynnik chłodzenia (0.995), temperatura
 \State $temperatura \gets T_0$ (początkowa temperatura)
 \For{każdą iterację}
   \If{$temperatura < T_{min}$} \textbf{break} \EndIf
-  \State wybierz losową operację sąsiedztwa:
-  \begin{itemize}[noitemsep]
-    \item zmień typ licencji w grupie
-    \item przenieś członka między grupami
-    \item zamień członków między grupami
-    \item scal lub rozdziel grupy
-  \end{itemize}
+  \State wybierz losową operację sąsiedztwa
   \State $kandydat \gets$ wynik operacji sąsiedztwa
   \State $\Delta \gets koszt(kandydat) - koszt(aktualne)$
   \If{$\Delta \leq 0$ LUB $random() < \exp(-\Delta / temperatura)$}
@@ -404,5 +337,3 @@ Temperatura początkowa (100.0), współczynnik chłodzenia (0.995), temperatura
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Uwagi praktyczne}
-Wyżarzanie symulowane jest proste w implementacji i elastyczne. Wysoka temperatura początkowa oraz wolne chłodzenie zwiększają zdolność do ucieczki z minimów lokalnych kosztem dłuższego czasu działania. W praktyce skuteczne bywa łączenie z rozwiązaniem początkowym z heurystyki zachłannej oraz ograniczanie zbioru ruchów do tych, które najszybciej obniżają koszt.

@@ -1,35 +1,5 @@
 \chapter{Związek z dominowaniem w grafach}
 
-\section{Definicje: dominowanie i dominowanie rzymskie}
-\noindent Niech $G=(V,E)$ będzie grafem prostym.
-\begin{description}
-  \item[Zbiór dominujący (MDS)] Zbiór $D\subseteq V$ jest dominujący, gdy $\forall v\in V:\ v\in D$ lub $\exists u\in D:\ \{u,v\}\in E$. Celem w problemie MDS jest minimizacja $|D|$.
-  \item[Dominacja rzymska (RD)] Funkcja $f:V\to\{0,1,2\}$ jest funkcją dominacji rzymskiej, jeśli każdy wierzchołek z $f(v)=0$ ma sąsiada $u$ z $f(u)=2$. Koszt to $\sum_{v\in V} f(v)$. Celem jest minimizacja kosztu \cite{Cockayne2004,henning2013roman}.
-\end{description}
-
-\paragraph{Klasyczny RD — bez limitów.} W klasycznym modelu RD przyjmuje się, że wierzchołek z etykietą $2$ \emph{„broni”} siebie oraz dowolnie wielu sąsiadów z etykietą $0$ -- nie istnieje górny limit liczby bronionych sąsiadów \cite{Cockayne2004}. Etykieta $1$ pokrywa wyłącznie właściciela, a etykieta $0$ oznacza wierzchołek broniony przez sąsiada z etykietą $2$.
-
-\section{Powiązanie z naszym modelem}
-\noindent Model z rozdz.\,2 (\S\ref{sec:model-formal}) ogólnia RD poprzez ograniczenia pojemności grup i rodzinę licencji $\mathcal{L}$. W szczególności, prawdziwe jest następujące stwierdzenie (nieformalnie, w konwencji pracy):
-
-\paragraph{Twierdzenie (intuicyjnie).} Jeśli ograniczymy model do dwóch typów: indywidualnej ($c_1=1, m_1=k_1=1$) i „rzymskiej” ($c_g=2, m_g=1, k_g=\infty$), to minimalizacja $\cost(f)$ jest równoważna problemowi RD.
-
-\textit{Szkic uzasadnienia.} Ustawienie $c_g=2$ odpowiada wadze 2 w RD, a $c_1=1$ — wartości 1. Brak ograniczeń pojemności ($k_g=\infty$) pozwala wierzchołkowi z etykietą 2 „pokrywać” dowolnie wielu sąsiadów 0, a etykieta 1 pokrywa jedynie siebie. Mapowanie etykiet $\{0,1,2\}$ na role (R/I/G) i odwrotnie jest obustronnie jednoznaczne i zachowuje koszt, więc optymalne rozwiązania pokrywają się.
-
-\subsection{Wersja pojemnościowa a RD: różnice i definicja limitu}
-\label{sec:rd-capacitated}
-W naszym uogólnieniu licencje grupowe mają pojemność \emph{górną} i (opcjonalnie) \emph{dolną}: dla typu $t=(c_t,m_t,k_t)$ liczba miejsc w grupie (wraz z właścicielem) musi należeć do przedziału $[m_t,\,k_t]$. Odpowiada to \emph{pojemnościowemu dominowaniu} (capacitated domination) znanemu w literaturze: wierzchołek „centrum” może obsłużyć co najwyżej określoną liczbę wierzchołków z sąsiedztwa \cite{cap_dom_ars2010,cap_dom_planar_2016}. W notacji ILP wykorzystywanej w pracy oznacza to w szczególności ograniczenia typu
-\[
-\sum_{v\in N[u]\cup\{u\}} y_{u,v} \;=\; s_u,\qquad m_t\,x^{(t)}_u \;\le\; s_u \;\le\; k_t\,x^{(t)}_u,\qquad \sum_{u\in N[v]\cup\{v\}} y_{u,v} = 1,
-\]
-gdzie $x^{(t)}_u\in\{0,1\}$ wybiera typ licencji u wierzchołku $u$, a $y_{u,v}\in\{0,1\}$ przypisuje wierzchołek $v$ do grupy właściciela $u$. W klasycznym RD warunek górny znika ($k_t=\infty$), a minimalizacja kosztu przy $c_1=1,\ c_g=2$ redukuje się do RD (por. powyższe twierdzenie).
-
-Istotną różnicą praktyczną jest typ \emph{Duo}: dokładnie dwuosobowa grupa (wraz z właścicielem), co modelujemy jako $m_t=k_t=2$. W klasycznym RD nie ma takiego ograniczenia wielkości „obozu” wierzchołka $2$.
-
-\section{Złożoność i aproksymacje}
-\noindent MDS jest NP-zupełny i APX-trudny nawet na grafach o ograniczonym stopniu \cite{ALIMONTI2000123,chlebik2008}. Dominacja rzymska jest NP-trudna \cite{chambers2009} i dla wielu klas dziedziczy ograniczenia aproksymacyjne \cite{POUREIDI2023106363}. Ponieważ nasz model ogólnia RD (dodając limity pojemności), jest co najmniej tak trudny jak RD.
-
-Greedy w stylu pokrycia zbiorów (Set Cover) daje standardowo aproksymację $O(\log n)$ dla MDS i pokrewnych wariantów; przegląd takich wyników można znaleźć m.in. w materiałach wykładowych \cite{Kuhn2012NetworkAlgorithms}.
 
 % \section{Dominowanie w grafach - definicje podstawowe}
 
@@ -97,30 +67,53 @@ Greedy w stylu pokrycia zbiorów (Set Cover) daje standardowo aproksymację $O(\
 % Z punktu widzenia naszego problemu, intuicja związana z dominowaniem jest następująca: jeśli potraktujemy osoby posiadające licencje jako zbiór $D$, to warunek, by każdy inny użytkownik miał znajomego z $D$, jest dokładnie warunkiem, by $D$ zapewniał dostęp wszystkim pozostałym (poprzez współdzielenie w ramach krawędzi grafu). Gdybyśmy pominęli rozróżnienie na typy licencji (indywidualna vs. grupowa) i pozwolili każdemu kupującemu obsłużyć wszystkich swoich sąsiadów, wówczas problem minimalizacji kosztu sprowadzałby się wprost do znalezienia minimalnego zbioru dominującego - najmniejszej grupy osób, które wykupią licencje tak, aby cała sieć miała dostęp. W praktyce jednak musimy uwzględnić koszty i ograniczenia, które sprawiają, że sprawa jest bardziej złożona (temu poświęcony będzie rozdz. 3.2 i 3.3). Niemniej jednak, pojęcie dominacji daje pierwszy wgląd w strukturę rozwiązania: jakie osoby pełnią rolę „liderów” zapewniających pokrycie sieci.
 
 Problematyka dominowania w grafach jest dobrze zbadana i szeroko opisana w literaturze~\cite{haynes1998domination}.
-Niech \(G = (V,E)\) będzie grafem nieskierowanym.
-Zbiorem dominującym nazywamy podzbiór wierzchołków \(D \subseteq V\) taki, że każdy
-wierzchołek spoza \(D\) ma co najmniej jednego sąsiada w~\(D\), tj. \[\forall v \in V \setminus D \quad \exists\,u \in D : \{u,v\} \in E.\]
-Minimalną liczność zbioru dominującego oznaczamy symbolem \(\gamma(G)\) i nazywamy liczbą dominowania:
-\[
-\gamma(G) \;=\; \min\bigl\{|D| : D\subseteq V,\; D \text{ jest zbiorem dominującym w } G\bigr\}.
-\]
+W szczególności znane są klasyczne definicje zbioru dominującego oraz liczby dominowania, które stanowią punkt odniesienia dla dalszych analiz.
+Niech $G=(V,E)$ będzie grafem nieskierowanym.
+Zbiorem dominującym nazywamy podzbiór $D \subseteq V$ taki, że każdy wierzchołek spoza $D$ ma co najmniej jednego sąsiada w $D$:
+\begin{equation}
+  \forall v \in V \setminus D \;\; \exists\, u \in D : \{u,v\} \in E ,
+  \label{eq:dominating_set_def}
+\end{equation}
+gdzie:
+\begin{itemize}
+  \item $V$ - zbiór wierzchołków grafu,
+  \item $E$ - zbiór krawędzi grafu,
+  \item $D \subseteq V$ - zbiór dominujący,
+  \item $u,v \in V$ - wierzchołki grafu,
+  \item $\{u,v\}\in E$ - krawędź łącząca wierzchołki $u$ i $v$.
+\end{itemize}
+
+
+Minimalną liczność zbioru dominującego oznaczamy symbolem $\gamma(G)$ i nazywamy liczbą dominowania:
+\begin{equation}
+  \gamma(G) = \min \{\, |D| : D \subseteq V \,\},
+  \label{eq:domination_number}
+\end{equation}
+gdzie:
+\begin{itemize}
+  \item $\gamma(G)$ - liczba dominowania grafu $G$,
+  \item $D$ - zbiór dominujący w grafie $G$,
+  \item $V$ - zbiór wierzchołków grafu,
+  \item $|D|$ - liczność zbioru $D$.
+\end{itemize}
+
+
 
 Z punktu widzenia rozważanego problemu zakupu licencji, podstawowe założenie jest następujące:
 jeśli potraktujemy osoby kupujące licencje jako zbiór \(D\), a krawędzie grafu jako relacje
-umożliwiające udostępnianie licencji, wówczas warunek dominowania opisuje sytuację, w której
-każdy użytkownik spoza \(D\) ma znajomego z~\(D\), a zatem uzyskuje dostęp do usługi.
+umożliwiające udostępnianie licencji, wówczas warunek dominowania opisany równaniem~(\ref{eq:dominating_set_def}) określa sytuację,
+w której każdy użytkownik spoza $D$ ma znajomego z~$D$, a zatem uzyskuje dostęp do usługi.
 Gdyby wszystkie licencje były identyczne i pozwalały obsłużyć dowolną liczbę sąsiadów,
-minimalizacja kosztu sprowadzałaby się do wyznaczenia \(\gamma(G)\).
-W praktyce jednak występują różne typy licencji (indywidualne i grupowe) oraz limity
+minimalizacja kosztu sprowadzałaby się do wyznaczenia liczby dominowania~(\ref{eq:domination_number}).
+W praktyce jednak występują różne typy licencji oraz limity
 współużytkowników, co czyni problem znacznie bardziej złożonym.
 
-% Minimalny zbiór dominujący nie jest w~ogólności jednoznaczny - graf może mieć wiele
-% różnych zbiorów o rozmiarze $\gamma(G)$ co widać na Rysunku \ref{fig:dominatingexample}.
-% Decyzyjna wersja problemu („czy w~grafie istnieje zbiór dominujący mocy
-% co najwyżej~$k$?”) jest NP-zupełna \cite{karp1972,garey1979}, co sugeruje brak
-% algorytmu wielomianowego dla grafu ogólnego.
-
-Należy zauważyć, że minimalny zbiór dominujący nie musi być jednoznaczny. Często bywa tak, że graf ma wiele różnych zbiorów dominujących o rozmiarze równym $\gamma(G)$ (jak na Rys.~\ref{fig:dominatingexample}, gdzie dwa różne zbiory czerwonych wierzchołków są minimalne). Problem znajdowania $\gamma(G)$ jest jednak dobrze określony i należy do klasy problemów NP-trudnych. Jego wersja decyzyjna sformułowana jest następująco: dla zadanego grafu $G$ oraz liczby całkowitej $k$ pytamy, czy istnieje zbiór dominujący o rozmiarze co najwyżej $k$. Jest to klasyczny problem NP-zupełny \cite{wikiDominatingSet, POUREIDI2023106363, PANDA2023337}. Oznacza to, że najprawdopodobniej (przy założeniu $P \neq NP$) nie istnieje algorytm wielomianowy rozwiązujący ten problem w ogólności. W praktyce stosuje się zatem algorytmy przybliżone lub ogranicza analizę do specjalnych klas grafów, dla których problem staje się prostszy. Znane są między innymi efektywne algorytmy zachłanne, które zapewniają rozwiązanie przybliżone z gwarantowanym współczynnikiem. Przykładem jest prosty algorytm zachłanny wybierający kolejno dominujące wierzchołki, osiągający przybliżenie rzędu $O(\ln n)$.
+Należy zauważyć, że minimalny zbiór dominujący nie musi być jednoznaczny.
+Wynika to bezpośrednio z definicji liczby dominowania~(\ref{eq:domination_number}),
+która określa jedynie minimalną liczność zbioru dominującego, a nie jego unikalność.
+Często bywa tak, że graf ma wiele różnych zbiorów dominujących o rozmiarze równym $\gamma(G)$,
+tak jak przedstawiono na Rys.~\ref{fig:dominatingexample}, gdzie dwa różne zbiory wierzchołków są minimalne.
+Problem znajdowania $\gamma(G)$ jest jednak dobrze określony i należy do klasy problemów NP-trudnych. Jego wersja decyzyjna sformułowana jest następująco: dla zadanego grafu $G$ oraz liczby całkowitej $k$ pytamy, czy istnieje zbiór dominujący o rozmiarze co najwyżej $k$. Jest to klasyczny problem NP-zupełny \cite{wikiDominatingSet, POUREIDI2023106363, PANDA2023337}. Oznacza to, że najprawdopodobniej (przy założeniu $P \neq NP$) nie istnieje algorytm wielomianowy rozwiązujący ten problem w ogólności. W praktyce stosuje się zatem algorytmy przybliżone lub ogranicza analizę do specjalnych klas grafów, dla których problem staje się prostszy. Znane są między innymi efektywne algorytmy zachłanne, które zapewniają rozwiązanie przybliżone z gwarantowanym współczynnikiem. Przykładem jest prosty algorytm zachłanny wybierający kolejno dominujące wierzchołki, osiągający przybliżenie rzędu $O(\ln n)$.
 
 
 \begin{figure}[H]
@@ -135,18 +128,13 @@ Należy zauważyć, że minimalny zbiór dominujący nie musi być jednoznaczny.
   \label{fig:dominatingexample}
 \end{figure}
 
- \newpage
- Wiadomo jednak, że nie da się w ogólności przekroczyć bariery logarytmicznej. Problem zbioru dominującego jest APX-trudny, a dokładniej log-APX-zupełny \cite{POUREIDI2023106363}. Co więcej, nawet na bardzo ograniczonych grafach, np. grafach o maksymalnym stopniu 3 (grafy kubiczne), problem pozostaje NP-trudny i APX-zupełny \cite{ALIMONTI2000123}. Berman i Fujito (1999) wykazali m.in. NP-trudność pewnych wariantów dominacji w grafach o ograniczonym stopniu \cite{BermanFujitoThreeDegree}, co potwierdza, że zasadnicza trudność problemu dominowania jest obecna już w stosunkowo prostych strukturach.
+Wiadomo jednak, że nie da się w ogólności przekroczyć bariery logarytmicznej. Problem zbioru dominującego jest APX-trudny, a dokładniej log-APX-zupełny \cite{POUREIDI2023106363}. Co więcej, nawet na bardzo ograniczonych grafach, np. grafach o maksymalnym stopniu 3 (grafy kubiczne), problem pozostaje NP-trudny i APX-zupełny \cite{ALIMONTI2000123}. Berman i Fujito (1999) wykazali m.in. NP-trudność pewnych wariantów dominacji w grafach o ograniczonym stopniu \cite{BermanFujitoThreeDegree}, co potwierdza, że zasadnicza trudność problemu dominowania jest obecna już w stosunkowo prostych strukturach.
 
 
 \section{Dominowanie rzymskie a licencje grupowe}
 % Dominowanie rzymskie to wariant problemu dominacji, w którym każdemu wierzchołkowi przypisuje się wartość 0, 1 lub 2. Wierzchołek o wartości 1 pokrywa wyłącznie samego siebie, natomiast wierzchołek o wartości 2 pokrywa siebie oraz wszystkich swoich sąsiadów. Wymaga się, aby każdy wierzchołek o wartości 0 był pokryty przez co najmniej jednego sąsiada o wartości 2. Formalnie, funkcja dominowania rzymskiego na grafie $G=(V,E)$ to funkcja $f: V \to {0,1,2}$ spełniająca warunek, że dla każdego wierzchołka $v$ z $f(v) = 0$ istnieje co najmniej jeden jego sąsiad $u \in V$ taki, że $f(u) = 2$ \cite{Favaron2009}. Wierzchołki z etykietą 2 pełnią rolę „silnych dominatorów”, którzy dominują zarówno siebie, jak i sąsiadów - można je porównać do wierzchołków umieszczających dwie jednostki obrony: jedną chroniącą ich samych i jedną zdolną zabezpieczyć sąsiada. Wierzchołki z etykietą 1 dominują wyłącznie siebie (odpowiednik pojedynczej jednostki obrony niewystarczającej, by ochronić kogoś innego), zaś etykieta 0 oznacza brak dominacji (wymagający ochrony z zewnątrz). Terminologia nawiązuje do legendy o obronie imperium rzymskiego - stąd nazwa; pojęcie to zostało wprowadzone w teorii grafów przez Cockayne’a i współpracowników w 2004 roku \cite{Cockayne2004}.
 
-Dominowanie rzymskie to wariant problemu dominacji, w którym każdemu wierzchołkowi przypisuje się jedną z trzech wartości: 0, 1 lub 2. Wierzchołek o wartości 1 pokrywa wyłącznie samego siebie, natomiast wierzchołek o wartości 2 pokrywa zarówno siebie, jak i wszystkich swoich sąsiadów. Wymaga się przy tym, aby każdy wierzchołek o wartości 0 był pokryty przez co najmniej jednego sąsiada oznaczonego wartością 2. Formalnie, funkcja dominowania rzymskiego na grafie $G=(V,E)$ to funkcja
-\[
-f: V \to \{0,1,2\},
-\]
-spełniająca warunek, że dla każdego wierzchołka $v$ z $f(v) = 0$ istnieje sąsiad $u \in V$ taki, że $f(u) = 2$ \cite{Favaron2009}. Minimalizacja sumy wartości $f(v)$ po wszystkich $v \in V$ prowadzi do zdefiniowania tzw. liczby dominowania rzymskiego grafu, oznaczanej $\gamma_R(G)$.
+Dominowanie rzymskie to wariant problemu dominacji, w którym każdemu wierzchołkowi przypisuje się jedną z trzech wartości: 0, 1 lub 2. Wierzchołek o wartości 1 pokrywa wyłącznie samego siebie, natomiast wierzchołek o wartości 2 pokrywa zarówno siebie, jak i wszystkich swoich sąsiadów. Wymaga się przy tym, aby każdy wierzchołek o wartości 0 był pokryty przez co najmniej jednego sąsiada oznaczonego wartością 2. Formalnie, funkcja dominowania rzymskiego na grafie $G=(V,E)$ to funkcja $f: V \to \{0,1,2\},$ spełniająca warunek, że dla każdego wierzchołka $v$ z $f(v) = 0$ istnieje sąsiad $u \in V$ taki, że $f(u) = 2$ \cite{Favaron2009}. Minimalizacja sumy wartości $f(v)$ po wszystkich $v \in V$ prowadzi do zdefiniowania tzw. liczby dominowania rzymskiego grafu, oznaczanej $\gamma_R(G)$.
 
 Terminologia i metafora związana z dominacją rzymską wywodzą się z legendy o obronie granic imperium rzymskiego. Zakładano w niej, że w każdej osadzie można umieścić pewną liczbę jednostek wojskowych. Osada z dwiema jednostkami była w stanie bronić się samodzielnie i jednocześnie wysłać wsparcie do sąsiedniej osady. Lokacja z jedną jednostką potrafiła bronić tylko siebie, a miejscowości pozbawione jednostek militarnych wymagała ochrony z zewnątrz. W tej metaforze graf reprezentuje system osad i połączeń między nimi, a etykiety 0, 1 i 2 odpowiadają decyzjom o rozmieszczeniu wojsk. Koncepcję dominowania rzymskiego wprowadzili do teorii grafów Cockayne i współpracownicy w 2004 roku \cite{Cockayne2004}.
 
@@ -156,11 +144,7 @@ W kontekście problemu optymalnego zakupu licencji w grafach reprezentujących s
 
 % Waga funkcji dominowania rzymskiego definiowana jest jako $w(f) = \sum_{v \in V} f(v)$, czyli suma przypisanych wartości. Liczba dominowania rzymskiego $\gamma_R(G)$ to najmniejsza możliwa waga funkcji dominowania rzymskiego dla grafu $G$. Jeśli przyjmiemy, że koszt licencji indywidualnej wynosi 1, a grupowej to 2, to minimalizacja kosztu w naszym problemie pokrywa się dokładnie z zagadnieniem znalezienia funkcji dominowania rzymskiego o minimalnej wadze. Cel minimalizacji sumarycznego kosztu $C = |I| + 2|G|$ jest zatem identyczny z minimalizacją $w(f)$, gdy utożsamimy $|I|$ z liczbą wierzchołków o etykiecie 1, a $|G|$ - o etykiecie 2. Innymi słowy, dla przypadku $p=2$ problem optymalnego zakupu licencji jest równoważny problemowi dominowania rzymskiego na grafie znajomości.
 
-Waga funkcji dominowania rzymskiego definiowana jest jako $w(f) = \sum_{v \in V} f(v)$, czyli suma przypisanych wartości. Liczba dominowania rzymskiego $\gamma_R(G)$ to najmniejsza możliwa waga funkcji dominowania rzymskiego dla grafu $G$. Jeśli przyjmiemy, że koszt licencji indywidualnej wynosi 1, a grupowej 2, to minimalizacja kosztu w naszym problemie pokrywa się z zagadnieniem znalezienia funkcji dominowania rzymskiego o minimalnej wadze. Cel minimalizacji sumarycznego kosztu
-\[
-C = |I| + 2|G|
-\]
-jest zatem równoważny minimalizacji $w(f)$, gdy utożsamimy $|I|$ z liczbą wierzchołków o etykiecie 1, a $|G|$ o etykiecie 2. Należy jednak podkreślić, że pełna równoważność z dominowaniem rzymskim zachodzi tylko wtedy, gdy liczba sąsiadów dowolnego wierzchołka nie przekracza maksymalnej liczby użytkowników dopuszczonych w planie grupowym. Jak wspomniano wcześniej przy omawianiu parametrów $m$ i $k$, nasze ujęcie wprowadza dodatkowe ograniczenie pojemności - wierzchołek o wartości 2 może pokrywać jedynie ograniczoną liczbę sąsiadów. Problem optymalnego zakupu licencji jest więc uogólnieniem dominowania rzymskiego, dostosowanym do praktycznych limitów występujących w planach subskrypcyjnych.
+Waga funkcji dominowania rzymskiego definiowana jest jako $w(f) = \sum_{v \in V} f(v)$, czyli suma przypisanych wartości. Liczba dominowania rzymskiego $\gamma_R(G)$ to najmniejsza możliwa waga funkcji dominowania rzymskiego dla grafu $G$. Jeśli przyjmiemy, że koszt licencji indywidualnej wynosi 1, a grupowej 2, to minimalizacja kosztu w naszym problemie pokrywa się z zagadnieniem znalezienia funkcji dominowania rzymskiego o minimalnej wadze. Cel minimalizacji sumarycznego kosztu $C = |I| + 2|G|$ jest zatem równoważny minimalizacji $w(f)$, gdy utożsamimy $|I|$ z liczbą wierzchołków o etykiecie 1, a $|G|$ o etykiecie 2. Należy jednak podkreślić, że pełna równoważność z dominowaniem rzymskim zachodzi tylko wtedy, gdy liczba sąsiadów dowolnego wierzchołka nie przekracza maksymalnej liczby użytkowników dopuszczonych w planie grupowym. Jak wspomniano wcześniej przy omawianiu parametrów $m$ i $k$, nasze ujęcie wprowadza dodatkowe ograniczenie pojemności - wierzchołek o wartości 2 może pokrywać jedynie ograniczoną liczbę sąsiadów. Problem optymalnego zakupu licencji jest więc uogólnieniem dominowania rzymskiego, dostosowanym do praktycznych limitów występujących w planach subskrypcyjnych.
 
 % W przypadku innych modeli cenowych, dominacja rzymska stanowi nadal użyteczną metaforę, choć nie oddaje w sposób wystarczający struktury kosztów. Gdy $p \neq 2$, możemy rozważyć ogólniejsze przypisania wag. Przykładowo w sytuacji, gdy $p=3$, to licencja grupowa ma wartość 3 jednostek kosztu, co nie mieści się w klasycznym schemacie ${0,1,2}$, gdzie 2 jest maksymalną wartością. Istnieją jednak rozszerzenia pojęcia dominowania rzymskiego - np. $k$-dominacja rzymska, gdzie używa się wartości ${0,1,\dots,k}$ \cite{CHAUDHARY2024301}, albo koncepcja dominowania rzymskiego z wagami \cite{Ghaffari2020}. W przypadku $p=3$ można by dopuścić etykietę $3$ oznaczającą specjalny rodzaj wierzchołka ze zbioru dominującego zdolnego ochraniać dwóch sąsiadów, co odpowiadałoby planowi droższemu, ale o większej pojemności. W literaturze pojawiły się uogólnienia pokrewne temu pomysłowi, np. tzw. dominacja podwójnie rzymska i inne warianty.
 
@@ -168,12 +152,12 @@ W przypadku innych modeli cenowych, dominacja rzymska stanowi nadal użyteczną 
 
 % Na potrzeby tej pracy nie musimy jednak wchodzić w tak szczegółowe odmiany. Wystarczy stwierdzić, że dominowanie rzymskie bardzo dobrze modeluje sytuację zakupu licencji w przypadku najprostszego i dość reprezentatywnego modelu. W praktyce, jeśli $p$ jest większe, strategia optymalna często i tak polega na wykorzystaniu licencji grupowych do pełnego obsadzenia nimi maksymalnej liczby osób, co czyni opis dominacją rzymską użytecznym do wyznaczenia „kto powinien kupić licencję grupową” (etykiety 2) a kto może pozostać bez zakupu (0) lub ewentualnie kupić licencję indywidualną (1).
 
-Na potrzeby tej pracy nie jest jednak konieczne wchodzenie w szczegółowe odmiany dominowania rzymskiego. Wystarczy zauważyć, że w analizowanym modelu schemat pozostaje taki sam jak w klasycznej wersji, a jedyną różnicą jest koszt przypisywany wierzchołkom o etykiecie $2$. W zależności od przyjętego modelu cenowego wartość ta może wynosić $p=2$, ale równie dobrze $p=1{,}5$ czy $p=3$. Konstrukcja funkcji dominowania rzymskiego oraz sam podział na etykiety $\{0,1,2\}$ nie ulega zmianie. Innymi słowy, dominacja rzymska dostarcza prostego i intuicyjnego opisu sytuacji: etykieta $2$ oznacza użytkownika z licencją grupową, etykieta $1$ - użytkownika z licencją indywidualną, a etykieta $0$ - osobę, która musi korzystać z dostępu od sąsiada.
+Na potrzeby tej pracy nie jest jednak konieczne wchodzenie w szczegółowe odmiany dominowania rzymskiego. Wystarczy zauważyć, że w analizowanym modelu schemat pozostaje taki sam jak w klasycznej wersji, a jedyną różnicą jest koszt przypisywany wierzchołkom o etykiecie $2$. W zależności od przyjętego modelu cenowego wartość ta może wynosić $p=2$, ale równie dobrze $p=1{,}5$ czy $p=3$. Konstrukcja funkcji dominowania rzymskiego oraz sam podział na etykiety $\{0,1,2\}$ nie ulega zmianie. Innymi słowy, dominacja rzymska dostarcza prostego i intuicyjnego opisu sytuacji.
 
 
 % Prosty przykład obrazujący wykorzystanie dominowania rzymskiego. Weźmy graf w kształcie gwiazdy: jeden centralny wierzchołek $A$ połączony z kilkoma liśćmi $B,C,D,E$. Intuicyjnie, najlepszą strategią jest, by centralny użytkownik $A$ wykupił licencję grupową, z której skorzystają wszyscy jego sąsiedzi. W naszym modelu odpowiada to przypisaniu $f(A)=2$, zaś dla każdego liścia $X \in {B,C,D,E}$ przypisaniu $f(X)=0$. Warunek dominowania rzymskiego jest spełniony, bo każdy $0$ (np. $B$) ma sąsiada $A$ z $f(A)=2$. Waga takiej funkcji to $w(f) = 2 + 0+0+0+0 = 2$. Rzeczywiście, koszt dla grupy ${A,B,C,D,E}$ wynosi 2 (jedna licencja grupowa). Gdybyśmy zamiast tego wybrali strategię indywidualną dla każdego (wszyscy $f=1$), waga wyniosłaby $5$, a koszt 5. Gdyby centralny kupił licencję indywidualną, a liście pozostałyby bez dostępu, warunek nie byłby spełniony bo liście nie miałyby sąsiada z $2$. Przykład ten przedstawiony jest na Rysunku \ref{fig:romandomatinonstarexamepl} i pokazuje, jak dominacja rzymska wskazuje optymalny wybór „lidera” (centrum gwiazdy) z mocniejszym statusem (2). Oczywiście, w większych grafach może być wielu kandydatów na licencje grupowe - problem ich doboru to właśnie zagadnienie optymalnej dominowania rzymskiego.
 
-Prosty przykład zastosowania dominowania rzymskiego daje graf w kształcie gwiazdy. Centralny wierzchołek $A$ jest połączony z liśćmi $B, C, D, E$. Najlepszą strategią jest, aby $A$ wykupił licencję grupową i udostępnił ją wszystkim swoim sąsiadom. W modelu oznacza to $f(A)=2$, a dla każdego liścia $f(B)=f(C)=f(D)=f(E)=0$. Warunek dominowania rzymskiego jest spełniony, ponieważ każdy liść o wartości 0 ma sąsiada $A$ o wartości 2. Waga funkcji wynosi wówczas $w(f)=2$ - odpowiada to kosztowi jednej licencji grupowej obsługującej całą pięcioosobową grupę.
+Prosty przykład zastosowania dominowania rzymskiego można przedstawić na grafie typu gwiazda. Centralny wierzchołek $A$ jest połączony z liśćmi $B, C, D, E$. Najlepszą strategią jest, aby $A$ wykupił licencję grupową i udostępnił ją wszystkim swoim sąsiadom. W modelu oznacza to $f(A)=2$, a dla każdego liścia $f(B)=f(C)=f(D)=f(E)=0$. Warunek dominowania rzymskiego jest spełniony, ponieważ każdy liść o wartości 0 ma sąsiada $A$ o wartości 2. Waga funkcji wynosi wówczas $w(f)=2$ - odpowiada to kosztowi jednej licencji grupowej obsługującej całą pięcioosobową grupę.
 
 Dla porównania można rozważyć inne strategie. Jeśli każdy wierzchołek kupiłby licencję indywidualną ($f=1$), waga wyniosłaby $5$ - koszt pięciu osobnych licencji. Jeśli centralny wierzchołek kupiłby tylko licencję indywidualną ($f(A)=1$), a liście pozostałyby bez dostępu, warunek nie byłby spełniony - żaden liść nie miałby sąsiada o wartości 2.
 
@@ -206,11 +190,3 @@ Dokładne dowody znajdują się w literaturze - np. pokazano NP-zupełność pro
 Konsekwencją NP-trudności jest także brak prostego schematu aproksymacyjnego dla problemu minimalizacji kosztów licencji. Ponieważ problem dominowania (minimalnego zbioru dominującego) jest APX-zupełny (dla konkretnych rodzajów grafów) \cite{POUREIDI2023106363}, nie ma wielomianowego schematu aproksymacji (PTAS) gwarantującego dobre przybliżenie. Dla naszego problemu, który jest uogólnieniem dominowania, można oczekiwać podobnych ograniczeń - prawdopodobnie nie da się znaleźć w czasie wielomianowym rozwiązań bliższych optimum niż o czynnik $O(\ln n)$ w najgorszym przypadku. Proste heurystyki zachłanne mogą jednak dawać przyzwoite wyniki. Na przykład, heurystyka wybierająca iteracyjnie wierzchołek, który pokrywa najwięcej jeszcze niepokrytych sąsiadów (i dająca mu licencję grupową), jest jedną z implementacji algorytmu zachłannego dla zbioru dominującego i osiąga współczynnik $\approx (2 + \ln \Delta)$, gdzie $\Delta$ to maksymalny stopień grafu \cite{Kuhn2012NetworkAlgorithms}. W najgorszym razie jest to $O(\ln n)$, ale dla wielu grafów rzeczywiste wyniki są lepsze niż ta pesymistyczna granica. Ważnym faktem jest też to, że problem pozostaje trudny nawet dla grafów o niewielkich stopniach - np. wykazano, że dla grafów o stopniu mniejszym bądź równym cztery minimum dominujące jest APX-zupełne \cite{ALIMONTI2000123, POUREIDI2023106363}. To implikuje, że ograniczenie maksymalnej liczby znajomych nie czyni problemu trywialnym. W kontekście subskrypcji oznacza to, że nawet w sieci gdzie każdy zna tylko kilka osób, optymalny dobór kto z kim powinien się połączyć we wspólnej licencji nadal może wymagać złożonych obliczeń.
 
 Biorąc powyższe pod uwagę, w dalszej części badania główny nacisk zostanie położony na podejścia algorytmiczne, które biorą pod uwagę tę złożoność. Ponieważ nie istnieje wydajny algorytm dokładny dla ogólnego przypadku, rozważymy dwutorowo: (a) zastosowanie metod dokładnych dla umiarkowanych rozmiarów oraz (b) zaprojektowanie i analiza algorytmów heurystycznych zdolnych dawać dobre rozwiązania dla większych sieci. W literaturze pojawiły się już pierwsze próby wykorzystania technik optymalizacyjnych do problemu dominacji. Przykładowo, Parra Inza i in. (2022) zaproponowali sformułowanie problemu dominującego jako ILP oraz heurystyki naprawcze dla jego rozwiązywania \cite{PARRAINZA2024926}. Takie podejście można zaadaptować do omawianego problemu, wprowadzając zmienne decyzyjne wskazujące wybór typu licencji dla każdego użytkownika i ograniczenia. Z drugiej strony, heurystyki takie jak algorytm zachłanny, algorytmy lokalnej optymalizacji czy metaheurystyki - np. algorytmy genetyczne, symulowane wyżarzanie - mogą być użyte, by szybko przeszukać przestrzeń możliwych konfiguracji licencji.
-
-\section{Literatura o RD i wariantach}\label{sec:rd-literature}
-Uzupełniając kontekst, odwołujemy się do klasycznego artykułu \emph{Roman domination in graphs} \cite{Cockayne2004} oraz wyników ekstremalnych \cite{Chambers2009Extremal}. Perspektywę parametryczną przedstawiają \cite{fernau2006paramRD,fernau2008paramRD}. Liczne uogólnienia (np. \emph{Italian/Roman\{2\}-domination}, silna/totalna dominacja rzymska) są podsumowane m.in. w nowszych przeglądach \cite{roman2_survey_2024} oraz monografii \cite{henning2013roman}. Z kolei wariant pojemnościowy jest bliski \emph{capacitated dominating set} \cite{cap_dom_ars2010,cap_dom_algo2011,cap_dom_planar_2016}.
-
-\section{Alternatywne ujęcia poza RD}
-\paragraph{Set Cover / Facility Location.} Nasz ILP ma naturę \emph{facility-location}: etykieta $2$ to „otwarcie placówki” (koszt $c_g$) z pojemnością $k_t$, etykieta $1$ to placówka o pojemności $1$ i koszcie $c_1$, a przypisania są do sąsiadów w grafie. To ujęcie ułatwia wykorzystanie znanych heurystyk i aproksymacji z lokalizacji obiektów oraz pokrycia zbiorów \cite{wolsey1998,fernau2006paramRD,cap_dom_planar_2016}.
-\paragraph{Duo jako dopasowania.} Dla scenariusza z samym planem \emph{Duo} (i/lub jego przewagą cenową) sensowne są heurystyki oparte na maksymalnym dopasowaniu/b-dopasowaniu: tworzymy pary sąsiadów, minimalizując liczbę nieparzystych „resztek”, które muszą kupić licencję indywidualną. Jednak w obecności planu rodzinnego (większej pojemności) problem przestaje być czystym dopasowaniem i wraca do dominacji/Facility Location.
-\paragraph{Pokrycie wierzchołkowe.} Vertex Cover pokrywa krawędzie, nie wierzchołki; nie modeluje naturalnie „grup” obejmujących wielu sąsiadów jednocześnie i ma inną funkcję celu. Może być użyte cząstkowo (np. do ograniczenia krawędzi „spornych”), ale nie zastępuje modelu dominacyjnego.
