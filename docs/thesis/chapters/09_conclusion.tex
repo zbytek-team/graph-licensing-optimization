@@ -1,14 +1,10 @@
 \chapter{Wnioski}\label{chap:conclusion}
 
-Niniejsza praca przedstawiła kompleksowe podej\subsection{Rozszerzenia\subsection{Walidacja empiryczna}
-
-Kompleksowa walidacja empiryczna wymagałaby eksperymentów na szerszym spektrum rzeczywistych sieci społecznościowych z różnych platform i domen zastosowań, co pozwoliłoby na weryfikację ogólności uzyskanych wyników. Badanie rzeczywistego zachowania użytkowników w kontekście rekomendacji optymalnych grup licencyjnych stanowi kluczowy element w ocenie praktycznej wartości opracowanych metod.
-
-Długoterminowe obserwacje ewolucji sieci i skuteczności różnych strategii w czasie dostarczyłyby cennych informacji o stabilności proponowanych rozwiązań w dynamicznym środowisku rzeczywistych aplikacji. Analiza różnic w strukturach kosztowych i ich wpływu na optymalne strategie między różnymi usługami mogłaby ujawnić uniwersalne wzorce oraz specyficzne dla branży charakterystyki, które należy uwzględnić przy projektowaniu systemów optymalizacyjnych.e}
+Niniejsza praca przedstawiła kompleksowe podejście do problemu optymalizacji kosztów licencji grupowych w sieciach społecznościowych, łącząc klasyczne zagadnienia z teorii grafów z praktycznymi wyzwaniami współczesnych platform cyfrowych. Obejmowała zarówno formalizację modelu, analizę złożoności i metod, jak i szerokie eksperymenty na danych syntetycznych oraz rzeczywistych.
 
 Perspektywiczne kierunki badań teoretycznych obejmują wyprowadzenie gwarancji aproksymacji dla zastosowanych heurystyk, szczególnie w kontekście różnych klas grafów, co mogłoby zapewnić teoretyczne uzasadnienie obserwowanych empirycznie wyników. Uwzględnienie niepewności w strukturze sieci i preferencjach użytkowników poprzez formułowanie stochastyczne problemu stanowi naturalny następny krok w rozwoju modelu.
 
-Rozszerzenie o wielokryterialność -- dodatkowe cele optymalizacyjne takie jak sprawiedliwość podziału czy minimalizacja ryzyka -- mogłoby uczynić model bardziej realistycznym z perspektywy praktycznych zastosowań. Modelowanie dodatkowych ograniczeń regulacyjnych i biznesowych charakterystycznych dla konkretnych platform pozwoliłoby na lepsze dopasowanie rozwiązań do rzeczywistych wymagań różnych usług cyfrowych.blemu optymalizacji kosztów licencji grupowych w sieciach społecznościowych, łącząc klasyczne zagadnienia z teorii grafów z praktycznymi wyzwaniami współczesnych platform cyfrowych. Przeprowadzone badania obejmowały zarówno analizę teoretyczną, jak i szeroko zakrojone eksperymenty empiryczne na danych syntetycznych i rzeczywistych.
+Rozszerzenie o wielokryterialność -- dodatkowe cele optymalizacyjne takie jak sprawiedliwość podziału czy minimalizacja ryzyka -- mogłoby uczynić model bardziej realistycznym z perspektywy praktycznych zastosowań. Modelowanie dodatkowych ograniczeń regulacyjnych i biznesowych charakterystycznych dla konkretnych platform pozwoliłoby na lepsze dopasowanie rozwiązań do rzeczywistych wymagań różnych usług cyfrowych.
 
 \section{Podsumowanie osiągnięć}
 
@@ -50,7 +46,7 @@ Badania scenariusza dynamicznego dla niskiej intensywności mutacji przyniosły 
 \item \textbf{Wpływ struktury}: Hierarchia trudności typów grafów pozostała zgodna z obserwacjami statycznymi.
 \end{itemize}
 
-\emph{TODO: Wyniki dla średniej i wysokiej intensywności mutacji oraz symulacji realistycznych (pref\_triadic, pref\_pref, rand\_rewire) zostaną uzupełnione po zakończeniu obliczeń. Oczekuje się, że wyższa intensywność zmian będzie faworyzować algorytmy o krótszym czasie wykonania kosztem jakości rozwiązań.}
+\emph{TODO: dodać wyniki: dynamic\_medium, dynamic\_high, pref\_triadic, pref\_pref, rand\_rewire.}
 
 \section{Implikacje praktyczne}
 
@@ -128,7 +124,7 @@ Zastosowanie technik uczenia maszynowego do przewidywania skuteczności algorytm
 
 \section{Rozszerzenia modelu}
 
-\emph{TODO: Ta sekcja zostanie uzupełniona po uzyskaniu wyników dla dodatkowych konfiguracji licencyjnych (roman\_p\_x, Spotify, Netflix).} Oczekuje się, że wzrost parametru $p$ w wariantach roman\_p\_x będzie prowadził do monotonicznego wzrostu kosztu na węzeł i zmniejszenia udziału licencji grupowych w optymalnych rozwiązaniach.
+\emph{TODO: dodać wyniki: roman\_p\_x, Spotify, Netflix.} Oczekuje się, że wzrost parametru $p$ w wariantach roman\_p\_x będzie prowadził do monotonicznego wzrostu kosztu na węzeł i zmniejszenia udziału licencji grupowych w optymalnych rozwiązaniach.
 
 Wprowadzenie planu o pojemności 2 w konfiguracji Spotify może potencjalnie obniżyć całkowite koszty poprzez lepsze dopasowanie do małych grup naturalnie występujących w strukturze sieci społecznych. Z kolei brak planów o wysokiej pojemności w ofercie Netflix może skutkować wyższymi kosztami na węzeł, szczególnie w gęstych fragmentach sieci, gdzie duże grupy mogłyby znacząco obniżyć indywidualne obciążenie finansowe użytkowników.
 
