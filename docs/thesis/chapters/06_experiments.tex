@@ -1,4 +1,4 @@
-\chapter{Eksperymenty}\label{chap:experiments}
+\chapter{Eksperymenty i analiza}\label{chap:experiments}
 
 \section{Środowisko obliczeniowe}
 
@@ -13,9 +13,29 @@ W celu zapewnienia kontrolowanych warunków eksperymentalnych, każdy algorytm u
 Schemat powtórzeń eksperymentalnych przedstawiał się następująco:
 
 \begin{itemize}
-\item \textbf{Grafy syntetyczne}: 3 próbki na rozmiar, 2 powtórzenia na próbkę
-\item \textbf{Grafy rzeczywiste}: 2 powtórzenia na graf ego
+  \item \textbf{Grafy syntetyczne}: 3 próbki na rozmiar, 2 powtórzenia na próbkę
+  \item \textbf{Grafy rzeczywiste}: 2 powtórzenia na graf ego
 \end{itemize}
+
+\begin{table}[H]
+  \caption{Zestaw algorytmów analizowanych w eksperymentach.}
+  \label{tab:algorithms}
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Algorytm}              & \textbf{Klasa}              & \textbf{Charakterystyka}                         \\
+    \midrule
+    metoda ILP                     & Dokładny (ILP)              & Optymalne rozwiązania dla małych instancji       \\
+    heurystyka zbioru dominującego & Heurystyka deterministyczna & Aproksymacja zbioru dominującego                 \\
+    algorytm zachłanny             & Heurystyka zachłanna        & Lokalny wybór właściciela o największym pokryciu \\
+    algorytm losowy                & Heurystyka losowa           & Losowy przydział licencji w ramach ograniczeń    \\
+    algorytm genetyczny            & Metaheurystyka              & Selekcja turniejowa, krzyżowanie jednopunktowe   \\
+    symulowane wyżarzanie          & Metaheurystyka              & Eksploracja stanu z harmonogramem chłodzenia     \\
+    przeszukiwanie tabu            & Metaheurystyka              & Przeszukiwanie lokalne z listą tabu i aspiracją  \\
+    algorytm mrówkowy              & Metaheurystyka              & Konstrukcja rozwiązań sterowana feromonami       \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 W procesie analizy uwzględniano jedynie te obserwacje, które zostały oznaczone flagą \texttt{valid=True} oraz nie nosiły statusu \texttt{timeout} ani \texttt{error}. Tak przygotowane dane poddano agregacji statystycznej z wykorzystaniem średniej arytmetycznej wraz z obliczeniem odchylenia standardowego.
 
@@ -28,34 +48,34 @@ Aby ocenić, czy zaobserwowane różnice w wydajności algorytmów mają charakt
 Dla zbioru syntetycznego każda metoda miała co najmniej 100 obserwacji, co pozwoliło wyznaczyć wiarygodne 95-procentowe przedziały ufności:
 
 \begin{table}[H]
-\caption{Średnie koszty i czasy wykonania (ze standardowym odchyleniem) dla wybranych algorytmów na grafach syntetycznych.}
-\label{tab:synthetic_alg_performance}
-\centering
-\begin{tabular}{lcc}
-\toprule
-\textbf{Algorytm} & \textbf{Średni koszt $\pm$ std} & \textbf{Czas [ms] $\pm$ std} \\
-\midrule
-ILPSolver & 1033 $\pm$ 269 & 2492 $\pm$ 851 \\
-AntColonyOptimization & 1169 $\pm$ 149 & 5124 $\pm$ 1232 \\
-TabuSearch & 1648 $\pm$ 259 & 3298 $\pm$ 683 \\
-DominatingSetAlgorithm & 1678 $\pm$ 251 & 16,7 $\pm$ 5,1 \\
-GreedyAlgorithm & 1706 $\pm$ 256 & 0,96 $\pm$ 0,19 \\
-\bottomrule
-\end{tabular}
+  \caption{Średnie koszty i czasy wykonania (ze standardowym odchyleniem) dla wybranych algorytmów na grafach syntetycznych.}
+  \label{tab:synthetic_alg_performance}
+  \centering
+  \begin{tabular}{lcc}
+    \toprule
+    \textbf{Algorytm}              & \textbf{Średni koszt $\pm$ std} & \textbf{Czas [ms] $\pm$ std} \\
+    \midrule
+    metoda ILP                     & 1033 $\pm$ 269                  & 2492 $\pm$ 851               \\
+    algorytm mrówkowy              & 1169 $\pm$ 149                  & 5124 $\pm$ 1232              \\
+    przeszukiwanie tabu            & 1648 $\pm$ 259                  & 3298 $\pm$ 683               \\
+    heurystyka zbioru dominującego & 1678 $\pm$ 251                  & 16,7 $\pm$ 5,1               \\
+    algorytm zachłanny             & 1706 $\pm$ 256                  & 0,96 $\pm$ 0,19              \\
+    \bottomrule
+  \end{tabular}
 \end{table}
 
-Analiza przedziałów ufności wykazuje brak ich nakładania się między ILPSolverem a pozostałymi algorytmami, co stanowi silny dowód na systematyczną przewagę jakościową tej metody. Podobnie, różnice w wydajności między poszczególnymi metaheurystykami przewyższają szerokość ich przedziałów ufności, co świadczy o istotności statystycznej zaobserwowanych różnic.
+Analiza przedziałów ufności wykazuje brak ich nakładania się między metodą ILP a pozostałymi algorytmami, co stanowi silny dowód na systematyczną przewagę jakościową tej metody. Podobnie, różnice w wydajności między poszczególnymi metaheurystykami przewyższają szerokość ich przedziałów ufności, co świadczy o istotności statystycznej zaobserwowanych różnic.
 
-Dla grafów ego z serwisu Facebook zastosowano mniejszą liczbę powtórzeń (12--20), co rezultuje szerszymi przedziałami ufności. Na przykład algorytm AntColonyOptimization osiągnął średni koszt 1155 ± 432 przy czasie wykonania 14~055 ms ± 8685 ms, podczas gdy TabuSearch uzyskał średni koszt 1463 ± 679 przy czasie 17~777 ms ± 10~432 ms. W przypadku ILPSolvera, tylko jedna instancja została ukończona w zadanym limicie czasu 60 sekund, natomiast pozostałe zakończyły się przekroczeniem limitu. Z tego względu ILPSolver nie jest uwzględniany w dalszej analizie porównawczej dla grafów ego.
+Dla grafów ego z serwisu Facebook zastosowano mniejszą liczbę powtórzeń (12--20), co rezultuje szerszymi przedziałami ufności. Na przykład algorytm mrówkowy osiągnął średni koszt 1155 ± 432 przy czasie wykonania 14~055 ms ± 8685 ms, podczas gdy przeszukiwanie tabu uzyskało średni koszt 1463 ± 679 przy czasie 17~777 ms ± 10~432 ms. W przypadku metody ILP, tylko jedna instancja została ukończona w zadanym limicie czasu 60 sekund, natomiast pozostałe zakończyły się przekroczeniem limitu. Z tego względu metoda ILP nie jest uwzględniana w dalszej analizie porównawczej dla grafów ego.
 
 \paragraph{Weryfikacja hipotez statystycznych}
 
 Dla zbioru grafów syntetycznych zastosowano test Friedmana \cite{friedman1937}, analizując rangi kosztów i czasów wykonania z traktowaniem każdej instancji grafu jako osobnego bloku eksperymentalnego. Uzyskane wyniki wykazują istotność statystyczną na poziomie $p < 0{,}001$, co pozwala odrzucić hipotezę zerową o braku różnic między algorytmami. Przeprowadzony następnie test post-hoc Nemenyiego \cite{nemenyi1963}, zgodnie z rekomendacjami przeglądowymi dla porównań wielu algorytmów \cite{demsar2006}, ujawnił następujące zależności:
 
 \begin{itemize}
-\item \textbf{ILPSolver} różni się istotnie od wszystkich pozostałych metod
-\item \textbf{AntColonyOptimization} różni się od wszystkich heurystyk i większości metaheurystyk, lecz mniej wyraźnie od TabuSearch
-\item \textbf{GreedyAlgorithm} i \textbf{RandomizedAlgorithm} tworzą grupę najsłabszych wyników i różnią się istotnie od wszystkich pozostałych
+  \item \textbf{metoda ILP} różni się istotnie od wszystkich pozostałych metod
+  \item \textbf{algorytm mrówkowy} różni się od wszystkich heurystyk i większości metaheurystyk, lecz mniej wyraźnie od przeszukiwania tabu
+  \item \textbf{algorytm zachłanny} i \textbf{algorytm losowy} tworzą grupę najsłabszych wyników i różnią się istotnie od wszystkich pozostałych
 \end{itemize}
 
 Ze względu na ograniczoną liczbę obserwacji dla grafów ego, zastosowane testy charakteryzują się mniejszą mocą statystyczną. Niemniej jednak wstępne wyniki sugerują zachowanie podobnej hierarchii wydajności algorytmów.
@@ -66,13 +86,13 @@ Ze względu na ograniczoną liczbę obserwacji dla grafów ego, zastosowane test
 
 Przeprowadzone eksperymenty charakteryzują się kilkoma istotnymi ograniczeniami metodologicznymi. Po pierwsze, badania obejmowały jedynie trzy klasy grafów syntetycznych oraz 10 rzeczywistych sieci ego, co stanowi reprezentatywną, lecz ograniczoną próbę możliwych struktur sieciowych. Pominięto inne istotne rodzaje grafów, takie jak drzewa, struktury z hiper-krawędziami, grafy skierowane czy sieci wielowarstwowe, przez co uzyskane wyniki mogą nie być w pełni reprezentatywne dla grafów o zasadniczo odmiennej topologii.
 
-Po drugie, algorytm ILPSolver testowano wyłącznie na grafach małej wielkości, co uniemożliwia ocenę jego efektywności na sieciach większych rozmiarów. Jednocześnie algorytmy metaheurystyczne dla instancji o wielkości $n > 1000$ mogą wymagać dodatkowego dostrojenia parametrów w celu osiągnięcia optymalnej wydajności.
+Po drugie, metodę ILP testowano wyłącznie na grafach małej wielkości, co uniemożliwia ocenę jej efektywności na sieciach większych rozmiarów. Jednocześnie algorytmy metaheurystyczne dla instancji o wielkości $n > 1000$ mogą wymagać dodatkowego dostrojenia parametrów w celu osiągnięcia optymalnej wydajności.
 
 \subsection{Ograniczenia techniczne i pomiarowe}
 
 Istotne ograniczenia wynikają również z aspektów technicznych eksperymentów. Zarówno proces generowania grafów syntetycznych, jak i działanie algorytmów metaheurystycznych opiera się na sekwencjach pseudolosowych. Mimo zastosowania deterministycznych seedów, pewien poziom wariancji wyników pozostaje nieunikniony, co może wpływać na powtarzalność rezultatów.
 
-Pomiary czasu wykonania obejmują overhead systemowy, który może różnić się między platformami sprzętowymi. Szczególnie dla algorytmów długotrwałych (AntColony, TabuSearch) naturalne fluktuacje czasowe mogą być statystycznie istotne, co należy uwzględnić przy interpretacji wyników porównawczych.
+Pomiary czasu wykonania obejmują overhead systemowy, który może różnić się między platformami sprzętowymi. Szczególnie dla algorytmów długotrwałych (algorytm mrówkowy, przeszukiwanie tabu) naturalne fluktuacje czasowe mogą być statystycznie istotne, co należy uwzględnić przy interpretacji wyników porównawczych.
 
 Wymienione ograniczenia wymagają ostrożnej interpretacji uzyskanych rezultatów. Przedstawione wyniki należy traktować jako wskazówki metodologiczne dotyczące wyboru algorytmu w analogicznych warunkach eksperymentalnych. Należy mieć na uwadze, że względna hierarchia wydajności algorytmów mogłaby ulec zmianie w przypadku zastosowania innych parametrów metaheurystyk lub wydłużenia limitów czasowych. Niemniej jednak obserwowana spójność wyników między różnymi typami struktur grafowych dostarcza solidnej podstawy dla formułowania praktycznych rekomendacji.
 
@@ -81,9 +101,9 @@ Wymienione ograniczenia wymagają ostrożnej interpretacji uzyskanych rezultató
 Materiał badawczy składał się z dwóch niezależnych kolekcji danych eksperymentalnych:
 
 \begin{itemize}
-\item \textbf{Syntetyczne grafy} -- trójelementowy zestaw generatorów (\emph{random}, \emph{small\_world}, \emph{scale\_free}) tworzył sieci o liczbie węzłów od 20 do 200 (co 20) oraz większe rozmiary 300, 400, 600, 800, 1000. Dla każdej kombinacji typu grafu i rozmiaru generowano trzy próbki, a następnie dla każdej z nich uruchamiano osiem algorytmów (\textbf{ILPSolver}, \textbf{GreedyAlgorithm}, \textbf{RandomizedAlgorithm}, \textbf{DominatingSetAlgorithm}, \textbf{AntColonyOptimization}, \textbf{SimulatedAnnealing}, \textbf{TabuSearch}, \textbf{GeneticAlgorithm}) w dwóch powtórzeniach. Badano dwie główne konfiguracje licencji: \emph{duolingo\_super} i \emph{roman\_domination}. Pomiar obejmował koszt całkowity \texttt{total\_cost}, czas wykonania \texttt{time\_ms} oraz poprawność rozwiązania \texttt{valid}.
+  \item \textbf{Syntetyczne grafy} -- trójelementowy zestaw generatorów (\emph{random}, \emph{small\_world}, \emph{scale\_free}) tworzył sieci o liczbie węzłów od 20 do 200 (co 20) oraz większe rozmiary 300, 400, 600, 800, 1000. Dla każdej kombinacji typu grafu i rozmiaru generowano trzy próbki, a następnie dla każdej z nich uruchamiano osiem algorytmów (\textbf{metoda ILP}, \textbf{algorytm zachłanny}, \textbf{algorytm losowy}, \textbf{heurystyka zbioru dominującego}, \textbf{algorytm mrówkowy}, \textbf{symulowane wyżarzanie}, \textbf{przeszukiwanie tabu}, \textbf{algorytm genetyczny}) w dwóch powtórzeniach. Badano dwie główne konfiguracje licencji: \emph{duolingo\_super} i \emph{roman\_domination}. Pomiar obejmował koszt całkowity \texttt{total\_cost}, czas wykonania \texttt{time\_ms} oraz poprawność rozwiązania \texttt{valid}.
 
-\item \textbf{Grafy facebook ego} -- dziesięć grafów ego pobranych z bazy SNAP (rozmiary 53--1035 węzłów) reprezentowało sieci rzeczywiste. Uruchomiono te same algorytmy i konfiguracje licencji, odnotowując te same metryki co dla grafów syntetycznych.
+  \item \textbf{Grafy facebook ego} -- dziesięć grafów ego pobranych z bazy SNAP (rozmiary 53--1035 węzłów) reprezentowało sieci rzeczywiste. Uruchomiono te same algorytmy i konfiguracje licencji, odnotowując te same metryki co dla grafów syntetycznych.
 \end{itemize}
 
 Dla obu kolekcji danych zastosowano jednolitą procedurę filtracji, wykluczając z analizy wyniki oznaczone statusami \texttt{timeout} lub \texttt{error}, a także obserwacje niespełniające warunków poprawności (\texttt{valid=False}).
@@ -94,7 +114,7 @@ Po zastosowaniu procedur filtracji na zbiorze grafów syntetycznych uzyskano 197
 
 \subsection{Analiza rozkładów kosztów i czasów wykonania}
 
-Rysunek \ref{fig:synthetic_cost_boxplot} przedstawia rozkład całkowitych kosztów \texttt{total\_cost} w przekroju badanych algorytmów. Wyniki wyraźnie wskazują na dominację \textbf{ILPSolvera}, który osiąga najniższe wartości kosztowe, aczkolwiek jego zastosowanie ogranicza się do grafów o niewielkich rozmiarach. W grupie algorytmów metaheurystycznych najlepszą jakość rozwiązań demonstruje \textbf{AntColonyOptimization}, podczas gdy \textbf{GreedyAlgorithm} charakteryzuje się znacznie wyższymi kosztami. Dla porównania, \textbf{RandomizedAlgorithm} służący jako baseline potwierdza skuteczność metod heurystycznych -- wszystkie badane algorytmy przewyższają losowe przydzielanie licencji.
+Rysunek \ref{fig:synthetic_cost_boxplot} przedstawia rozkład całkowitych kosztów \texttt{total\_cost} w przekroju badanych algorytmów. Wyniki wyraźnie wskazują na dominację \textbf{metody ILP}, która osiąga najniższe wartości kosztowe, aczkolwiek jej zastosowanie ogranicza się do grafów o niewielkich rozmiarach. W grupie algorytmów metaheurystycznych najlepszą jakość rozwiązań demonstruje \textbf{algorytm mrówkowy}, podczas gdy \textbf{algorytm zachłanny} charakteryzuje się znacznie wyższymi kosztami. Dla porównania, \textbf{algorytm losowy} służący jako baseline potwierdza skuteczność metod heurystycznych -- wszystkie badane algorytmy przewyższają losowe przydzielanie licencji.
 
 \begin{figure}[H]
   \centering
@@ -103,27 +123,27 @@ Rysunek \ref{fig:synthetic_cost_boxplot} przedstawia rozkład całkowitych koszt
   \label{fig:synthetic_cost_boxplot}
 \end{figure}
 
-Analiza czasów wykonania, przedstawiona na rysunku \ref{fig:synthetic_time_boxplot} w skali logarytmicznej, ujawnia wyraźne zróżnicowanie wydajnościowe algorytmów. Metody Greedy oraz Randomized zdecydowanie dominują pod względem szybkości. Warto zauważyć, że średni czas działania algorytmów \textbf{AntColonyOptimization} i \textbf{TabuSearch} bywa wyższy niż \textbf{ILPSolvera} ze względu na limit 60 s. Czas ILP rósł szybciej wraz z liczbą węzłów, przez co wiele uruchomień zakończyło się statusem \texttt{timeout} i zostało wykluczonych z analizy. Średnia liczona jest więc głównie dla mniejszych instancji. Z kolei \textbf{TabuSearch} i \textbf{AntColonyOptimization} zwiększały czas wolniej, częściej kończąc tuż poniżej limitu, co powoduje, że ich średni czas oscyluje bliżej granicy 60 s i finalnie przewyższa średni czas ILP przy większej liczbie próbek.
+Analiza czasów wykonania, przedstawiona na rysunku \ref{fig:synthetic_time_boxplot} w skali logarytmicznej, ujawnia wyraźne zróżnicowanie wydajnościowe algorytmów. Metody zachłanne oraz losowe zdecydowanie dominują pod względem szybkości. Warto zauważyć, że średni czas działania \textbf{algorytmu mrówkowego} i \textbf{przeszukiwania tabu} bywa wyższy niż \textbf{metody ILP} ze względu na limit 60 s. Czas ILP rósł szybciej wraz z liczbą węzłów, przez co wiele uruchomień zakończyło się statusem \texttt{timeout} i zostało wykluczonych z analizy. Średnia liczona jest więc głównie dla mniejszych instancji. Z kolei \textbf{przeszukiwanie tabu} i \textbf{algorytm mrówkowy} zwiększały czas wolniej, częściej kończąc tuż poniżej limitu, co powoduje, że ich średni czas oscyluje bliżej granicy 60 s i finalnie przewyższa średni czas ILP przy większej liczbie próbek.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/synthetic_time_boxplot.png}
-  \caption{Czas wykonania według algorytmu dla konfiguracji duolingo\_super (grafy syntetyczne).}
+  \caption{Czas wykonania według algorytmu dla konfiguracji duolingo\_super.}
   \label{fig:synthetic_time_boxplot}
 \end{figure}
 
 \subsection{Zależność wydajności od wielkości grafu}
 
-Analiza wpływu liczby węzłów na średni koszt rozwiązań, przedstawiona na rysunku \ref{fig:synthetic_cost_vs_nodes}, wykazuje tendencję wzrostową kosztów wraz ze zwiększaniem się rozmiaru grafu. \textbf{ILPSolver} utrzymuje pozycję lidera pod względem jakości rozwiązań dla grafów o wielkości do około $n \approx 200$ węzłów. \textbf{AntColonyOptimization} plasuje się na drugiej pozycji, jednak dla grafów większych rozmiarów obserwuje się stopniowy wzrost generowanych kosztów. Pozostałe algorytmy metaheurystyczne tworzą względnie zwartą grupę wyników. Co istotne, \textbf{GreedyAlgorithm} osiąga koszty jedynie nieznacznie wyższe od metaheurystyk i pozostaje jakościowo konkurencyjny w całym badanym zakresie rozmiarów. Wyraźnie gorsze rezultaty notuje jedynie \textbf{RandomizedAlgorithm}, którego koszt utrzymuje się na istotnie wyższym poziomie niezależnie od liczby węzłów.
+Analiza wpływu liczby węzłów na średni koszt rozwiązań, przedstawiona na rysunku \ref{fig:synthetic_cost_vs_nodes}, wykazuje tendencję wzrostową kosztów wraz ze zwiększaniem się rozmiaru grafu. \textbf{metoda ILP} utrzymuje pozycję lidera pod względem jakości rozwiązań dla grafów o wielkości do około $n \approx 200$ węzłów. \textbf{algorytm mrówkowy} plasuje się na drugiej pozycji, jednak dla grafów większych rozmiarów obserwuje się stopniowy wzrost generowanych kosztów. Pozostałe algorytmy metaheurystyczne tworzą względnie zwartą grupę wyników. Co istotne, \textbf{algorytm zachłanny} osiąga koszty jedynie nieznacznie wyższe od metaheurystyk i pozostaje jakościowo konkurencyjny w całym badanym zakresie rozmiarów. Wyraźnie gorsze rezultaty notuje jedynie \textbf{algorytm losowy}, którego koszt utrzymuje się na istotnie wyższym poziomie niezależnie od liczby węzłów.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/synthetic_cost_vs_nodes.png}
-  \caption{Średni całkowity koszt vs liczba węzłów (grafy syntetyczne).}
+  \caption{Średni całkowity koszt vs liczba węzłów.}
   \label{fig:synthetic_cost_vs_nodes}
 \end{figure}
 
-Analogicznie, czasy obliczeń pokazane na rysunku \ref{fig:synthetic_time_vs_nodes} na osi logarytmicznej rosną wolno (w przybliżeniu logarytmicznie) wraz z liczbą węzłów. \textbf{GreedyAlgorithm} i \textbf{RandomizedAlgorithm} pozostają niemal niezależne od rozmiaru, a \textbf{DominatingSetAlgorithm} rośnie umiarkowanie. Wysoki koszt czasowy \textbf{AntColonyOptimization} wynika w dużej mierze z braku równoległości w implementacji. Algorytm działa w jednym wątku i nie wykorzystuje niezależnej ewaluacji mrówek. Równoleglenie (wielowątkowość/multiprocessing lub wektoryzacja) powinno istotnie obniżyć czas i spłaszczyć krzywą.
+Analogicznie, czasy obliczeń pokazane na rysunku \ref{fig:synthetic_time_vs_nodes} na osi logarytmicznej rosną wolno (w przybliżeniu logarytmicznie) wraz z liczbą węzłów. \textbf{algorytm zachłanny} i \textbf{algorytm losowy} pozostają niemal niezależne od rozmiaru, a \textbf{heurystyka zbioru dominującego} rośnie umiarkowanie. Wysoki koszt czasowy \textbf{algorytmu mrówkowego} wynika w dużej mierze z braku równoległości w implementacji. Algorytm działa w jednym wątku i nie wykorzystuje niezależnej ewaluacji mrówek. Równoleglenie (wielowątkowość/multiprocessing lub wektoryzacja) powinno istotnie obniżyć czas i spłaszczyć krzywą.
 
 \begin{figure}[H]
   \centering
@@ -134,7 +154,7 @@ Analogicznie, czasy obliczeń pokazane na rysunku \ref{fig:synthetic_time_vs_nod
 
 \subsection{Kompromis koszt--czas}
 
-Wykres Pareto (rys. \ref{fig:synthetic_pareto}) ilustruje zależność między kosztem a czasem. Najkorzystniejsze punkty należą do \textbf{ILPSolvera} i \textbf{AntColonyOptimization}, lecz czas drugiego z nich jest wielokrotnie większy. \textbf{TabuSearch} i \textbf{GeneticAlgorithm} zapewniają przyzwoite koszty przy umiarkowanych czasach, natomiast Greedy i Randomized pozostają najszybsze.
+Wykres Pareto (rys. \ref{fig:synthetic_pareto}) ilustruje zależność między kosztem a czasem. Najkorzystniejsze punkty należą do \textbf{metody ILP} i \textbf{algorytmu mrówkowego}, lecz czas drugiego z nich jest wielokrotnie większy. \textbf{przeszukiwanie tabu} i \textbf{algorytm genetyczny} zapewniają przyzwoite koszty przy umiarkowanych czasach, natomiast algorytm zachłanny i algorytm losowy pozostają najszybsze.
 
 \begin{figure}[H]
   \centering
@@ -145,83 +165,83 @@ Wykres Pareto (rys. \ref{fig:synthetic_pareto}) ilustruje zależność między k
 
 \subsection{Koszt na węzeł i rozrzut czasów}
 
-Rozkład kosztu w przeliczeniu na węzeł (rys. \ref{fig:synthetic_cost_per_node}) potwierdza przewagę ILPSolvera i AntColonyOptimization, a rozrzut czasów w zależności od liczby węzłów (rys. \ref{fig:synthetic_time_scatter}) pokazuje silną zależność czasową dla metaheurystyk (współczynnik korelacji z liczbą węzłów sięga 0,90) i niewielki wpływ gęstości grafu (korelacje ujemne --0,05 do --0,30).
+Rozkład kosztu w przeliczeniu na węzeł (rys. \ref{fig:synthetic_cost_per_node}) potwierdza przewagę metody ILP i algorytmu mrówkowego, a rozrzut czasów w zależności od liczby węzłów (rys. \ref{fig:synthetic_time_scatter}) pokazuje silną zależność czasową dla metaheurystyk (współczynnik korelacji z liczbą węzłów sięga 0,90) i niewielki wpływ gęstości grafu (korelacje ujemne --0,05 do --0,30).
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/synthetic_cost_per_node.png}
-  \caption{Koszt na węzeł według algorytmu (grafy syntetyczne).}
+  \caption{Koszt na węzeł według algorytmu.}
   \label{fig:synthetic_cost_per_node}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/synthetic_time_scatter.png}
-  \caption{Czas wykonania vs liczba węzłów (grafy syntetyczne).}
+  \caption{Czas wykonania vs liczba węzłów.}
   \label{fig:synthetic_time_scatter}
 \end{figure}
 
 \section{Analiza grafów facebook ego}
 
-Eksperymenty na sieciach ego objęły 10 grafów o wielkości 53--1035 węzłów. Z 320 uruchomień zachowano 288 poprawnych obserwacji.
+Eksperymenty na sieciach ego objęły 10 grafów o wielkości 53--1035 węzłów. Z 320 uruchomień zachowano 288 poprawnych obserwacji. Ze względu na to, że \textbf{metoda ILP} ukończyła obliczenia w czasie jedynie dla jednej próbki ego (pozostałe uruchomienia zakończyły się \texttt{timeout}), została ona \emph{pominięta w dalszej analizie porównawczej} dla tego zbioru. Wnioski w tym podrozdziale dotyczą zatem wyłącznie metod heurystycznych i metaheurystycznych.
 
 \subsection{Rozkład kosztów i czasów}
 
-Rysunek \ref{fig:facebook_cost_boxplot} przedstawia koszty dla \emph{duolingo\_super} na grafach facebookowych. \textbf{ILPSolver} ponownie osiąga najniższe koszty, lecz wykonał się tylko dla dwóch najmniejszych grafów. \textbf{AntColonyOptimization} zapewnia kolejny najniższy koszt, ale jest bardzo wolny. Heurystyki Greedy i Randomized są najszybsze, lecz mają najwyższe koszty.
+Rysunek \ref{fig:facebook_cost_boxplot} przedstawia koszty dla \emph{duolingo\_super} na grafach facebookowych. Wśród metod przybliżonych \textbf{algorytm mrówkowy} i \textbf{przeszukiwanie tabu} należą do najlepszych jakościowo, przy czym pozostałe algorytmy osiągają zbliżone koszty. Co istotne, \textbf{algorytm zachłanny} uzyskuje koszty porównywalne z grupą metaheurystyk, natomiast \textbf{algorytm losowy} konsekwentnie wypada znacznie gorzej i pełni rolę baseline.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/facebook_cost_boxplot.png}
-  \caption{Całkowity koszt według algorytmu dla konfiguracji duolingo\_super (grafy facebook).}
+  \caption{Całkowity koszt według algorytmu dla konfiguracji duolingo\_super dla grafu ego facebook.}
   \label{fig:facebook_cost_boxplot}
 \end{figure}
 
-Czas działania (rys. \ref{fig:facebook_time_boxplot}) pokazuje, że metaheurystyki na grafach ego są jeszcze wolniejsze niż na grafach syntetycznych -- czas \textbf{AntColonyOptimization} i \textbf{TabuSearch} sięga 8--10 s. ILPSolver rozwiązuje tylko małe instancje w $\sim$0,3 s.
+Czas działania (rys. \ref{fig:facebook_time_boxplot}) pokazuje, że \emph{na grafach ego najlepsze czasy osiągają} \textbf{algorytm mrówkowy} oraz \textbf{przeszukiwanie tabu} (rzędu 8--10 s), podczas gdy pozostałe metody wypadają porównywalnie lub wolniej.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/facebook_time_boxplot.png}
-  \caption{Czas wykonania według algorytmu dla konfiguracji duolingo\_super (grafy facebook).}
+  \caption{Czas wykonania według algorytmu dla konfiguracji duolingo\_super dla grafu ego facebook.}
   \label{fig:facebook_time_boxplot}
 \end{figure}
 
 \subsection{Zależność od liczby węzłów}
 
-Średnie koszty dla grafów ego (rys. \ref{fig:facebook_cost_vs_nodes}) rosną wraz z rozmiarem, lecz skala jest mniejsza -- ILPSolver ($n = 2$) i AntColony zapewniają koszty do $\sim$1500. Pozostałe algorytmy szybko rosną powyżej 2000, zwłaszcza GeneticAlgorithm i SimulatedAnnealing.
+Średnie koszty dla grafów ego (rys. \ref{fig:facebook_cost_vs_nodes}) rosną wraz z rozmiarem. \textbf{przeszukiwanie tabu} wyraźnie osiąga niższe koszty od pozostałych metod, które grupują się blisko siebie pod względem jakości. Wyjątek stanowi \textbf{algorytm losowy}, którego koszt jest istotnie wyższy w całym zakresie rozmiarów.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/facebook_cost_vs_nodes.png}
-  \caption{Średni całkowity koszt vs liczba węzłów (grafy facebook).}
+  \caption{Średni całkowity koszt vs liczba węzłów dla grafu ego facebook.}
   \label{fig:facebook_cost_vs_nodes}
 \end{figure}
 
-Wykres czasów (rys. \ref{fig:facebook_time_vs_nodes}) ukazuje, że czasy \textbf{AntColonyOptimization} i \textbf{TabuSearch} zwiększają się mocno wraz z rozmiarem grafu, osiągając nawet 10 s. \textbf{GreedyAlgorithm} i \textbf{RandomizedAlgorithm} pozostają najkrótsze (ms) niezależnie od wielkości.
+Wykres czasów (rys. \ref{fig:facebook_time_vs_nodes}) ukazuje, że \textbf{algorytm mrówkowy} i \textbf{przeszukiwanie tabu} utrzymują najlepsze czasy w przekroju rozmiarów, podczas gdy pozostałe metody wykazują porównywalny lub wyższy czas wykonania.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/facebook_time_vs_nodes.png}
-  \caption{Średni czas wykonania vs liczba węzłów (grafy facebook).}
+  \caption{Średni czas wykonania vs liczba węzłów dla grafu ego facebook.}
   \label{fig:facebook_time_vs_nodes}
 \end{figure}
 
 \subsection{Kompromis koszt--czas i koszt na węzeł}
 
-Wykres Pareto (rys. \ref{fig:facebook_pareto}) dla grafów ego pokazuje mniejszą liczbę punktów: ILPSolver i AntColonyOptimization tworzą front optymalny; TabuSearch, GeneticAlgorithm i SimulatedAnnealing tworzą kompromisy; Greedy i Randomized są ultraszybkie, lecz pozostają w górnej części wykresu.
+Wykres Pareto (rys. \ref{fig:facebook_pareto}) dla grafów ego pokazuje mniejszą liczbę punktów: \textbf{algorytm mrówkowy} i \textbf{przeszukiwanie tabu} tworzą front optymalny, podczas gdy algorytm genetyczny i symulowane wyżarzanie dostarczają kompromisy. Algorytm zachłanny oraz algorytm losowy są zdominowane kosztowo i/lub czasowo w tym zbiorze.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/facebook_pareto.png}
-  \caption{Całkowity koszt vs czas wykonania (grafy facebook).}
+  \caption{Całkowity koszt vs czas wykonania dla grafu ego facebook.}
   \label{fig:facebook_pareto}
 \end{figure}
 
-Rozkład kosztu na węzeł (rys. \ref{fig:facebook_cost_per_node}) potwierdza, że różnice między algorytmami są istotne, a realne grafy charakteryzują się niższym kosztem na węzeł niż syntetyczne.
+Rozkład kosztu na węzeł (rys. \ref{fig:facebook_cost_per_node}) pokazuje, że \textbf{jedynie przeszukiwanie tabu wyraźnie odznacza się najniższym kosztem per wierzchołek}. Może to sugerować, że ten konkretny algorytm lepiej wykorzystuje właściwości rzeczywistych sieci ego niż pozostałe metody, które na syntetycznych grafach osiągały wyniki zbliżone do \textbf{algorytmu zachłannego}.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/facebook_cost_per_node.png}
-  \caption{Koszt na węzeł według algorytmu (grafy facebook).}
+  \caption{Koszt na węzeł według algorytmu dla grafu ego facebook.}
   \label{fig:facebook_cost_per_node}
 \end{figure}
 
@@ -230,157 +250,16 @@ Rozrzut czasów w zależności od liczby węzłów (rys. \ref{fig:facebook_time_
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\linewidth]{assets/figures/facebook_time_scatter.png}
-  \caption{Czas wykonania vs liczba węzłów (grafy facebook).}
+  \caption{Czas wykonania vs liczba węzłów dla grafu ego facebook.}
   \label{fig:facebook_time_scatter}
 \end{figure}
 
-\section{Synteza wyników i wnioski}
+\section{Analiza i wnioski}
 
-Przeprowadzona analiza porównawcza grafów syntetycznych oraz rzeczywistych sieci ego z Facebooka ujawnia spójne wzorce wydajnościowe, aczkolwiek między tymi zbiorami danych obserwuje się różnice w rozkładach kosztów i czasów wykonania.
+Przeprowadzona analiza porównawcza grafów syntetycznych oraz rzeczywistych sieci ego z Facebooka ujawnia spójne wzorce, ale także istotne różnice wynikające ze struktury danych. W syntetykach (ER/WS/BA) obserwujemy klasyczną hierarchię: ILP wyznacza dolną granicę jakości na małych instancjach, \textbf{algorytm mrówkowy} i \textbf{przeszukiwanie tabu} dostarczają najlepszych kosztów wśród metod przybliżonych, a \textbf{algorytm zachłanny} pozostaje szybkim punktem odniesienia kosztem nieco wyższych, lecz wciąż zadowalających, wartości celu. \textbf{algorytm losowy} pełni rolę baseline i jest konsekwentnie najsłabszy jakościowo.
 
-\begin{itemize}
-\item \textbf{Jakość.} W obu zestawach \textbf{ILPSolver} osiąga najniższe koszty, lecz jest ograniczony do małych grafów. Z metaheurystyk najlepiej wypada \textbf{AntColonyOptimization} (niski koszt, długi czas), następnie \textbf{TabuSearch} i \textbf{GeneticAlgorithm}. \textbf{GreedyAlgorithm} generuje wysokie koszty, ale jest bardzo szybki. \textbf{RandomizedAlgorithm} służy jako baseline potwierdzający, że wszystkie pozostałe algorytmy znacznie przewyższają losowe przydzielanie.
+Na realnych sieciach ego, gdzie ILP został pominięty z uwagi na zbyt małą liczbę ukończonych w czasie instancji, obraz jest odmienny w dwóch kluczowych aspektach: (i) \textbf{przeszukiwanie tabu} osiąga \emph{najniższe koszty} i wyraźnie odcina się od pozostałych metod, które grupują się blisko siebie (z wyjątkiem \textbf{algorytmu losowego}, znacząco gorszego); (ii) \textbf{algorytm mrówkowy} i \textbf{przeszukiwanie tabu} osiągają \emph{najlepsze czasy wykonania} w przekroju rozmiarów ego, co sugeruje ich lepsze dopasowanie do właściwości rzeczywistych struktur. Dodatkowo w metryce kosztu na węzeł jedynie \textbf{przeszukiwanie tabu} wyraźnie się wyróżnia, podczas gdy na grafach syntetycznych jego wyniki były bliższe \textbf{algorytmu zachłannego}. To wskazuje, że tabu może lepiej wykorzystywać lokalne wzorce klastrowania i stopnie hubów obecne w ego-sieciach.
 
-\item \textbf{Czas.} \textbf{GreedyAlgorithm} charakteryzuje się bardzo krótkim czasem wykonania, podobnie jak baseline \textbf{RandomizedAlgorithm}; \textbf{DominatingSetAlgorithm} i \textbf{SimulatedAnnealing} oferują lekko lepsze wyniki przy nadal krótkim czasie. \textbf{AntColonyOptimization} i \textbf{TabuSearch} są wielokrotnie wolniejsze i stają się niepraktyczne dla grafów ego.
+Z perspektywy skalowalności, czasy metod metaheurystycznych rosną z rozmiarem, jednak na realnych danych przewagi algorytmu mrówkowego i przeszukiwania tabu w czasie oraz przewaga przeszukiwania tabu w koszcie utrzymują się w całym badanym zakresie. W efekcie w analizie Pareto dla ego to \textbf{algorytm mrówkowy} i \textbf{przeszukiwanie tabu} budują front niezdominowanych rozwiązań, podczas gdy algorytm genetyczny/symulowane wyżarzanie pozostają kompromisami, a algorytm zachłanny/algorytm losowy są zdominowane.
 
-\item \textbf{Skalowalność.} Dla grafów syntetycznych czasy metaheurystyk rosną w przybliżeniu wykładniczo z liczbą węzłów; w grafach ego ten wzrost jest jeszcze większy. Koszty rosną prawie liniowo z rozmiarem w obu zbiorach.
-
-\item \textbf{Realne vs syntetyczne.} Koszty w grafach ego są nieco niższe, ale czasy metaheurystyk dłuższe, co sugeruje, że realne sieci mają bardziej złożoną strukturę. Kolejność algorytmów pozostaje jednak taka sama.
-\end{itemize}
-
-Konkludując, strategia wyboru algorytmu powinna uwzględniać zarówno rozmiar analizowanej sieci, jak i akceptowalny kompromis między kosztem licencji a czasem potrzebnym na obliczenia. Dla sieci małych rozmiarów ILPSolver stanowi bezalternatywne rozwiązanie ze względu na optimalność uzyskiwanych wyników. W przypadku grafów średnich i dużych rozmiarów rekomenduje się zastosowanie algorytmów \textbf{TabuSearch} lub \textbf{GeneticAlgorithm}, które oferują satysfakcjonujący kompromis między czasem wykonania a jakością rozwiązań. Gdy priorytetem jest minimalizacja czasu obliczeń, alternatywą może być \textbf{GreedyAlgorithm}, choć przy akceptacji znacząco wyższych kosztów licencyjnych niż w przypadku metod metaheurystycznych.
-
-
-
-\section{Wyniki eksperymentów}
-
-\subsection{Wydajność algorytmów dla konfiguracji duolingo\_super}
-
-Na wykresach poniżej przedstawiono zachowanie różnych algorytmów dla konfiguracji licencji duolingo\_super na grafach syntetycznych.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.48\linewidth]{assets/figures/ba_random_duo_cost_vs_n.png}
-  \includegraphics[width=0.48\linewidth]{assets/figures/ba_random_duo_time_vs_n.png}
-  \caption{Grafy losowe (konf. duolingo\_super) -- koszt na wierzchołek i czas wykonania vs liczba wierzchołków.}
-  \label{fig:random_performance}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.48\linewidth]{assets/figures/ba_scale_free_duo_cost_vs_n.png}
-  \includegraphics[width=0.48\linewidth]{assets/figures/ba_scale_free_duo_time_vs_n.png}
-  \caption{Grafy bezskalowe (konf. duolingo\_super) -- koszt na wierzchołek i czas wykonania vs liczba wierzchołków.}
-  \label{fig:scale_free_performance}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.48\linewidth]{assets/figures/ba_small_world_duo_cost_vs_n.png}
-  \includegraphics[width=0.48\linewidth]{assets/figures/ba_small_world_duo_time_vs_n.png}
-  \caption{Grafy małoświatowe (konf. duolingo\_super) -- koszt na wierzchołek i czas wykonania vs liczba wierzchołków.}
-  \label{fig:small_world_performance}
-\end{figure}
-
-Z wykresów wynika kilka ważnych obserwacji:
-
-\paragraph{Jakość rozwiązań}
-Metaheurystyki (algorytm genetyczny, symulowane wyżarzanie, tabu search, ant colony) dają najniższe koszty, ale są znacznie wolniejsze. Algorytm zachłanny (greedy) oferuje dobry kompromis -- jest szybki i daje wyniki tylko nieznacznie gorsze niż metaheurystyki.
-
-\paragraph{Czas wykonania}
-ILP bardzo szybko staje się niepraktyczny -- już dla grafów powyżej 100-200 wierzchołków przekracza limit czasu 60 sekund. Heurystyki konstrukcyjne (greedy, random, dominating set) są bardzo szybkie nawet dla dużych grafów.
-
-\paragraph{Wpływ struktury grafu}
-Grafy bezskalowe pozwalają na niższe koszty niż losowe czy małoświatowe — huby umożliwiają tworzenie większych, bardziej efektywnych grup licencyjnych (por. Rys.\,\ref{fig:scale_free_performance}). W grafach małoświatowych wysoki clustering sprzyja tworzeniu grup lokalnych, ale silne nakładanie się sąsiedztw ogranicza \emph{unikalne} pokrycie na krok, co tłumaczy przewagę heurystyk, które maksymalizują \emph{pokrycie per koszt} (DS) nad prostą kolejnością po stopniu (Rys.\,\ref{fig:small_world_performance}).
-
-\subsection{Komentarz interpretacyjny i porównanie metod}
-\label{subsec:interpretation}
-Poniżej syntetyzujemy wnioski z wykresów (Rys.\,\ref{fig:random_performance}--\ref{fig:small_world_performance}, \ref{fig:pareto_analysis}, \ref{fig:facebook_results}):
-\begin{itemize}
-  \item \textbf{Greedy vs DS.} Na grafach bezskalowych (BA) prosta kolejność po stopniu jest bardzo skuteczna (Greedy \approx DS), gdyż kilku hubów zapewnia duże grupy rodzinne o niskim koszcie per osoba. W sieciach małoświatowych (WS) i losowych (ER) DS z kryterium \(\mathrm{coverage}/\mathrm{cost}\) częściej wybiera węzły o dobrym \emph{unikalnym} zasięgu, co obniża koszt bardziej niż Greedy.
-  \item \textbf{Metaheurystyki.} GA/SA/TS/ACO zwykle poprawiają koszt względem Greedy/DS, szczególnie przy ograniczonych pojemnościach i mieszanej ofercie licencji, kosztem dłuższego czasu (fronty Pareto wskazują wyraźny kompromis między kosztem a czasem).
-  \item \textbf{ILP.} Daje dolną granicę jakości na małych instancjach (walidacja heurystyk). Wraz ze wzrostem \(n\) i gęstości (Rys.\,\ref{fig:ilp_limits}) jego użyteczność spada — sensowne jest ustawianie limitu czasu i traktowanie wyniku jako górnej granicy dla metod przybliżonych.
-  \item \textbf{Rzeczywiste sieci.} Na ego-sieciach Facebooka (Rys.\,\ref{fig:facebook_results}) Greedy pozostaje najszybszy i konkurencyjny jakościowo; metaheurystyki uzyskują dalsze, umiarkowane zyski kosztowe przy większych nakładach czasu.
-\end{itemize}
-
-\subsection{Analiza dodatkowych czynników wpływających na wydajność}
-
-\paragraph{Porównanie konfiguracji licencji}
-Bezpośrednie porównanie kosztów między Duolingo Super (ceny rzeczywiste) a wariantem roman domination (koszty względne) nie jest miarodajne — różne skale cenowe w naturalny sposób przekładają się na różne średnie koszty. W tym rozdziale koncentrujemy się więc na trendach w obrębie danej konfiguracji (wpływ struktury grafu i \(n\)), a porównania wariantów modelu przedstawiamy w rozdz.\,\ref{chap:extensions} (np. krzywe roman\_p\_x, analiza Spotify).
-
-\paragraph{Wpływ gęstości i struktury grafów}
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\linewidth]{assets/figures/ba_heatmap_cost.png}
-  \caption{Heatmapa średniego kosztu na wierzchołek w zależności od gęstości i średniego stopnia grafu.}
-  \label{fig:density_heatmap}
-\end{figure}
-
-Analiza wpływu topologii sieci na efektywność algorytmów ujawnia kluczową rolę gęstości grafu. Im więcej połączeń między węzłami, tym łatwiej algorytmom tworzyć duże grupy licencyjne, co przekłada się na obniżenie kosztu przypadającego na pojedynczy węzeł. Jednocześnie należy zauważyć, że gęstsze grafy wymagają proporcjonalnie więcej czasu na wykonanie obliczeń ze względu na zwiększoną złożoność kombinatoryczną problemu.
-
-\paragraph{Analiza frontów Pareto}
-Zastosowanie analizy Pareto pozwala na identyfikację rozwiązań niezdominowanych, gdzie żadne z rozwiązań nie jest jednocześnie tańsze i szybsze od pozostałych.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.48\linewidth]{assets/figures/ba_random_duo_pareto.png}
-  \includegraphics[width=0.48\linewidth]{assets/figures/ba_scale_free_duo_pareto.png}
-  \caption{Fronty Pareto koszt vs czas dla grafów losowych (lewy) i bezskalowych (prawy), konf. duolingo\_super.}
-  \label{fig:pareto_analysis}
-\end{figure}
-
-Na frontach Pareto widać:
-\begin{itemize}
-  \item Algorytm zachłanny oferuje najlepszy kompromis dla większości zastosowań
-  \item ILP daje najniższy koszt, ale tylko dla małych grafów
-  \item Metaheurystyki warto używać gdy czas nie jest krytyczny, a zależy nam na jak najniższym koszcie
-\end{itemize}
-
-\section{Wyniki uzupełniające i ograniczenia implementacyjne}
-
-\subsection{Weryfikacja na grafach rzeczywistych}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.48\linewidth]{assets/figures/br_leaderboard_cost.png}
-  \includegraphics[width=0.48\linewidth]{assets/figures/br_leaderboard_time.png}
-  \caption{Porównanie algorytmów na sieciach rzeczywistych (Facebook ego): koszt i czas.}
-  \label{fig:facebook_results}
-\end{figure}
-
-Testowanie algorytmów na rzeczywistych sieciach ego z Facebooka potwierdza obserwacje poczynione dla grafów syntetycznych, wykazując wysoką spójność wyników między różnymi typami struktur sieciowych. Algorytm zachłanny konsekwentnie oferuje najkorzystniejszy kompromis między szybkością działania a jakością rozwiązań, podczas gdy metaheurystyki zapewniają umiarkowaną poprawę kosztów przy akceptacji znacznie dłuższych czasów obliczeniowych.
-
-\subsection{Analiza granic skalowalności programowania liniowego}
-
-Zastosowanie metod programowania liniowego (ILP) dostarcza rozwiązań optymalnych, jednak podlega istotnym ograniczeniom czasowym, które determinują praktyczną stosowalność tej metody. Rysunek przedstawiający granice czasowe solvera CBC ilustruje progowy charakter tego ograniczenia.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\linewidth]{assets/figures/ba_ilp_timeout_boundary.png}
-  \caption{Granice czasowe ILP (solver CBC) w zależności od rozmiaru i gęstości grafu.}
-  \label{fig:ilp_limits}
-\end{figure}
-
-Analiza wykazuje, że solver ILP zachowuje efektywność dla grafów zawierających do około 100-200 wierzchołków przy standardowej gęstości połączeń. Powyżej tej granicy krytycznej obserwuje się gwałtowny wzrost częstotliwości przekroczeń limitu czasowego, co czyni niezbędnym zastosowanie metod heurystycznych dla problemów większej skali.
-
-\section{Końcowe wnioski}
-
-\paragraph{Kluczowe obserwacje eksperymentalne:}
-\begin{itemize}
-  \item \textbf{Algorytm zachłanny} stanowi optymalny wybór dla większości zastosowań praktycznych, łącząc wysoką szybkość działania z satysfakcjonującą jakością rozwiązań
-  \item \textbf{Programowanie liniowe (ILP)} zapewnia rozwiązania optymalne, lecz jego stosowalność ogranicza się do grafów małych rozmiarów (do około 100-200 wierzchołków)
-  \item \textbf{Algorytmy metaheurystyczne} rekomenduje się w sytuacjach, gdy czas wykonania nie stanowi ograniczenia krytycznego, a priorytetem jest minimalizacja kosztów
-  \item \textbf{Topologia grafu} wywiera decydujący wpływ na efektywność -- obecność węzłów o wysokim stopniu oraz zwiększona gęstość połączeń sprzyjają redukcji kosztów
-\end{itemize}
-
-\paragraph{Zalecenia dla implementacji praktycznych:}
-W kontekście systemu dystrybucji licencji w sieciach społecznościowych zaleca się implementację algorytmu zachłannego jako domyślnej metody optymalizacji, z możliwością dynamicznego przełączania na algorytmy metaheurystyczne w przypadkach, gdy dla klientów o szczególnym znaczeniu każda minimalizacja kosztów ma istotną wartość biznesową.
-
-\paragraph{Strategia doboru algorytmu:}
-Analiza frontów Pareto jednoznacznie potwierdza brak uniwersalnego algorytmu optymalnego dla wszystkich scenariuszy -- wybór metody powinien być uwarunkowany priorytetami aplikacyjnymi:
-\begin{itemize}
-  \item W przypadku krytycznych ograniczeń czasowych -- zastosowanie algorytmu zachłannego
-  \item Przy priorytetyzacji minimalizacji kosztów -- wykorzystanie metod metaheurystycznych
-  \item Dla sieci małych rozmiarów ($<200$ węzłów) -- implementacja rozwiązania opartego na programowaniu liniowym
-  \item W kontekście sieci rozległych -- metaheurystyki z inicjalizacją warm start algorytmem zachłannym
-\end{itemize}
+Praktyczne implikacje są następujące: (1) dla grafów syntetycznych i małych instancji warto korzystać z ILP jako punktu odniesienia jakości, a w większej skali wybierać \textbf{algorytm mrówkowy/przeszukiwanie tabu} dla jakości lub \textbf{algorytm zachłanny} dla szybkości; (2) dla rzeczywistych sieci ego rekomendowanym wyborem jest \textbf{przeszukiwanie tabu} jako metoda zapewniająca \emph{najniższy koszt (również per węzeł)} przy jednocześnie konkurencyjnych czasach, a \textbf{algorytm mrówkowy} jako alternatywa, gdy zależy nam na podobnym profilu czasowym i wysokiej jakości; (3) \textbf{algorytm zachłanny} pozostaje użyteczny jako bardzo szybka inicjalizacja (warm start) i w świetle przeprowadzonych testów nie jest wyraźnie gorszy od metaheurystyk w większości przetestowanych ustawień. Różnice jakości mogą się uwidocznić przy \emph{dużo większych grafach}, \emph{lepszym dostrojeniu hiperparametrów} oraz przy \emph{dłuższych budżetach czasu} (znosząc twardy limit 60 s), nadal pozostając wyraźnie szybszym rozwiązaniem niż ILP. Jeśli niewielka poprawa kosztu nie jest kluczowa biznesowo, prosty algorytm zachłanny może być wystarczający dla wielu zastosowań; (4) \textbf{algorytm losowy} należy traktować wyłącznie jako baseline.

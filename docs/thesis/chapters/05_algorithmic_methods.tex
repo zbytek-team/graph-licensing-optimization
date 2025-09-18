@@ -34,24 +34,24 @@ Algorytm systematycznie przegląda wszystkie możliwe podziały wierzchołków g
 \end{enumerate}
 
 \begin{algorithm}[H]
-\caption{Algorytm naiwny -- przegląd wszystkich możliwych rozwiązań}
-\label{alg:naive}
-\begin{algorithmic}[1]
-\Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
-\If{$|V| > 10$} \State \Return błąd -- graf zbyt duży \EndIf
-\State $best\_cost \gets \infty$, $best\_solution \gets \emptyset$
-\For{każda partycja $P = \{P_1, P_2, \dots, P_k\}$ zbioru $V$}
-  \For{każde przypisanie licencji do bloków partycji}
+  \caption{Algorytm naiwny -- przegląd wszystkich możliwych rozwiązań}
+  \label{alg:naive}
+  \begin{algorithmic}[1]
+    \Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
+    \If{$|V| > 10$} \State \Return błąd -- graf zbyt duży \EndIf
+    \State $best\_cost \gets \infty$, $best\_solution \gets \emptyset$
+    \For{każda partycja $P = \{P_1, P_2, \dots, P_k\}$ zbioru $V$}
+    \For{każde przypisanie licencji do bloków partycji}
     \If{rozwiązanie spełnia wszystkie ograniczenia}
-      \State $cost \gets$ oblicz koszt rozwiązania
-      \If{$cost < best\_cost$}
-        \State $best\_cost \gets cost$, $best\_solution \gets$ obecne rozwiązanie
-      \EndIf
+    \State $cost \gets$ oblicz koszt rozwiązania
+    \If{$cost < best\_cost$}
+    \State $best\_cost \gets cost$, $best\_solution \gets$ obecne rozwiązanie
     \EndIf
-  \EndFor
-\EndFor
-\State \Return $best\_solution$
-\end{algorithmic}
+    \EndIf
+    \EndFor
+    \EndFor
+    \State \Return $best\_solution$
+  \end{algorithmic}
 \end{algorithm}
 
 \paragraph{Złożoność}
@@ -71,10 +71,10 @@ Algorytm minimalizuje łączny koszt wszystkich utworzonych grup licencyjnych u�
 
 Model matematyczny (dla $N[i] = N(i) \cup \{i\}$):
 \begin{align}
-\min\quad & \sum_{i\in V}\sum_{\ell\in\mathcal{L}} c_\ell\, a_{i,\ell} && \text{(funkcja celu)}\\[4pt]
-& \sum_{\substack{i\in V:\\ j\in N[i]}}\sum_{\ell\in\mathcal{L}} x_{i,j,\ell} = 1 && \forall j\in V \quad \text{(pokrycie)} \\[2pt]
-& l_\ell\, a_{i,\ell} \le \sum_{j\in N[i]} x_{i,j,\ell} \le u_\ell\, a_{i,\ell} && \forall i\in V,\ \ell\in\mathcal{L} \quad \text{(pojemności)} \\[2pt]
-& x_{i,i,\ell} = a_{i,\ell} && \forall i\in V,\ \ell\in\mathcal{L} \quad \text{(właściciel w grupie)}
+  \min\quad & \sum_{i\in V}\sum_{\ell\in\mathcal{L}} c_\ell\, a_{i,\ell}                    &  & \text{(funkcja celu)}                                                  \\[4pt]
+            & \sum_{\substack{i\in V:                                                                                                                                   \\ j\in N[i]}}\sum_{\ell\in\mathcal{L}} x_{i,j,\ell} = 1 && \forall j\in V \quad \text{(pokrycie)} \\[2pt]
+            & l_\ell\, a_{i,\ell} \le \sum_{j\in N[i]} x_{i,j,\ell} \le u_\ell\, a_{i,\ell} &  & \forall i\in V,\ \ell\in\mathcal{L} \quad \text{(pojemności)}          \\[2pt]
+            & x_{i,i,\ell} = a_{i,\ell}                                                     &  & \forall i\in V,\ \ell\in\mathcal{L} \quad \text{(właściciel w grupie)}
 \end{align}
 
 \paragraph{Złożoność}
@@ -109,24 +109,24 @@ Sortowanie według stopnia wierzchołka (liczby sąsiadów) sprawdza się dobrze
 Algorytm ma złożoność czasową $O(nT + m\log n)$, gdzie $n$ to liczba wierzchołków, $T$ to liczba typów licencji, a $m$ to liczba krawędzi.
 
 \begin{algorithm}[H]
-\caption{Algorytm zachłanny}
-\label{alg:greedy}
-\begin{algorithmic}[1]
-\Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
-\State posortuj wierzchołki malejąco według stopnia
-\State $niepokryte \gets V$
-\For{każdy wierzchołek $v$ w posortowanej kolejności}
-  \If{$v$ już pokryty} \textbf{continue} \EndIf
-  \State znajdź dostępnych sąsiadów $v$ wśród niepokrytych
-  \For{każdy typ licencji $\ell$}
+  \caption{Algorytm zachłanny}
+  \label{alg:greedy}
+  \begin{algorithmic}[1]
+    \Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
+    \State posortuj wierzchołki malejąco według stopnia
+    \State $niepokryte \gets V$
+    \For{każdy wierzchołek $v$ w posortowanej kolejności}
+    \If{$v$ już pokryty} \textbf{continue} \EndIf
+    \State znajdź dostępnych sąsiadów $v$ wśród niepokrytych
+    \For{każdy typ licencji $\ell$}
     \State oblicz efektywność: $koszt_\ell / rozmiar\_grupy$
-  \EndFor
-  \State wybierz licencję i członków grupy o najlepszej efektywności
-  \State utwórz grupę z $v$ jako właścicielem
-  \State usuń członków grupy z $niepokryte$
-\EndFor
-\State \Return utworzone grupy
-\end{algorithmic}
+    \EndFor
+    \State wybierz licencję i członków grupy o najlepszej efektywności
+    \State utwórz grupę z $v$ jako właścicielem
+    \State usuń członków grupy z $niepokryte$
+    \EndFor
+    \State \Return utworzone grupy
+  \end{algorithmic}
 \end{algorithm}
 
 \paragraph{Zastosowanie}
@@ -143,23 +143,23 @@ Wadą algorytmu jest to, że podejmując lokalnie najlepsze decyzje, może przeg
 Algorytm najpierw buduje zbiór dominujący grafu zyskując wierzchołki o najlepszej efektywności kosztowej (stosunek liczby pokrywanych sąsiadów do minimalnego kosztu na węzeł). Następnie każdemu dominatorowi przypisuje najtańszą dopuszczalną licencję i tworzy grupę.
 
 \begin{algorithm}[H]
-\caption{Zbiór dominujący -- heurystyka z przypisaniem grup}
-\label{alg:ds}
-\begin{algorithmic}[1]
-\Require graf $G=(V,E)$, $\mathcal{L}$
-\State $U\gets V$, $D\gets\emptyset$
-\While{$U\neq\emptyset$}
-  \State dla każdego $v$ policz $\mathrm{coverage}(v)=|(N(v)\cup\{v\})\cap U|$ i $\min\_\mathrm{cpn}(v)$
-  \State wybierz $u$ maksymalizujące $\mathrm{coverage}(v)/\min\_\mathrm{cpn}(v)$; jeśli nie ma, weź dowolne $u\in U$
-  \State $D\gets D\cup\{u\}$, $U\gets U\setminus(N(u)\cup\{u\})$
-\EndWhile
-\State posortuj $D$ malejąco po $\deg$
-\For{każde $u\in D$ oraz dla pozostałych węzłów}
-  \State $S\gets(N(u)\cup\{u\})\cap$ nieprzydzieleni
-  \State wybierz najtańszą dopuszczalną grupę; w ostateczności licencję 1
-\EndFor
-\State \Return grupy
-\end{algorithmic}
+  \caption{Zbiór dominujący -- heurystyka z przypisaniem grup}
+  \label{alg:ds}
+  \begin{algorithmic}[1]
+    \Require graf $G=(V,E)$, $\mathcal{L}$
+    \State $U\gets V$, $D\gets\emptyset$
+    \While{$U\neq\emptyset$}
+    \State dla każdego $v$ policz $\mathrm{coverage}(v)=|(N(v)\cup\{v\})\cap U|$ i $\min\_\mathrm{cpn}(v)$
+    \State wybierz $u$ maksymalizujące $\mathrm{coverage}(v)/\min\_\mathrm{cpn}(v)$; jeśli nie ma, weź dowolne $u\in U$
+    \State $D\gets D\cup\{u\}$, $U\gets U\setminus(N(u)\cup\{u\})$
+    \EndWhile
+    \State posortuj $D$ malejąco po $\deg$
+    \For{każde $u\in D$ oraz dla pozostałych węzłów}
+    \State $S\gets(N(u)\cup\{u\})\cap$ nieprzydzieleni
+    \State wybierz najtańszą dopuszczalną grupę; w ostateczności licencję 1
+    \EndFor
+    \State \Return grupy
+  \end{algorithmic}
 \end{algorithm}
 
 Budowanie rozwiązania wokół \emph{maksymalnego} zbioru dominującego (niekoniecznie minimalnego) jest typową praktyką heurystyczną \cite{haynes1998domination}. Nasza wersja używa kryterium efektywności kosztowej i po doborze $D$ przypisuje grupy zgodnie z ograniczeniami pojemności.
@@ -171,23 +171,23 @@ Algorytm losowy służy jako punkt odniesienia do oceny jakości innych metod. J
 Algorytm przetwarza wierzchołki w losowej kolejności i dla każdego z nich losowo wybiera typ licencji oraz członków grupy. Gdy losowy wybór nie jest możliwy, używa strategii zachłannej jako fallback.
 
 \begin{algorithm}[H]
-\caption{Losowy -- dobór licencji i składu grupy}
-\label{alg:randomized}
-\begin{algorithmic}[1]
-\Require $G=(V,E)$, $\mathcal{L}$
-\State $U\gets V$, $\pi\gets$ losowa permutacja $V$
-\For{node w kolejności $\pi$}
-  \If{$node\notin U$} \textbf{continue}\EndIf
-  \State $S\gets(N(node)\cup\{node\})\cap U$
-  \If{istnieje dopuszczalna licencja}
+  \caption{Losowy -- dobór licencji i składu grupy}
+  \label{alg:randomized}
+  \begin{algorithmic}[1]
+    \Require $G=(V,E)$, $\mathcal{L}$
+    \State $U\gets V$, $\pi\gets$ losowa permutacja $V$
+    \For{node w kolejności $\pi$}
+    \If{$node\notin U$} \textbf{continue}\EndIf
+    \State $S\gets(N(node)\cup\{node\})\cap U$
+    \If{istnieje dopuszczalna licencja}
     \State wylosuj $\ell$ i rozmiar $s\in[l_\ell,\min\{|S|,u_\ell\}]$, dobierz losowych członków
-  \Else
+    \Else
     \State wybierz najtańszą dopuszczalną grupę
-  \EndIf
-  \State dodaj grupę, zaktualizuj $U$
-\EndFor
-\While{$U\neq\emptyset$} przypisz najtańszą licencję 1 i usuń węzeł z $U$ \EndWhile
-\end{algorithmic}
+    \EndIf
+    \State dodaj grupę, zaktualizuj $U$
+    \EndFor
+    \While{$U\neq\emptyset$} przypisz najtańszą licencję 1 i usuń węzeł z $U$ \EndWhile
+  \end{algorithmic}
 \end{algorithm}
 
 
@@ -214,27 +214,27 @@ Populacja rozwiązań z elityzmem, selekcją turniejową, krzyżowaniem oraz mut
 Wielkość populacji (30), liczba pokoleń (40), udział elity (20\%) oraz prawdopodobieństwo krzyżowania (60\%).
 
 \begin{algorithm}[H]
-\caption{Algorytm genetyczny}
-\label{alg:ga}
-\begin{algorithmic}[1]
-\Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
-\State utwórz populację początkową (zachłanny + losowe rozwiązania)
-\For{każde pokolenie}
-  \State oceń wszystkie rozwiązania (funkcja kosztu)
-  \State zachowaj elitę (najlepsze rozwiązania)
-  \While{populacja niepełna}
+  \caption{Algorytm genetyczny}
+  \label{alg:ga}
+  \begin{algorithmic}[1]
+    \Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
+    \State utwórz populację początkową (zachłanny + losowe rozwiązania)
+    \For{każde pokolenie}
+    \State oceń wszystkie rozwiązania (funkcja kosztu)
+    \State zachowaj elitę (najlepsze rozwiązania)
+    \While{populacja niepełna}
     \If{losowanie krzyżowania}
-      \State wybierz dwóch rodziców (selekcja turniejowa)
-      \State skrzyżuj rodziców (połącz efektywne grupy)
+    \State wybierz dwóch rodziców (selekcja turniejowa)
+    \State skrzyżuj rodziców (połącz efektywne grupy)
     \Else
-      \State wybierz rozwiązanie i zmutuj (operacje sąsiedztwa)
+    \State wybierz rozwiązanie i zmutuj (operacje sąsiedztwa)
     \EndIf
     \State dodaj potomka do nowej populacji
-  \EndWhile
-  \State zaktualizuj najlepsze znalezione rozwiązanie
-\EndFor
-\State \Return najlepsze rozwiązanie
-\end{algorithmic}
+    \EndWhile
+    \State zaktualizuj najlepsze znalezione rozwiązanie
+    \EndFor
+    \State \Return najlepsze rozwiązanie
+  \end{algorithmic}
 \end{algorithm}
 
 
@@ -246,30 +246,26 @@ Lokalne przeszukiwanie z tabu-listą i kryterium aspiracji \cite{glover1989}; w 
 Maksymalna liczba iteracji (1000), długość listy tabu (20) oraz liczba badanych sąsiadów na iterację (10).
 
 \begin{algorithm}[H]
-\caption{Przeszukiwanie tabu}
-\label{alg:tabu}
-\begin{algorithmic}[1]
-\Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
-\State $aktualne \gets$ rozwiązanie początkowe (zachłanne)
-\State $najlepsze \gets aktualne$
-\State $lista\_tabu \gets$ pusta lista o stałej długości
-\For{każdą iterację}
-  \State wygeneruj sąsiadów $aktualne$ (zmiana licencji, przeniesienie członka, itp.)
-  \State wybierz najlepszego sąsiada, który:
-  \begin{itemize}[noitemsep]
-    \item nie jest na liście tabu, LUB
-    \item poprawia dotychczasowe $najlepsze$ (aspiracja)
-  \end{itemize}
-  \If{znaleziono kandydata}
+  \caption{Przeszukiwanie tabu}
+  \label{alg:tabu}
+  \begin{algorithmic}[1]
+    \Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
+    \State $aktualne \gets$ rozwiązanie początkowe (zachłanne)
+    \State $najlepsze \gets aktualne$
+    \State $lista\_tabu \gets$ pusta lista o stałej długości
+    \For{każdą iterację}
+    \State wygeneruj sąsiadów $aktualne$ (zmiana licencji, przeniesienie członka, itp.)
+    \State wybierz najlepszego sąsiada spośród tych, które nie są na liście tabu lub poprawiają dotychczasowe $najlepsze$ (aspiracja)
+    \If{znaleziono kandydata}
     \State $aktualne \gets$ wybrany kandydat
     \State dodaj ruch do $lista\_tabu$
     \If{$aktualne$ lepsze niż $najlepsze$}
-      \State $najlepsze \gets aktualne$
+    \State $najlepsze \gets aktualne$
     \EndIf
-  \EndIf
-\EndFor
-\State \Return $najlepsze$
-\end{algorithmic}
+    \EndIf
+    \EndFor
+    \State \Return $najlepsze$
+  \end{algorithmic}
 \end{algorithm}
 
 
@@ -280,30 +276,30 @@ Mrówki konstruują rozwiązania sterowane feromonem \(\tau\) i heurystyką \(\e
 Wpływ feromonu α=1, wpływ heurystyki β=2, tempo parowania (0.5), prawdopodobieństwo wyboru zachłannego q$_0$=0.9 oraz liczba mrówek (20).
 
 \begin{algorithm}[H]
-\caption{Algorytm mrówkowy}
-\label{alg:aco}
-\begin{algorithmic}[1]
-\Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
-\State zainicjalizuj feromony $\tau$ (dla par wierzchołek-licencja)
-\State zainicjalizuj heurystyki $\eta$ (na podstawie stopni wierzchołków i kosztów licencji)
-\State $najlepsze \gets$ rozwiązanie początkowe (zachłanne)
-\For{każdą iterację}
-  \For{każdą mrówkę}
+  \caption{Algorytm mrówkowy}
+  \label{alg:aco}
+  \begin{algorithmic}[1]
+    \Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
+    \State zainicjalizuj feromony $\tau$ (dla par wierzchołek-licencja)
+    \State zainicjalizuj heurystyki $\eta$ (na podstawie stopni wierzchołków i kosztów licencji)
+    \State $najlepsze \gets$ rozwiązanie początkowe (zachłanne)
+    \For{każdą iterację}
+    \For{każdą mrówkę}
     \State $niepokryte \gets V$
     \While{$niepokryte \neq \emptyset$}
-      \State wybierz właściciela na podstawie $\tau$ i $\eta$ (reguła wyboru lub ruletka)
-      \State wybierz typ licencji na podstawie $\tau$ i $\eta$
-      \State utwórz grupę, usuń członków z $niepokryte$
+    \State wybierz właściciela na podstawie $\tau$ i $\eta$ (reguła wyboru lub ruletka)
+    \State wybierz typ licencji na podstawie $\tau$ i $\eta$
+    \State utwórz grupę, usuń członków z $niepokryte$
     \EndWhile
     \If{mrówka znalazła lepsze rozwiązanie}
-      \State $najlepsze \gets$ rozwiązanie mrówki
+    \State $najlepsze \gets$ rozwiązanie mrówki
     \EndIf
-  \EndFor
-  \State wyparuj część feromonów: $\tau \gets \tau \cdot (1-evaporation)$
-  \State wzmocnij feromony na ścieżce $najlepsze$: $\tau \gets \tau + 1/koszt$
-\EndFor
-\State \Return $najlepsze$
-\end{algorithmic}
+    \EndFor
+    \State wyparuj część feromonów: $\tau \gets \tau \cdot (1-evaporation)$
+    \State wzmocnij feromony na ścieżce $najlepsze$: $\tau \gets \tau + 1/koszt$
+    \EndFor
+    \State \Return $najlepsze$
+  \end{algorithmic}
 \end{algorithm}
 
 \subsection{Symulowane wyżarzanie }\label{subsec:sa}
@@ -313,27 +309,26 @@ Start z rozwiązania zachłannego, następnie ruchy sąsiedztwa z akceptacją po
 Temperatura początkowa (100.0), współczynnik chłodzenia (0.995), temperatura minimalna (0.001) oraz maksymalna liczba iteracji (20000).
 
 \begin{algorithm}[H]
-\caption{Symulowane wyżarzanie}
-\label{alg:sa}
-\begin{algorithmic}[1]
-\Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
-\State $aktualne \gets$ rozwiązanie początkowe (zachłanne)
-\State $najlepsze \gets aktualne$
-\State $temperatura \gets T_0$ (początkowa temperatura)
-\For{każdą iterację}
-  \If{$temperatura < T_{min}$} \textbf{break} \EndIf
-  \State wybierz losową operację sąsiedztwa
-  \State $kandydat \gets$ wynik operacji sąsiedztwa
-  \State $\Delta \gets koszt(kandydat) - koszt(aktualne)$
-  \If{$\Delta \leq 0$ LUB $random() < \exp(-\Delta / temperatura)$}
+  \caption{Symulowane wyżarzanie}
+  \label{alg:sa}
+  \begin{algorithmic}[1]
+    \Require graf $G=(V,E)$, typy licencji $\mathcal{L}$
+    \State $aktualne \gets$ rozwiązanie początkowe (zachłanne)
+    \State $najlepsze \gets aktualne$
+    \State $temperatura \gets T_0$ (początkowa temperatura)
+    \For{każdą iterację}
+    \If{$temperatura < T_{min}$} \textbf{break} \EndIf
+    \State wybierz losową operację sąsiedztwa
+    \State $kandydat \gets$ wynik operacji sąsiedztwa
+    \State $\Delta \gets koszt(kandydat) - koszt(aktualne)$
+    \If{$\Delta \leq 0$ LUB $random() < \exp(-\Delta / temperatura)$}
     \State $aktualne \gets kandydat$
     \If{$koszt(kandydat) < koszt(najlepsze)$}
-      \State $najlepsze \gets kandydat$
+    \State $najlepsze \gets kandydat$
     \EndIf
-  \EndIf
-  \State $temperatura \gets temperatura \cdot cooling\_rate$
-\EndFor
-\State \Return $najlepsze$
-\end{algorithmic}
+    \EndIf
+    \State $temperatura \gets temperatura \cdot cooling\_rate$
+    \EndFor
+    \State \Return $najlepsze$
+  \end{algorithmic}
 \end{algorithm}
-

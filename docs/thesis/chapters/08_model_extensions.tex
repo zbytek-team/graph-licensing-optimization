@@ -30,7 +30,7 @@ Wzrost parametru $p$ powoduje większą relatywną opłacalność licencji Solo;
 
 \section{Konfiguracja Spotify}
 
-W usłudze Spotify występują trzy rodzaje licencji:
+Jak pokazano wcześniej w Tabeli~\ref{tab:license_models_real}, oprócz wariantu bazowego z jedną licencją indywidualną i jedną grupową istnieją w praktyce konfiguracje z dodatkowymi planami pośrednimi. Dobrym przykładem jest Spotify, gdzie występują trzy rodzaje licencji:
 \begin{itemize}
   \item \textbf{Individual} -- cena 23,99 (jedna osoba, pojemność 1),
   \item \textbf{Duo} -- cena 30,99 (dokładnie 2 użytkowników, pojemność 2),
@@ -56,38 +56,6 @@ W odróżnieniu od Spotify, Netflix nie oferuje licencji rodziny o pojemności 6
 
 \section{Metodyka eksperymentów}
 
-Testy z rozszerzonymi konfiguracjami zaplanowano zarówno w wariancie statycznym (benchmark), jak i dynamicznym:
-
-\begin{itemize}
-\item \textbf{Benchmark (statyczny)} -- dla rozmiarów $n = \{20, 50, 100, 200\}$, po 2 próbki na rozmiar i 1 powtórzenie. Algorytmy to ten sam zestaw co w rozdziale \ref{chap:experiments} (\textbf{ILPSolver}, \textbf{GreedyAlgorithm}, \textbf{RandomizedAlgorithm}, \textbf{DominatingSetAlgorithm}, \textbf{AntColonyOptimization}, \textbf{SimulatedAnnealing}, \textbf{TabuSearch}, \textbf{GeneticAlgorithm}). Czas obliczeń ograniczono do 45 s. Rejestrowane metryki: koszt całkowity, czas wykonania, koszt na węzeł, liczba grup i ich rozkład.
-
-\item \textbf{Dynamiczne rozszerzenia} -- symulacje dynamiczne z rozmiarami $n = \{40, 80, 160\}$, liczbą kroków 15 i pojedynczym powtórzeniem. Mutacje odbywają się z parametrami identycznymi jak w rozdziale \ref{chap:dynamic} (niski poziom intensywności). Dla wariantów dynamicznych planowane są wykresy ewolucji kosztu i czasu w funkcji kroku oraz analiza wpływu warm startu na metaheurystyki.
 \end{itemize}
 
-\section{Prognozy i oczekiwane efekty}
 
-Choć wyniki nie są jeszcze dostępne, na podstawie dotychczasowych obserwacji można sformułować kilka prognoz:
-
-\begin{itemize}
-\item \textbf{Wpływ parametru $p$ w roman\_p\_x} -- wzrost $p$ powinien prowadzić do zmniejszenia udziału licencji grupowej, a tym samym do wzrostu kosztu na węzeł. Iloraz $p/2$ wyznacza granicę opłacalności korzystania z licencji Solo versus Group.
-
-\item \textbf{Duo w Spotify} -- obecność planu Duo (pojemność 2) prawdopodobnie obniży koszt w porównaniu z wersją \texttt{duolingo\_super} (która ma tylko pojemność 1 i 6). Algorytmy będą częściej tworzyć pary niż większe grupy, co może wpływać na czas (mniej złożone decyzje) oraz liczbę licencji Family w rozwiązaniu.
-
-\item \textbf{Netflix} -- w konfiguracji Netflix spodziewany jest większy rozrzut wyników; ograniczenie Premium do 4 osób i brak licencji z nieograniczoną pojemnością może utrudnić pokrycie w bardzo gęstych grafach. Różnice między planami Standard i Premium mogą zależeć od wielkości grup.
-
-\item \textbf{Algorytm ILPSolver} -- dla nowych konfiguracji kosztowych spodziewane jest, że ILP utrzyma przewagę jakościową dla małych grafów (jak w rozdziale \ref{chap:experiments}), ale będzie jeszcze bardziej ograniczony czasowo, ponieważ nowe warianty licencji zwiększą liczbę możliwych kombinacji.
-\end{itemize}
-
-\section{Planowane elementy graficzne i tabele (placeholdery)}
-
-Do finalnej wersji rozdziału dodane zostaną następujące elementy:
-
-\begin{itemize}
-\item wykresy pudełkowe kosztu i czasu dla każdej konfiguracji (\texttt{roman\_p\_1\_5}, \texttt{roman\_p\_2\_5}, \texttt{roman\_p\_3\_0}, \texttt{spotify}, \texttt{netflix}),
-\item linie trendu kosztu i czasu w funkcji liczby węzłów (dla statycznych eksperymentów),
-\item fronty Pareto (koszt vs czas) dla poszczególnych konfiguracji,
-\item wykresy pokazujące udział licencji Individual/Duo/Family w rozwiązaniu (dla Spotify i Netflix),
-\item w wariancie dynamicznym: koszt i czas vs krok symulacji, podobnie jak w rozdziale \ref{chap:dynamic}.
-\end{itemize}
-
-\emph{TODO: rysunki, tabele.}
