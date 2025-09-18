@@ -22,9 +22,9 @@ class LicenseConfigFactory:
             LicenseType("Family", 37.99, 2, 6, LicenseConfigFactory.BLUE),
         ],
         "netflix": lambda: [
-            LicenseType("StdWithAds", 7.99, 1, 1, LicenseConfigFactory.RED),
-            LicenseType("Standard", 17.99, 2, 2, LicenseConfigFactory.GREEN),
-            LicenseType("Premium", 24.99, 2, 4, LicenseConfigFactory.BLUE),
+            LicenseType("Basic", 33, 1, 1, LicenseConfigFactory.RED),
+            LicenseType("Standard", 49, 1, 2, LicenseConfigFactory.GREEN),
+            LicenseType("Premium", 67, 1, 4, color=LicenseConfigFactory.BLUE),
         ],
         "roman_domination": lambda: [
             LicenseType("Solo", 1.0, 1, 1, LicenseConfigFactory.BLUE),

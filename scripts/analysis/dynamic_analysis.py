@@ -366,7 +366,7 @@ def main() -> None:
         if tag == "dynamic20":
             include = None  # wszystkie oprócz spotify w tekście, ale wykresy mogą być kompletne
         else:
-            # pełny run – skupiamy się na duolingo_super i roman_domination
+            # pełny run -- skupiamy się na duolingo_super i roman_domination
             include = {"duolingo_super", "roman_domination"}
         run_plots_dynamic(rows, title_prefix=tag, out_root=fig_root / tag, include_licenses=include)
 

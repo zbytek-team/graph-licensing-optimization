@@ -100,7 +100,7 @@ def _run_extensions_static() -> None:
         "spotify",
         "netflix",
         *[f"roman_p_{p}" for p in ("1_5", "2_5", "3_0")],
-        *[f"duolingo_p_{p}" for p in ("1_5", "2_0", "2_5")],
+        *[f"duolingo_p_{p}" for p in ("1_5", "2_0", "3_0")],
     ]
     bench.main()
 
@@ -118,7 +118,7 @@ def _run_extensions_dynamic() -> None:
         "spotify",
         "netflix",
         *[f"roman_p_{p}" for p in ("1_5", "2_5", "3_0")],
-        *[f"duolingo_p_{p}" for p in ("1_5", "2_0", "2_5")],
+        *[f"duolingo_p_{p}" for p in ("1_5", "2_0", "3_0")],
     ]
     d.main()
 
@@ -199,7 +199,7 @@ def quick() -> None:
     # static_all()
     # trees()
     # real_ego()
-    dynamic()
+    # dynamic()
     dynamic_real()
     extensions_static()
     extensions_dynamic()
