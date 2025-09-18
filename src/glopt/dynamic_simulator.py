@@ -23,7 +23,7 @@ class MutationParams:
     # Realistic dynamics modes
     # nodes: 'random' (uniform attachment) | 'preferential' (degree-proportional)
     mode_nodes: str = "random"
-    # edges: 'random' | 'preferential' (by degree product) | 'triadic' (closure) | 'rewire_ws' (Watts–Strogatz style)
+    # edges: 'random' | 'preferential' (by degree product) | 'triadic' (closure) | 'rewire_ws' (Watts--Strogatz style)
     mode_edges: str = "random"
     # parameters for modes
     add_node_attach_m: int = 2  # how many neighbors to attach per new node (avg)
