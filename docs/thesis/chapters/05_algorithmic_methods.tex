@@ -54,8 +54,8 @@ Algorytm systematycznie przegląda wszystkie możliwe podziały wierzchołków g
   \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Złożoność}
-Algorytm ma złożoność nadwykładniczą $O(c^n)$ ze względu na konieczność przeglądu wszystkich partycji zbioru wierzchołków. Z tego powodu praktyczny jest tylko dla grafów o maksymalnie 10 wierzchołkach. Używany głównie jako punkt odniesienia do walidacji innych algorytmów.
+\paragraph{Złożoność i zastosowanie}
+Algorytm ma złożoność nadwykładniczą $O(c^n)$ ze względu na konieczność przeglądu wszystkich partycji zbioru wierzchołków. Z tego powodu praktyczny jest tylko dla grafów o maksymalnie 10 wierzchołkach. Używany był głównie jako punkt odniesienia do walidacji innych algorytmów.
 
 
 \subsection{Programowanie całkowitoliczbowe (ILP)}\label{subsec:ilp}
@@ -77,7 +77,7 @@ Model matematyczny (dla $N[i] = N(i) \cup \{i\}$):
             & x_{i,i,\ell} = a_{i,\ell}                                                     &  & \forall i\in V,\ \ell\in\mathcal{L} \quad \text{(właściciel w grupie)}
 \end{align}
 
-\paragraph{Złożoność}
+\paragraph{Złożoność i zastosowanie}
 Liczba zmiennych rośnie jako $O(|V| \cdot |\mathcal{L}| \cdot \Delta)$, gdzie $\Delta$ to maksymalny stopień wierzchołka. Dla dużych i gęstych grafów czas obliczeń może być znaczny. Metoda używana jako:
 \begin{itemize}
   \item punkt odniesienia dla oceny jakości innych algorytmów,
@@ -105,9 +105,6 @@ Algorytm nie ma parametrów do dostrajania — wszystkie decyzje są podejmowane
 
 Sortowanie według stopnia wierzchołka (liczby sąsiadów) sprawdza się dobrze w praktyce, ponieważ wierzchołki o wysokim stopniu mogą tworzyć większe, bardziej efektywne grupy licencyjne.
 
-\paragraph{Złożoność}
-Algorytm ma złożoność czasową $O(nT + m\log n)$, gdzie $n$ to liczba wierzchołków, $T$ to liczba typów licencji, a $m$ to liczba krawędzi.
-
 \begin{algorithm}[H]
   \caption{Algorytm zachłanny}
   \label{alg:greedy}
@@ -129,18 +126,24 @@ Algorytm ma złożoność czasową $O(nT + m\log n)$, gdzie $n$ to liczba wierzc
   \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Zastosowanie}
-Algorytm zachłanny jest bardzo szybki i daje stabilne wyniki. Z tego powodu często używa się go jako:
+
+\paragraph{Złożoność i zastosowanie}
+Algorytm ma złożoność czasową $O(nT + m\log n)$, gdzie $n$ to liczba wierzchołków, $T$ to liczba typów licencji, a $m$ to liczba krawędzi.
+Algorytm zachłanny jest bardzo szybki i daje stabilne wyniki. Z tego powodu często używany był jako:
 \begin{itemize}
-  \item Podstawową metodę do porównywania z innymi algorytmami
-  \item Źródło rozwiązania początkowego dla bardziej zaawansowanych metod
-  \item Szybką metodę dla dużych grafów, gdzie inne algorytmy są zbyt wolne
+  \item podstawowa metoda do porównywania z innymi algorytmami,
+  \item źródło rozwiązania początkowego dla bardziej zaawansowanych metod,
+  \item szybka metoda dla dużych grafów, gdzie inne algorytmy są zbyt wolne.
 \end{itemize}
 Wadą algorytmu jest to, że podejmując lokalnie najlepsze decyzje, może przegapić lepsze rozwiązania globalne.
 
 \subsection{Heurystyka zbioru dominującego}\label{subsec:ds}
 
-Algorytm najpierw buduje zbiór dominujący grafu zyskując wierzchołki o najlepszej efektywności kosztowej (stosunek liczby pokrywanych sąsiadów do minimalnego kosztu na węzeł). Następnie każdemu dominatorowi przypisuje najtańszą dopuszczalną licencję i tworzy grupę.
+Algorytm oparty na zbiorze dominującym korzysta z podejścia heurystycznego, szeroko opisywanego w literaturze w kontekście budowania maksymalnych zbiorów dominujących \cite{haynes1998domination}. 
+Na początku iteracyjnie wybierane są wierzchołki o najwyższej efektywności kosztowej, definiowanej jako stosunek liczby pokrywanych jeszcze węzłów do minimalnego kosztu licencji. 
+Tak skonstruowany zbiór dominujący pokrywa cały graf. 
+W naszej wersji algorytmu, rozszerzonej o obsługę różnych typów wierzchołków, po posortowaniu dominatorów według stopnia budowane są grupy obejmujące dominatora oraz jego nieprzydzielonych jeszcze sąsiadów.
+Każdej grupie przypisywana jest najtańsza licencja spełniająca ograniczenia pojemnościowe, a w przypadku braku takiej - licencja indywidualna.
 
 \begin{algorithm}[H]
   \caption{Zbiór dominujący -- heurystyka z przypisaniem grup}
@@ -162,13 +165,26 @@ Algorytm najpierw buduje zbiór dominujący grafu zyskując wierzchołki o najle
   \end{algorithmic}
 \end{algorithm}
 
-Budowanie rozwiązania wokół \emph{maksymalnego} zbioru dominującego (niekoniecznie minimalnego) jest typową praktyką heurystyczną \cite{haynes1998domination}. Nasza wersja używa kryterium efektywności kosztowej i po doborze $D$ przypisuje grupy zgodnie z ograniczeniami pojemności.
+\paragraph{Złożoność i zastosowanie} 
+Pierwsza faza (wybór dominatorów) w każdej rundzie przechodzi po wszystkich wierzchołkach, ich sąsiadach i typach licencji, co daje koszt rzędu $O(n m T)$. Druga faza, czyli budowanie grup, dla każdego dominatora sortuje jego sąsiadów i sprawdza wszystkie warianty licencji - w gęstych grafach rośnie to do $O(n^3 T \log n)$, a w rzadkich pozostaje bliżej $O(n m T)$. Wydajność zależy więc przede wszystkim od gęstości grafu i liczby dostępnych licencji.
 
 \subsection{Algorytm losowy}\label{subsec:random}
 
-Algorytm losowy służy jako punkt odniesienia do oceny jakości innych metod. Jeśli którykolwiek algorytm osiąga gorsze wyniki niż losowy wybór, oznacza to fundamentalną wadę w jego implementacji lub doborze parametrów.
+Algorytm losowy pełni rolę metody odniesienia, służącej do oceny jakości rozwiązań generowanych przez inne algorytmy. 
+Jego zadaniem jest weryfikacja poprawności - jeżeli dana metoda uzyskuje wyniki gorsze niż losowy dobór licencji i grup, świadczy to o problemie w jej implementacji lub konfiguracji. 
+Algorytm przetwarza wierzchołki w losowej kolejności i dla każdego z nich losowo wybiera typ licencji oraz skład grupy. 
+W przypadkach, gdy losowy wybór nie jest możliwy (np. brak licencji spełniającej ograniczenia), stosowana jest prosta strategia zachłanna jako rozwiązanie awaryjne.
 
-Algorytm przetwarza wierzchołki w losowej kolejności i dla każdego z nich losowo wybiera typ licencji oraz członków grupy. Gdy losowy wybór nie jest możliwy, używa strategii zachłannej jako fallback.
+\paragraph{Idea metody}
+Algorytm działa według następującej strategii:
+\begin{enumerate}
+  \item Losuje kolejność przetwarzania wierzchołków.
+  \item Dla bieżącego wierzchołka wyznacza zbiór kandydatów obejmujący jego i nieprzydzielonych sąsiadów.
+  \item Jeżeli istnieje dopuszczalna licencja, losowo wybiera jej typ, rozmiar grupy oraz członków.
+  \item W przeciwnym razie przypisuje najtańszą dostępną licencję dopuszczalną dla danego węzła.
+  \item Proces powtarza się do pokrycia całego grafu; pozostałe nieprzydzielone węzły otrzymują indywidualne licencje.
+\end{enumerate}
+
 
 \begin{algorithm}[H]
   \caption{Losowy -- dobór licencji i składu grupy}
@@ -190,6 +206,9 @@ Algorytm przetwarza wierzchołki w losowej kolejności i dla każdego z nich los
   \end{algorithmic}
 \end{algorithm}
 
+\paragraph{Złożoność i zastosowanie}
+Każdy wierzchołek i jego sąsiedzi są przeglądani co najwyżej raz, a dla każdej próby losowania licencji przechodzimy przez wszystkie typy licencji. Daje to koszt rzędu $O\bigl(T(m + n)\bigr)$, który w gęstych grafach upraszcza się do $O(T n^2)$. Algorytm służy głównie jako punkt odniesienia: pozwala szybko ocenić, czy inne metody faktycznie generują lepsze rozwiązania niż czysty przypadek.
+
 
 \section{Metaheurystyki}
 
@@ -208,10 +227,15 @@ Metaheurystyki poprawiają rozwiązanie stosując następujące operacje:
 \end{itemize}
 
 \subsection{Algorytm genetyczny}\label{subsec:ga}
-Populacja rozwiązań z elityzmem, selekcją turniejową, krzyżowaniem oraz mutacją w przestrzeni sąsiedztw; start z heurystyki zachłannej \cite{holland1975,goldberg1989}.
+Algorytm genetyczny utrzymuje populację pełnych przydziałów licencyjnych i z pokolenia na pokolenie ulepsza je, korzystając z losowych mutacji i krzyżowania par rodziców \cite{holland1975,goldberg1989}. Zaczyna od mieszanki rozwiązań zachłannych i losowych, a następnie w każdej generacji wybiera najlepsze osobniki (elita), losuje rodziców metodą turniejową i tworzy potomstwo przez krzyżowanie lub mutację. Słabsze rozwiązania są stopniowo zastępowane lepszymi, a algorytm zapamiętuje najlepszy znaleziony koszt.
 
 \paragraph{Parametry}
-Wielkość populacji (30), liczba pokoleń (40), udział elity (20\%) oraz prawdopodobieństwo krzyżowania (60\%).
+\begin{itemize}
+  \item \textbf{Wielkość populacji} $P=30$ - liczba rozwiązań utrzymywanych w każdej generacji.
+  \item \textbf{Liczba pokoleń} $G=40$ - maksymalna liczba iteracji ewolucji.
+  \item \textbf{Udział elity} $\alpha=20\%$ - część najlepszych osobników kopiowana bez zmian do kolejnego pokolenia.
+  \item \textbf{Prawdopodobieństwo krzyżowania} $p_c=60\%$ - przy tej szansie dziecko powstaje przez połączenie dwóch rodziców; w przeciwnym razie wykonywana jest mutacja.
+\end{itemize}
 
 \begin{algorithm}[H]
   \caption{Algorytm genetyczny}
@@ -237,13 +261,20 @@ Wielkość populacji (30), liczba pokoleń (40), udział elity (20\%) oraz prawd
   \end{algorithmic}
 \end{algorithm}
 
+\paragraph{Złożoność i zastosowanie}
+Inicjalizacja populacji korzysta z jednej wersji zachłannej i $P$ losowych rozwiązań, co kosztuje około $O\bigl(P \cdot (nT + m\log n)\bigr)$. Każda generacja sortuje populację ($O(P\log P)$), a następnie tworzy nowych potomków. Mutacje wywołują ograniczoną liczbę operatorów sąsiedztwa, a krzyżowanie w razie potrzeby uruchamia heurystykę zachłanną na podgrafie, co razem daje koszt rzędu $O(nT + m\log n)$ na potomka. Łącznie otrzymujemy $O\bigl(G \cdot P \cdot (nT + m\log n)\bigr)$ w najgorszym przypadku. Algorytm działa wolniej od prostych heurystyk, ale potrafi znacząco poprawić ich wyniki i służy jako główna metoda poszukiwania wysokiej jakości rozwiązań, zwłaszcza gdy mamy czas na dłuższą optymalizację.
+
 
 
 \subsection{Przeszukiwanie tabu}\label{subsec:tabu}
-Lokalne przeszukiwanie z tabu-listą i kryterium aspiracji \cite{glover1989}; w każdej iteracji wybierany jest najlepszy sąsiad spoza tabu albo poprawiający dotychczas najlepsze rozwiązanie. \emph{Ruch} to jedna z operacji sąsiedztwa zdefiniowanych wyżej, a \emph{kluczem tabu} jest para opisująca odwrócony przydział $(j, i\to k)$ albo zmiana licencji $(i,\ell\to\ell')$. Złożoność $O(I\cdot k\cdot C)$ dla \(I\) iteracji, \(k\) sąsiadów i kosztu oceny \(C\).
+Algorytm tabu startuje od rozwiązania zachłannego i w każdej iteracji generuje niewielkie sąsiedztwo kandydatów przy pomocy operatorów mutacji. Spośród poprawnych kandydatów wybierany jest najlepszy, o ile jego sygnatura nie znajduje się na liście tabu. Lista tabu blokuje cofanie ostatnich ruchów, a kryterium aspiracji pozwala ją złamać, gdy kandydat poprawia globalny wynik \cite{glover1989}. Dzięki temu algorytm balansuje między lokalnym doskonaleniem a eksploracją nowych przydziałów licencji.
 
 \paragraph{Parametry}
-Maksymalna liczba iteracji (1000), długość listy tabu (20) oraz liczba badanych sąsiadów na iterację (10).
+\begin{itemize}
+  \item \textbf{Maksymalna liczba iteracji} $I=1000$ - liczba prób poprawienia rozwiązania.
+  \item \textbf{Długość listy tabu} $L=20$ - liczba ostatnich ruchów blokowanych przed ponownym użyciem.
+  \item \textbf{Liczba sąsiadów na iterację} $k=10$ - liczba kandydatów generowanych przed wyborem najlepszego.
+\end{itemize}
 
 \begin{algorithm}[H]
   \caption{Przeszukiwanie tabu}
@@ -268,12 +299,23 @@ Maksymalna liczba iteracji (1000), długość listy tabu (20) oraz liczba badany
   \end{algorithmic}
 \end{algorithm}
 
+\paragraph{Złożoność i zastosowanie}
+Rozruch algorytmu obejmuje pojedyncze wywołanie heurystyki zachłannej $O(nT + m\log n)$. W każdej z $I$ iteracji generowanych jest do $k$ sąsiadów, a każdy kandydat przechodzi walidację obejmującą sprawdzenie pojemności, pokrycia i sąsiedztwa, co kosztuje około $O(nT + m)$. Całość prowadzi do kosztu rzędu $O\bigl(I \cdot k \cdot (nT + m)\bigr)$. Przeszukiwanie tabu dobrze sprawdza się jako metoda doszkalająca: potrafi poprawić rozwiązania bazowe przy umiarkowanym czasie obliczeń i jest odporne na zbieganie w krótkie cykle dzięki liście tabu.
+
 
 \subsection{Algorytm mrówkowy}\label{subsec:aco}
-Mrówki konstruują rozwiązania sterowane feromonem \(\tau\) i heurystyką \(\eta\) \cite{dorigo1997}; po każdej iteracji następuje parowanie i depozycja proporcjonalna do odwrotności kosztu najlepszego rozwiązania. Złożoność w przybliżeniu \(O(\text{iter}\times\text{ants}\times(|V|+|E|+T))\).
+Algorytm mrówkowy buduje wiele rozwiązań równolegle. Każda mrówka konstruuje przydział licencji, kierując się siłą śladów feromonowych (informacja o dotychczas dobrych wyborach) oraz heurystyką preferującą wierzchołki o dużym stopniu i licencje o dobrym stosunku pojemności do ceny \cite{dorigo1997}. Po każdej iteracji feromony parują, a najlepsze dotąd rozwiązanie wzmacnia ścieżki, dzięki czemu kolejne mrówki chętniej eksplorują obiecujące fragmenty przestrzeni.
 
 \paragraph{Parametry}
-Wpływ feromonu α=1, wpływ heurystyki β=2, tempo parowania (0.5), prawdopodobieństwo wyboru zachłannego q$_0$=0.9 oraz liczba mrówek (20).
+\begin{itemize}
+  \item \textbf{Waga feromonu} $\alpha=1.0$ -- określa, jak mocno mrówki ufają dotychczasowym śladom.
+  \item \textbf{Waga heurystyki} $\beta=2.0$ -- wzmacnia preferencję dla lokalnie dobrych decyzji (wysoki stopień, tanie licencje).
+  \item \textbf{Tempo parowania} $\rho=0.5$ -- część feromonu usuwana po każdej iteracji.
+  \item \textbf{Prawdopodobieństwo wyboru zachłannego} $q_0=0.9$ -- z tą szansą mrówka wybiera najlepszą dostępnie opcję, w przeciwnym razie losuje proporcjonalnie do wag.
+  \item \textbf{Liczba mrówek} $A=20$ -- ile rozwiązań konstruujemy równolegle w jednej iteracji.
+  \item \textbf{Maksymalna liczba iteracji} $I=100$ -- ile razy aktualizujemy feromony.
+  \item \textbf{Losowe nasiono} (opcjonalne) -- pozwala odtworzyć przebieg eksperymentu.
+\end{itemize}
 
 \begin{algorithm}[H]
   \caption{Algorytm mrówkowy}
@@ -302,11 +344,20 @@ Wpływ feromonu α=1, wpływ heurystyki β=2, tempo parowania (0.5), prawdopodob
   \end{algorithmic}
 \end{algorithm}
 
+\paragraph{Złożoność i zastosowanie}
+Inicjalizacja feromonów i heurystyk kosztuje $O(nT)$. Pojedyncza konstrukcja rozwiązania przez mrówkę odwiedza każdy wierzchołek co najwyżej raz, ale przy wyborze właściciela ponownie ocenia wszystkich kandydatów i wszystkie licencje; prowadzi to do kosztu około $O(n^2 T + m\log n)$ na jedną mrówkę (uwzględniając sortowanie sąsiadów). Cały algorytm wykonujący $I$ iteracji z $A$ mrówkami ma więc koszt rzędu $O\bigl(I \cdot A \cdot (n^2 T + m\log n)\bigr)$. Metoda jest cięższa obliczeniowo niż tabu czy zachłanny, ale dobrze sprawdza się, gdy chcemy eksplorować wiele alternatywnych konfiguracji i stopniowo wzmacniać najlepsze z nich.
+
 \subsection{Symulowane wyżarzanie }\label{subsec:sa}
-Start z rozwiązania zachłannego, następnie ruchy sąsiedztwa z akceptacją pogorszeń zależną od temperatury \(T\) i schładzaniem \(T\leftarrow \alpha T\) \cite{kirkpatrick1983}. Złożoność \(O(I\cdot C)\) dla \(I\) iteracji i kosztu oceny \(C\).
+Symulowane wyżarzanie rozpoczyna od rozwiązania zachłannego i w każdej iteracji losuje ruch sąsiedztwa (zmiana licencji, przeniesienie członka, zamiana, scalenie lub podział grupy). Nowy stan jest akceptowany zawsze, gdy obniża koszt, a czasami także wtedy, gdy go pogarsza - z prawdopodobieństwem zależnym od bieżącej temperatury \(T\) i różnicy kosztów \cite{kirkpatrick1983}. Temperatura maleje według ustalonego współczynnika, a gdy algorytm zbyt długo nie znajduje poprawy, dodatkowo jest obniżana o połowę. Dzięki temu metoda potrafi opuszczać lokalne minima i stopniowo stabilizuje się w pobliżu dobrego rozwiązania.
 
 \paragraph{Parametry}
-Temperatura początkowa (100.0), współczynnik chłodzenia (0.995), temperatura minimalna (0.001) oraz maksymalna liczba iteracji (20000).
+\begin{itemize}
+  \item \textbf{Temperatura początkowa} $T_0 = 100.0$ - początkowy poziom losowości przy akceptacji gorszych ruchów.
+  \item \textbf{Współczynnik chłodzenia} $\alpha = 0.995$ - w każdej iteracji temperatura jest mnożona przez $\alpha$.
+  \item \textbf{Temperatura minimalna} $T_{\min} = 0.001$ - po jej osiągnięciu algorytm kończy działanie.
+  \item \textbf{Maksymalna liczba iteracji} $I = 20\,000$ - górne ograniczenie liczby kroków.
+  \item \textbf{Limit stagnacji} $S = 2\,000$ - po tylu nieudanych próbach temperatura jest dodatkowo dzielona przez 2.
+\end{itemize}
 
 \begin{algorithm}[H]
   \caption{Symulowane wyżarzanie}
@@ -332,3 +383,6 @@ Temperatura początkowa (100.0), współczynnik chłodzenia (0.995), temperatura
     \State \Return $najlepsze$
   \end{algorithmic}
 \end{algorithm}
+
+\paragraph{Złożoność i zastosowanie}
+Inicjalizacja wymaga jednego wywołania heurystyki zachłannej $O(nT + m\log n)$. Każda iteracja wykonuje ograniczoną liczbę prób wygenerowania sąsiada (do 12 ruchów), a zaakceptowany kandydat przechodzi pełną walidację pokrycia i ograniczeń, co kosztuje około $O(nT + m)$. W rezultacie złożoność całego przebiegu wynosi $O\bigl(I \cdot (nT + m)\bigr)$ z dodatkowym mnożnikiem wynikającym z limitu stagnacji. Symulowane wyżarzanie jest umiarkowanie kosztowne, ale często zapewnia lepsze rozwiązania niż czyste metody lokalne, szczególnie gdy potrzebna jest możliwość wychodzenia z lokalnych minimów przy ograniczonym czasie działania.
