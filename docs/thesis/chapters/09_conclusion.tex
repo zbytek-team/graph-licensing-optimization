@@ -1,56 +1,40 @@
-\chapter{Podsumowanie}
-\subsection{Symulacje dynamiczne}
-\begin{itemize}
-  \item Rozdział~\ref{chap:dynamic} zdefiniował symulator zmian sieci (mutacje węzłów i krawędzi, tryby preferencyjne, triadyczne i losowe). Ciepły start (wykorzystanie poprzedniego rozwiązania) znacząco obniżał koszt względem rekalkulacji od zera (redukcje 6--14\% w scenariuszach syntetycznych i 7--12\% w realistycznych), utrzymując czasy rebalansowania na poziomie 1--3~s. Algorytm zachłanny, działający w czasie milisekund, stanowił ważny punkt odniesienia.
-  \item Poziom intensywności mutacji miał większy wpływ na czas niż na koszt. Algorytm mrówkowy pozostawał najdokładniejszy, lecz przeszukiwanie tabu i algorytm genetyczny oferowały lepszy kompromis czasowy. W realistycznych dynamikach najtrudniejszy okazał się wariant z losowym przełączaniem krawędzi (\texttt{rand\_rewire}).
-\end{itemize}label{chap:conclusion}
+\chapter{Podsumowanie}\label{chap:conclusion}
 
-Praca przedstawiła pełny cykl badawczy dotyczący optymalizacji kosztów licencji grupowych w sieciach społecznościowych. Począwszy od formalizacji modelu, poprzez analizę algorytmów deterministycznych i metaheurystycznych, symulacje dynamiczne, aż po studia przypadków z dodatkowymi planami licencyjnymi, wyprowadzono spójny obraz zachowania rozwiązań w wielu scenariuszach. Poniżej zebrano najważniejsze obserwacje z poszczególnych części pracy oraz wskazano kierunki dalszych badań.
+\subsection{Symulacje dynamiczne}
+Rozdział~\ref{chap:dynamic} opisuje symulator zmian w sieci. Uwzględnia mutacje węzłów i krawędzi oraz trzy tryby: preferencyjny, triadyczny i losowy. Zastosowanie ciepłego startu, czyli użycie poprzedniego rozwiązania, obniżało koszt względem liczenia od zera o 6--14\% na grafach syntetycznych i o 7--12\% na danych realistycznych. Czas ponownego zrównoważenia wynosił zwykle 1--3~s. Algorytm zachłanny działał w milisekundach i służył jako punkt odniesienia. Intensywność mutacji silniej wpływała na czas niż na końcowy koszt. Najwyższą dokładność uzyskiwał algorytm mrówkowy, a przeszukiwanie tabu i algorytm genetyczny dawały lepszy kompromis między kosztem i czasem. W ujęciu dynamicznym najtrudniejszy był wariant \texttt{rand\_rewire}.
+
+Praca pokazuje pełny cykl badawczy dotyczący optymalizacji kosztów licencji grupowych w sieciach społecznościowych. Najpierw sformalizowano model. Następnie porównano algorytmy deterministyczne i metaheurystyczne. Dalej przeprowadzono symulacje dynamiczne. Na końcu rozszerzono analizę o dodatkowe plany licencyjne. Uzyskano spójny obraz działania metod w wielu scenariuszach. Poniżej zebrano główne wyniki i wskazano możliwe kierunki dalszych badań.
 
 \section{Wyniki}
 
 \subsection*{Model i metody}
-\begin{itemize}
-  \item Rozdziały~\ref{chap:introduction}--\ref{chap:testdata} ugruntowały formalny opis problemu jako uogólnienia dominowania rzymskiego z ograniczeniami pojemności i różnorodnymi typami licencji. Wykazano twardą złożoność obliczeniową problemu.
-  \item Rozdział~\ref{chap:algorithms} zebrał spektrum metod: dokładny solver ILP, heurystyki konstrukcyjne (algorytm zachłanny, zbiór dominujący), metaheurystyki (algorytm genetyczny, algorytm mrówkowy, przeszukiwanie tabu, wyżarzanie symulowane) oraz bazowy algorytm losowy. Implementacje posiadają wspólny interfejs, co umożliwiło jednolite eksperymenty.
-\end{itemize}
+Rozdziały~\ref{chap:introduction}--\ref{chap:testdata} definiują problem jako uogólnienie dominacji rzymskiej z ograniczeniami pojemności oraz różnymi typami licencji. Wykazano wysoką złożoność obliczeniową. Rozdział~\ref{chap:algorithms} prezentuje pełen zestaw metod: dokładny solver ILP, heurystyki konstrukcyjne (m.in. algorytm zachłanny, podejście przez zbiór dominujący), metaheurystyki (algorytm genetyczny, algorytm mrówkowy, przeszukiwanie tabu, wyżarzanie symulowane) oraz algorytm losowy. Wszystkie implementacje mają wspólny interfejs, co ułatwiło porównania.
 
 \subsection*{Eksperymenty statyczne}
-\begin{itemize}
-  \item Rozdział~\ref{chap:experiments} potwierdził hierarchię jakości: ILP $>$ algorytm mrówkowy $>$ przeszukiwanie tabu/algorytm genetyczny $>$ wyżarzanie symulowane $>$ heurystyki konstrukcyjne $>$ algorytm losowy. Różnice były istotne statystycznie (test Friedmana, porównania Nemenyi'ego), a grafy bezskalowe okazały się najłatwiejsze do pokrycia dzięki hubom.
-  \item Czas wykonania rósł wykładniczo dla metaheurystyk, natomiast heurystyki konstrukcyjne utrzymywały czasy rzędu milisekund. Na potrzeby praktyczne wyodrębniono trzy regiony: (i) grafy małe -- warto korzystać z ILP jako punktu odniesienia, (ii) grafy średnie -- metaheurystyki zapewniają najlepszy kompromis, (iii) grafy duże lub wymagające szybkiej odpowiedzi -- GreedyAlgorithm stanowi użyteczną aproksymację.
-\end{itemize}
+Rozdział~\ref{chap:experiments} potwierdza hierarchię jakości: $ILP >$ algorytm mrówkowy $>$ przeszukiwanie tabu/algorytm genetyczny $>$ wyżarzanie symulowane $>$ heurystyki konstrukcyjne $>$ algorytm losowy. Różnice są istotne statystycznie (test Friedmana oraz porównania Nemenyi'ego). Grafy bezskalowe okazały się łatwiejsze do pokrycia z powodu hubów. Czas działania metaheurystyk rósł szybko, a heurystyki konstrukcyjne utrzymywały czasy rzędu milisekund. W praktyce wyróżniono trzy zakresy: dla małych grafów warto stosować ILP jako punkt odniesienia; dla średnich grafów najlepsze są metaheurystyki; dla dużych grafów albo gdy liczy się szybkość, użyteczną aproksymację daje algorytm zachłanny.
 
 \subsection*{Symulacje dynamiczne}
-\begin{itemize}
-  \item Rozdział~\ref{chap:dynamic} zdefiniował symulator zmian sieci (mutacje węzłów i krawędzi, tryby preferencyjne, triadyczne i losowe). Ciepły start znacząco obniżał koszt względem rekalkulacji od zera (redukcje 6--14\% w scenariuszach syntetycznych i 7--12\% w realistycznych), utrzymując czasy rebalansowania na poziomie 1--3~s.
-  \item Poziom intensywności mutacji miał większy wpływ na czas niż na koszt. AntColonyOptimization pozostawał najdokładniejszy, lecz TabuSearch i algoritm genetyczny oferowały lepszy kompromis czasowy. W realistycznych dynamikach najniższe koszty osiągał wariant Spotify (mediana $\approx0{,}41$ na węzeł).
-\end{itemize}
+Rozdział~\ref{chap:dynamic} przedstawia wpływ zmian w sieci na koszt i czas. Ciepły start konsekwentnie obniżał koszt o 6--14\% (syntetyczne) i 7--12\% (realistyczne), przy czasie rebalansowania 1--3~s. Intensywniejsze mutacje zwiększały głównie czas, a mniej wpływały na koszt. Najdokładniejszy pozostawał algorytm mrówkowy, natomiast przeszukiwanie tabu i algorytm genetyczny dawały lepszy kompromis czasowy. W danych realistycznych najniższe koszty uzyskano w wariancie Spotify (mediana $\approx 0{,}41$ na węzeł).
 
 \subsection*{Rozszerzenia licencyjne}
-\begin{itemize}
-  \item Rozdział~\ref{chap:extensions} zbadał osiem wariantów taryfowych. W planach Duolingo i Roman liczba osób lub koszt planu grupowego determinowały opłacalność metaheurystyk: przy niskim koszcie grupy (\texttt{duolingo\_p\_2}) redukcja kosztu względem heurystyki wynosiła 10--20\%, natomiast przy drogich planach (\texttt{duolingo\_p\_5}, \texttt{roman\_p\_5}) przewaga spadała do pojedynczych procent.
-  \item Włączenie planu Duo (Spotify) i planów Standard/Premium (Netflix) otworzyło nowe możliwości parowania użytkowników, co obniżyło koszt na węzeł (mediana 0,40 w Spotify wobec 0,50 w \texttt{duolingo\_p\_2}). W symulacjach dynamicznych konfiguracje z planem pośrednim utrzymały najkorzystniejsze wartości zarówno pod względem kosztu, jak i stabilności czasowej, a metaheurystyki redukowały koszt o 5-12\% w porównaniu do algorytmu zachłannego.
-\end{itemize}
+Rozdział~\ref{chap:extensions} analizuje osiem wariantów taryf. W planach Duolingo i Roman o opłacalności decydowały rozmiar grupy i koszt planu. Przy tańszej grupie (\texttt{duolingo\_p\_2}) metaheurystyki redukowały koszt o 10--20\% względem heurystyk. Przy droższych planach (\texttt{duolingo\_p\_5}, \texttt{roman\_p\_5}) przewaga spadała do kilku procent. Dodanie planu Duo (Spotify) oraz planów Standard/Premium (Netflix) umożliwiło nowe parowania użytkowników i obniżyło koszt na węzeł (mediana 0{,}40 w Spotify wobec 0{,}50 w \texttt{duolingo\_p\_2}). W dynamice konfiguracje z planem pośrednim utrzymywały najkorzystniejszy koszt i stabilny czas, a metaheurystyki dawały 5--12\% oszczędności względem algorytmu zachłannego.
 
 \section{Rekomendacje praktyczne}
 
-\begin{itemize}
-  \item \textbf{Dobór algorytmu.} Dla instancji do ~200 węzłów ILPSolver jest najlepszym punktem odniesienia. W większych sieciach rekomendowane są AntColonyOptimization lub TabuSearch, przy czym TabuSearch zapewnia krótszy czas rebalansowania i lepiej radzi sobie w środowisku dynamicznym.
-  \item \textbf{Strategia inicjalizacji.} Ciepły start metaheurystyk (wykorzystanie poprzedniego rozwiązania jako punktu wyjścia) redukuje koszt o 6--14\% przy niewielkim wzroście czasu i powinien być standardem w systemach aktualizowanych inkrementalnie.
-  \item \textbf{Polityka licencyjna.} Tańsze plany rodzinne (np. plano Duo) realnie obniżają koszt końcowy, co potwierdzają zarówno eksperymenty statyczne, jak i dynamiczne. Przewymiarowanie planu (wysokie $p$) powoduje, że licencje indywidualne stają się bardziej opłacalne, a zyski z optymalizacji maleją.
-\end{itemize}
+\textbf{Dobór algorytmu.} Dla instancji do około 200 węzłów solver ILP jest najlepszym punktem odniesienia. Dla większych sieci zalecane są algorytm mrówkowy albo przeszukiwanie tabu; w środowisku dynamicznym krótsze czasy rebalansowania daje przeszukiwanie tabu.
+
+\textbf{Strategia inicjalizacji.} Ciepły start metaheurystyk, czyli start z poprzedniego rozwiązania, obniża koszt o 6--14\% przy niewielkim koszcie czasowym. W systemach aktualizowanych częściowo powinien to być standard.
+
+\textbf{Polityka licencyjna.} Tańsze plany rodzinne, w szczególności warianty pośrednie (np. Duo), realnie zmniejszają koszt końcowy. Zbyt wysokie $p$ w planach grupowych sprzyja licencjom indywidualnym i ogranicza zyski z optymalizacji.
 
 \section{Kierunki dalszych badań}
 
-\begin{itemize}
-  \item \textbf{Gwarancje aproksymacji.} Empiryczna przewaga metaheurystyk zachęca do opracowania ograniczeń teoretycznych na jakość rozwiązań (np. na klasach grafów o ograniczonej degeneracji lub w modelach losowych).
-  \item \textbf{Modele stochastyczne.} Uwzględnienie niepewności w dostępie użytkowników i ewolucji sieci mogłoby doprowadzić do modeli odpornych na fluktuacje (np. programowanie dwustopniowe lub dynamiczne podejścia bayesowskie).
-  \item \textbf{Wielokryterialność i koszty operacyjne.} Rozszerzenie funkcji celu o aspekty sprawiedliwości, ryzyka lub kosztu migracji między planami pozwoliłoby lepiej odwzorować rzeczywiste ograniczenia biznesowe.
-  \item \textbf{Optymalizacja hiperpametrów.} Automatyczne strojenie parametrów metaheurystyk (np. podejścia typu AutoML) może dalej poprawić stosunek koszt/ czas bez ręcznej ingerencji.
-  \item \textbf{Integracja z praktyką.} Zaimplementowana biblioteka otwiera drogę do wdrożeń w systemach rekomendacji planów rodzinnych; interesującym kierunkiem jest eksperyment online z prawdziwymi danymi platform subskrypcyjnych.
-\end{itemize}
+\textbf{Gwarancje aproksymacji.} Warto poszukać teoretycznych ograniczeń jakości rozwiązań dla wybranych klas grafów lub modeli losowych.
+\textbf{Modele stochastyczne.} Ujęcie niepewności w dostępie użytkowników i ewolucji sieci może zwiększyć odporność rozwiązań (np. podejścia dwuetapowe lub bayesowskie).
+\textbf{Wielokryterialność i koszty operacyjne.} Rozszerzenie funkcji celu o sprawiedliwość, ryzyko czy koszt migracji lepiej odzwierciedli praktykę.
+\textbf{Optymalizacja hiperparametrów.} Automatyczne strojenie parametrów metaheurystyk (np. techniki z rodziny AutoML) może poprawić stosunek kosztu do czasu bez ręcznego dostrajania.
+\textbf{Integracja z praktyką.} Biblioteka daje podstawy do wdrożeń w systemach rekomendacji planów rodzinnych; naturalnym krokiem jest eksperyment online na rzeczywistych danych.
 
 \section{Zakończenie}
 
-Przedstawiony w pracy model, zestaw algorytmów oraz bogate eksperymenty (statyczne, dynamiczne i rozszerzone) dostarczają całościowego obrazu kompromisów pomiędzy kosztem licencji a czasem optymalizacji. Pokazano, że nawet w obliczu złożoności obliczeniowej możliwe jest osiąganie wysokiej jakości rozwiązań w akceptowalnym czasie dzięki odpowiedniemu doborowi metod. Wyniki stanowią solidną podstawę dla dalszych badań oraz praktycznych zastosowań w gospodarce cyfrowej, w której modele rodzinne i subskrypcyjne stają się standardem.
+Przedstawiony model, zestaw algorytmów oraz eksperymenty statyczne i dynamiczne pokazują, że mimo wysokiej złożoności można uzyskać rozwiązania dobrej jakości w akceptowalnym czasie. Kluczowy jest dobór metody do wielkości i dynamiki sieci oraz rozsądna polityka licencyjna. Wyniki stanowią podstawę do dalszych prac oraz do zastosowań w usługach subskrypcyjnych, gdzie modele rodzinne stają się standardem.
