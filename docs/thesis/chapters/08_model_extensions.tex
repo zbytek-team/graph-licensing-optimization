@@ -1,7 +1,7 @@
 \chapter{Rozszerzenia modelu licencjonowania}\label{chap:extensions}
 
 \section{Przegląd badanych wariantów}
-Oprócz bazowych konfiguracji rozważono osiem rozszerzeń licencyjnych, które różnią się wielokrotnością kosztu licencji grupowej względem indywidualnej. Warianty Duolingo Super obejmują plany, w których koszt licencji grupowej wynosi odpowiednio dwukrotność, czterokrotność i pięciokrotność ceny licencji indywidualnej, przy zachowaniu stałej pojemności grupy (6 osób). Podobnie, w przypadku dominowania rzymskiego analizowano konfiguracje, w których koszt licencji grupowej wynosi $p$-krotność ceny indywidualnej, dla $p \in \{3, 4, 5\}$. Dwa ostatnie warianty odnoszą się do rzeczywistych ofert: Spotify wprowadza plan Duo (pojemność 2) pomiędzy licencją indywidualną a rodzinną, natomiast Netflix oferuje plany dla 1, 2 lub 4 osób. Podstawowe statystyki dla wszystkich konfiguracji zestawiono w tab.~\ref{tab:ext-overall-static}. W każdym przypadku analizowano ten sam zestaw algorytmów, pomijając obserwacje z timeout.
+Oprócz bazowych konfiguracji rozważono osiem rozszerzeń licencyjnych, które różnią się wielokrotnością kosztu licencji grupowej względem indywidualnej. Warianty Duolingo Super obejmują plany, w których koszt licencji grupowej wynosi odpowiednio dwukrotność, czterokrotność i pięciokrotność ceny licencji indywidualnej, przy zachowaniu stałej pojemności grupy (6 osób). Podobnie, w przypadku dominowania rzymskiego analizowano konfiguracje, w których koszt licencji grupowej wynosi $p$-krotność ceny indywidualnej, dla $p \in \{3, 4, 5\}$. Dwa ostatnie warianty odnoszą się do rzeczywistych ofert: Spotify wprowadza plan Duo (pojemność 2) pomiędzy licencją indywidualną a rodzinną, natomiast Netflix oferuje plany dla 1, 2 lub 4 osób. Podstawowe statystyki dla wszystkich konfiguracji zestawiono w tabeli~\ref{tab:ext-overall-static}. W każdym przypadku analizowano ten sam zestaw algorytmów, pomijając obserwacje z timeout.
 
 \begin{table}[H]
   \centering
@@ -22,7 +22,7 @@ Oprócz bazowych konfiguracji rozważono osiem rozszerzeń licencyjnych, które 
   \end{tabular}
 \end{table}
 
-\section{Warianty rodziny Duolingo}
+\subsection{Warianty rodziny Duolingo}
 Na rys.~\ref{fig:ext-duolingo-cost} przedstawiono mediany kosztu na węzeł dla konfiguracji, w których koszt licencji grupowej wynosi odpowiednio dwukrotność (\texttt{duolingo\_p\_2}), czterokrotność (\texttt{duolingo\_p\_4}) oraz pięciokrotność (\texttt{duolingo\_p\_5}) ceny licencji indywidualnej. Widać, że wyższe mnożniki prowadzą do wzrostu kosztu na węzeł, co wynika z preferencji algorytmów do korzystania z licencji indywidualnych przy wyższych kosztach planów grupowych. W przypadku konfiguracji \texttt{duolingo\_p\_4} oznacza to, że sens kupna licencji grupowej pojawia się dopiero dla grup liczących 4 lub więcej osób, ponieważ dopiero wtedy koszt licencji grupowej jest równy lub niższy niż koszt czterech licencji indywidualnych.
 
 \begin{figure}[H]
@@ -32,15 +32,15 @@ Na rys.~\ref{fig:ext-duolingo-cost} przedstawiono mediany kosztu na węzeł dla 
   \label{fig:ext-duolingo-cost}
 \end{figure}
 
-Zmiana struktury licencji wpływa również na udział planów grupowych (tab.~\ref{tab:ext-license-mix}). W konfiguracji \texttt{duolingo\_p\_2} ponad połowa przydziałów wykorzystuje licencję grupową, podczas gdy w wariancie \texttt{duolingo\_p\_5} udział grup spada do 24\%, co odzwierciedla rosnący koszt planu grupowego względem licencji indywidualnych.
+Zmiana struktury licencji wpływa również na udział planów grupowych (tabela~\ref{tab:ext-license-mix}). W konfiguracji \texttt{duolingo\_p\_2} ponad połowa przydziałów wykorzystuje licencję grupową, podczas gdy w wariancie \texttt{duolingo\_p\_5} udział grup spada do 24\%, co odzwierciedla rosnący koszt planu grupowego względem licencji indywidualnych.
 
 
-\section{Warianty dominowania rzymskiego}
+\subsection{Warianty dominowania rzymskiego}
 Na rys.~\ref{fig:ext-roman-cost} przedstawiono mediany kosztu na węzeł dla konfiguracji, w których koszt licencji grupowej wynosi odpowiednio trzykrotność (\texttt{roman\_p\_3}), czterokrotność (\texttt{roman\_p\_4}) oraz pięciokrotność (\texttt{roman\_p\_5}) ceny licencji indywidualnej. Podobnie jak w przypadku planów Duolingo, wyższe mnożniki prowadzą do wzrostu kosztu na węzeł, co wynika z preferencji algorytmów do korzystania z licencji indywidualnych przy wyższych kosztach planów grupowych. Wariant \texttt{roman\_p\_5} charakteryzuje się najwyższym kosztem, co odzwierciedla ograniczoną opłacalność licencji grupowych w tej konfiguracji.
 
 Rys.~\ref{fig:ext-roman-time} pokazuje, że czasy wykonania pozostają stabilne niezależnie od wielokrotności kosztu. Warto zauważyć, że różnice w czasach między konfiguracjami są niewielkie, co wskazuje na podobną złożoność obliczeniową dla wszystkich wariantów.
 
-Zmiana struktury licencji wpływa również na udział planów grupowych (tab.~\ref{tab:ext-license-mix}). W konfiguracji \texttt{roman\_p\_3} udział grup wynosi 43\%, podczas gdy w wariancie \texttt{roman\_p\_5} spada do 24\%. Wyższe koszty planów grupowych prowadzą do preferencji algorytmów w kierunku licencji indywidualnych, co jest zgodne z obserwacjami dla innych rozszerzeń.
+Zmiana struktury licencji wpływa również na udział planów grupowych (tabela~\ref{tab:ext-license-mix}). W konfiguracji \texttt{roman\_p\_3} udział grup wynosi 43\%, podczas gdy w wariancie \texttt{roman\_p\_5} spada do 24\%. Wyższe koszty planów grupowych prowadzą do preferencji algorytmów w kierunku licencji indywidualnych, co jest zgodne z obserwacjami dla innych rozszerzeń.
 
 \begin{figure}[H]
   \centering
@@ -56,7 +56,7 @@ Zmiana struktury licencji wpływa również na udział planów grupowych (tab.~\
   \label{fig:ext-roman-time}
 \end{figure}
 
-\section{Spotify i Netflix -- dodatkowe plany pośrednie}
+\subsection{Spotify i Netflix}
 
 Spotify wprowadza trzecią licencję (Duo), co otwiera możliwość parowania użytkowników zamiast budowania dużych grup. Tabela~\ref{tab:ext-additional-static} potwierdza, że przeszukiwanie tabu i algorytm genetyczny osiągają najniższe koszty ($0{,}335$ i $0{,}400$ na węzeł), wyraźnie dystansując heurystykę zachłanną. W przypadku Netflixa plan Standard (pojemność 2) wypełnia lukę między kontem solo a planem rodzinnych czterech kont, dzięki czemu metaheurystyki utrzymują koszt w granicach $0{,}60$--$0{,}65$ przy czasie poniżej 1~s.
 
@@ -86,8 +86,9 @@ Spotify wprowadza trzecią licencję (Duo), co otwiera możliwość parowania u�
   \label{fig:ext-license-cost}
 \end{figure}
 
-\
-Struktura wykorzystania licencji zmienia się znacząco (tab.~\ref{tab:ext-license-mix}). W Spotify licencje grupowe odpowiadają za 64\% przydziałów (plan Duo + rodzina), podczas gdy w wariancie \texttt{duolingo\_p\_5} udział grup spada do 24\%. W Netflixie większość przydziałów to plany Standard/Premium (udział 68\%).
+\section{Analiza wpływu liczby użytkowników na koszty}
+
+Struktura wykorzystania licencji zmienia się znacząco (tabela~\ref{tab:ext-license-mix}). W Spotify licencje grupowe odpowiadają za 64\% przydziałów (plan Duo + rodzina), podczas gdy w wariancie \texttt{duolingo\_p\_5} udział grup spada do 24\%. W Netflixie większość przydziałów to plany Standard/Premium (udział 68\%).
 
 \begin{table}[H]
   \centering
@@ -110,7 +111,7 @@ Struktura wykorzystania licencji zmienia się znacząco (tab.~\ref{tab:ext-licen
 
 \section{Rozszerzenia w środowisku dynamicznym}
 
-Symulacje rebalansowania licencji uwzględniające mutacje sieci (sekcja~\ref{chap:dynamic}) wykonano również dla nowych konfiguracji. Wyniki zagregowane z trzech scenariuszy realistycznych (preferencyjne i triadyczne dołączanie, losowe przełączanie krawędzi) zebrano w tab.~\ref{tab:ext-dyn-overall}. Najniższe koszty osiąga wariant Spotify (mediana $0{,}407$), co wynika z możliwości parowania użytkowników; kolejne w zestawieniu pozostają \texttt{duolingo\_p\_2} oraz \texttt{roman\_p\_3}.
+Symulacje rebalansowania licencji uwzględniające mutacje sieci (sekcja~\ref{chap:dynamic}) wykonano również dla nowych konfiguracji. Wyniki zagregowane z trzech scenariuszy realistycznych (preferencyjne i triadyczne dołączanie, losowe przełączanie krawędzi) zebrano w tabeli~\ref{tab:ext-dyn-overall}. Najniższe koszty osiąga wariant Spotify (mediana $0{,}407$), co wynika z możliwości parowania użytkowników; kolejne w zestawieniu pozostają \texttt{duolingo\_p\_2} oraz \texttt{roman\_p\_3}.
 
 \begin{table}[H]
   \centering
@@ -131,7 +132,7 @@ Symulacje rebalansowania licencji uwzględniające mutacje sieci (sekcja~\ref{ch
   \end{tabular}
 \end{table}
 
-Różnice względem konstrukcji od algorytmu zachłannego przedstawia tab.~\ref{tab:ext-dyn-delta}. Dla większości konfiguracji metaheurystyki redukują koszt na węzeł o 5--12\%, choć okupują to wydłużeniem czasu rebalansowania o 0,4--2,4~s. Wariant \texttt{duolingo\_p\_5} praktycznie traci przewagę kosztową (różnice bliskie zera), natomiast w Spotify przeszukiwanie tabu utrzymuje najwyższą redukcję (--0,087) przy czasie około 1,6~s.
+Różnice względem konstrukcji od algorytmu zachłannego przedstawia tabela~\ref{tab:ext-dyn-delta}. Dla większości konfiguracji metaheurystyki redukują koszt na węzeł o 5--12\%, choć okupują to wydłużeniem czasu rebalansowania o 0,4--2,4~s. Wariant \texttt{duolingo\_p\_5} praktycznie traci przewagę kosztową (różnice bliskie zera), natomiast w Spotify przeszukiwanie tabu utrzymuje najwyższą redukcję (--0,087) przy czasie około 1,6~s.
 
 \begin{table}[H]
   \centering
@@ -168,7 +169,27 @@ Różnice względem konstrukcji od algorytmu zachłannego przedstawia tab.~\ref{
   \end{tabular}
 \end{table}
 
-Pełne przebiegi kosztów i czasów dla algorytmów genetycznego oraz mrówkowego w wariantach syntetycznych zebrano na rys.~\ref{fig:dyn-synth-genetic-cost}--\ref{fig:dyn-synth-genetic-time}, natomiast ich odpowiedniki dla scenariuszy realistycznych pokazano na rys.~\ref{fig:dyn-real-genetic-cost}--\ref{fig:dyn-real-genetic-time}. W każdym przypadku plan Spotify charakteryzuje się najszybszą stabilizacją kosztów, natomiast wariant \texttt{duolingo\_p\_5} wykazuje najwyższy dryf wynikający z większego kosztu licencji grupowej.
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.32\linewidth]{assets/figures/extensions/dynamic/algorytm_genetyczny_cost_per_node_steps_duolingo_p_2.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/extensions/dynamic/algorytm_genetyczny_cost_per_node_steps_netflix.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/extensions/dynamic/algorytm_genetyczny_cost_per_node_steps_spotify.pdf}
+  \caption{Algorytm genetyczny -- koszt na węzeł w rozszerzeniach dynamicznych.}
+  \label{fig:dyn-ext-genetic-cost}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.32\linewidth]{assets/figures/extensions/dynamic/algorytm_genetyczny_time_steps_duolingo_p_2.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/extensions/dynamic/algorytm_genetyczny_time_steps_netflix.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/extensions/dynamic/algorytm_genetyczny_time_steps_spotify.pdf}
+  \caption{Algorytm genetyczny -- czas wykonania w rozszerzeniach dynamicznych.}
+  \label{fig:dyn-ext-genetic-time}
+\end{figure}
+
+Pełne przebiegi kosztów i czasów dla algorytmu genetycznego w wariancie syntetycznym zebrano na rys.~\ref{fig:dyn-synth-genetic-cost}--\ref{fig:dyn-synth-genetic-time}, natomiast ich odpowiedniki dla scenariusza realistycznego pokazano na rys.~\ref{fig:dyn-real-genetic-cost}--\ref{fig:dyn-real-genetic-time}. W każdym przypadku plan Spotify charakteryzuje się najszybszą stabilizacją kosztów, natomiast wariant \texttt{duolingo\_p\_5} wykazuje najwyższy dryf wynikający z większego kosztu licencji grupowej.
 
 \section{Wnioski}
 

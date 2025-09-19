@@ -27,9 +27,9 @@ thesis-all:
 all:
 	$(MAKE) install && $(MAKE) quick
 
-# ------------------------------------------------------------
+# ----------------------------------------
 # Thesis PDF build (portable)
-# ------------------------------------------------------------
+# ----------------------------------------
 thesis:
 	# Prefer tectonic for automatic package fetching
 	@if command -v tectonic >/dev/null 2>&1; then \

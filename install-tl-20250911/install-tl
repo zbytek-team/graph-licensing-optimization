@@ -440,7 +440,7 @@ if ($opt_help) {
   # less can break control characters and thus the output of pod2usage
   # is broken.  We add/set LESS=-R in the environment and unset
   # LESSPIPE and LESSOPEN to try to help.
-  # 
+  #
   if (defined($ENV{'LESS'})) {
     $ENV{'LESS'} .= " -R";
   } else {
@@ -506,7 +506,7 @@ die "$0: Incompatible options init-from-profile and in-place.\n"
 #     . "any of texmfhome, texmfconfig, texmfvar ("
 #     . "$pathopts{'texmfhome'}, $pathopts{'texmfvar'}, $pathopts{'texmfconfig'}"
 #     . ").\n"
-#   if ($opt_texuserdir && 
+#   if ($opt_texuserdir &&
 #        ($pathopts{'texmfhome'} || $pathopts{'texmfvar'}
 #         || $pathopts{'texmfconfig'}));
 
@@ -561,7 +561,7 @@ if (TeXLive::TLCrypto::setup_checksum_method()) {
         tldie("$0: No gpg found, but verification explicitly requested "
               . "on command line, so quitting.\n");
       } else {
-        # implicitly requested, just 
+        # implicitly requested, just
         debug("Couldn't detect gpg so will proceed without verification!\n");
       }
     }
@@ -641,7 +641,7 @@ if ($opt_location) {
     push @media_available, "NET#$tmp";
 
   } elsif ($tmp =~ m!^(rsync|)://!i) {
-    tldie ("$0: sorry, rsync unsupported; use an http or ftp url here.\n"); 
+    tldie ("$0: sorry, rsync unsupported; use an http or ftp url here.\n");
 
   } else {
     # remove leading file:/+ part
@@ -1006,7 +1006,7 @@ sub update_default_paper {
              . "$opt_paper (ignoring)\n");
     }
   } elsif ($env_paper) {
-    if ($env_paper eq "letter") { $vars{'instopt_letter'} = 1; } 
+    if ($env_paper eq "letter") { $vars{'instopt_letter'} = 1; }
     elsif ($env_paper eq "a4") { ; } # do nothing
     else {
       tlwarn("$0: TEXLIVE_INSTALL_PAPER value must be letter or a4, not: "
@@ -1133,7 +1133,7 @@ sub do_installation {
       $localtlpdb->add_tlpobj($stlp);
     }
   }
-  
+
   # include a 00texlive.config package in the new tlpdb,
   # so that further installations and updates using the new installation
   # as the source can work.  Only include the release info, the other
@@ -1144,8 +1144,8 @@ sub do_installation {
   $tlpobj->category($t->category);
   $tlpobj->depends("minrelease/" . $tlpdb->config_minrelease,
                    "release/"    . $tlpdb->config_release);
-  $localtlpdb->add_tlpobj($tlpobj);  
-  
+  $localtlpdb->add_tlpobj($tlpobj);
+
   $localtlpdb->save unless $opt_in_place;
 
   my $errcount = do_postinst_stuff();
@@ -1177,7 +1177,7 @@ sub do_installation {
 } # do_installation
 
 # A full timestamp is too verbose for terminal output.
-# 
+#
 sub short_time {
   my ($sec,$min,$hour) = localtime ();
   my $short = sprintf "%02d:%02d:%02d", $hour, $min, $sec;
@@ -1185,7 +1185,7 @@ sub short_time {
 }
 
 # We run a postinstall command here.  We ignore the return value?
-# 
+#
 sub run_postinst_cmd {
   my ($cmd) = @_;
   my $tim = localtime ();
@@ -1412,7 +1412,7 @@ operations might be disturbed.\n\n";
   # no need to test for portable or in_place:
   # the menus (or profile?) should have set the required options
   $errcount += do_tlpdb_postactions();
-  
+
   return $errcount;
 } # do_postinst_stuff
 
@@ -1495,7 +1495,7 @@ sub do_path_adjustments {
       $vars{'tlpdbopt_w32_multi_user'});
     broadcast_env();
   } else {
-    if ($F_OK != TeXLive::TLUtils::add_symlinks($vars{'TEXDIR'}, 
+    if ($F_OK != TeXLive::TLUtils::add_symlinks($vars{'TEXDIR'},
          $vars{'this_platform'},
          $vars{'tlpdbopt_sys_bin'}, $vars{'tlpdbopt_sys_man'},
          $vars{'tlpdbopt_sys_info'})) {
@@ -1633,7 +1633,7 @@ EOF
 -- the distributed file (.../texlive/YYYY/texmf-dist/web2c/texmfcnf.lua).
 -- And include *only* your changed values, not a copy of the whole thing!
 
-return { 
+return {
   content = {
     variables = {
 EOF
@@ -2177,7 +2177,7 @@ sub create_profile {
     $fh = \*PROFILE;
   }
   #
-  # determine whether the set of selected collections exactly 
+  # determine whether the set of selected collections exactly
   # agrees with the selected scheme. In this case we do *not*
   # save the actual collection setting but only the selected
   # scheme, as reading the profile will load all collections
@@ -2305,7 +2305,7 @@ sub read_profile {
       } else {
         tldie("$0: Quitting, profile key for path $_ must not be empty.\n");
       }
-    
+
     } elsif (m/^(binary|collection-)/) {
       if ($pro{$_} =~ /^[01]$/) {
         $vars{$_} = $pro{$_};
@@ -2336,7 +2336,7 @@ sub read_profile {
       last;
     }
   }
-  # if we are in seed mode, do not try to load remote db as it is 
+  # if we are in seed mode, do not try to load remote db as it is
   # not initialized by now
   return if $opts{'seed'};
   #
@@ -2443,7 +2443,7 @@ sub save_options_into_tlpdb {
   # installing from the network already, we adjust the repository
   # to the default mirror.ctan.org
   if ($vars{'instopt_adjustrepo'} && ($media ne 'NET')) {
-    $localtlpdb->option ("location", $TeXLiveURL); 
+    $localtlpdb->option ("location", $TeXLiveURL);
   } else {
     my $final_loc = ($media eq 'NET' ? $location : abs_path($location));
     $localtlpdb->option ("location", $final_loc);
@@ -2628,16 +2628,16 @@ sub import_settings_from_old_tlpdb {
   if (defined($xdvi_paper)) {
     $common_paper = $xdvi_paper;
   }
-  $common_paper = 
+  $common_paper =
     ($common_paper ne $context_paper ? "no-agree-on-paper" : $common_paper)
       if (defined($context_paper));
-  $common_paper = 
+  $common_paper =
     ($common_paper ne $pdftex_paper ? "no-agree-on-paper" : $common_paper)
       if (defined($pdftex_paper));
-  $common_paper = 
+  $common_paper =
     ($common_paper ne $dvips_paper ? "no-agree-on-paper" : $common_paper)
       if (defined($dvips_paper));
-  $common_paper = 
+  $common_paper =
     ($common_paper ne $dvipdfmx_paper ? "no-agree-on-paper" : $common_paper)
       if (defined($dvipdfmx_paper));
   if ($common_paper eq "no-agree-on-paper") {
@@ -2830,16 +2830,16 @@ sub check_env {
   if ($::env_warns) {
     $::env_warns = <<"EOF";
 
- ----------------------------------------------------------------------
+ -----------------------------------------------
  The following environment variables contain the string "tex"
  (case-independent).  If you're doing anything but adding personal
  directories to the system paths, they may well cause trouble somewhere
  while running TeX.  If you encounter problems, try unsetting them.
- 
+
  Please ignore spurious matches unrelated to TeX. (To omit this check,
  set the environment variable TEXLIVE_INSTALL_ENV_NOCHECK.)
 
-$::env_warns ----------------------------------------------------------------------
+$::env_warns -----------------------------------------------
 EOF
   }
 }
@@ -2886,7 +2886,7 @@ sub install_warnlines_hook {
 
 
 # some helper functions
-# 
+#
 sub select_collections {
   my $varref = shift;
   foreach (@_) {
@@ -3366,7 +3366,7 @@ explicitly listing them. This eases maintenance of profile files. If any
 collections are specified in a profile, though, then the scheme is
 ignored and all desired collections must be given explicitly.
 
-For example, a line 
+For example, a line
 
   selected_scheme scheme-small
 
@@ -3569,17 +3569,17 @@ command line options that change them. The first group of three are
 system directories, and the second group of three are user directories;
 the two groups are quite analogous.
 
-  +----------------+--------------------------------------+--------------+------------------+
+  +-----------+--------------------------+----------+------------+
   |    tree        | default                              | group change | single change    |
-  +----------------+--------------------------------------+--------------+------------------+
+  +-----------+--------------------------+----------+------------+
   | TEXMFLOCAL     | /usr/local/texlive/texmf-local       | --texdir     | --texmflocal     |
   | TEXMFSYSVAR    | /usr/local/texlive/YYYY/texmf-var    | --texdir     | --texmfsysvar    |
   | TEXMFSYSCONFIG | /usr/local/texlive/YYYY/texmf-config | --texdir     | --texmfsysconfig |
-  +----------------+--------------------------------------+--------------+------------------+
+  +-----------+--------------------------+----------+------------+
   | TEXMFHOME      | ~/texmf                              | --texuserdir | --texmfhome      |
   | TEXMFVAR       | ~/.texliveYYYY/texmf-var             | --texuserdir | --texmfvar       |
   | TEXMFCONFIG    | ~/.texliveYYYY/texmf-config          | --texuserdir | --texmfconfig    |
-  +----------------+--------------------------------------+--------------+------------------+
+  +-----------+--------------------------+----------+------------+
 
 In addition, as mentioned in the previous section, each tree has an
 environment variable C<TEXLIVE_INSTALL_>I<tree> which overrides the

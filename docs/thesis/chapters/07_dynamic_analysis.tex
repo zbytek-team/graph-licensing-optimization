@@ -2,11 +2,11 @@
 
 \section{Założenia i konfiguracja}
 
-Eksperymenty dynamiczne wykonano w tym samym środowisku obliczeniowym co testy statyczne. Każda symulacja obejmuje 30 kroków, a po każdej mutacji sieci algorytmy otrzymują maksymalnie 45~s na ponowne zbilansowanie licencji. Analizowano dwie konfiguracje licencyjne -- Duolingo Super oraz dominowanie rzymskie.
+Eksperymenty dynamiczne wykonano w tym samym środowisku obliczeniowym co testy statyczne. Każda symulacja obejmuje 30 kroków, a po każdej mutacji sieci algorytmy otrzymują maksymalnie 45~s na ponowne zbilansowanie licencji. Analizowano dwie konfiguracje licencyjne -- Duolingo Super oraz dominowanie rzymskie. Do testów wykorzystano różne typy grafów: losowe, bezskalowe, małoświatowe oraz grafy bez ego Facebook.
 
-\subsection{Poziomy intensywności mutacji}
+Testy przeprowadzono dla sześciu profili mutacji: trzech syntetycznych, które charakteryzują się prostą logiką modyfikacji (low, med, high), oraz trzech bardziej złożonych i realistycznych, które uwzględniają mechanizmy takie jak preferencyjne przyłączanie, domykanie triad czy losowe przekształcanie krawędzi (pref\_triadic, pref\_pref, rand\_rewire).
 
-Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieństwami modyfikacji wierzchołków i krawędzi (tab.~\ref{tab:dyn-mutation-levels}).
+Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieństwami modyfikacji wierzchołków i krawędzi (tabela~\ref{tab:dyn-mutation-levels}).
 
 \begin{table}[H]
   \centering
@@ -16,15 +16,21 @@ Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieńs
     \toprule
     \textbf{Poziom} & \textbf{Dodawanie węzłów} & \textbf{Usuwanie węzłów} & \textbf{Dodawanie krawędzi} & \textbf{Usuwanie krawędzi} \\
     \midrule
-    niski           & 0.02                      & 0.01                     & 0.06                        & 0.04                       \\
-    średni          & 0.06                      & 0.04                     & 0.18                        & 0.12                       \\
-    wysoki          & 0.12                      & 0.08                     & 0.30                        & 0.20                       \\
+    low             & 0.02                      & 0.01                     & 0.06                        & 0.04                       \\
+    mid             & 0.06                      & 0.04                     & 0.18                        & 0.12                       \\
+    high            & 0.12                      & 0.08                     & 0.30                        & 0.20                       \\
   \end{tabular}
 \end{table}
 
-\subsection{Scenariusze realistyczne}
 
-Dodatkowo zbadano trzy bardziej realistyczne profile ewolucji sieci. Wszystkie operują na tych samych limitach liczby dodawanych/usuwanych elementów co warianty syntetyczne, różnią się jednak mechanizmem wyboru sąsiedztwa. Wariant \emph{pref\_triadic} tworzy nowe wierzchołki z preferencyjnym przyłączaniem (stopień +1) i zamyka trójkąty w sąsiedztwie bieżących wierzchołków. Wariant \emph{pref\_pref} stosuje preferencyjne przyłączanie zarówno do węzłów, jak i krawędzi. Wreszcie \emph{rand\_rewire} łączy losowe dodawanie węzłów z przekształcaniem istniejących krawędzi w stylu Wattsa--Strogatza, gdzie losowa zamiana końców krawędzi zachodzi z prawdopodobieństwem 0,1 na operację.
+Dodatkowo zbadano trzy bardziej realistyczne profile ewolucji sieci. Wszystkie operują na tych samych limitach liczby dodawanych/usuwanych elementów co warianty syntetyczne, różnią się jednak mechanizmem wyboru sąsiedztwa.
+
+Wariant \emph{pref\_triadic} implementuje preferencyjne przyłączanie węzłów i domykanie trójkątów. Nowe węzły są dodawane z preferencyjnym przyłączaniem, gdzie prawdopodobieństwo wyboru sąsiada jest proporcjonalne do stopnia węzła plus 1 (tj. $P(v) \propto \deg(v) + 1$). Zapobiega to całkowitemu wykluczeniu węzłów o stopniu zero. Nowe krawędzie są tworzone według mechanizmu domykania triad: losowy węzeł $w$ jest wybierany jako punkt odniesienia, następnie z jego sąsiedztwa losowane są dwa węzły $u$ i $v$, które są łączone krawędzią jeśli jeszcze nie istnieje. Proces ten jest powtarzany maksymalnie 20 razy na każdą dodawaną krawędź, aby zwiększyć prawdopodobieństwo znalezienia możliwej triady do zamknięcia.
+
+Wariant \emph{pref\_pref} stosuje preferencyjne przyłączanie zarówno do węzłów, jak i krawędzi. Nowe węzły są dodawane identycznie jak w wariancie \emph{pref\_triadic}. Natomiast nowe krawędzie są tworzone według prawdopodobieństwa proporcjonalnego do iloczynu stopni połączonych węzłów: $P(u,v) \propto (\deg(u)+1) \cdot (\deg(v)+1)$. Prawdopodobieństwo akceptacji danej pary $(u,v)$ jest znormalizowane przez górne ograniczenie $(\deg_{\max}+1)^2$, gdzie $\deg_{\max}$ to maksymalny stopień w grafie. Takie podejście promuje powstawanie połączeń między węzłami o wysokich stopniach, co jest charakterystyczne dla sieci bezskalowych.
+
+Wreszcie \emph{rand\_rewire} łączy losowe dodawanie węzłów z przekształcaniem istniejących krawędzi w stylu Wattsa--Strogatza. Nowe węzły są dodawane z losowym przyłączaniem do istniejących sąsiadów. Zamiast tradycyjnego dodawania nowych krawędzi, algorytm wykonuje operacje przeprzewlekania (rewiring): losowa istniejąca krawędź $(u,v)$ jest usuwana, po czym jeden z jej końców (wybrany z prawdopodobieństwem 0.5) jest łączony z nowym, losowo wybranym węzłem. Proces ten zachodzi maksymalnie przez 6 prób na operację, aby uniknąć tworzenia wielokrotnych krawędzi lub pętli własnych.
+
 
 \section{Algorytm zachłanny}
 
@@ -38,15 +44,15 @@ Tabela~\ref{tab:greedy-cold-summary} zestawia średni koszt na węzeł i średni
   \caption{Algorytm zachłanny: średni koszt na węzeł oraz średni czas na krok dla wszystkich wariantów mutacji.}
   \label{tab:greedy-cold-summary}
   \begin{tabular}{lcc}
-    oprule
-    extbf{Metoda mutacji} & \textbf{Koszt/węzeł (mean)} & \textbf{Średni czas [s]} \\
+    \toprule
+    \textbf{Metoda mutacji} & \textbf{Koszt/węzeł (mean)} & \textbf{Średni czas [s]} \\
     \midrule
-    high                  & 0.48009                     & 0.00159                  \\
-    low                   & 0.47983                     & 0.00165                  \\
-    med                   & 0.47491                     & 0.00181                  \\
-    pref\_pref            & 0.46371                     & 0.000835                 \\
-    pref\_triadic         & 0.46787                     & 0.000535                 \\
-    rand\_rewire          & 0.47556                     & 0.000833                 \\
+    high                    & 0.48009                     & 0.00159                  \\
+    low                     & 0.47983                     & 0.00165                  \\
+    med                     & 0.47491                     & 0.00181                  \\
+    pref\_pref              & 0.46371                     & 0.000835                 \\
+    pref\_triadic           & 0.46787                     & 0.000535                 \\
+    rand\_rewire            & 0.47556                     & 0.000833                 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -176,12 +182,14 @@ Z kolei, patrząc na czas wykonania (Rys. \ref{fig:dyn-real-genetic-time}), wida
 \end{figure}
 
 \subsection{Wnioski}
-Analiza dynamiczna pokazała, że metaheurystyki radzą sobie z adaptacją do zmian w sieci i utrzymaniem jakości rozwiązań bez potrzeby liczenia wszystkiego od nowa.
+Przeprowadzona analiza dynamiczna wykazała, że dobór algorytmu optymalizacyjnego w środowisku dynamicznym powinien uwzględniać zarówno profil zmian topologii sieci, jak i dostępny budżet czasowy. Badania obejmujące sześć wariantów mutacji (trzy syntetyczne oraz trzy realistyczne) na różnych typach grafów pozwoliły na sformułowanie kluczowych wniosków dotyczących adaptacji algorytmów do ewoluujących struktur sieciowych.
 
-Zwiększenie intensywności zmian, szczególnie w testach syntetycznych, powodowało wydłużenie czasu potrzebnego na zrównoważenie. Algorytmy takie jak przeszukiwanie tabu miały też tendencję do wzrostu kosztu przy bardzo dużych zmianach.
+Mutacje realistyczne, takie jak \texttt{pref\_triadic} oraz \texttt{pref\_pref}, okazały się łatwiejsze do obsłużenia w porównaniu z wariantami syntetycznymi o wysokiej intensywności. Mechanizmy preferencyjnego przyłączania oraz domykania trójkątów sprzyjają wzmacnianiu klastrowości i tworzeniu hubów, co zmniejsza efektywny rozmiar problemu pokrycia. W rezultacie algorytmy osiągały niższe koszty (0.470--0.475 w porównaniu do 0.485--0.489) oraz krótsze czasy wykonania (0.9--1.7 s w porównaniu do 2.9--3.2 s). Z kolei mutacje typu \texttt{rand\_rewire} zwiększały entropię topologii poprzez zrywanie lokalnych połączeń, co prowadziło do najgorszych wyników zarówno pod względem kosztu (0.486), jak i czasu (1.9 s).
 
-Metody zmian oparte na preferencyjnym dołączaniu i zamykaniu trójkątów (\texttt{pref\_triadic}) tworzyły struktury, które łatwiej było optymalizować. Przekładało się to na niższy koszt i krótszy czas działania większości algorytmów.
+Algorytmy wykazywały różną odporność na poszczególne typy zmian w zależności od mechanizmu wykorzystania poprzedniego rozwiązania. Solver ILP zapewniał najwyższą jakość (koszt 0.362--0.390), lecz wymagał znacznego czasu na ponowne rozwiązanie zmodyfikowanych ograniczeń. Algorytm genetyczny dobrze radził sobie przy zmianach klastrowych, oferując korzystny kompromis między jakością a czasem (koszt 0.409 przy czasie 0.615 s dla \texttt{pref\_triadic}), jednak jego efektywność spadała w przypadku mutacji destrukcyjnych. Przeszukiwanie tabu, jako metoda intensywnie lokalna, sprawdzało się przy zmianach o ograniczonym zasięgu, lecz przy mutacjach o większej skali wymagało rozszerzenia promienia poszukiwań, co wydłużało czas działania nawet do 6.5 sekundy.
 
-Solver ILP nadal dawał najlepsze wyniki pod względem jakości, ale działał dość długo. Z kolei proste metody, jak algorytm zachłanny, działały bardzo szybko, ale dawały gorsze wyniki. Metaheurystyki były czymś pośrodku, oferując dobry balans między jakością a czasem.
+Szybkie heurystyki, takie jak algorytm zachłanny oraz zbiór dominujący, zachowywały swoją użyteczność również w środowisku dynamicznym, oferując czasy wykonania poniżej 5 ms przy kosztach porównywalnych z bardziej złożonymi metodami. Algorytm zachłanny osiągał stabilny czas w zakresie 0.5--1.8 ms przy koszcie 0.464--0.480, natomiast zbiór dominujący zapewniał nieco niższy koszt przy czasie około 5 ms.
 
-Reasumując, symulacje dynamiczne potwierdziły, że adaptacyjne zarządzanie licencjami za pomocą metaheurystyk ma sens. Pozwalają one na utrzymanie stabilnego kosztu w zmieniającej się sieci, przy akceptowalnym kompromisie między jakością a czasem.
+Wyniki badań wskazują na konieczność adaptacyjnego doboru strategii optymalizacyjnej w zależności od obserwowanego profilu zmian. Przy zmianach o charakterze klastrowym zaleca się stosowanie metaheurystyk z mechanizmami naprawy poprzedniego rozwiązania. W przypadku zmian chaotycznych konieczne może być głębsze odświeżenie rozwiązania lub zaakceptowanie wyższego kosztu w zamian za stabilność czasową. W sytuacjach, w których czas stanowi krytyczne ograniczenie, szybkie heurystyki stanowią bezpieczny wybór, zapewniając przewidywalną wydajność niezależnie od typu mutacji.
+
+Najlepszy kompromis globalny oferują metaheurystyki z mechanizmami konstrukcji opartymi na poprzednich wynikach oraz lokalnych naprawach, które można dynamicznie dostosowywać do intensywności zaobserwowanych zmian między krokami symulacji.

@@ -12,8 +12,8 @@ my $svnrev = '$Revision: 73770 $';
 my $_modulerevision = ($svnrev =~ m/: ([0-9]+) /) ? $1 : "unknown";
 sub module_revision { return $_modulerevision; }
 
-use TeXLive::TLConfig qw($DefaultCategory $CategoriesRegexp 
-                         $MetaCategoriesRegexp $InfraLocation 
+use TeXLive::TLConfig qw($DefaultCategory $CategoriesRegexp
+                         $MetaCategoriesRegexp $InfraLocation
                          %Compressors $DefaultCompressorFormat
                          $RelocPrefix $RelocTree);
 use TeXLive::TLCrypto;
@@ -85,7 +85,7 @@ sub from_fh {
     # that would be a bug in the db creation, and it takes some
     # noticeable time to get rid of it.  So just chomp.
     chomp($line);
-    
+
     # we call tllog only when something will be logged, to speed things up.
     # this is the inner loop bounding the time to read tlpdb.
     dddebug("reading line: >>>$line<<<\n") if ($::opt_verbosity >= 3);
@@ -552,7 +552,7 @@ sub common_texmf_tree {
       $tltree = $tmp;
     }
   }
-  # if there are no files then it is by default relocatable, so 
+  # if there are no files then it is by default relocatable, so
   # return the right tree
   if (!@files) {
     $tltree = $RelocTree;
@@ -594,7 +594,7 @@ sub make_container {
     if ($tltree ne $RelocTree) {
       die ("$0: building $containername container relocatable but the common"
            . " prefix is not $RelocTree");
-    } 
+    }
     s,^$RelocTree/,, foreach @files;
   }
   # load Cwd only if necessary ...
@@ -624,7 +624,7 @@ sub make_container {
     &TeXLive::TLUtils::mkdirhier("$tlpobjdir");
     $removetlpobjdir = 1;
   }
-  open(TMP,">$tlpobjdir/$self->{'name'}.tlpobj") 
+  open(TMP,">$tlpobjdir/$self->{'name'}.tlpobj")
   || die "$0: create($tlpobjdir/$self->{'name'}.tlpobj) failed: $!";
   # when we do relative we have to cancel the prefix before writing out
   my $selfcopy = $self->copy;
@@ -653,7 +653,7 @@ sub make_container {
   # tlnet (where we can assume GNU tar) and making backups on a user's
   # machine (where we can assume nothing).  We determine this by whether
   # there's a revision suffix in the container name.
-  # 
+  #
   # For the master containers, we want to set the owner/group, exclude
   # .svn directories, and force ustar format.  This last is for the sake
   # of packages such as pgf which have filenames long enough that they
@@ -669,7 +669,7 @@ sub make_container {
       : ( "--owner", "0",  "--group", "0",  "--exclude", ".svn",
           "--format", "ustar" );
   my @cmdline = ($tar, "-cf", "$destdir/$tarname", @attrs);
-  
+
   # Get list of files and symlinks to back up.  Nothing else should be
   # in the list.
   my @files_to_backup = ();
@@ -685,7 +685,7 @@ sub make_container {
       }
     }
   }
-  
+
   my $tartempfile = "";
   if (wndws()) {
     # Since we provide our own (GNU) tar on Windows, we know it has -T.
@@ -701,17 +701,17 @@ sub make_container {
     # to pass them on stdin.  Unfortunately, this can be too lengthy of
     # a command line -- our biggest package is tex4ht, which needs about
     # 200k.  CentOS 5.2, at least, starts complaining around 140k.
-    # 
+    #
     # Therefore, if the command is likely to be too long, we call
     # our collapse_dirs routine; in practice, this eliminates
     # essentially all the individual files, leaving just a few
     # directories, which is no problem.  (For example, tex4ht collapses
     # down to five directories and one file.)
-    # 
+    #
     # Although in principle we could do this in all cases, collapse_dirs
     # isn't the most thoroughly tested function in the world.  It seems
     # safer to only do it in the (few) potentially problematic cases.
-    # 
+    #
     if (length ("@files_to_backup") > 50000) {
       @files_to_backup = TeXLive::TLUtils::collapse_dirs(@files_to_backup);
       # A complication, as always.  collapse_dirs returns absolute paths.
@@ -745,7 +745,7 @@ sub make_container {
     $containername = "$tarname.$compressorextension";
     debug("selected compressor: $compressor with @compressorargs, "
           . "on $destdir/$tarname\n");
-  
+
     # compress it.
     if (-r "$destdir/$tarname") {
       # system return 0 on success
@@ -760,7 +760,7 @@ sub make_container {
       # most strange cases.
       unlink("$destdir/$tarname")
         if ((-r "$destdir/$tarname") && (-r "$destdir/$containername"));
-      # in case of system containers also create the links to the 
+      # in case of system containers also create the links to the
       # versioned containers
       if (! $user) {
         my $linkname = "$destdir/$unversionedtar.$compressorextension";
@@ -778,7 +778,7 @@ sub make_container {
       return (0, 0, "");
     }
   }
-  
+
   # compute the size.
   if (! -r "$destdir/$containername") {
     tlwarn ("$0: Couldn't find $destdir/$containername\n");
@@ -792,7 +792,7 @@ sub make_container {
   if (!$is_user_container || $::checksum_method) {
     $checksum = TeXLive::TLCrypto::tlchecksum("$destdir/$containername");
   }
-  
+
   # cleaning up
   unlink("$tlpobjdir/$self->{'name'}.tlpobj");
   unlink($tartempfile) if $tartempfile;
@@ -866,7 +866,7 @@ sub update_from_catalogue {
     # TODO TODO TODO
     # we should rewrite the also fields to TeX Live package names ...
     # for now these are CTAN package names!
-    # warning, we expect that cataloguedata entries are strings, 
+    # warning, we expect that cataloguedata entries are strings,
     # so stringify these lists
     if (@{$entry->also}) {
       $self->cataloguedata->{'also'} ||= "@{$entry->also}";
@@ -1245,7 +1245,7 @@ sub _parse_hyphen_execute {
 sub _set_get_array_value {
   my $self = shift;
   my $key = shift;
-  if (@_) { 
+  if (@_) {
     if (defined($_[0])) {
       $self->{$key} = [ @_ ];
     } else {
@@ -1538,7 +1538,7 @@ above:
 But the lines listing the files are allowed to have additional tags,
 (which in practice come from the TeX Catalogue)
 
-  /------- excerpt from achemso.tlpobj
+  /----- excerpt from achemso.tlpobj
   |...
   |docfiles size=220
   | texmf-dist/doc/latex/achemso/achemso.pdf details="Package documentation" language="en"
@@ -1690,7 +1690,7 @@ returns the representation of the C<TLPOBJ> in JSON format.
 
 =item C<common_texmf_tree>
 
-if all files of the package are from the same texmf tree, this tree 
+if all files of the package are from the same texmf tree, this tree
 is returned, otherwise an undefined value. That is also a check
 whether a package is relocatable.
 
@@ -1823,7 +1823,7 @@ where each hash is a format definition.
 
 =item C<< $tlpobj->fmtutil_cnf_lines >>
 
-The function C<fmtutil_cnf_lines> returns the lines for fmtutil.cnf 
+The function C<fmtutil_cnf_lines> returns the lines for fmtutil.cnf
 for this package.
 
 =item C<< $tlpobj->updmap_cfg_lines >>

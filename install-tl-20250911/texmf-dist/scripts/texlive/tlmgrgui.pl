@@ -160,9 +160,9 @@ sub guimain {
   build_initial_gui();
   init_hooks();
 
-  info(__("Loading local TeX Live database") . 
-       "\n  ($::maintree/$InfraLocation/$DatabaseName)\n" . 
-       __("This may take some time, please be patient ...") . 
+  info(__("Loading local TeX Live database") .
+       "\n  ($::maintree/$InfraLocation/$DatabaseName)\n" .
+       __("This may take some time, please be patient ...") .
        "\n");
 
   # call the init function from tlmgr.pl
@@ -236,9 +236,9 @@ sub guimain {
 ############## GUI ########################
 
 sub build_initial_gui {
-  # processed @::SAVEDARGV to replace 
+  # processed @::SAVEDARGV to replace
   #  --font='foobar'
-  # with 
+  # with
   #  --font 'foobar'
   # as required by Tk::CmdLine.
   my @a;
@@ -257,7 +257,7 @@ sub build_initial_gui {
   #
   # default layout definitions
   #
-  # priority 20 = widgetDefault 
+  # priority 20 = widgetDefault
   # see Mastering Perl/Tk, 16.2. Using the Option Database
   $mw->optionAdd("*Button.Relief", "ridge", 20);
   #
@@ -335,7 +335,7 @@ sub do_rest_of_gui {
 
   my $filter_match = $filter_frame->Labelframe(-text => __("Match"));
   $filter_match->pack(@left, @x_y, @p_ii);
-  $match_entry = 
+  $match_entry =
     $filter_match->Entry(-width => 15, -validate => 'key',
                         )->pack(@a_w, -padx => '2m', @x_x);
   $filter_match->Checkbutton(-text => __("descriptions"),
@@ -346,7 +346,7 @@ sub do_rest_of_gui {
           -variable => \$match_filenames)->pack(@a_w);
 
   $match_entry->configure(-validate => 'key',
-    -validatecommand => sub { 
+    -validatecommand => sub {
       my ($new_val, undef, $old_val) = @_;
     #   if (!$new_val) {
     #     $match_descriptions = 0;
@@ -361,7 +361,7 @@ sub do_rest_of_gui {
       my $new_match_text = ( length($new_val) >= 3 ? $new_val : "" );
       if ($new_match_text ne $match_text) {
         $match_text = $new_match_text;
-        update_grid(); 
+        update_grid();
       }
       return 1; });
 
@@ -369,10 +369,10 @@ sub do_rest_of_gui {
   if ($mode_expert) { $filter_selection->pack(@left, @x_y, @p_ii); }
   $filter_selection->Radiobutton(-text => __("all"), -command => \&update_grid,
                       -variable => \$selection_value, -value => 0)->pack(@a_w);
-  $filter_selection->Radiobutton(-text => __("selected"), 
+  $filter_selection->Radiobutton(-text => __("selected"),
     -command => \&update_grid, -variable => \$selection_value, -value => 1)
     ->pack(@a_w);
-  $filter_selection->Radiobutton(-text => __("not selected"), 
+  $filter_selection->Radiobutton(-text => __("not selected"),
     -command => \&update_grid, -variable => \$selection_value, -value => 2)
     ->pack(@a_w);
 
@@ -380,15 +380,15 @@ sub do_rest_of_gui {
   my $filter_button = $filter_frame->Frame;
   $filter_button->pack(@left, @x_y, @p_ii);
   if ($mode_expert) {
-    $filter_button->Button(-text => __("Select all"), 
+    $filter_button->Button(-text => __("Select all"),
       -command => [ \&update_grid, 1 ])->pack(@x_x, @a_c);
-    $filter_button->Button(-text => __("Select none"), 
+    $filter_button->Button(-text => __("Select none"),
       -command => [ \&update_grid, 0 ])->pack(@x_x, @a_c);
   }
 
   $filter_button->Button(-text => __("Reset filters"),
     -command => sub { $status_value = $status_all;
-                      $show_packages = 1; $show_collections = 1; 
+                      $show_packages = 1; $show_collections = 1;
                       $show_schemes = 1;
                       $selection_value = 0;
                       $match_descriptions = 1;
@@ -429,7 +429,7 @@ $g->headerCreate(4, @htype, -itemtype => 'text', -text => __("Short description"
                             -state => $::action_button_state,
                             -command => sub { update_all_packages(); }
       )->pack(@p_ii);
-  $with_all_frame->Checkbutton(-text => __("Reinstall previously removed packages"), 
+  $with_all_frame->Checkbutton(-text => __("Reinstall previously removed packages"),
     -variable => \$opts{"reinstall-forcibly-removed"})->pack();
 
 
@@ -521,7 +521,7 @@ sub setup_menu_system {
   if ($#bar > 0) {
     $tlpdb_location_string = __("multiple repositories");
   }
-  $menu_file->add('command', 
+  $menu_file->add('command',
     -label => __("Load default (from tlpdb) repository:") . " $tlpdb_location_string",
     -command => sub { setup_location($tlpdb_location); });
   if (defined($cmdline_location)) {
@@ -561,10 +561,10 @@ sub setup_menu_system {
     $menu_options->add('checkbutton', -label => __("Enable debugging output"),
       -onvalue => ($::opt_verbosity == 0 ? 1 : $::opt_verbosity),
       -variable => \$::opt_verbosity);
-    $menu_options->add('checkbutton', 
+    $menu_options->add('checkbutton',
       -label => __("Disable auto-install of new packages"),
       -variable => \$opts{"no-auto-install"});
-    $menu_options->add('checkbutton', 
+    $menu_options->add('checkbutton',
       -label => __("Disable auto-removal of server-deleted packages"),
       -variable => \$opts{"no-auto-remove"});
   }
@@ -574,15 +574,15 @@ sub setup_menu_system {
   #
   $menu_actions->add('command', -label => __("Update filename database"),
     -state => $::action_button_state,
-    -command => sub { 
+    -command => sub {
                       $mw->Busy(-recurse => 1);
                       info("Running mktexlsr, this may take some time ...\n");
-                      info(`mktexlsr 2>&1`); 
+                      info(`mktexlsr 2>&1`);
                       $mw->Unbusy;
                     });
   $menu_actions->add('command', -label => __("Rebuild all formats"),
     -state => $::action_button_state,
-    -command => sub { 
+    -command => sub {
                       $mw->Busy(-recurse => 1);
                       info("Running fmtutil-sys --all, this may take some time ...\n");
                       for my $l (`fmtutil-sys --all 2>&1`) {
@@ -593,7 +593,7 @@ sub setup_menu_system {
                     });
   $menu_actions->add('command', -label => __("Update font map database"),
     -state => $::action_button_state,
-    -command => sub { 
+    -command => sub {
                       $mw->Busy(-recurse => 1);
                       info("Running updmap-sys, this may take some time ...\n");
                       for my $l (`updmap-sys 2>&1`) {
@@ -603,13 +603,13 @@ sub setup_menu_system {
                       $mw->Unbusy;
                     });
 
-  $menu_actions->add('command', 
+  $menu_actions->add('command',
     -label => __("Restore packages from backup") . " ...",
     -state => $::action_button_state,
     -command => \&cb_handle_restore);
 
   if (!wndws()) {
-    $menu_actions->add('command', 
+    $menu_actions->add('command',
       -label => __("Handle symlinks in system dirs") . " ...",
       -state => $::action_button_state,
       -command => \&cb_handle_symlinks);
@@ -618,24 +618,24 @@ sub setup_menu_system {
     $menu_actions->add('separator');
     $menu_actions->add('command', -label => __("Remove TeX Live %s ...", $TeXLive::TLConfig::ReleaseYear),
       -state => $::action_button_state,
-      -command => sub { 
+      -command => sub {
         my $sw = $mw->DialogBox(-title => __("Remove TeX Live %s", $TeXLive::TLConfig::ReleaseYear),
                                 -buttons => [ __("Ok"), __("Cancel") ],
                                 -cancel_button => __("Cancel"),
-                                -command => sub { 
+                                -command => sub {
                                   my $b = shift;
                                   if ($b eq __("Ok")) {
                                     system("tlmgr", "remove", "--all", "--force");
                                     $mw->Dialog(-text => __("Complete removal finished"), -buttons => [ __("Ok") ])->Show;
-                                    $mw->destroy; 
-                                    exit(0); 
+                                    $mw->destroy;
+                                    exit(0);
                                   }
                                 });
         $sw->add("Label", -text =>  __("Really remove (uninstall) the COMPLETE TeX Live %s installation?\nYour last chance to change your mind!", $TeXLive::TLConfig::ReleaseYear))->pack(@p_iii);
         $sw->Show;
       });
   }
-  
+
 
 
   #
@@ -656,7 +656,7 @@ In case of problems, please contact: texlive\@tug.org"
         )->pack(@p_iii);
       $sw->Show;
       });
- 
+
 
   $mw->configure(-menu => $menu);
 }
@@ -688,7 +688,7 @@ sub show_extended_info {
   #$t->insert("1.0", $tlp->longdesc);
   #$sw->Label(-text => "Long desc:")->grid($t, -sticky => 'nw');
   $tf->Label(-text => __("Long description:"))->grid(
-    $tf->Label(-wraplength => '500', -justify => 'left', 
+    $tf->Label(-wraplength => '500', -justify => 'left',
       -text => $tlp->longdesc), -sticky => "nw");
   $tf->Label(-text => __("Installed:"))->grid(
     $tf->Label(-text => ($Packages{$p}{'installed'} ? __("Yes") : __("No"))),
@@ -747,7 +747,7 @@ sub show_extended_info {
 
   @{$further_a{$p}} = ();
   @{$further_b{$p}} = ();
-  
+
   sub add_filelist_text {
     my $p = shift;
     my $text = shift;
@@ -803,7 +803,7 @@ sub show_extended_info {
   my $f = $tf->Frame;
   my $fb = $f->Button(-padx => 0, -pady => 0,
     -text => "+", -borderwidth => 1, -relief => "ridge");
-  my $ff = $f->Label(-text => "------ " . __("Further information") . " ------");
+  my $ff = $f->Label(-text => "---- " . __("Further information") . " ----");
   $fb->grid($ff, -sticky => "nw");
 
   $f->grid(-sticky => "nw", -columnspan => 2);
@@ -873,10 +873,10 @@ sub update_grid {
       }
       $g->add($p);
       my $st = ($i%2 ? $lighttext : $darktext);
-      $g->itemCreate($p, 0, -itemtype => 'window', 
+      $g->itemCreate($p, 0, -itemtype => 'window',
         -widget => $Packages{$p}{'cb'});
       $Packages{$p}{'cb'}->configure(-background => ($i%2?'gray90':'gray70'));
-      $g->itemCreate($p, 1, -itemtype => 'text', -style => $st, 
+      $g->itemCreate($p, 1, -itemtype => 'text', -style => $st,
         -text => $Packages{$p}{'displayname'});
       my $t = ($Packages{$p}{'localrevision'} || '');
       if ($Packages{$p}{'localcatalogueversion'}) {
@@ -904,15 +904,15 @@ sub maybe_strip_last_plus {
   }
   return $v;
 }
-  
+
 sub MatchesFilters {
   my $p = shift;
   # we have to take care since strings in revision numbers on the remote
   # and might contain "+" indicating sub-package updates
   # status
   if (( ($status_value == $status_all) ) ||
-      ( ($status_value == $status_only_installed) && 
-        (defined($Packages{$p}{'installed'})) && 
+      ( ($status_value == $status_only_installed) &&
+        (defined($Packages{$p}{'installed'})) &&
         ($Packages{$p}{'installed'} == 1) ) ||
       ( ($status_value == $status_only_not_installed) &&
         ( !defined($Packages{$p}{'installed'}) ||
@@ -920,7 +920,7 @@ sub MatchesFilters {
       ( ($status_value == $status_only_updated) &&
         (defined($Packages{$p}{'localrevision'})) &&
         (defined($Packages{$p}{'remoterevision'})) &&
-        ($Packages{$p}{'localrevision'} < 
+        ($Packages{$p}{'localrevision'} <
          maybe_strip_last_plus($Packages{$p}{'remoterevision'})))) {
     # do nothing, more checks have to be done
   } else {
@@ -968,7 +968,7 @@ sub MatchesFilters {
           $found = 1;
         }
       }
-    } 
+    }
     if (!$found) {
       # not matched in either of the above cases, return 0 immediately
       return 0;
@@ -1032,18 +1032,18 @@ sub do_arch_settings {
   my $subframe = $sw->Labelframe(-text => __("Select platforms to support"));
   $subframe->pack(-fill => "both", -padx => "2m", -pady => "2m");
   foreach my $a (sort @archsavail) {
-    $archsbuttons{$a} = 
+    $archsbuttons{$a} =
       $subframe->Checkbutton(-command => sub { check_on_removal($sw, $a); },
-                          -variable => \$archs{$a}, 
+                          -variable => \$archs{$a},
                           -text => platform_desc($a)
                          )->pack(-anchor => 'w');
   }
   my $arch_frame = $sw->Frame;
   $arch_frame->pack(-padx => "10m", -pady => "5m");
-  $arch_frame->Button(-text => __("Apply changes"), 
+  $arch_frame->Button(-text => __("Apply changes"),
     -state => $::action_button_state,
     -command => sub { apply_arch_changes(); $sw->destroy; })->pack(-side => 'left', -padx => "3m");
-  $arch_frame->Button(-text => __("Cancel"), 
+  $arch_frame->Button(-text => __("Cancel"),
     -command => sub { $sw->destroy; })->pack(-side => 'left', -padx => "3m");
 }
 
@@ -1132,7 +1132,7 @@ sub do_general_settings {
   my $back_config_buttons = $sw->Frame();
   $back_config_set->pack(-fill => "both", -padx => "2m", -pady => "2m");
 
-  push @config_set_l, 
+  push @config_set_l,
     $back_config_set->Label(-text => __("Default package repository"), -anchor => "w");
 
 
@@ -1141,7 +1141,7 @@ sub do_general_settings {
 
   push @config_set_m, $location_button;
   push @config_set_r,
-    $back_config_set->Button(-text => __("Change"), 
+    $back_config_set->Button(-text => __("Change"),
       -command => sub { menu_multi_location($sw); });
 
   if ($#tlpdb_tags > 0) {
@@ -1160,7 +1160,7 @@ sub do_general_settings {
     push @config_set_r,
       $back_config_set->Button(-text => __("Toggle"),
         -command => sub { toggle_setting("create_formats"); });
-  
+
     push @config_set_l, $back_config_set->Label(-text => __("Install macro/font sources"), -anchor => "w");
     $settings_label{'install_srcfiles'} = $back_config_set->Label(-textvariable => \$changeddefaults{"install_srcfiles"}{'display'});
     push @config_set_m, $settings_label{'install_srcfiles'};
@@ -1224,7 +1224,7 @@ sub do_general_settings {
       push @config_set_r,
         $back_config_set->Button(-text => __("Toggle"),
           -command => sub { toggle_setting("desktop_integration"); });
-  
+
       if (admin()) {
         push @config_set_l,
           $back_config_set->Label(-text => __("Install for all users"), -anchor => "w");
@@ -1234,7 +1234,7 @@ sub do_general_settings {
           $back_config_set->Button(-text => __("Toggle"),
             -command => sub { toggle_setting("w32_multi_user"); });
       }
-  
+
       push @config_set_l,
         $back_config_set->Label(-text => __("Change file associations"), -anchor => "w");
       $settings_label{'file_assocs'} = $back_config_set->Label(-textvariable => \$changeddefaults{'file_assocs'}{'display'});
@@ -1242,7 +1242,7 @@ sub do_general_settings {
       push @config_set_r,
         $back_config_set->Button(-text => __("Change"),
           -command => sub { select_file_assocs($sw); });
-  
+
     }
   } # of $mode_export
 
@@ -1252,13 +1252,13 @@ sub do_general_settings {
   }
 
   $back_config_buttons->pack(-padx => "10m", -pady => "5m");
-  $back_config_buttons->Button(-text => __("Apply changes"), 
+  $back_config_buttons->Button(-text => __("Apply changes"),
     -state => $::action_button_state,
     -command => sub { apply_settings_changes(); $sw->destroy; })->pack(-side => 'left', -padx => "3m");
-  $back_config_buttons->Button(-text => __("Cancel"), 
+  $back_config_buttons->Button(-text => __("Cancel"),
     -command => sub { $sw->destroy; })->pack(-side => 'left', -padx => "3m");
 }
-  
+
 sub apply_settings_changes {
   for my $k (keys %defaults) {
     if ($defaults{$k} ne $changeddefaults{$k}{'value'}) {
@@ -1272,7 +1272,7 @@ sub apply_settings_changes {
         @tlpdb_tags = keys %tlpdb_repos;
         # change the menu entry in File->Load default...
         if ($#tlpdb_tags > 0) {
-          my @vals = map { "$_:$tlpdb_repos{$_}" } 
+          my @vals = map { "$_:$tlpdb_repos{$_}" }
             sort sort_main_first keys %tlpdb_repos;
           $menu_file->entryconfigure(1, -label => __("Load default repository:") . " " . __("multiple repositories"));
         } else {
@@ -1336,7 +1336,7 @@ sub do_paper_settings {
   my $sw = $mw->Toplevel(-title => __("Paper options"));
   $sw->transient($mw);
   $sw->grab();
-  
+
   %changedpaper = %currentpaper;
 
   my $lower = $sw->Frame;
@@ -1374,10 +1374,10 @@ sub do_paper_settings {
   $back_config_pap->pack(-side => 'left', -fill => "both", -padx => "2m", -pady => "2m");
 
   $back_config_buttons->pack(-padx => "10m", -pady => "5m");
-  $back_config_buttons->Button(-text => __("Apply changes"), 
+  $back_config_buttons->Button(-text => __("Apply changes"),
     -state => $::action_button_state,
     -command => sub { apply_paper_changes(); $sw->destroy; })->pack(-side => 'left', -padx => "3m");
-  $back_config_buttons->Button(-text => __("Cancel"), 
+  $back_config_buttons->Button(-text => __("Cancel"),
     -command => sub { $sw->destroy; })->pack(-side => 'left', -padx => "3m");
 }
 
@@ -1427,8 +1427,8 @@ sub do_gui_language_setting {
   $opt->pack(-padx => "2m", -pady => "2m");
   $sw->Label(-text => __("Changes will take effect after restart"))->pack(-padx => "2m", -pady => "2m");
   my $f = $sw->Frame;
-  my $okbutton = $f->Button(-text => __("Ok"), 
-    -command => sub { 
+  my $okbutton = $f->Button(-text => __("Ok"),
+    -command => sub {
       if ($var eq __("System default")) {
         # we have to remove the setting in the config file
         delete($config{'gui-lang'});
@@ -1445,7 +1445,7 @@ sub do_gui_language_setting {
           }
         }
       }
-      $sw->destroy; 
+      $sw->destroy;
     })->pack(-side => "left", -padx => "2m", -pady => "2m");
   my $cancelbutton = $f->Button(-text => __("Cancel"), -command => sub { $sw->destroy; })->pack(-side => "left", -padx => "2m", -pady => "2m");
   $f->pack;
@@ -1478,12 +1478,12 @@ sub ask_one_repository {
   push @mirror_list, "  " . __("Default remote repository") . ": http://mirror.ctan.org";
   push @mirror_list, TeXLive::TLUtils::create_mirror_list();
   my $entry = $f1->BrowseEntry(
-    -listheight => 12, 
+    -listheight => 12,
     -listwidth => 400,
     -width => 50,
     -autolistwidth => 1,
     -choices => \@mirror_list,
-    -browsecmd => 
+    -browsecmd =>
       sub {
         if ($val !~ m/^  /) {
           $val = "";
@@ -1499,7 +1499,7 @@ sub ask_one_repository {
   #$entry->pack(-side => "left",-padx => "2m", -pady => "2m");
 
   my $f2 = $sw->Frame;
-  $f2->Button(-text => __("Choose directory"), 
+  $f2->Button(-text => __("Choose directory"),
     -command => sub {
                       $val = $sw->chooseDirectory;
                       #if (defined($var)) {
@@ -1517,10 +1517,10 @@ sub ask_one_repository {
   $f2->pack;
 
   my $f = $sw->Frame;
-  my $okbutton = $f->Button(-text => __("Ok"), 
+  my $okbutton = $f->Button(-text => __("Ok"),
     -command => sub { $done = 1; }
     )->pack(-side => 'left',-padx => "2m", -pady => "2m");
-  my $cancelbutton = $f->Button(-text => __("Cancel"), 
+  my $cancelbutton = $f->Button(-text => __("Cancel"),
     -command => sub { $val = undef; $done = 1; }
     )->pack(-side => 'right',-padx => "2m", -pady => "2m");
   $f->pack(-expand => 'x');
@@ -1541,7 +1541,7 @@ sub ask_one_repository {
 #  my $ret = ask_one_repository($mw, __("Change default package repository"),
 #    __("New default package repository"));
 #  if (defined($ret)) {
-#     $changeddefaults{'location'}{'value'} = 
+#     $changeddefaults{'location'}{'value'} =
 #       $changeddefaults{'location'}{'display'} = $ret;
 #  }
 #}
@@ -1596,7 +1596,7 @@ sub menu_multi_location {
     $ref->{'chg_w'} = $f1->Button(-text => __("Change"),
       -command => sub {
         our $sw;
-        my $ret = ask_one_repository($sw, 
+        my $ret = ask_one_repository($sw,
           ($t eq "main" ?
             __("Change main package repository") :
             __("Change subsidiary package repository")),
@@ -1624,7 +1624,7 @@ sub menu_multi_location {
        -padx => "1m", -pady => "1m", -sticky => "nwe");
   }
   $addrepo_button = $f1->Button(-text => __("Add repository") . "...",
-    -command => sub { 
+    -command => sub {
       my $ret = ask_one_repository($sw, __("Add package repository"),
         __("Add package repository"));
       if (defined($ret)) {
@@ -1642,9 +1642,9 @@ sub menu_multi_location {
   $f1->pack;
 
   my $f = $sw->Frame;
-  my $okbutton = $f->Button(-text => __("Ok"), 
-    -command => 
-      sub { 
+  my $okbutton = $f->Button(-text => __("Ok"),
+    -command =>
+      sub {
         # we have to check if something has changed ... and for consistency!!!
         my %new_repos;
         for my $ref (@edit_repos) {
@@ -1691,7 +1691,7 @@ sub menu_multi_location {
           #   print "act = $ref->{'status'}\n";
           # }
           $changeddefaults{'location'}{'value'} = array_to_repository(%new_repos);
-          my @vals = map { "$_:$new_repos{$_}" } 
+          my @vals = map { "$_:$new_repos{$_}" }
             sort sort_main_first keys %new_repos;
           if ($#vals > 0) {
             $location_button->configure(
@@ -1708,9 +1708,9 @@ sub menu_multi_location {
             $bgcolor : 'red'));
         $sw->destroy;
       })->pack(-side => 'left',-padx => "2m", -pady => "2m");
-  my $cancelbutton = $f->Button(-text => __("Cancel"), 
+  my $cancelbutton = $f->Button(-text => __("Cancel"),
           -command => sub { $sw->destroy })->pack(-side => 'right',-padx => "2m", -pady => "2m");
-  my $resetbutton = $f->Button(-text => __("Revert"), 
+  my $resetbutton = $f->Button(-text => __("Revert"),
           -command => sub { $sw->destroy; menu_multi_location($mw); })->pack(-side => 'right',-padx => "2m", -pady => "2m");
   $f->pack(-expand => 'x');
   $sw->bind('<Return>', [ $okbutton, 'Invoke' ]);
@@ -1786,7 +1786,7 @@ sub select_autobackup {
   $foo->grab();
   #my $var = $defaults{"autobackup"};
   my $var = $changeddefaults{"autobackup"}{'value'};
-  my $opt = $foo->BrowseEntry(-label => __("Auto backup setting"), 
+  my $opt = $foo->BrowseEntry(-label => __("Auto backup setting"),
                               -variable => \$var);
   my @al;
   push @al, "-1 (" . __("keep arbitrarily many") . ")";
@@ -1799,13 +1799,13 @@ sub select_autobackup {
   }
   $opt->pack(-padx => "2m", -pady => "2m");
   my $f = $foo->Frame;
-  my $okbutton = $f->Button(-text => __("Ok"), 
-        -command => sub { 
+  my $okbutton = $f->Button(-text => __("Ok"),
+        -command => sub {
                           $var =~ s/ .*$//;
                           $changeddefaults{"autobackup"}{'value'} = $var;
                           $changeddefaults{"autobackup"}{'display'} = $var;
                           $settings_label{'autobackup'}->configure(
-                            -background => 
+                            -background =>
                               ($var eq $defaults{"autobackup"} ? $bgcolor : 'red'));
                           $foo->destroy;
                         }
@@ -1823,7 +1823,7 @@ sub select_file_assocs {
   $foo->transient($mw);
   $foo->grab();
   my $var = $defaults{"file_assocs"};
-  my $opt = $foo->BrowseEntry(-label => __("Change file associations"), 
+  my $opt = $foo->BrowseEntry(-label => __("Change file associations"),
                               -variable => \$var);
   my @al;
   for my $i (0..2) {
@@ -1834,8 +1834,8 @@ sub select_file_assocs {
   }
   $opt->pack(-padx => "2m", -pady => "2m");
   my $f = $foo->Frame;
-  my $okbutton = $f->Button(-text => __("Ok"), 
-        -command => sub { 
+  my $okbutton = $f->Button(-text => __("Ok"),
+        -command => sub {
                           $var = substr($var,0,1);
                           $changeddefaults{"file_assocs"}{'display'} = $fileassocdesc[$var];
                           $changeddefaults{"file_assocs"}{'value'} = $var;
@@ -1850,12 +1850,12 @@ sub select_file_assocs {
 }
 
 
- 
+
 ############################
 
 sub setup_location {
   my $loc = shift;
-  $location = $loc; 
+  $location = $loc;
   # first check if $location contains multiple locations
   # in this case we go to virtual mode
   %repos = ();
@@ -1866,7 +1866,7 @@ sub setup_location {
   } else {
     $single_repo_mode = 0;
   }
-  run_update_functions(); 
+  run_update_functions();
 }
 
 sub init_install_media {
@@ -1913,7 +1913,7 @@ sub install_selected_packages {
     push @args, @foo;
     execute_action_gui(@args);
     reinit_local_tlpdb();
-    # now we check that the installation has succeeded by checking that 
+    # now we check that the installation has succeeded by checking that
     # all packages in @_ are installed. Otherwise we pop up a warning window
     my $do_warn = 0;
     for my $p (@_) {
@@ -1945,13 +1945,13 @@ sub critical_updates_done_msg_and_end {
   $mw->Dialog(-title => __("Warning"),
     -text => __("Critical updates have been installed.\nProgram will terminate now.\nPlease restart if necessary."),
     -buttons => [ __("Ok") ])->Show;
-  # also delete the main window before we kill the process to 
+  # also delete the main window before we kill the process to
   # make sure that Tk is happy (segfault on cmd line, email Taco)
   $mw->destroy;
   # don't call finish(0) as we need to exit immediately
-  exit(0); 
+  exit(0);
 }
-  
+
 sub update_all_packages {
   my @args = qw/update/;
   if (@critical_updates) {
@@ -1968,7 +1968,7 @@ sub update_all_packages {
   }
   reinit_local_tlpdb();
 }
-    
+
 sub update_selected_packages {
   my @foo = SelectedPackages();
   if (@foo) {
@@ -2085,14 +2085,14 @@ sub populate_Packages {
 
 #
 # creates/updates the list of packages as shown in tix grid
-# 
+#
 sub setup_list {
   my @do_later;
   for my $p ($localtlpdb->list_packages()) {
     # skip 00texlive packages
     next if ($p =~ m!^00texlive!);
     # collect packages containing a . for later
-    # we want to ignore them in most cases but those where there is 
+    # we want to ignore them in most cases but those where there is
     # no father package (without .)
     if ($p =~ m;\.;) {
       push @do_later, $p;
@@ -2193,7 +2193,7 @@ sub update_list_remote {
       #   but do NOT show the sub package
       # We have to make sure that the remote version does not get
       # TWO times a + added. This can happen if you have multiple
-      # architectures installed, and all of the .ARCH packages (more 
+      # architectures installed, and all of the .ARCH packages (more
       # than 1) are updated, but not the main package
       #
       if (TeXLive::TLUtils::member($ma, @avail_arch)) {
@@ -2244,7 +2244,7 @@ sub update_list_remote {
   #
   if (@critical_updates) {
     # add to the warning text if further updates are available
-    # compute the number of further updates 
+    # compute the number of further updates
     # we do NOT make a correct computation here like done in the actual
     # tlmgr.pl sub action_update, but only count the numbers of packages
     # that would be updated (without any forcibly remove/new counting)
@@ -2253,7 +2253,7 @@ sub update_list_remote {
       next if member($p, @critical);
       if (defined($Packages{$p}{'localrevision'}) &&
           defined($Packages{$p}{'remoterevision'}) &&
-          $Packages{$p}{'localrevision'} < 
+          $Packages{$p}{'localrevision'} <
             maybe_strip_last_plus($Packages{$p}{'remoterevision'})) {
         $min_action++;
       }
@@ -2269,7 +2269,7 @@ Please do this by clicking the \"Update the TeX Live Manager\" button,
 after dismissing this dialogue.
 
 After the update, the TeX Live manager will terminate.
-You can then restart it to proceed with further updates."); 
+You can then restart it to proceed with further updates.");
     if ($min_action) {
       $t .= "\n\n"
 . __("(Further updates will be available after tlmgr has been updated.)");
@@ -2348,7 +2348,7 @@ sub cb_handle_restore {
   my $pkg;
   my $rev;
 
-  my $restore_dialog = $sw->DialogBox(-title => __("Restore completed"), 
+  my $restore_dialog = $sw->DialogBox(-title => __("Restore completed"),
                                       -buttons => [ __("Ok") ]);
   $restore_dialog->add("Label", -text => __("Restore completed"))->pack(@p_iii);
 
@@ -2361,12 +2361,12 @@ sub cb_handle_restore {
     -listheight => $lstlen,
     -autolistwidth => 1,
     -choices => \@pkgbackup,
-    -browsecmd => 
+    -browsecmd =>
       sub { my @revlist = sort { $b <=> $a } (keys %{$backups{$pkg}});
-            $revbrowser->delete(0,"end"); 
-            for my $r (@revlist) { 
-              $revbrowser->insert("end", $r); 
-            }; 
+            $revbrowser->delete(0,"end");
+            for my $r (@revlist) {
+              $revbrowser->insert("end", $r);
+            };
             $rev = "";
       },
     -variable => \$pkg)->pack(@p_ii);
@@ -2429,7 +2429,7 @@ sub cb_handle_symlinks {
     -sticky => 'w');
   $tp->Label(-text => __("Link destination for info docs"), @a_w)->grid(
     $tp->Label(-textvariable => \$changeddefaults{"sys_info"}{'display'}, @a_w),
-    $tp->Button(-text => __("Change"), 
+    $tp->Button(-text => __("Change"),
       -command => sub { edit_dir_option ($sw, "sys_info"); }),
     -sticky => 'w');
   $tp->Label(-text => __("Link destination for man pages"), @a_w)->grid(
@@ -2437,7 +2437,7 @@ sub cb_handle_symlinks {
     $tp->Button(-text => __("Change"),
       -command => sub { edit_dir_option ($sw, "sys_man"); }),
     -sticky => 'w');
-  
+
   my $md = $sw->Frame;
   $md->pack(-ipadx => '3m', -ipady => '3m');
   $md->Button(-text => __("Update symbolic links"),
@@ -2523,12 +2523,12 @@ sub cb_edit_location {
   my @mirror_list;
   push @mirror_list, TeXLive::TLUtils::create_mirror_list();
   my $entry = $sw->BrowseEntry(
-    -listheight => 12, 
+    -listheight => 12,
     -listwidth => 400,
     -width => 50,
     -autolistwidth => 1,
     -choices => \@mirror_list,
-    -browsecmd => 
+    -browsecmd =>
       sub {
         if ($val !~ m/^  /) {
           $val = "";
@@ -2561,7 +2561,7 @@ sub cb_edit_location {
   $f1->pack;
   my $f = $sw->Frame;
   $okbutton = $f->Button(-text => __("Load"), # -state => "disabled",
-    -command => sub { 
+    -command => sub {
                       if ($val) {
                         $location = $val;
                         $sw->destroy;
@@ -2574,7 +2574,7 @@ sub cb_edit_location {
                         setup_location($location);
                         $foo->destroy;
                       } else {
-                        # button should be disabled and not clickable 
+                        # button should be disabled and not clickable
                         # why are we here???
                       }
                     })->pack(@left, @p_ii);
@@ -2608,7 +2608,7 @@ sub update_loaded_location_string {
     $loaded_text_button->configure(-text => $arg);
   }
   $loaded_text->configure(-text => __("Loaded:"));
-  $loaded_text_button->configure( -command => 
+  $loaded_text_button->configure( -command =>
       sub { transient_show_multiple_repos($loaded_text_button, @vals); });
   $default_repo->packForget;
 }

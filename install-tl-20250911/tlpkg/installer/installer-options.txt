@@ -4,7 +4,7 @@
    $tlpdb->option("key")
    description
    used in install-tl/tlmgr/TLMedia
-----------------------------------------------------------------------------
+---------------------------------------------------
 tlpdbopt_install_docfiles       1             x       x
    option("install_docfiles")
    install doc files
@@ -50,7 +50,7 @@ tlpdbopt_post_code              1
 tlpdbopt_sys_bin/man/info       /u/l/...      unix    unix
    option("sys_bin") ...
    unix link dests (if instopt_adjustpath == 1)
-   TLPDB add/remove_symlinks 
+   TLPDB add/remove_symlinks
    (via tlmgr action_symlinks and install-tl do_path_adjustments)
 
 tlpdbopt_w32_multi_user         1             w32     w32       w32
@@ -65,7 +65,7 @@ instopt_letter                0             x       x         x
    use letter
    install-tl: sub do_postinst_stuff
 
-instopt_adjustpath          0 unix/1 win    x       x 
+instopt_adjustpath          0 unix/1 win    x       x
    path adjustment
    not saved into the local TLPDB
    only for install time setting

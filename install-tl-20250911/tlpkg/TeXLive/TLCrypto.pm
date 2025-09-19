@@ -97,7 +97,7 @@ sub setup_checksum_method {
   # $::checksum_method = "sha512sum";
   # return($::checksum_method);
   # try to load Digest::SHA, and if that fails, use our own slow modules
-  eval { 
+  eval {
     require Digest::SHA;
     Digest::SHA->import('sha512_hex');
     debug("Using checksum method digest::sha\n");
@@ -213,7 +213,7 @@ sub tlchecksum {
 #     tlwarn("tlchecksum: given file not readable: $file\n");
 #     return "";
 #   }
-# } 
+# }
 
 =pod
 
@@ -234,7 +234,7 @@ Calls C<<verify_checksum>> and checks the various return values
 for critical errors, and dies if necessary.
 
 If C<$is_main> is given and true, an unsigned tlpdb is considered
-fatal. If C<$localcopymode> is given and true, do not die for 
+fatal. If C<$localcopymode> is given and true, do not die for
 checksum and connection errors, thus allowing for re-downloading
 of a copy.
 
@@ -293,13 +293,13 @@ sub verify_checksum_and_check_return {
 Verifies that C<$file> has checksum C<$checksum_url>, and if gpg is
 available also verifies that the checksum is signed.
 
-Returns 
-C<$VS_VERIFIED> on success, 
+Returns
+C<$VS_VERIFIED> on success,
 C<$VS_CONNECTION_ERROR> on connection error,
-C<$VS_UNSIGNED> on missing signature file, 
+C<$VS_UNSIGNED> on missing signature file,
 C<$VS_GPG_UNAVAILABLE> if no gpg program is available,
-C<$VS_PUBKEY_MISSING> if the pubkey is not available, 
-C<$VS_CHECKSUM_ERROR> on checksum errors, 
+C<$VS_PUBKEY_MISSING> if the pubkey is not available,
+C<$VS_CHECKSUM_ERROR> on checksum errors,
 C<$VS_EXPKEYSIG> if the signature is good but was made with an expired key,
 C<$VS_REVKEYSIG> if the signature is good but was made with a revoked key,
 and C<$VS_SIGNATURE_ERROR> on signature errors.
@@ -392,7 +392,7 @@ sub setup_gpg {
     # no envvar, look for gpg
     $prg = test_one_gpg('gpg');
     $found = 1 if ($prg);
-  
+
     # no gpg, look for gpg2
     if (!$found) {
       $prg = test_one_gpg('gpg2');
@@ -419,7 +419,7 @@ sub setup_gpg {
 
   # ok, we found one
   # Set up the gpg invocation:
-  my $gpghome = ($ENV{'TL_GNUPGHOME'} ? $ENV{'TL_GNUPGHOME'} : 
+  my $gpghome = ($ENV{'TL_GNUPGHOME'} ? $ENV{'TL_GNUPGHOME'} :
                                         "$master/tlpkg/gpg" );
   $gpghome =~ s!/!\\!g if wndws();
   my $gpghome_quote = "\"$gpghome\"";
@@ -476,16 +476,16 @@ sub test_one_gpg {
 
 =item C<< verify_signature($file, $url) >>
 
-Verifies a download of C<$url> into C<$file> by cheking the 
+Verifies a download of C<$url> into C<$file> by cheking the
 gpg signature in C<$url.asc>.
 
-Returns 
-$VS_VERIFIED on success, 
+Returns
+$VS_VERIFIED on success,
 $VS_REVKEYSIG on good signature but from revoked key,
 $VS_EXPKEYSIG on good signature but from expired key,
-$VS_UNSIGNED on missing signature file, 
+$VS_UNSIGNED on missing signature file,
 $VS_SIGNATURE_ERROR on signature error,
-$VS_GPG_UNAVAILABLE if no gpg is available, and 
+$VS_GPG_UNAVAILABLE if no gpg is available, and
 $VS_PUBKEY_MISSING if a pubkey is missing.
 In case of errors returns an informal message as second argument.
 
@@ -510,12 +510,12 @@ sub verify_signature {
         }
       }
       # check also the first line of the signature file for
-      # -----BEGIN PGP SIGNATURE-----
+      # ----BEGIN PGP SIGNATURE----
       {
         open my $file, '<', $signature_file;
         chomp(my $firstLine = <$file>);
         close $file;
-        if ($firstLine !~ m/^-----BEGIN PGP SIGNATURE-----/) {
+        if ($firstLine !~ m/^----BEGIN PGP SIGNATURE----/) {
           debug("cryptographic signature seems to be corrupted (first line not signature): $signature_url, $signature_file, $firstLine\n");
           return($VS_UNSIGNED, "cryptographic signature download seems to be corrupted (first line of $signature_url not signature: $firstLine)");
         }

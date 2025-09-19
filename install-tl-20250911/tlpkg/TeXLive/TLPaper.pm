@@ -54,7 +54,7 @@ use TeXLive::TLConfig;
 
 #
 # paper data
-# 
+#
 our %paper = (
   "xdvi"     => {
     sub => \&paper_xdvi,
@@ -93,7 +93,7 @@ our %paper = (
     pkg => "psutils",
   },
 );
-  
+
 # Output is done to the components in this hash.
 # If a value is undefined, we take the one from %default_...
 #
@@ -189,7 +189,7 @@ my %context_papersize = ( "A4" => 1, "letter" => 1, );
 my %dvipdfm_papersize = (
   "a3" => 1,
   "a4" => 1,
-  "ledger" => 1, 
+  "ledger" => 1,
   "legal" => 1,
   "letter" => 1,
   "tabloid" => 1,
@@ -227,7 +227,7 @@ sub get_paper {
 
 Call the paper subroutine for C<$prog>, passing args.
 
-Returns a reference to a list of papers if called with C<--returnlist>, 
+Returns a reference to a list of papers if called with C<--returnlist>,
 otherwise one of the standard flags (see TeXLive::TLConfig).
 
 =cut
@@ -265,11 +265,11 @@ sub paper_all {
 # return the config file to look in by running kpsewhich with the
 # specified PROGNAME, FORMAT, and @FILENAMES.  If no result, give a
 # warning and return the empty string.
-# 
+#
 sub find_paper_file {
   my ($progname, $format, @filenames) = @_;
   my $ret = "";
-  
+
   my $cmd;
   for my $filename (@filenames) {
     $cmd = qq!kpsewhich --progname=$progname --format="$format" $filename!;
@@ -295,11 +295,11 @@ sub setup_names {
 
 
 # xdvi format:
-# /--- XDvi ---
+# /-- XDvi --
 # |...
 # |*paper: <NAME>
 # |...
-# \------------
+# \--------
 #
 # Reading is done via --progname=xdvi --format='other text files' XDvi
 # Writing is done to TEXMFSYSCONFIG/xdvi/XDvi
@@ -313,8 +313,8 @@ sub paper_xdvi {
   my $outfile = "$outtree/$outcomp/$filecomp";
   my $inp = &find_paper_file("xdvi", "other text files", $filecomp, $dftfile);
 
-  return($F_ERROR) unless $inp; 
-  
+  return($F_ERROR) unless $inp;
+
 
   my @sizes = keys %xdvi_papersize;
   return &paper_do_simple($inp, "xdvi", '^\*paper: ', '^\*paper:\s+(\w+)\s*$',
@@ -327,12 +327,12 @@ sub paper_xdvi {
 
 
 # pdftex pdftexconfig.dat format
-# /--- pdftexconfig.tex ---
+# /-- pdftexconfig.tex --
 # |...
 # |\pdfpageheight       = 297 true mm
 # |\pdfpagewidth        = 210 true mm
 # |...
-# \------------------------
+# \----------------
 #
 # Reading is done via --progname=pdftex --format='tex' pdftexconfig.tex
 # Writing is done to TEXMFSYSCONFIG/tex/generic/config/pdftexconfig.tex
@@ -345,7 +345,7 @@ sub paper_pdftex {
   my $outfile = "$outtree/$outcomp/$filecomp";
   my $inp = &find_paper_file("pdftex", "tex", $filecomp, $dftfile);
 
-  return($F_ERROR) unless $inp; 
+  return($F_ERROR) unless $inp;
 
   open(FOO, "<$inp") || die "$prg: open($inp) failed: $!";
   my @lines = <FOO>;
@@ -489,7 +489,7 @@ sub paper_pdftex {
 
 
 # dvips config.ps format:
-# /--- config.ps ---
+# /-- config.ps --
 # |...
 # |stuff not related to paper sizes
 # |...
@@ -504,7 +504,7 @@ sub paper_pdftex {
 # |
 # |@ <NAME> <WIDTH> <HEIGHT>
 # |...
-# \------------
+# \--------
 #
 # the first paper definition is the default
 # selecting paper is done like with texconfig which used ed to move the
@@ -524,8 +524,8 @@ sub paper_dvips {
   my $outfile = "$outtree/$outcomp/$filecomp";
   my $inp = &find_paper_file("dvips", "dvips config", $filecomp, $dftfile);
 
-  return($F_ERROR) unless $inp; 
-  
+  return($F_ERROR) unless $inp;
+
   open(FOO, "<$inp") || die "$prg: open($inp) failed: $!";
   my @lines = <FOO>;
   close(FOO);
@@ -582,7 +582,7 @@ sub paper_dvips {
             push @newlines, $lines[$idx];
             next;
           }
-          if ($idx == $firstpaperidx) { 
+          if ($idx == $firstpaperidx) {
             # insert the selected paper definition
             push @newlines, @lines[$startidx{$newpaper}..$endidx{$newpaper}];
             push @newlines, $lines[$idx];
@@ -618,16 +618,16 @@ sub paper_dvips {
 
 
 # dvipdfm(x) format:
-# /--- dvipdfm/config, dvipdfmx/dvipdfmx.cfg ---
+# /-- dvipdfm/config, dvipdfmx/dvipdfmx.cfg --
 # |...
 # |p <NAME>
 # |...
-# \------------
+# \--------
 #
 # Reading is done
 #  for dvipdfm via --progname=dvipdfm --format='other text files' config
 #  for dvipdfmx via --progname=dvipdfmx --format='other text files' dvipdfmx.cfg
-# Writing is done to TEXMFSYSCONFIG/dvipdfm/config/config 
+# Writing is done to TEXMFSYSCONFIG/dvipdfm/config/config
 # and /dvipdfmx/dvipdfmx.cfg
 #
 #
@@ -652,7 +652,7 @@ sub paper_dvipdfm {
   my ($outcomp, $filecomp) = setup_names("dvipdfm");
   my $dftfile = $paper{'dvipdfm'}{'default_file'};
   my $inp = &find_paper_file("dvipdfm", "other text files", $filecomp, $dftfile);
-  return ($F_ERROR) unless $inp; 
+  return ($F_ERROR) unless $inp;
 
   my @sizes = keys %dvipdfm_papersize;
   return &do_dvipdfm_and_x($inp, "dvipdfm", $outtree, \@sizes, $newpaper);
@@ -666,7 +666,7 @@ sub paper_dvipdfmx {
   my $dftfile = $paper{'dvipdfmx'}{'default_file'};
 
   my $inp = &find_paper_file("dvipdfmx", "other text files", $filecomp, $dftfile);
-  return ($F_ERROR) unless $inp; 
+  return ($F_ERROR) unless $inp;
 
   my @sizes = keys %dvipdfm_papersize;
   return &do_dvipdfm_and_x($inp, "dvipdfmx", $outtree, \@sizes, $newpaper);
@@ -674,12 +674,12 @@ sub paper_dvipdfmx {
 
 
 # context format:
-# /--- context-papersize.tex // formerly cont-sys.{tex,rme}
+# /-- context-papersize.tex // formerly cont-sys.{tex,rme}
 # |...
 # |\setuppapersize[letter][letter]
 # |...
-# \------------
-# 
+# \--------
+#
 sub paper_context {
   my $outtree = shift;
   my $newpaper = shift;
@@ -816,12 +816,12 @@ sub paper_context_old {
   my $dftfile = $paper{'context'}{'default_file'};
   my $outfile = "$outtree/$outcomp/$filecomp";
   my $inp = &find_paper_file("context", "tex", $filecomp, "cont-sys.rme", $dftfile);
-  return ($F_ERROR) unless $inp; 
+  return ($F_ERROR) unless $inp;
 
   my @sizes = keys %pdftex_papersize;
-  # take care here, the \\\\ are necessary in some places and not in 
+  # take care here, the \\\\ are necessary in some places and not in
   # some others because there is no intermediate evaluation
-  return &paper_do_simple($inp, "context", '^\s*%?\s*\\\\setuppapersize\s*', 
+  return &paper_do_simple($inp, "context", '^\s*%?\s*\\\\setuppapersize\s*',
             '^\s*%?\s*\\\\setuppapersize\s*\[([^][]*)\].*$',
             sub {
               my ($ll,$np) = @_;
@@ -830,7 +830,7 @@ sub paper_context_old {
               } else {
                 return($ll);
               }
-            }, 
+            },
             $outfile, \@sizes, 'a4', '\setuppapersize[a4][a4]', $newpaper);
 }
 
@@ -848,11 +848,11 @@ sub paper_psutils {
   my $outfile = "$outtree/$outcomp/$filecomp";
   my $inp = &find_paper_file("psutils", "other text files", $filecomp, $dftfile);
 
-  return ($F_ERROR) unless $inp; 
-  
+  return ($F_ERROR) unless $inp;
+
 
   my @sizes = keys %psutils_papersize;
-  return &paper_do_simple($inp, "psutils", '^\s*p', '^\s*p\s+(\w+)\s*$', 
+  return &paper_do_simple($inp, "psutils", '^\s*p', '^\s*p\s+(\w+)\s*$',
              sub {
                my ($ll,$np) = @_;
                $ll =~ s/^\s*p\s+(\w+)\s*$/p $np\n/;
