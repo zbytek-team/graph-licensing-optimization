@@ -7,16 +7,16 @@ Praca pokazuje pełny cykl badawczy dotyczący optymalizacji kosztów licencji g
 
 \section{Wyniki}
 
-\subsection*{Model i metody}
+\subsection{Model i metody}
 Rozdziały~\ref{chap:introduction}--\ref{chap:testdata} definiują problem jako uogólnienie dominacji rzymskiej z ograniczeniami pojemności oraz różnymi typami licencji. Wykazano wysoką złożoność obliczeniową. Rozdział~\ref{chap:algorithms} prezentuje pełen zestaw metod: dokładny solver ILP, heurystyki konstrukcyjne (m.in. algorytm zachłanny, podejście przez zbiór dominujący), metaheurystyki (algorytm genetyczny, algorytm mrówkowy, przeszukiwanie tabu, wyżarzanie symulowane) oraz algorytm losowy. Wszystkie implementacje mają wspólny interfejs, co ułatwiło porównania.
 
-\subsection*{Eksperymenty statyczne}
+\subsection{Eksperymenty statyczne}
 Rozdział~\ref{chap:experiments} potwierdza hierarchię jakości: $ILP >$ algorytm mrówkowy $>$ przeszukiwanie tabu/algorytm genetyczny $>$ wyżarzanie symulowane $>$ heurystyki konstrukcyjne $>$ algorytm losowy. Różnice są istotne statystycznie (test Friedmana oraz porównania Nemenyi'ego). Grafy bezskalowe okazały się łatwiejsze do pokrycia z powodu hubów. Czas działania metaheurystyk rósł szybko, a heurystyki konstrukcyjne utrzymywały czasy rzędu milisekund. W praktyce wyróżniono trzy zakresy: dla małych grafów warto stosować ILP jako punkt odniesienia; dla średnich grafów najlepsze są metaheurystyki; dla dużych grafów albo gdy liczy się szybkość, użyteczną aproksymację daje algorytm zachłanny.
 
-\subsection*{Symulacje dynamiczne}
+\subsection{Symulacje dynamiczne}
 Rozdział~\ref{chap:dynamic} przedstawia wpływ zmian w sieci na koszt i czas. Ciepły start konsekwentnie obniżał koszt o 6--14\% (syntetyczne) i 7--12\% (realistyczne), przy czasie rebalansowania 1--3~s. Intensywniejsze mutacje zwiększały głównie czas, a mniej wpływały na koszt. Najdokładniejszy pozostawał algorytm mrówkowy, natomiast przeszukiwanie tabu i algorytm genetyczny dawały lepszy kompromis czasowy. W danych realistycznych najniższe koszty uzyskano w wariancie Spotify (mediana $\approx 0{,}41$ na węzeł).
 
-\subsection*{Rozszerzenia licencyjne}
+\subsection{Rozszerzenia licencyjne}
 Rozdział~\ref{chap:extensions} analizuje osiem wariantów taryf. W planach Duolingo i Roman o opłacalności decydowały rozmiar grupy i koszt planu. Przy tańszej grupie (\texttt{duolingo\_p\_2}) metaheurystyki redukowały koszt o 10--20\% względem heurystyk. Przy droższych planach (\texttt{duolingo\_p\_5}, \texttt{roman\_p\_5}) przewaga spadała do kilku procent. Dodanie planu Duo (Spotify) oraz planów Standard/Premium (Netflix) umożliwiło nowe parowania użytkowników i obniżyło koszt na węzeł (mediana 0{,}40 w Spotify wobec 0{,}50 w \texttt{duolingo\_p\_2}). W dynamice konfiguracje z planem pośrednim utrzymywały najkorzystniejszy koszt i stabilny czas, a metaheurystyki dawały 5--12\% oszczędności względem algorytmu zachłannego.
 
 \section{Rekomendacje praktyczne}
