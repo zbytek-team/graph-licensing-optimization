@@ -153,7 +153,7 @@ sub run_menu_text {
         $selind++;
       }
     }
-    print "----\n";
+    print "---\n";
     print "[0] default mirror   https://mirror.ctan.org\n";
     my $local_ind = "a";
     if ($#media_available >= 0) {
@@ -231,7 +231,7 @@ sub run_menu_text {
           $ans = undef;
         }
       }
-    } 
+    }
   }
 
   # run remote init
@@ -289,7 +289,7 @@ sub binary_menu {
       push @binaries, $1;
     }
   }
-  
+
   @binaries=sort TeXLive::TLUtils::sort_archs @binaries;
 
   foreach my $binary (@binaries) {
@@ -958,7 +958,7 @@ sub do_install {
   my $reserve = 100;
   my $doit = 1;
   if ($vars{'free_size'} > 0
-      && $vars{'free_size'} + $reserve < $vars{'total_size'}) { 
+      && $vars{'free_size'} + $reserve < $vars{'total_size'}) {
     print STDERR <<"EOF";
 *** WARNING ****************************************************
 The installation requires $vars{'total_size'}M of disk space
@@ -1145,7 +1145,7 @@ EOF
 
   print "   $b_path create symlinks to standard directories\n"
     unless ($vars{'instopt_portable'} || wndws());
-  
+
   print "   $b_adjustrepo after install, set CTAN as source "
           . "for package updates\n"
     unless ($media eq 'NET');

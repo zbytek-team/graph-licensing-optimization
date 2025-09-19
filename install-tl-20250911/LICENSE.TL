@@ -100,7 +100,7 @@ Thanks for your interest in TeX and friends.
 
 - Karl Berry, for the TeX Live project
 
-------------------------------------------------------------
+----------------------------------------
 TeX Live mailing list: https://lists.tug.org/tex-live
 TeX Live home page:    https://tug.org/texlive/
 

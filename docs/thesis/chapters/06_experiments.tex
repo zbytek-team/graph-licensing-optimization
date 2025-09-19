@@ -3,42 +3,40 @@
 
 \section{Środowisko i metodologia}
 
-Eksperymenty wykonano na komputerze z procesorem Intel Core i5-14600KF (12 rdzeni, taktowanie 3,49~GHz) oraz 16~GB pamięci RAM. System operacyjny stanowił Ubuntu~24.04~LTS uruchomiony w środowisku WSL2. Implementacja algorytmów powstała w języku Python~3.13; wykorzystano biblioteki NumPy, NetworkX, a także PuLP jako interfejs do solverów ILP. Każdy pomiar obejmował wyłącznie czas obliczeń, pomijając koszt przygotowania instancji oraz operacje wejścia/wyjścia.
+Eksperymenty wykonano na komputerze z procesorem Intel Core i5-14600KF (12 rdzeni ograniczone przez konfigurację WSL2, taktowanie 3,49~GHz) oraz 16~GB pamięci RAM. System operacyjny stanowił Ubuntu~24.04~LTS uruchomiony w środowisku WSL2. Implementacja algorytmów powstała w języku Python~3.13; wykorzystano biblioteki NumPy, NetworkX, a także PuLP jako interfejs do solverów ILP. Każdy pomiar obejmował wyłącznie czas obliczeń, pomijając koszt przygotowania instancji oraz operacje wejścia/wyjścia.
 
-Analiza objęła dwa zestawy danych: (i) syntetyczne grafy losowe, bezskalowe oraz małoświatowe o liczebności od 50 do 450 wierzchołków, (ii) grafy ego z serwisu Facebook o liczebności od 53 do 1035 wierzchołków. Dla każdej instancji uruchamiano wszystkie algorytmy z limitem czasu wynoszącym 60~s. Przekroczenie limitu oznaczano jako \texttt{timeout} i wyłączano z dalszych obliczeń. Łącznie odnotowano 10 timeoutów dla \textbf{Algorytmu mrówkowego} oraz \textbf{Solvera~ILP} na grafach syntetycznych, a także odpowiednio 8, 18 i 6 przypadków dla \textbf{Algorytmu mrówkowego}, \textbf{Solvera~ILP} oraz \textbf{Przeszukiwania tabu} na grafach rzeczywistych. Wszystkie pozostałe uruchomienia zakończyły się sukcesem.
+Analiza objęła dwa zestawy danych: syntetyczne grafy losowe, bezskalowe oraz małoświatowe o liczebności od 50 do 450 wierzchołków, a także grafy ego z serwisu Facebook o liczebności od 53 do 1035 wierzchołków. Dla każdej instancji uruchamiano wszystkie algorytmy z limitem czasu wynoszącym 60 sekund, a przekroczenie tego limitu oznaczano jako timeout i wyłączano z dalszych obliczeń. Na grafach syntetycznych odnotowano 10 timeoutów dla algorytmu mrówkowego oraz solvera ILP, natomiast na grafach rzeczywistych odpowiednio 8, 18 i 6 przypadków dla algorytmu mrówkowego, solvera ILP oraz przeszukiwania tabu. Wszystkie pozostałe uruchomienia zakończyły się sukcesem.
 
 W przypadku grafów syntetycznych dla każdego rozmiaru generowano trzy niezależne instancje, a następnie wykonywano po dwa uruchomienia algorytmów na każdej z nich. Analiza sieci ego Facebooka obejmowała po jednym grafie na rozmiar oraz dwa powtórzenia dla każdej pary (graf, algorytm), co pozwoliło oszacować zmienność wyników przy zachowaniu rozsądnego budżetu obliczeniowego.
-
-W każdej próbie zapisano całkowity koszt licencji, czas wykonania oraz koszt w przeliczeniu na wierzchołek. Wyniki agregowano przez medianę oraz średnią. Spójność różnic między algorytmami oceniono przy użyciu testów Friedmana oraz następujących po nich porównań post-hoc metodą Nemenyi'ego. Na syntetycznym benchmarku otrzymano statystyki $\chi^2_F = 577{,}93$ dla czasu oraz $\chi^2_F = 518{,}01$ dla kosztu na węzeł ($p < 10^{-100}$ w obu przypadkach), co uzasadnia szczegółowe porównania par algorytmów.
+W każdej próbie zapisano całkowity koszt licencji, czas wykonania oraz koszt w przeliczeniu na wierzchołek. Wyniki agregowano przez średnią. Spójność różnic między algorytmami oceniono przy użyciu testów Friedmana, gdzie $\chi^2_F$ to wartość statystyki testu Friedmana oraz $p$ to poziom istotności, a następnie następujących po nich porównań post-hoc metodą Nemenyi'ego. Na syntetycznym benchmarku otrzymano statystyki $\chi^2_F = 577{,}93$ dla czasu oraz $\chi^2_F = 518{,}01$ dla kosztu na węzeł ($p < 10^{-100}$ w obu przypadkach), co uzasadnia szczegółowe porównania par algorytmów.
 
 \section{Duolingo Super na grafach syntetycznych}
 
 \subsection{Statystyki zbiorcze}
-
-Tabela~\ref{tab:duo-synth-summary} zestawia mediany i średnie wartości kosztu oraz czasu dla licencji Duolingo Super. \textbf{Solver~ILP} pozostaje najlepszym punktem odniesienia jakościowego (mediana kosztu 42,45), lecz przydaje się jedynie dla mniejszych instancji. Posiada tyle samo timeoutów co \textbf{Algorytm mrówkowy}. Wśród metaheurystyk najniższy koszt osiąga właśnie \textbf{Algorytm mrówkowy} (0,445 kosztu na węzeł), natomiast \textbf{Przeszukiwanie tabu} zapewnia najlepszy kompromis kosztu i czasu w grupie metod przybliżonych. \textbf{Algorytm zachłanny} i \textbf{Algorytm losowy} działają prawie natychmiast, ale tylko pierwszy z nich zachowuje akceptowalny koszt (0,493), podczas gdy losowy baseline pozostaje wyraźnie gorszy jakościowo.
+Tabela~\ref{tab:duo-synth-summary} zestawia średnie wartości kosztu na węzeł oraz czasu dla licencji Duolingo Super. \textbf{Solver~ILP} pozostaje najlepszym punktem odniesienia jakościowego (średni koszt na węzeł 0,445), lecz przydaje się jedynie dla mniejszych instancji. Posiada tyle samo timeoutów co \textbf{Algorytm mrówkowy}. Wśród metaheurystyk najniższy koszt na węzeł osiąga właśnie \textbf{Algorytm mrówkowy} (0,506), natomiast \textbf{Przeszukiwanie tabu} zapewnia najlepszy kompromis kosztu na węzeł i czasu w grupie metod przybliżonych. \textbf{Algorytm zachłanny} i \textbf{Algorytm losowy} działają prawie natychmiast, ale tylko pierwszy z nich zachowuje akceptowalny koszt na węzeł (0,548), podczas gdy losowy baseline pozostaje wyraźnie gorszy jakościowo.
 
 \begin{table}[H]
   \centering
-  \caption{Statystyki kosztu i czasu dla licencji Duolingo Super na grafach syntetycznych.}
+  \caption{Średnie wartości kosztu na węzeł i czasu dla licencji Duolingo Super na grafach syntetycznych.}
   \label{tab:duo-synth-summary}
-  \begin{tabular}{lrrrr}
+  \begin{tabular}{lrrr}
     \toprule
-    \textbf{Algorytm}     & \textbf{Mediana kosztu} & \textbf{Średni koszt} & \textbf{Mediana czasu [s]} & \textbf{Średni czas [s]} \\
+    \textbf{Algorytm}     & \textbf{Średni koszt/węzeł} & \textbf{Średni koszt} & \textbf{Średni czas [s]} \\
     \midrule
-    Solver ILP            & 42.45                   & 73.83                 & 0.792                      & 2.492                    \\
-    Algorytm mrówkowy     & 62.50                   & 83.58                 & 1.978                      & 5.124                    \\
-    Przeszukiwanie tabu   & 67.30                   & 117.80                & 1.423                      & 3.298                    \\
-    Algorytm genetyczny   & 69.30                   & 118.36                & 0.525                      & 1.222                    \\
-    Wyżarzanie symulowane & 72.30                   & 120.90                & 0.404                      & 0.975                    \\
-    Zbiór dominujący      & 71.38                   & 119.97                & 0.003                      & 0.017                    \\
-    Algorytm zachłanny    & 72.30                   & 121.94                & 0.001                      & 0.001                    \\
-    Algorytm losowy       & 108.92                  & 179.90                & 0.001                      & 0.001                    \\
+    Solver ILP            & 0.445                       & 73.83                 & 2.492                    \\
+    Algorytm mrówkowy     & 0.506                       & 83.58                 & 5.124                    \\
+    Przeszukiwanie tabu   & 0.500                       & 117.80                & 3.298                    \\
+    Algorytm genetyczny   & 0.515                       & 118.36                & 1.222                    \\
+    Wyżarzanie symulowane & 0.531                       & 120.90                & 0.975                    \\
+    Zbiór dominujący      & 0.542                       & 119.97                & 0.017                    \\
+    Algorytm zachłanny    & 0.548                       & 121.94                & 0.001                    \\
+    Algorytm losowy       & 0.799                       & 179.90                & 0.001                    \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 
-\subsection{Wnioski z analizy kosztów i czasów}
+\subsection{Porównanie algorytmów na grafach syntetycznych}
 
 Rysunki~\ref{fig:duo-synth-cost-random}--\ref{fig:duo-synth-cost-small-world} pokazują, że algorytmy dla licencji Duolingo Super osiągają wyniki porównywalne z solverem ILP w przypadku grafów losowych i małoświatowych. Natomiast w przypadku grafów bezskalowych wyniki są zauważalnie gorsze.
 
@@ -64,9 +62,7 @@ Rysunki~\ref{fig:duo-synth-cost-random}--\ref{fig:duo-synth-cost-small-world} po
   \label{fig:duo-synth-cost-small-world}
 \end{figure}
 
-Podobne obserwacje dotyczą czasów wykonania, jak ilustrują rysunki~\ref{fig:duo-synth-time-random}--\ref{fig:duo-synth-time-small-world}. Średnie czasy działania algorytmów są najniższe dla grafów małoświatowych i losowych, natomiast dla grafów bezskalowych są wyraźnie wyższe. Tabela~\ref{tab:duo-synth-summary-times} podsumowuje mediany czasów i kosztów na węzeł dla różnych typów grafów.
-
-
+Podobne obserwacje dotyczą czasów wykonania, jak ilustrują rysunki~\ref{fig:duo-synth-time-random}--\ref{fig:duo-synth-time-small-world}. Czasy działania algorytmów są zbliżone dla różnych typów grafów, z wyjątkiem solvera ILP, który średnio działa szybciej na grafach bezskalowych, oraz przeszukiwania tabu, które działa na nich dłużej. Pozostałe algorytmy wykazują porównywalne czasy działania niezależnie od struktury grafu. Tabela~\ref{tab:duo-synth-summary-times} podsumowuje średnie czasów i kosztów na węzeł dla różnych typów grafów.
 
 \begin{figure}[H]
   \centering
@@ -89,21 +85,20 @@ Podobne obserwacje dotyczą czasów wykonania, jak ilustrują rysunki~\ref{fig:d
   \label{fig:duo-synth-time-small-world}
 \end{figure}
 
-
 \begin{table}[H]
   \centering
-  \caption{Mediany czasów i kosztów na węzeł dla różnych typów grafów (Duolingo Super i dominowanie rzymskie).}
+  \caption{Średnie koszty i czasy na węzeł dla różnych typów grafów (Duolingo Super i dominowanie rzymskie).}
   \label{tab:duo-synth-summary-times}
   \begin{tabular}{lcccc}
     \toprule
-    \textbf{Licencja}    & \textbf{Typ grafu} & \textbf{Med. czas [s]} & \textbf{Med. koszt/węzeł} \\
+    \textbf{Licencja}    & \textbf{Typ grafu} & \textbf{Śr. koszt/węzeł} & \textbf{Śr. czas [s]} \\
     \midrule
-    Duolingo Super       & Bezskalowy         & 0.315                  & 0.680                     \\
-    Duolingo Super       & Losowy             & 0.207                  & 0.453                     \\
-    Duolingo Super       & Małoświatowy       & 0.203                  & 0.466                     \\
-    Dominowanie rzymskie & Bezskalowy         & 0.211                  & 0.460                     \\
-    Dominowanie rzymskie & Losowy             & 0.215                  & 0.300                     \\
-    Dominowanie rzymskie & Małoświatowy       & 0.254                  & 0.375                     \\
+    Duolingo Super       & Bezskalowy         & 0.661                    & 1.655                 \\
+    Duolingo Super       & Losowy             & 0.502                    & 1.598                 \\
+    Duolingo Super       & Małoświatowy       & 0.495                    & 1.346                 \\
+    Dominowanie rzymskie & Bezskalowy         & 0.490                    & 0.913                 \\
+    Dominowanie rzymskie & Losowy             & 0.344                    & 0.815                 \\
+    Dominowanie rzymskie & Małoświatowy       & 0.409                    & 1.544                 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -111,32 +106,31 @@ Podobne obserwacje dotyczą czasów wykonania, jak ilustrują rysunki~\ref{fig:d
 Z powyższych danych wynika, że struktura grafu ma istotny wpływ zarówno na koszty, jak i na czasy działania algorytmów. Licencja Duolingo Super radzi sobie najgorzej w przypadku grafów bezskalowych. Z kolei licencja dominowania rzymskiego osiąga najgorsze wyniki dla grafów małoświatowych, podczas gdy w przypadku grafów bezskalowych wypada najlepiej.
 
 \section{Duolingo Super na grafach rzeczywistych}
-
 W analizie grafów ego z serwisu Facebook pominięto obserwacje, w których solver ILP nie zakończył pracy przed limitem czasu (18 przypadków). Dodatkowo odnotowano 8 timeoutów algorytmu mrówkowego i 6 przypadków w przeszukiwaniu tabu; pozostałe uruchomienia zakończyły się sukcesem.
 
 \begin{table}[H]
   \centering
   \caption{Statystyki kosztu i czasu dla licencji Duolingo Super na grafach rzeczywistych.}
   \label{tab:duo-real-alg}
-  \begin{tabular}{lrrrrr}
+  \begin{tabular}{lrrr}
     \toprule
     \textbf{Algorytm}     & \textbf{Średni koszt} & \textbf{Śr. koszt/węzeł} & \textbf{Śr. czas [s]} \\
     \midrule
     Algorytm mrówkowy     & 83.58                 & 0.506                    & 5.124                 \\
-    Algorytm genetyczny   & 118.36                & 0.515                    & 1.222                 \\
-    Przeszukiwanie tabu   & 117.80                & 0.500                    & 3.298                 \\
     Zbiór dominujący      & 119.97                & 0.542                    & 0.017                 \\
-    Wyżarzanie symulowane & 120.90                & 0.531                    & 0.975                 \\
+    Algorytm genetyczny   & 118.36                & 0.515                    & 1.222                 \\
     Algorytm zachłanny    & 121.94                & 0.548                    & 0.001                 \\
     Algorytm losowy       & 179.90                & 0.799                    & 0.001                 \\
+    Wyżarzanie symulowane & 120.90                & 0.531                    & 0.975                 \\
+    Przeszukiwanie tabu   & 117.80                & 0.500                    & 3.298                 \\
     \bottomrule
   \end{tabular}
 \end{table}
-Tab.~\ref{tab:duo-real-alg} pokazuje, że zarówno przeszukiwanie tabu, jak i algorytm mrówkowy zachowują przewagę kosztową nad heurystykami losowymi i zachłannymi, choć okupują ją dłuższym czasem działania.
+Tabela~\ref{tab:duo-real-alg} pokazuje, że zarówno przeszukiwanie tabu, jak i algorytm mrówkowy zachowują przewagę kosztową nad heurystykami losowymi i zachłannymi, choć okupują ją dłuższym czasem działania.
 
 \subsection{Skalowanie i jakość}
 
-Rysunek~\ref{fig:duo-real-size} pokazuje, że wraz ze wzrostem liczby wierzchołków koszt na węzeł rośnie umiarkowanie, przy czym przeszukiwanie tabu utrzymuje najniższe wartości, a algorytm mrówkowy plasuje się tuż za nim. Czasy działania wszystkich metod mieszczą się w przedziale do kilku sekund i rosną łagodnie wraz z rozmiarem grafu; algorytm zachłanny nadal pozostaje niemal natychmiastowy i stanowi dobry punkt startowy dla metaheurystyk. Dodatkowo tab.~\ref{tab:duo-real-size-table} zbiera średnie wartości (TabuSearch) dla kolejnych rozmiarów sieci ego i pokazuje, że koszt na węzeł utrzymuje się w przedziale 1{,}8--2{,}5 przy czasie rosnącym od ułamka sekundy do około 5{,}5~s dla największych grafów.
+Rysunek~\ref{fig:duo-real-size} pokazuje, że wraz ze wzrostem liczby wierzchołków koszt na węzeł rośnie umiarkowanie, przy czym przeszukiwanie tabu utrzymuje najniższe wartości, a algorytm mrówkowy plasuje się tuż za nim. Czasy działania wszystkich metod mieszczą się w przedziale do kilku sekund i rosną łagodnie wraz z rozmiarem grafu; algorytm zachłanny nadal pozostaje niemal natychmiastowy i stanowi dobry punkt startowy dla metaheurystyk. Dodatkowo tabela~\ref{tab:duo-real-size-table} zbiera średnie wartości (TabuSearch) dla kolejnych rozmiarów sieci ego i pokazuje, że koszt na węzeł utrzymuje się w przedziale 1{,}8--2{,}5 przy czasie rosnącym od ułamka sekundy do około 5{,}5~s dla największych grafów.
 
 \begin{figure}[H]
   \centering
@@ -153,18 +147,15 @@ Rysunek~\ref{fig:duo-real-size} pokazuje, że wraz ze wzrostem liczby wierzchoł
   \label{tab:duo-real-size-table}
   \begin{tabular}{lrr}
     \toprule
-    extbf{Liczba wierzchołków} & \textbf{Śr. koszt/węzeł} & \textbf{Śr. czas [s]} \\
+    \textbf{Liczba wierzchołków} & \textbf{Śr. koszt/węzeł} & \textbf{Śr. czas [ms]} \\
     \midrule
-    53                         & 2.061                    & 0.195                 \\
-    62                         & 1.800                    & 0.205                 \\
-    151                        & 1.773                    & 0.511                 \\
-    169                        & 1.836                    & 0.597                 \\
-    225                        & 1.942                    & 0.833                 \\
-    334                        & 2.459                    & 1.528                 \\
-    535                        & 2.427                    & 2.450                 \\
-    748                        & 2.034                    & 3.842                 \\
-    787                        & 2.205                    & 3.775                 \\
-    1035                       & 2.168                    & 5.485                 \\
+    53                           & 6.175                    & 2161.349               \\
+    62                           & 5.175                    & 3141.926               \\
+    151                          & 5.297                    & 6825.722               \\
+    169                          & 5.499                    & 8726.145               \\
+    225                          & 5.704                    & 12324.041              \\
+    334                          & 7.843                    & 32705.396              \\
+    535                          & 7.400                    & 58557.464              \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -172,7 +163,7 @@ Rysunek~\ref{fig:duo-real-size} pokazuje, że wraz ze wzrostem liczby wierzchoł
 
 \section{Porównanie z dominowaniem rzymskim}
 
-Porównania z dominowaniem rzymskim ograniczono do wspólnych instancji i algorytmów. Rysunki~\ref{fig:duo-roman-cost}--\ref{fig:duo-roman-license} zestawiają różnice w kosztach, czasach i strukturze licencji, a tabela~\ref{tab:duo-roman-graph} gromadzi mediany według typu grafu syntetycznego.
+Porównania z dominowaniem rzymskim ograniczono do wspólnych instancji i algorytmów. Rysunki~\ref{fig:duo-roman-cost}--\ref{fig:duo-roman-license} zestawiają różnice w kosztach, czasach i strukturze licencji, a tabela~\ref{tab:duo-roman-graph} gromadzi średnie według typu grafu syntetycznego.
 
 \begin{table}[H]
   \centering
@@ -190,7 +181,7 @@ Porównania z dominowaniem rzymskim ograniczono do wspólnych instancji i algory
   \end{tabular}
 \end{table}
 
-Dominowanie rzymskie zapewnia niższy koszt na węzeł we wszystkich porównywanych rodzinach grafów. Największa różnica dotyczy struktur losowych, gdzie przewaga wynosi ok.~0,16 punktu (35\%). W sieciach bezskalowych rozpiętość maleje do 0,21, natomiast w małoświatowych do 0,08. Czasy wykonania pozostają porównywalne, przy lekkiej przewadze dominowania rzymskiego (różnica 10--25~ms). Rysunek~\ref{fig:duo-roman-cost} ilustruje te obserwacje dla pełnego rozkładu, a rysunek~\ref{fig:duo-roman-time} prezentuje analogiczne dane czasowe. Warto jednak zauważyć, że wyższe koszty na węzeł w przypadku Duolingo Super wynikają z większego udziału licencji grupowych, które obejmują średnio 2,1 użytkownika i są droższe od licencji indywidualnych. To właśnie ten czynnik znacząco wpływa na różnice w kosztach między obiema konfiguracjami.
+Dominowanie rzymskie zapewnia niższy koszt na węzeł we wszystkich porównywanych rodzinach grafów. Największa różnica dotyczy struktur losowych, gdzie przewaga wynosi ok.~0,16 punktu (35\%). W sieciach bezskalowych rozpiętość maleje do 0,21, natomiast w małoświatowych do 0,08. Czasy wykonania pozostają porównywalne, przy lekkiej przewadze dominowania rzymskiego (różnica 10--25~ms). Rysunek~\ref{fig:duo-roman-cost} ilustruje te obserwacje dla pełnego rozkładu, a rysunek~\ref{fig:duo-roman-time} prezentuje analogiczne dane czasowe. Warto jednak zauważyć, że wyższe koszty na węzeł w przypadku Duolingo Super wynikają z ograniczeń w opłacalności licencji grupowych. Licencja grupowa jest około 2,1 razy droższa od indywidualnej, co oznacza, że opłaca się ją tworzyć dopiero dla grup liczących co najmniej trzy osoby (właściciel i dwóch sąsiadów). W efekcie liczba licencji indywidualnych w Duolingo Super jest większa, co przekłada się na wyższy średni koszt na węzeł w porównaniu do dominowania rzymskiego.
 
 \begin{figure}[H]
   \centering

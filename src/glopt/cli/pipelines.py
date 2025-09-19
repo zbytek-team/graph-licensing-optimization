@@ -27,17 +27,6 @@ def _run_benchmark_all() -> None:
     bench.main()
 
 
-def _run_benchmark() -> None:
-    bench = importlib.import_module("glopt.cli.benchmark")
-    run_id = _now_id("benchmark")
-    bench.RUN_ID = run_id
-    bench.SIZES = bench.SIZES
-    bench.SAMPLES_PER_SIZE = 3
-    bench.REPEATS_PER_GRAPH = 2
-    bench.TIMEOUT_SECONDS = 60.0
-    bench.main()
-
-
 def _run_benchmark_real() -> None:
     m = importlib.import_module("glopt.cli.benchmark_real")
     run_id = _now_id("benchmark_real")
@@ -56,18 +45,6 @@ def _run_trees() -> None:
     t.REPEATS_PER_GRAPH = 1
     t.TIMEOUT_SECONDS = 45.0
     t.main()
-
-
-def _run_dynamic() -> None:
-    d = importlib.import_module("glopt.cli.dynamic")
-    run_id = _now_id("dynamic")
-    d.RUN_ID = run_id
-    d.SIZES = [20, 40, 80, 160, 320, 640]
-    d.NUM_STEPS = 30
-    d.REPEATS_PER_GRAPH = 1
-    d.TIMEOUT_SECONDS = 45.0
-    d.LICENSE_CONFIG_NAMES = ["duolingo_super", "roman_domination"]
-    d.main()
 
 
 def _run_dynamic_realistic(tag: str, sizes: list[int], steps: int, nodes_mode: str, edges_mode: str) -> None:
@@ -179,10 +156,10 @@ def dynamic() -> None:
     sizes = [
         20,
         40,
-        # 80,
-        # 160,
-        # 320,
-        # 640,
+        80,
+        160,
+        320,
+        640,
     ]
     _run_dynamic_synthetic("low", sizes, 30, add_nodes=0.02, rem_nodes=0.01, add_edges=0.06, rem_edges=0.04)
     _run_dynamic_synthetic("med", sizes, 30, add_nodes=0.06, rem_nodes=0.04, add_edges=0.18, rem_edges=0.12)
@@ -197,20 +174,9 @@ def dynamic_real() -> None:
 
 
 def quick() -> None:
-    # static_all()
-    # trees()
-    # real_ego()
-    dynamic()
-    # dynamic_real()
-    # extensions_static()
-    # extensions_dynamic()
-    return None
-
-
-def full() -> None:
-    _run_benchmark()
-    _run_trees()
-    _run_benchmark_real()
+    static_all()
+    trees()
+    real_ego()
     dynamic()
     dynamic_real()
     extensions_static()
