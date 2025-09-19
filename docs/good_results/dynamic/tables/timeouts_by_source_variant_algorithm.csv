@@ -1,0 +1,13 @@
+source,variant,algorithm,count
+real,pref_pref,Solver ILP,5
+synthetic,low,Solver ILP,5
+synthetic,high,Solver ILP,5
+synthetic,high,Algorytm mrówkowy,5
+synthetic,med,Algorytm mrówkowy,5
+synthetic,med,Solver ILP,5
+synthetic,low,Algorytm mrówkowy,5
+real,pref_triadic,Solver ILP,4
+real,rand_rewire,Solver ILP,4
+real,pref_pref,Algorytm mrówkowy,1
+real,rand_rewire,Algorytm mrówkowy,1
+synthetic,high,Przeszukiwanie tabu,1

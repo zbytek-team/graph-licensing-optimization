@@ -40,7 +40,7 @@ def main() -> None:
         t_m = r.get("time_ms_mean", "?")
         t_s = r.get("time_ms_std", "?")
         lines.append(f"{alg} & {g} & {n} & {rep} & {c_m} & {c_s} & {t_m} & {t_s} \\")
-    lines.append("\\bottomrule")
+    lines.append("\")
     lines.append("\\end{tabular}")
     lines.append("\\end{table}")
 

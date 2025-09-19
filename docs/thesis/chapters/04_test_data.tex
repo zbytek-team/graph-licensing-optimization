@@ -1,4 +1,4 @@
-\chapter{Dane testowe}
+\chapter{Dane testowe}\label{chap:testdata}
 W celu przeprowadzenia szczegółowej analizy efektywności algorytmów optymalizujących zakup licencji w sieciach społecznościowych niezbędne było wykorzystanie różnorodnych danych testowych. Posłużyły do tego syntetycznie generowane grafy losowe oraz rzeczywiste fragmenty sieci społecznościowej. Pierwsza grupa stanowi kontrolowany zbiór danych sztucznych, pozwalający na symulowanie różnych scenariuszy topologicznych i analizę wpływu struktury sieci na działanie algorytmów. Druga grupa to rzeczywiste ego-sieci z platformy Facebook, umożliwiające weryfikację metod na prawdziwych danych społecznościowych.
 
 Niniejszy rozdział koncentruje się na charakterystyce wykorzystanych danych, natomiast ich praktyczne zastosowanie zostanie szczegółowo przedstawione w części poświęconej opisowi przeprowadzonych eksperymentów.
@@ -24,7 +24,6 @@ gdzie:
     Erdős--Rényi     & $n, p$    & $n \in \{20,40,60,\dots,200,300,400,500,600,800,1000\}$; $p=0.1$        \\
     Barabási--Albert & $n, m$    & $n \in \{20,40,60,\dots,200,300,400,500,600,800,1000\}$; $m=2.0$        \\
     Watts--Strogatz  & $n, k, p$ & $n \in \{20,40,60,\dots,200,300,400,500,600,800,1000\}$; $k=4$; $p=0.1$ \\
-    \bottomrule
   \end{tabular}
 
   \label{tab:gen-ranges}

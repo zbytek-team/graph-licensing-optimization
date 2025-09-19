@@ -39,10 +39,10 @@ LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNA
 DYNAMIC_DUO_PS: list[float] = [2.0, 3.0]
 LICENSE_CONFIG_NAMES.extend([f"duolingo_p_{str(p).replace('.', '_')}" for p in DYNAMIC_DUO_PS])
 ALGORITHM_CLASSES: list[str] = [
-    "ILPSolver",
-    "GreedyAlgorithm",
-    "RandomizedAlgorithm",
-    "DominatingSetAlgorithm",
+    # "ILPSolver",
+    # "GreedyAlgorithm",
+    # "RandomizedAlgorithm",
+    # "DominatingSetAlgorithm",
     "AntColonyOptimization",
     "SimulatedAnnealing",
     "TabuSearch",
