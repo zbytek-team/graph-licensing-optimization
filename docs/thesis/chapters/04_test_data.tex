@@ -5,33 +5,8 @@ Niniejszy rozdział koncentruje się na charakterystyce wykorzystanych danych, n
 
 \section{Grafy syntetyczne}
 
-Do generowania danych syntetycznych wykorzystano klasę \texttt{GraphGeneratorFactory}, która tworzy grafy na podstawie trzech standardowych modeli: Erd\H{o}s--Rényi (ER), Barabási--Albert (BA) oraz Watts--Strogatz (WS). W eksperymentach korzystano z ustalonych siatek parametrów, co ułatwiło porównywalność wyników i replikację. Tabela \ref{tab:gen-ranges} zestawia typowe zakresy dla poszczególnych rodzajów grafów syntetycznych,
-gdzie:
-\begin{itemize}
-  \item $n$ - liczba wierzchołków grafu,
-  \item $p$ - prawdopodobieństwo istnienia krawędzi,
-  \item $m$ - liczba krawędzi przyłączanych przez każdy nowy wierzchołek,
-  \item $k$ - liczba sąsiadów, z którymi początkowo łączony jest każdy wierzchołek.
-\end{itemize}
-
-\begin{table}[h]
-  \centering
-  \caption{Przykładowe zakresy parametrów generatorów grafów syntetycznych.}
-  \begin{tabular}{@{}lll@{}}
-    \toprule
-    Model            & Parametry & Zakres w eksperymentach                                                 \\
-    \midrule
-    Erdős--Rényi     & $n, p$    & $n \in \{20,40,60,80,100,120,140,160,180,200,300,600,1000\}$; $p=0.1$     \\
-    Barabási--Albert & $n, m$    & $n \in \{20,40,60,80,100,120,140,160,180,200,300,600,1000\}$; $m=2$       \\
-    Watts--Strogatz  & $n, k, p$ & $n \in \{20,40,60,80,100,120,140,160,180,200,300,600,1000\}$; $k=4$; $p=0.1$ \\
-  \end{tabular}
-
-  \label{tab:gen-ranges}
-\end{table}
-
-Najważniejsze właściwości poszczególnych modeli oraz rola parametrów z Tabeli~\ref{tab:gen-ranges} zostały omówione w kolejnych podrozdziałach, z osobnym opisem dla każdego typu grafu.
-
-W praktyce wykorzystywano kilka odrębnych konfiguracji rozmiaru w zależności od scenariusza eksperymentalnego:
+Do generowania danych syntetycznych wykorzystano trzy standardowe modele grafów: Erd\H{o}s--Rényi (ER), Barabási--Albert (BA) oraz Watts--Strogatz (WS).
+W eksperymentach wykorzystywano kilka odrębnych konfiguracji rozmiaru w zależności od scenariusza eksperymentalnego:
 \begin{itemize}
   \item \textbf{Benchmark statyczny} (rozdz.\,\ref{chap:experiments}) obejmował grafy o $n \in \{20,40,60,80,100,120,140,160,180,200,300,600,1000\}$, generowane po trzy próbki na rozmiar.
   \item \textbf{Symulacje dynamiczne} (rozdz.\,\ref{chap:dynamic}) korzystały z mniejszego wachlarza wielkości: dla mutacji syntetycznych $n \in \{20,40,80,160,320,640\}$, natomiast warianty realistyczne (pref\_triadic, pref\_pref, rand\_rewire) operowały odpowiednio na zestawach $\{40,80,160,320\}$ oraz $\{40,80,160,320,640\}$.
@@ -40,7 +15,7 @@ W praktyce wykorzystywano kilka odrębnych konfiguracji rozmiaru w zależności 
 
 
 \subsection{Model Erdős--Rényi - klasyczne grafy przypadkowe}
-Pierwszym rozważanym modelem jest klasyczny losowy graf Erdős--Rényi (ER) zaproponowany przez Erd\H{o}s’a i Rényi’ego w 1959 roku \cite{ErdosRenyi1960}. W modelu tym rozpatruje się zbiór $n$ wierzchołków, a każda z $\binom{n}{2}$ potencjalnych krawędzi pojawia się niezależnie z prawdopodobieństwem $p$. Parametrami modelu są więc $n$ oraz $p$. W implementacji \texttt{GraphGeneratorFactory} zaadaptowano właśnie ten wariant $G(n,p)$.
+Pierwszym rozważanym modelem jest klasyczny losowy graf Erdős--Rényi (ER) zaproponowany przez Erd\H{o}s’a i Rényi’ego w 1959 roku \cite{ErdosRenyi1960}. W modelu tym rozpatruje się zbiór $n$ wierzchołków, a każda z $\binom{n}{2}$ potencjalnych krawędzi pojawia się niezależnie z prawdopodobieństwem $p$. Parametrami modelu są więc $n$ oraz $p$. W używanej implementacji zaadaptowano właśnie ten wariant $G(n,p)$.
 
 Model ER stanowi istotny punkt odniesienia jako najprostszy model sieci pozbawiony struktury społecznościowej. Motywacją uwzględnienia go w testach jest możliwość porównania działania algorytmów na zupełnie przypadkowych sieciach z ich działaniem na bardziej uporządkowanych grafach takich jak grafy skalowane, małego świata oraz rzeczywiste. Choć prawdziwe sieci społecznościowe odbiegają od założeń pełnej losowości, mają zwykle wyższy poziom klasteryzacji węzłów i nierównomierny rozkład stopni, to jednak model $G(n, p)$ stanowi istotną podstawę porównawczą.
 
@@ -50,7 +25,7 @@ Z punktu widzenia właściwości, grafy ER cechują się stosunkowo niskim śred
 \subsection{Model Barabási--Albert - sieci bezskalowe}
 Drugim wykorzystanym generatorem jest model Barabási--Albert (BA), wprowadzony przez Barabási’ego i Alberta w 1999 roku \cite{barabasi1999emergence}. Model BA pozwala generować grafy o strukturze bezskalowej, których rozkład stopni wierzchołków przyjmuje postać potęgową. Tego typu sieci charakteryzują się istnieniem niewielkiej liczby wierzchołków o bardzo wysokim stopniu (tzw. hubów) oraz wielu wierzchołków o małym stopniu - jest to cecha obserwowana w wielu rzeczywistych sieciach, w tym społecznościowych. W przypadku sieci społecznościowych odnosi się to do tego, że niektórzy użytkownicy mogą mieć tysiące znajomych/obserwujących, podczas gdy większość ma ich kilkudziesięciu lub mniej.
 
-Parametrem wejściowym modelu Barabási--Albert w implementacji \texttt{GraphGeneratorFactory} jest przede wszystkim $n$ - docelowa liczba węzłów w grafie - oraz $m$ - liczba krawędzi, jakie dodaje każdy nowy węzeł. Procedura generowania rozpoczyna się od małego grafu startowego (np. klika złożona z $m$ wierzchołków, aby zapewnić początkową spójność). Następnie dodaje się kolejno nowe wierzchołki; każdy nowy węzeł łączy się z $m$ już istniejącymi wierzchołkami, przy czym prawdopodobieństwo połączenia z danym istniejącym węzłem jest proporcjonalne do jego bieżącego stopnia (tzw. reguła preferencyjnego łączenia, ang. preferential attachment). W efekcie bogaci stają się bogatsi, czyli wierzchołki, które zyskały wiele połączeń na wcześniejszych etapach, mają większą szansę zdobyć kolejne połączenia, co prowadzi do wykładniczego rozkładu stopni.
+Parametrem wejściowym modelu Barabási--Albert jest przede wszystkim $n$ - docelowa liczba węzłów w grafie - oraz $m$ - liczba krawędzi, jakie dodaje każdy nowy węzeł. Procedura generowania rozpoczyna się od małego grafu startowego (np. klika złożona z $m$ wierzchołków, aby zapewnić początkową spójność). Następnie dodaje się kolejno nowe wierzchołki; każdy nowy węzeł łączy się z $m$ już istniejącymi wierzchołkami, przy czym prawdopodobieństwo połączenia z danym istniejącym węzłem jest proporcjonalne do jego bieżącego stopnia (tzw. reguła preferencyjnego łączenia, ang. preferential attachment). W efekcie bogaci stają się bogatsi, czyli wierzchołki, które zyskały wiele połączeń na wcześniejszych etapach, mają większą szansę zdobyć kolejne połączenia, co prowadzi do wykładniczego rozkładu stopni.
 
 Motywacją użycia modelu BA było odzwierciedlenie w danych testowych właściwości często spotykanej w sieciach społecznościowych i sieciach informacji - silnego zróżnicopwania w stopniach węzłów. Dzięki grafom BA można przetestować algorytmy pod kątem radzenia sobie z obecnością hubów oraz z rozkładem stopni o ciężkim ogonie (ang. heavy-tailed distribution). Pojęcie ciężkiego ogona oznacza, że prawdopodobieństwo wystąpienia wierzchołków o bardzo dużym stopniu maleje stosunkowo wolno - w efekcie w sieci, obok wielu węzłów o niskim stopniu, pojawia się również pewna liczba hubów o ekstremalnie wysokim stopniu. Zjawisko to odróżnia sieci bezskalowe od np. grafów ER, w których prawdopodobieństwo pojawienia się węzłów o bardzo dużej liczbie sąsiadów jest znikome.
 
