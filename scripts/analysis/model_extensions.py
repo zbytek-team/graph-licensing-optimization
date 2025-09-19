@@ -4,7 +4,7 @@ import argparse
 import math
 from collections import defaultdict
 from pathlib import Path
-from statistics import mean, median
+from statistics import mean
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -18,7 +18,7 @@ def _roman_p_value(name: str) -> float | None:
     # roman_p_1_5 -> 1.5
     if not name.startswith("roman_p_"):
         return None
-    tail = name[len("roman_p_"):]
+    tail = name[len("roman_p_") :]
     try:
         return float(tail.replace("_", "."))
     except Exception:
@@ -128,8 +128,8 @@ def main() -> None:
     romans = ["roman_domination", "roman_p_1_5", "roman_p_2_0", "roman_p_2_5", "roman_p_3_0"]
     present_romans = [c for c in romans if any(str(r.get("license_config")) == c for r in rows)]
     if present_romans:
-        plot_configs_grouped(rows, present_romans, title="Roman variants — cost per node (by algorithm)", out_path=fig_root / "roman_variants_cost", metric="cost_per_node")
-        plot_configs_grouped(rows, present_romans, title="Roman variants — time [ms] (by algorithm)", out_path=fig_root / "roman_variants_time", metric="time_ms")
+        plot_configs_grouped(rows, present_romans, title="Roman variants -- cost per node (by algorithm)", out_path=fig_root / "roman_variants_cost", metric="cost_per_node")
+        plot_configs_grouped(rows, present_romans, title="Roman variants -- time [ms] (by algorithm)", out_path=fig_root / "roman_variants_time", metric="time_ms")
         plot_roman_p_curve(rows, title="roman_p: cost per node vs parameter p", out_dir=fig_root)
 
     # 2) Spotify vs Duolingo: grouped comparison and license mix
@@ -140,17 +140,16 @@ def main() -> None:
         # License mix per config
         sub_duo = [r for r in rows if str(r.get("license_config")) == cfgA]
         sub_spo = [r for r in rows if str(r.get("license_config")) == cfgB]
-        plot_license_mix(sub_duo, title="duolingo_super — license mix by algorithm", out_path=fig_root / "duolingo_super_license_mix")
-        plot_license_mix(sub_spo, title="spotify — license mix by algorithm", out_path=fig_root / "spotify_license_mix")
+        plot_license_mix(sub_duo, title="duolingo_super -- license mix by algorithm", out_path=fig_root / "duolingo_super_license_mix")
+        plot_license_mix(sub_spo, title="spotify -- license mix by algorithm", out_path=fig_root / "spotify_license_mix")
 
     # 3) If other duolingo variants appear in future runs, compare them automatically
     duo_like = sorted({str(r.get("license_config")) for r in rows if str(r.get("license_config", "")).startswith("duolingo_")})
     duo_ext = [c for c in duo_like if c != "duolingo_super"]
     if duo_ext:
-        plot_configs_grouped(rows, ["duolingo_super"] + duo_ext, title="Duolingo variants — cost per node (by algorithm)", out_path=fig_root / "duolingo_variants_cost", metric="cost_per_node")
-        plot_configs_grouped(rows, ["duolingo_super"] + duo_ext, title="Duolingo variants — time [ms] (by algorithm)", out_path=fig_root / "duolingo_variants_time", metric="time_ms")
+        plot_configs_grouped(rows, ["duolingo_super"] + duo_ext, title="Duolingo variants -- cost per node (by algorithm)", out_path=fig_root / "duolingo_variants_cost", metric="cost_per_node")
+        plot_configs_grouped(rows, ["duolingo_super"] + duo_ext, title="Duolingo variants -- time [ms] (by algorithm)", out_path=fig_root / "duolingo_variants_time", metric="time_ms")
 
 
 if __name__ == "__main__":
     main()
-

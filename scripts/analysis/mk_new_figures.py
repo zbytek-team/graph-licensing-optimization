@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 import argparse
-import shutil
 import os
+import shutil
 from pathlib import Path
-from typing import Any
 from time import perf_counter
+from typing import Any
 
 import matplotlib.pyplot as plt
 import networkx as nx
 
 from .commons import ensure_dir, load_rows
+from .ilp_boundary import plot_ilp_boundary
+from .plots_compare_configs import plot_compare_configs
 from .plots_cost_time import plot_cost_vs_n, plot_time_vs_n
 from .plots_density import plot_density_vs_time
 from .plots_heatmap import plot_cost_heatmap
 from .plots_pareto import plot_pareto
-from .plots_compare_configs import plot_compare_configs
-from .ilp_boundary import plot_ilp_boundary
 
 
 def _int_env(name: str, default: int) -> int:
@@ -42,13 +42,13 @@ def _collect_rows(results_dir: Path, runs_dir: Path) -> list[dict[str, Any]]:
         if csv_path.exists():
             before = len(rows)
             rows.extend(load_rows(csv_path))
-            print(f"[load] {csv_path} rows=+{len(rows)-before} total={len(rows)}", flush=True)
+            print(f"[load] {csv_path} rows=+{len(rows) - before} total={len(rows)}", flush=True)
     # Fallback/augment from any run CSVs
     for csv in sorted((runs_dir).glob("*/csv/*.csv")):
         try:
             before = len(rows)
             rows.extend(load_rows(csv))
-            print(f"[load] {csv} rows=+{len(rows)-before} total={len(rows)}", flush=True)
+            print(f"[load] {csv} rows=+{len(rows) - before} total={len(rows)}", flush=True)
         except Exception:
             pass
     return rows
@@ -113,11 +113,11 @@ def _draw_plain_graph(G: nx.Graph, out_path: Path, seed: int = 42) -> None:
 
 def _make_example_graphs(out_dir: Path) -> None:
     # Use the dedicated visualization to show license partitions; ILP for small graphs
-    from scripts.graph_visualization import solve_and_visualize_graph
     from glopt.core import generate_graph
+    from scripts.graph_visualization import solve_and_visualize_graph
 
     t0 = perf_counter()
-    print("[step] example graphs — synthetic (with licenses)", flush=True)
+    print("[step] example graphs -- synthetic (with licenses)", flush=True)
     for name in ["random", "small_world", "scale_free"]:
         params = _graph_defaults(name)
         G = generate_graph(name, 20, params)
@@ -152,7 +152,7 @@ def _make_example_graphs(out_dir: Path) -> None:
     from glopt.io.data_loader import RealWorldDataLoader
 
     try:
-        print("[step] example graph — facebook_ego_107 (with licenses)", flush=True)
+        print("[step] example graph -- facebook_ego_107 (with licenses)", flush=True)
         t1 = perf_counter()
         Gfb = RealWorldDataLoader(data_dir="data").load_facebook_ego_network("107")
         print(
@@ -168,7 +168,7 @@ def _make_example_graphs(out_dir: Path) -> None:
             fig_max_draw_nodes=FIG_MAX_DRAW_NODES,
             out_path=out_dir / "graph_facebook_ego_107.png",
         )
-        print(f"[done] facebook_ego_107 in {perf_counter()-t1:.2f}s", flush=True)
+        print(f"[done] facebook_ego_107 in {perf_counter() - t1:.2f}s", flush=True)
     except Exception:
         # Skip gracefully if data missing
         pass
@@ -239,7 +239,7 @@ def build_new_figures(results_dir: Path, runs_dir: Path, out_dir: Path) -> None:
     print("[step] collecting CSV rows", flush=True)
     t0 = perf_counter()
     rows_all = _collect_rows(results_dir, runs_dir)
-    print(f"[done] collected {len(rows_all)} rows in {perf_counter()-t0:.2f}s", flush=True)
+    print(f"[done] collected {len(rows_all)} rows in {perf_counter() - t0:.2f}s", flush=True)
     if not rows_all:
         print("No CSV rows found under results/ or runs/*/csv; nothing to do.")
         return
@@ -261,9 +261,9 @@ def build_new_figures(results_dir: Path, runs_dir: Path, out_dir: Path) -> None:
     for g in ["random", "scale_free", "small_world"]:
         sub = [r for r in rows_synth_duo if str(r.get("graph", "")) == g]
         if sub:
-            plot_cost_vs_n(sub, title=f"duolingo_super — {g}", out_path=out_dir / f"{g}_cost_vs_n")
-            plot_time_vs_n(sub, title=f"duolingo_super — {g}", out_path=out_dir / f"{g}_time_vs_n")
-    print(f"[done] cost/time vs n in {perf_counter()-t1:.2f}s", flush=True)
+            plot_cost_vs_n(sub, title=f"duolingo_super -- {g}", out_path=out_dir / f"{g}_cost_vs_n")
+            plot_time_vs_n(sub, title=f"duolingo_super -- {g}", out_path=out_dir / f"{g}_time_vs_n")
+    print(f"[done] cost/time vs n in {perf_counter() - t1:.2f}s", flush=True)
 
     # 3) Compare duolingo_super vs roman_domination (overall)
     if rows_duo and rows_roman:
@@ -296,10 +296,10 @@ def build_new_figures(results_dir: Path, runs_dir: Path, out_dir: Path) -> None:
     for g in ["random", "scale_free"]:
         sub = [r for r in rows_synth_duo if str(r.get("graph", "")) == g]
         if sub:
-            plot_pareto(sub, title=f"Pareto — {g} (duo)", out_path=out_dir / f"pareto_{g}")
-    print(f"[done] pareto in {perf_counter()-t2:.2f}s", flush=True)
+            plot_pareto(sub, title=f"Pareto -- {g} (duo)", out_path=out_dir / f"pareto_{g}")
+    print(f"[done] pareto in {perf_counter() - t2:.2f}s", flush=True)
 
-    # 7) Facebook results — use runs benchmark_real if present; otherwise skip
+    # 7) Facebook results -- use runs benchmark_real if present; otherwise skip
     rows_real = [r for r in rows_all if str(r.get("graph", "")) == "facebook_ego"]
     # If leaderboards already exist in results, copy them to simple names
     for src, dst in [

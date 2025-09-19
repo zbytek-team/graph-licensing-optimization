@@ -45,7 +45,7 @@ def plot_dynamic_warm_cold(rows: list[dict[str, Any]], title_prefix: str, out_di
                 plt.plot(xs, costs, marker="o", label=f"{'warm' if warm else 'cold'}")
         plt.xlabel("step")
         plt.ylabel("total_cost")
-        plt.title(f"{title_prefix} — {alg} cost per step")
+        plt.title(f"{title_prefix} -- {alg} cost per step")
         plt.legend()
         out = out_dir / f"{alg}_cost_per_step"
         plt.tight_layout()
@@ -63,7 +63,7 @@ def plot_dynamic_warm_cold(rows: list[dict[str, Any]], title_prefix: str, out_di
                 plt.plot(xs, times, marker="o", label=f"{'warm' if warm else 'cold'}")
         plt.xlabel("step")
         plt.ylabel("time_ms")
-        plt.title(f"{title_prefix} — {alg} time per step")
+        plt.title(f"{title_prefix} -- {alg} time per step")
         plt.legend()
         out = out_dir / f"{alg}_time_per_step"
         plt.tight_layout()

@@ -1,4 +1,4 @@
-# Extensions – podsumowanie
+# Extensions -- podsumowanie
 
 Konfiguracje duolingo (p_2/p_4/p_5) redukują koszt/węzeł względem benchmarku:
 - duolingo_p_2 / Solver ILP: mediana 0.40 vs benchmark 0.42

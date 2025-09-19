@@ -66,8 +66,8 @@ def plot_compare_configs(
         plt.bar([i + width / 2 for i in x], xb, width=width, label=cfg_b)
         plt.xticks(list(x), algs, rotation=30, ha="right")
         plt.ylabel(ylabel)
-        extra = f" — {', '.join(graphs_filter)}" if graphs_filter else ""
-        plt.title(f"{title_prefix} — {ylabel}: {cfg_a} vs {cfg_b}{extra}")
+        extra = f" -- {', '.join(graphs_filter)}" if graphs_filter else ""
+        plt.title(f"{title_prefix} -- {ylabel}: {cfg_a} vs {cfg_b}{extra}")
         plt.legend()
         suffix = ("_" + tag) if tag else ""
         out = out_dir / f"{fname}_{cfg_a}_vs_{cfg_b}{suffix}"

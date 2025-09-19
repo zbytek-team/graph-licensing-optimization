@@ -17,7 +17,7 @@ Constraints:
 ```
 
 ## Złożoność
-- Czas: w najgorszym wypadku wykładnicza (NP‑trudne). W praktyce rozsądne dla małych/średnich grafów.
+- Czas: w najgorszym wypadku wykładnicza (NP-trudne). W praktyce rozsądne dla małych/średnich grafów.
 - Pamięć: zależna od solvera i liczby zmiennych O(V·deg + V·|licenses|).
 
 ## Wyniki z ostatniego custom.py
