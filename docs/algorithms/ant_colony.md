@@ -40,7 +40,7 @@ return best
 
 ## Uwagi
 - Parametry (α, β, ρ, q0, liczba mrówek/iteracji) silnie wpływają na wynik; q0 steruje eksploatacją (best) vs eksploracją (ruletka).
-- Konstrukcja korzysta z top‑stopnia dla doboru członków w granicach pojemności.
+- Konstrukcja korzysta z top-stopnia dla doboru członków w granicach pojemności.
 
 ## Mapowanie pseudokodu na kod
 - Plik: `src/glopt/algorithms/ant_colony.py`

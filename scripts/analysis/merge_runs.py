@@ -77,7 +77,7 @@ def merge_runs(out_run: str, runs: list[str], out_csv_path: Path | None = None) 
             # Combined sheet
             pd.DataFrame(all_rows).to_excel(writer, sheet_name=_safe_sheet_name("combined"), index=False)
     except Exception:
-        # pandas not installed or writer unavailable — skip Excel
+        # pandas not installed or writer unavailable -- skip Excel
         pass
 
     return combined_csv

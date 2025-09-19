@@ -1,9 +1,9 @@
-# Benchmark – podsumowanie
+# Benchmark -- podsumowanie
 
-Duolingo Super – średni czas: 1.54 s
-Duolingo Super – mediana kosztu/węzeł: 0.487
-Roman Domination – średni czas: 1.09 s
-Roman Domination – mediana kosztu/węzeł: 0.389
+Duolingo Super -- średni czas: 1.54 s
+Duolingo Super -- mediana kosztu/węzeł: 0.487
+Roman Domination -- średni czas: 1.09 s
+Roman Domination -- mediana kosztu/węzeł: 0.389
 
 Friedman test (time_s): statistic=577.927, p-value=1.377e-120
 Friedman test (cost_per_node): statistic=518.011, p-value=1.074e-107

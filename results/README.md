@@ -1,4 +1,4 @@
-# Wyniki — Podsumowanie
+# Wyniki -- Podsumowanie
 
 Ten plik zbiera najważniejsze wnioski z analiz w katalogach `results/benchmark_all` oraz `results/benchmark_real_all`.
 
@@ -7,7 +7,7 @@ Ten plik zbiera najważniejsze wnioski z analiz w katalogach `results/benchmark_
 - Liczba grafów: 3
 - Najniższy średni koszt: ILPSolver (≈ 343.249)
 - Najlepszy średni czas: RandomizedAlgorithm (≈ 3.088 ms)
-- Występuje trade‑off koszt vs czas — różni zwycięzcy.
+- Występuje trade-off koszt vs czas -- różni zwycięzcy.
 
 ### Interpretacja
 
@@ -24,7 +24,7 @@ Ten plik zbiera najważniejsze wnioski z analiz w katalogach `results/benchmark_
 - Liczba grafów: 1
 - Najniższy średni koszt: ILPSolver (≈ 11.721)
 - Najlepszy średni czas: GreedyAlgorithm (≈ 2.107 ms)
-- Występuje trade‑off koszt vs czas — różni zwycięzcy.
+- Występuje trade-off koszt vs czas -- różni zwycięzcy.
 
 ### Interpretacja
 

@@ -40,8 +40,7 @@ Tabela~\ref{tab:duo-synth-summary} zestawia mediany i średnie wartości kosztu 
 
 \subsection{Wnioski z analizy kosztów i czasów}
 
-Rysunki~\ref{fig:duo-synth-cost-random}--\ref{fig:duo-synth-cost-small-world} pokazują, że algorytmy dla licencji Duolingo Super osiągają wyniki porównywalne z solverem ILP w przypadku grafów losowych i małoświatowych. Natomiast w przypadku grafów bezskalowych wyniki są zauważalnie gorsze, co można tłumaczyć bardziej skomplikowaną strukturą tych grafów, która utrudnia optymalizację kosztów.
-
+Rysunki~\ref{fig:duo-synth-cost-random}--\ref{fig:duo-synth-cost-small-world} pokazują, że algorytmy dla licencji Duolingo Super osiągają wyniki porównywalne z solverem ILP w przypadku grafów losowych i małoświatowych. Natomiast w przypadku grafów bezskalowych wyniki są zauważalnie gorsze.
 
 
 \begin{figure}[H]
@@ -109,7 +108,7 @@ Podobne obserwacje dotyczą czasów wykonania, jak ilustrują rysunki~\ref{fig:d
   \end{tabular}
 \end{table}
 
-Z powyższych danych wynika, że struktura grafu ma istotny wpływ zarówno na koszty, jak i na czasy działania algorytmów. Licencja Duolingo Super radzi sobie najgorzej w przypadku grafów bezskalowych, które ze względu na swoją złożoność stanowią większe wyzwanie obliczeniowe, co skutkuje wyższymi kosztami na węzeł i dłuższymi czasami wykonania. Z kolei licencja dominowania rzymskiego osiąga najgorsze wyniki dla grafów małoświatowych, podczas gdy w przypadku grafów bezskalowych wypada najlepiej.
+Z powyższych danych wynika, że struktura grafu ma istotny wpływ zarówno na koszty, jak i na czasy działania algorytmów. Licencja Duolingo Super radzi sobie najgorzej w przypadku grafów bezskalowych. Z kolei licencja dominowania rzymskiego osiąga najgorsze wyniki dla grafów małoświatowych, podczas gdy w przypadku grafów bezskalowych wypada najlepiej.
 
 \section{Duolingo Super na grafach rzeczywistych}
 
@@ -119,17 +118,17 @@ W analizie grafów ego z serwisu Facebook pominięto obserwacje, w których solv
   \centering
   \caption{Statystyki kosztu i czasu dla licencji Duolingo Super na grafach rzeczywistych.}
   \label{tab:duo-real-alg}
-  \begin{tabular}{lrrrrrr}
+  \begin{tabular}{lrrrrr}
     \toprule
-    extbf{Algorytm}       & \textbf{Mediana kosztu} & \textbf{Średni koszt} & \textbf{Med. koszt/węzeł} & \textbf{Śr. koszt/węzeł} & \textbf{Med. czas [s]} & \textbf{Śr. czas [s]} \\
+    \textbf{Algorytm}     & \textbf{Średni koszt} & \textbf{Śr. koszt/węzeł} & \textbf{Śr. czas [s]} \\
     \midrule
-    Algorytm mrówkowy     & 62.50                   & 83.58                 & 0.445                     & 0.506                    & 1.978                  & 5.124                 \\
-    Zbiór dominujący      & 71.38                   & 119.97                & 0.475                     & 0.542                    & 0.003                  & 0.017                 \\
-    Algorytm genetyczny   & 69.30                   & 118.36                & 0.463                     & 0.515                    & 0.525                  & 1.222                 \\
-    Algorytm zachłanny    & 72.30                   & 121.94                & 0.493                     & 0.548                    & 0.001                  & 0.001                 \\
-    Algorytm losowy       & 108.92                  & 179.90                & 0.771                     & 0.799                    & 0.001                  & 0.001                 \\
-    Wyżarzanie symulowane & 72.30                   & 120.90                & 0.488                     & 0.531                    & 0.404                  & 0.975                 \\
-    Przeszukiwanie tabu   & 67.30                   & 117.80                & 0.472                     & 0.500                    & 1.423                  & 3.298                 \\
+    Algorytm mrówkowy     & 83.58                 & 0.506                    & 5.124                 \\
+    Algorytm genetyczny   & 118.36                & 0.515                    & 1.222                 \\
+    Przeszukiwanie tabu   & 117.80                & 0.500                    & 3.298                 \\
+    Zbiór dominujący      & 119.97                & 0.542                    & 0.017                 \\
+    Wyżarzanie symulowane & 120.90                & 0.531                    & 0.975                 \\
+    Algorytm zachłanny    & 121.94                & 0.548                    & 0.001                 \\
+    Algorytm losowy       & 179.90                & 0.799                    & 0.001                 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -137,7 +136,7 @@ Tab.~\ref{tab:duo-real-alg} pokazuje, że zarówno przeszukiwanie tabu, jak i al
 
 \subsection{Skalowanie i jakość}
 
-Rysunek~\ref{fig:duo-real-size} pokazuje, że wraz ze wzrostem liczby wierzchołków koszt na węzeł rośnie umiarkowanie, przy czym przeszukiwanie tabu utrzymuje najniższe wartości, a algorytm mrówkowy plasuje się tuż za nim. Czasy działania wszystkich metod mieszczą się w przedziale do kilku sekund i rosną łagodnie wraz z rozmiarem grafu; algorytm zachłanny nadal pozostaje niemal natychmiastowy i stanowi dobry punkt startowy dla metaheurystyk. Dodatkowo tab.~\ref{tab:duo-real-size-table} zbiera średnie wartości (TabuSearch) dla kolejnych rozmiarów sieci ego i pokazuje, że koszt na węzeł utrzymuje się w przedziale 1{,}8--2{,}5 przy czasie rosnącym od ułamka sekundy do około 5{,}5~s dla największych grafów. Komplementarnie tab.~\ref{tab:duo-real-graph-type} prezentuje mediany według typów grafów i potwierdza, że sieci typu scale-free są najdroższe, podczas gdy struktury małoświatowe pozostają najszybsze.
+Rysunek~\ref{fig:duo-real-size} pokazuje, że wraz ze wzrostem liczby wierzchołków koszt na węzeł rośnie umiarkowanie, przy czym przeszukiwanie tabu utrzymuje najniższe wartości, a algorytm mrówkowy plasuje się tuż za nim. Czasy działania wszystkich metod mieszczą się w przedziale do kilku sekund i rosną łagodnie wraz z rozmiarem grafu; algorytm zachłanny nadal pozostaje niemal natychmiastowy i stanowi dobry punkt startowy dla metaheurystyk. Dodatkowo tab.~\ref{tab:duo-real-size-table} zbiera średnie wartości (TabuSearch) dla kolejnych rozmiarów sieci ego i pokazuje, że koszt na węzeł utrzymuje się w przedziale 1{,}8--2{,}5 przy czasie rosnącym od ułamka sekundy do około 5{,}5~s dla największych grafów.
 
 \begin{figure}[H]
   \centering
@@ -170,51 +169,6 @@ Rysunek~\ref{fig:duo-real-size} pokazuje, że wraz ze wzrostem liczby wierzchoł
   \end{tabular}
 \end{table}
 
-\begin{table}[H]
-  \centering
-  \caption{Mediany kosztu na węzeł i czasu według typu grafu rzeczywistego (Duolingo Super).}
-  \label{tab:duo-real-graph-type}
-  \begin{tabular}{lrr}
-    \toprule
-    extbf{Typ grafu} & \textbf{Med. koszt/węzeł} & \textbf{Med. czas [s]} \\
-    \midrule
-    losowy           & 0.453                     & 0.205                  \\
-    scale-free       & 0.686                     & 0.222                  \\
-    małoświatowy     & 0.467                     & 0.193                  \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{table}[H]
-  \centering
-  \caption{Różnice względem algorytmu zachłannego (mediany, grafy rzeczywiste).}
-  \label{tab:duo-real-gaps}
-  \begin{tabular}{lrr}
-    \toprule
-    extbf{Algorytm}        & \textbf{Δ koszt/węzeł} & \textbf{Δ czas [s]} \\
-    \midrule
-    AntColonyOptimization  & $-0.048$ (-9.7\%)      & $+1.978$            \\
-    DominatingSetAlgorithm & $-0.018$ (-3.6\%)      & $+0.002$            \\
-    GeneticAlgorithm       & $-0.030$ (-6.1\%)      & $+0.525$            \\
-    SimulatedAnnealing     & $-0.005$ (-1.1\%)      & $+0.404$            \\
-    TabuSearch             & $-0.021$ (-4.3\%)      & $+1.422$            \\
-    RandomizedAlgorithm    & $+0.278$ (+56.4\%)     & $+0.000$            \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-Tab.~\ref{tab:duo-real-gaps} pokazuje, że metaheurystyki redukują koszt na węzeł o 4--10\% względem heurystyki zachłannej, kosztem dodatkowych sekund obliczeń.
-
-\subsection{Rozkład czasów}
-
-Rysunek~\ref{fig:duo-real-time} porządkuje mediany czasów dla poszczególnych sieci ego i potwierdza, że przeszukiwanie tabu oraz algorytm mrówkowy jako jedyne metaheurystyki schodzą poniżej dwóch sekund w zdecydowanej większości instancji. Algorytm genetyczny i symulowane wyżarzanie utrzymują czasy w granicach kilku sekund, a algorytm zachłanny domyka przekrój po stronie najszybszych — kosztem nieco wyższych wartości funkcji celu.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.6\linewidth]{assets/figures/benchmark/real/time_by_graph.pdf}
-  \caption{Mediany czasów wykonania licencji Duolingo Super dla poszczególnych sieci ego.}
-  \label{fig:duo-real-time}
-\end{figure}
 
 \section{Porównanie z dominowaniem rzymskim}
 
@@ -225,7 +179,7 @@ Porównania z dominowaniem rzymskim ograniczono do wspólnych instancji i algory
   \caption{Mediany czasu i kosztu na węzeł według typu grafu (wspólne instancje).}
   \label{tab:duo-roman-graph}
   \begin{tabular}{lcccc}
-    oprule
+    \toprule
     \multirow{2}{*}{\textbf{Typ grafu}} & \multicolumn{2}{c}{\textbf{Duolingo Super}} & \multicolumn{2}{c}{\textbf{Dominowanie rzymskie}}                                            \\
                                         & \textbf{Czas [s]}                           & \textbf{Koszt/węzeł}                              & \textbf{Czas [s]} & \textbf{Koszt/węzeł} \\
     \midrule
@@ -236,7 +190,7 @@ Porównania z dominowaniem rzymskim ograniczono do wspólnych instancji i algory
   \end{tabular}
 \end{table}
 
-Dominowanie rzymskie zapewnia niższy koszt na węzeł we wszystkich porównywanych rodzinach grafów. Największa różnica dotyczy struktur losowych, gdzie przewaga wynosi ok.~0,16 punktu (35\%). W sieciach bezskalowych rozpiętość maleje do 0,21, natomiast w małoświatowych do 0,08. Czasy wykonania pozostają porównywalne, przy lekkiej przewadze dominowania rzymskiego (różnica 10--25~ms). Rysunek~\ref{fig:duo-roman-cost} ilustruje te obserwacje dla pełnego rozkładu, a rysunek~\ref{fig:duo-roman-time} prezentuje analogiczne dane czasowe.
+Dominowanie rzymskie zapewnia niższy koszt na węzeł we wszystkich porównywanych rodzinach grafów. Największa różnica dotyczy struktur losowych, gdzie przewaga wynosi ok.~0,16 punktu (35\%). W sieciach bezskalowych rozpiętość maleje do 0,21, natomiast w małoświatowych do 0,08. Czasy wykonania pozostają porównywalne, przy lekkiej przewadze dominowania rzymskiego (różnica 10--25~ms). Rysunek~\ref{fig:duo-roman-cost} ilustruje te obserwacje dla pełnego rozkładu, a rysunek~\ref{fig:duo-roman-time} prezentuje analogiczne dane czasowe. Warto jednak zauważyć, że wyższe koszty na węzeł w przypadku Duolingo Super wynikają z większego udziału licencji grupowych, które obejmują średnio 2,1 użytkownika i są droższe od licencji indywidualnych. To właśnie ten czynnik znacząco wpływa na różnice w kosztach między obiema konfiguracjami.
 
 \begin{figure}[H]
   \centering
@@ -252,7 +206,9 @@ Dominowanie rzymskie zapewnia niższy koszt na węzeł we wszystkich porównywan
   \label{fig:duo-roman-time}
 \end{figure}
 
-Analiza struktury licencji (rys.~\ref{fig:duo-roman-license}) pokazuje, że w licencji Duolingo Super 46{,}9\% przydziałów stanowią licencje grupowe, natomiast w dominowaniu rzymskim udział ten rośnie do 53{,}5\%. Jedna licencja grupowa Duolingo obejmuje średnio 2{,}09 użytkownika, podczas gdy w dominowaniu rzymskim jest to dokładnie 2,00, co mimo mniejszego udziału liczbowego prowadzi do większej zależności od pakietów grupowych i w konsekwencji wyższego kosztu na węzeł.
+Rysunek~\ref{fig:duo-roman-license} pokazuje, że dominowanie rzymskie charakteryzuje się wyższym stosunkiem licencji grupowych do indywidualnych w porównaniu do Duolingo Super. W przypadku dominowania rzymskiego stosunek ten wynosi około 1,15:1, podczas gdy dla Duolingo Super jest to około 0,88:1.
+
+Różnica ta wynika z faktu, że dominowanie rzymskie nie posiada ograniczenia maksymalnej pojemności grupy licencyjnej. W przypadku Duolingo Super, gdy grupa osiąga maksymalną pojemność, dodatkowi użytkownicy, którzy mogliby do niej należeć, są zmuszeni do zakupu licencji indywidualnych. W pełnym zbiorze danych, obejmującym trzy typy grafów syntetycznych, zaobserwowano 137690 licencji w Duolingo Super, z czego 73176 (53,15\%) to licencje indywidualne. W przypadku dominowania rzymskiego, dzięki braku ograniczeń pojemności grup, liczba licencji indywidualnych jest proporcjonalnie niższa.
 
 \begin{figure}[H]
   \centering
@@ -263,4 +219,4 @@ Analiza struktury licencji (rys.~\ref{fig:duo-roman-license}) pokazuje, że w li
 
 \section{Wnioski}
 
-Analiza potwierdza dużą stabilność wyników Duolingo Super: metaheurystyki utrzymują przewagę jakości nad prostymi heurystykami niezależnie od rozmiaru i struktury grafu, a \textbf{Algorytm mrówkowy} oraz \textbf{Przeszukiwanie tabu} stanowią najbardziej konkurencyjny duet. Równocześnie dominowanie rzymskie pozostaje trudne do pobicia pod względem kosztu na węzeł, głównie dzięki większemu wykorzystaniu licencji grupowych i niższemu mnożnikowi kosztów jednostkowych. W praktyce wybór konfiguracji zależy więc od celów wdrożenia: Duolingo gwarantuje większą elastyczność licencyjną (średnio 2,1 użytkownika na licencję grupową) i akceptowalne czasy działania, natomiast dominowanie rzymskie minimalizuje koszt przy podobnym budżecie czasowym. Kolejne badania powinny koncentrować się na automatycznym doborze hiperparametrów metaheurystyk oraz na hybrydach łączących mocne strony obu konfiguracji.
+Analiza potwierdza dużą stabilność wyników Duolingo Super: metaheurystyki utrzymują przewagę jakości nad prostymi heurystykami niezależnie od rozmiaru i struktury grafu, a \textbf{Algorytm mrówkowy} oraz \textbf{Przeszukiwanie tabu} stanowią najbardziej konkurencyjną parę. Równocześnie dominowanie rzymskie pozostaje trudne do pobicia pod względem kosztu na węzeł, głównie dzięki większemu wykorzystaniu licencji grupowych i niższemu mnożnikowi kosztów jednostkowych.

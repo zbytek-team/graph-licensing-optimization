@@ -1,4 +1,4 @@
-# Extensions dynamic – podsumowanie
+# Extensions dynamic -- podsumowanie
 
 Łącznie rekordów: 8835
 Top5 najniższych kosztów/węzeł (ciepły start):

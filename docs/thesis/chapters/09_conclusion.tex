@@ -1,12 +1,16 @@
-\chapter{Wnioski}\label{chap:conclusion}
+\chapter{Podsumowa\subsection*{Symulacje dynamiczne}
+\begin{itemize}
+  \item Rozdział~\ref{chap:dynamic} zdefiniował symulator zmian sieci (mutacje węzłów i krawędzi, tryby preferencyjne, triadyczne i losowe). Ciepły start (wykorzystanie poprzedniego rozwiązania) znacząco obniżał koszt względem rekalkulacji od zera (redukcje 6--14\% w scenariuszach syntetycznych i 7--12\% w realistycznych), utrzymując czasy rebalansowania na poziomie 1--3~s. Algorytm zachłanny, działający w czasie milisekund, stanowił ważny punkt odniesienia.
+  \item Poziom intensywności mutacji miał większy wpływ na czas niż na koszt. Algorytm mrówkowy pozostawał najdokładniejszy, lecz przeszukiwanie tabu i algorytm genetyczny oferowały lepszy kompromis czasowy. W realistycznych dynamikach najtrudniejszy okazał się wariant z losowym przełączaniem krawędzi (\texttt{rand\_rewire}).
+\end{itemize}label{chap:conclusion}
 
 Praca przedstawiła pełny cykl badawczy dotyczący optymalizacji kosztów licencji grupowych w sieciach społecznościowych. Począwszy od formalizacji modelu, poprzez analizę algorytmów deterministycznych i metaheurystycznych, symulacje dynamiczne, aż po studia przypadków z dodatkowymi planami licencyjnymi, wyprowadzono spójny obraz zachowania rozwiązań w wielu scenariuszach. Poniżej zebrano najważniejsze obserwacje z poszczególnych części pracy oraz wskazano kierunki dalszych badań.
 
-\section{Podsumowanie wyników}
+\section{wyniki}
 
 \subsection*{Model i metody}
 \begin{itemize}
-  \item Rozdziały~\ref{chap:introduction}--\ref{chap:testdata} ugruntowały formalny opis problemu jako uogólnienia dominowania rzymskiego z ograniczeniami pojemności i różnorodnymi typami licencji. Wykazano twardą złożoność obliczeniową, a dla drzew zaproponowano wielomianowy algorytm programowania dynamicznego.
+  \item Rozdziały~\ref{chap:introduction}--\ref{chap:testdata} ugruntowały formalny opis problemu jako uogólnienia dominowania rzymskiego z ograniczeniami pojemności i różnorodnymi typami licencji. Wykazano twardą złożoność obliczeniową problemu.
   \item Rozdział~\ref{chap:algorithms} zebrał spektrum metod: dokładny solver ILP, heurystyki konstrukcyjne (algorytm zachłanny, zbiór dominujący), metaheurystyki (algorytm genetyczny, algorytm mrówkowy, przeszukiwanie tabu, wyżarzanie symulowane) oraz bazowy algorytm losowy. Implementacje posiadają wspólny interfejs, co umożliwiło jednolite eksperymenty.
 \end{itemize}
 
@@ -25,7 +29,7 @@ Praca przedstawiła pełny cykl badawczy dotyczący optymalizacji kosztów licen
 \subsection*{Rozszerzenia licencyjne}
 \begin{itemize}
   \item Rozdział~\ref{chap:extensions} zbadał osiem wariantów taryfowych. W planach Duolingo i Roman liczba osób lub koszt planu grupowego determinowały opłacalność metaheurystyk: przy niskim koszcie grupy (\texttt{duolingo\_p\_2}) redukcja kosztu względem heurystyki wynosiła 10--20\%, natomiast przy drogich planach (\texttt{duolingo\_p\_5}, \texttt{roman\_p\_5}) przewaga spadała do pojedynczych procent.
-  \item Włączenie planu Duo (Spotify) i planów Standard/Premium (Netflix) otworzyło nowe możliwości parowania użytkowników, co obniżyło koszt na węzeł (mediana 0,40 w Spotify wobec 0,50 w \texttt{duolingo\_p\_2}). W symulacjach dynamicznych konfiguracje z planem pośrednim utrzymały najkorzystniejsze wartości zarówno pod względem kosztu, jak i stabilności czasowej.
+  \item Włączenie planu Duo (Spotify) i planów Standard/Premium (Netflix) otworzyło nowe możliwości parowania użytkowników, co obniżyło koszt na węzeł (mediana 0,40 w Spotify wobec 0,50 w \texttt{duolingo\_p\_2}). W symulacjach dynamicznych konfiguracje z planem pośrednim utrzymały najkorzystniejsze wartości zarówno pod względem kosztu, jak i stabilności czasowej, a metaheurystyki redukowały koszt o 5-12\% w porównaniu do algorytmu zachłannego.
 \end{itemize}
 
 \section{Rekomendacje praktyczne}

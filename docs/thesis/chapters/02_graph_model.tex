@@ -7,10 +7,10 @@ Aby formalnie opisać zjawisko współdzielenia licencji, sieć relacji społecz
 Przyjmujemy również, że graf \( G \) nie zawiera pętli, tj. \( \{v, v\} \notin E \) dla każdego \( v \in V \), ani krawędzi wielokrotnych - każda para użytkowników może być powiązana co najwyżej jedną krawędzią. Przykład takiej struktury zilustrowano na Rysunku \ref{fig:social_graph}.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.5\textwidth]{assets/graphmodelexample.png}
-    \caption{Przykładowy graf relacji społecznych między użytkownikami.}
-    \label{fig:social_graph}
+  \centering
+  \includegraphics[width=0.5\textwidth]{assets/graphmodelexample.png}
+  \caption{Przykładowy graf relacji społecznych między użytkownikami.}
+  \label{fig:social_graph}
 \end{figure}
 
 Opisana reprezentacja, w której wierzchołki odpowiadają jednostkom, a krawędzie bezpośrednim relacjom umożliwiającym interakcję, jest powszechnie stosowana w analizie sieci społecznościowych \cite{Brandes2004, NETTLETON20131}. Takie ujęcie pozwala formalnie modelować i badać zjawiska zachodzące w społecznościach użytkowników usług cyfrowych.
@@ -30,9 +30,9 @@ Należy jednak zauważyć, że nawet w przypadku wysokiego stopnia $\deg(v)$, u�
 
 Optymalizacja kosztu dostępu do usługi wymaga przypisania wszystkim wierzchołkom grafu $G ~=~ (V,~E)$ odpowiednich ról. Każdy użytkownik $v \in V$ może uzyskać dostęp do usługi na trzy sposoby:
 \begin{enumerate}
-    \item Poprzez wykupienie licencji indywidualnej.
-    \item Poprzez wykupienie licencji grupowej.
-    \item Jako odbiorca, korzystający z licencji grupowej należącej do innego użytkownika.
+  \item Poprzez wykupienie licencji indywidualnej.
+  \item Poprzez wykupienie licencji grupowej.
+  \item Jako odbiorca, korzystający z licencji grupowej należącej do innego użytkownika.
 \end{enumerate}
 Licencja indywidualna zapewnia dostęp wyłącznie jej właścicielowi, natomiast licencja grupowa umożliwia współdzielenie dostępu z maksymalnie $k-1$ sąsiadami w grafie.
 
@@ -55,9 +55,9 @@ Przyjmujemy zbiór dostępnych typów licencji
 gdzie:
 \begin{itemize}
   \item $c_t$ - koszt licencji typu $t$,
-  \item $m_t$ — minimalna liczba użytkowników wliczając właściciela,
-  \item $k_t$ — maksymalna liczba użytkowników wliczając właściciela,
-  \item $T$ — całkowita liczba dostępnych typów licencji.
+  \item $m_t$ -- minimalna liczba użytkowników wliczając właściciela,
+  \item $k_t$ -- maksymalna liczba użytkowników wliczając właściciela,
+  \item $T$ -- całkowita liczba dostępnych typów licencji.
 \end{itemize}
 W podstawowym wariancie rozważanym w tym rozdziale zakładamy, że zbiór $\mathcal{L}$ opisany we wzorze~(\ref{eq:license_family}) obejmuje wyłącznie dwa typy licencji: indywidualną oraz jedną grupową, a zatem przyjęte jest $T = 2$. Model ten nie przewiduje sytuacji z wieloma rodzajami planów grupowych (np. Duo, Family), lecz ogranicza się do najprostszego przypadku odpowiadającego rozwiązaniom takim jak w Duolingo.
 
@@ -134,34 +134,34 @@ Przykłady zestawiono w~Tabeli~\ref{tab:license_models_real}.
 
 
 \begin{table}[h!]
-\centering
-\caption{Przykładowe modele licencji dla usług rzeczywistych i modelu teoretycznego}
-\begin{tabular}{lccc}
-\hline
-\textbf{Typ licencji} & \textbf{Koszt $c_t$} & \textbf{Min $m_t$} & \textbf{Max $k_t$} \\
-\hline
-\multicolumn{4}{c}{\textit{Spotify (ceny w PLN)}} \\
-Individual & 23,99 & 1 & 1 \\
-Duo        & 30,99 & 2 & 2 \\
-Family     & 37,99 & 2 & 6 \\
-\hline
-\multicolumn{4}{c}{\textit{Netflix (ceny w PLN)}} \\
-Basic       & 33,00 & 1 & 1 \\
-Standard    & 49,00 & 1 & 2 \\
-Premium     & 67,00 & 1 & 4 \\
-\hline
-\multicolumn{4}{c}{\textit{Duolingo Super (ceny w PLN)}} \\
-Individual & 13,99 & 1 & 1 \\
-Family     & 29,17 & 2 & 6 \\
-\hline
-\multicolumn{4}{c}{\textit{Model teoretyczny (koszty znormalizowane)}} \\
-Solo       & 1,0   & 1 & 1 \\
-Group      & 2,0   & 2 & 999999 \\
-\hline
-\label{tab:license_models_real}
-\end{tabular}
+  \centering
+  \caption{Przykładowe modele licencji dla usług rzeczywistych i modelu teoretycznego}
+  \begin{tabular}{lccc}
+    \hline
+    \textbf{Typ licencji} & \textbf{Koszt $c_t$} & \textbf{Min $m_t$} & \textbf{Max $k_t$} \\
+    \hline
+    \multicolumn{4}{c}{\textit{Spotify (ceny w PLN)}}                                      \\
+    Individual            & 23,99                & 1                  & 1                  \\
+    Duo                   & 30,99                & 2                  & 2                  \\
+    Family                & 37,99                & 2                  & 6                  \\
+    \hline
+    \multicolumn{4}{c}{\textit{Netflix (ceny w PLN)}}                                      \\
+    Basic                 & 33,00                & 1                  & 1                  \\
+    Standard              & 49,00                & 1                  & 2                  \\
+    Premium               & 67,00                & 1                  & 4                  \\
+    \hline
+    \multicolumn{4}{c}{\textit{Duolingo Super (ceny w PLN)}}                               \\
+    Individual            & 13,99                & 1                  & 1                  \\
+    Family                & 29,17                & 2                  & 6                  \\
+    \hline
+    \multicolumn{4}{c}{\textit{Model teoretyczny (koszty znormalizowane)}}                 \\
+    Solo                  & 1,0                  & 1                  & 1                  \\
+    Group                 & 2,0                  & 2                  & 999999             \\
+    \hline
+    \label{tab:license_models_real}
+  \end{tabular}
 
-Źródło: opracowanie własne modelu teoretycznego oraz \cite{spotify_price2024}, \cite{spotify_price2025}, \cite{duolingo_app2024}.
+  Źródło: opracowanie własne modelu teoretycznego oraz \cite{spotify_price2024}, \cite{spotify_price2025}, \cite{duolingo_app2024}.
 
 \end{table}
 

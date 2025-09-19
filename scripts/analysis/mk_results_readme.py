@@ -60,7 +60,7 @@ def summarize_aggregates(agg_csv: Path) -> tuple[str, list[str]]:
 
     # Quick tie-in guidance
     if best_cost_alg and best_time_alg and best_cost_alg != best_time_alg:
-        lines.append("- Występuje trade‑off koszt vs czas — różni zwycięzcy.")
+        lines.append("- Występuje trade-off koszt vs czas -- różni zwycięzcy.")
 
     return title, lines
 
@@ -182,7 +182,7 @@ def _interpret_block(set_name: str, set_dir: Path) -> list[str]:
 def write_results_readme(root: Path) -> Path:
     out = root / "README.md"
     lines: list[str] = []
-    lines.append("# Wyniki — Podsumowanie\n")
+    lines.append("# Wyniki -- Podsumowanie\n")
     lines.append("Ten plik zbiera najważniejsze wnioski z analiz w katalogach `results/benchmark_all` oraz `results/benchmark_real_all`.\n")
 
     # Sections
