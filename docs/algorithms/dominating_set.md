@@ -33,7 +33,7 @@ return groups
 ```
 
 ## Złożoność
-- Czas: ~O(V·(Δ log Δ + |L|·Δ)) — oceny pokrycia i wybór grup według stopnia.
+- Czas: ~O(V·(Δ log Δ + |L|·Δ)) -- oceny pokrycia i wybór grup według stopnia.
 - Pamięć: O(V).
 
 ## Wyniki z ostatniego custom.py

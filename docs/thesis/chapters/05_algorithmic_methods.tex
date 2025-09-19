@@ -101,7 +101,7 @@ Algorytm działa według następującej strategii:
   \item Powtarza proces dla wszystkich niepokrytych wierzchołków
 \end{enumerate}
 
-Algorytm nie ma parametrów do dostrajania — wszystkie decyzje są podejmowane deterministycznie na podstawie struktury grafu i kosztów licencji.
+Algorytm nie ma parametrów do dostrajania -- wszystkie decyzje są podejmowane deterministycznie na podstawie struktury grafu i kosztów licencji.
 
 Sortowanie według stopnia wierzchołka (liczby sąsiadów) sprawdza się dobrze w praktyce, ponieważ wierzchołki o wysokim stopniu mogą tworzyć większe, bardziej efektywne grupy licencyjne.
 
@@ -139,9 +139,9 @@ Wadą algorytmu jest to, że podejmując lokalnie najlepsze decyzje, może przeg
 
 \subsection{Heurystyka zbioru dominującego}\label{subsec:ds}
 
-Algorytm oparty na zbiorze dominującym korzysta z podejścia heurystycznego, szeroko opisywanego w literaturze w kontekście budowania maksymalnych zbiorów dominujących \cite{haynes1998domination}. 
-Na początku iteracyjnie wybierane są wierzchołki o najwyższej efektywności kosztowej, definiowanej jako stosunek liczby pokrywanych jeszcze węzłów do minimalnego kosztu licencji. 
-Tak skonstruowany zbiór dominujący pokrywa cały graf. 
+Algorytm oparty na zbiorze dominującym korzysta z podejścia heurystycznego, szeroko opisywanego w literaturze w kontekście budowania maksymalnych zbiorów dominujących \cite{haynes1998domination}.
+Na początku iteracyjnie wybierane są wierzchołki o najwyższej efektywności kosztowej, definiowanej jako stosunek liczby pokrywanych jeszcze węzłów do minimalnego kosztu licencji.
+Tak skonstruowany zbiór dominujący pokrywa cały graf.
 W naszej wersji algorytmu, rozszerzonej o obsługę różnych typów wierzchołków, po posortowaniu dominatorów według stopnia budowane są grupy obejmujące dominatora oraz jego nieprzydzielonych jeszcze sąsiadów.
 Każdej grupie przypisywana jest najtańsza licencja spełniająca ograniczenia pojemnościowe, a w przypadku braku takiej - licencja indywidualna.
 
@@ -165,14 +165,14 @@ Każdej grupie przypisywana jest najtańsza licencja spełniająca ograniczenia 
   \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Złożoność i zastosowanie} 
+\paragraph{Złożoność i zastosowanie}
 Pierwsza faza (wybór dominatorów) w każdej rundzie przechodzi po wszystkich wierzchołkach, ich sąsiadach i typach licencji, co daje koszt rzędu $O(n m T)$. Druga faza, czyli budowanie grup, dla każdego dominatora sortuje jego sąsiadów i sprawdza wszystkie warianty licencji - w gęstych grafach rośnie to do $O(n^3 T \log n)$, a w rzadkich pozostaje bliżej $O(n m T)$. Wydajność zależy więc przede wszystkim od gęstości grafu i liczby dostępnych licencji.
 
 \subsection{Algorytm losowy}\label{subsec:random}
 
-Algorytm losowy pełni rolę metody odniesienia, służącej do oceny jakości rozwiązań generowanych przez inne algorytmy. 
-Jego zadaniem jest weryfikacja poprawności - jeżeli dana metoda uzyskuje wyniki gorsze niż losowy dobór licencji i grup, świadczy to o problemie w jej implementacji lub konfiguracji. 
-Algorytm przetwarza wierzchołki w losowej kolejności i dla każdego z nich losowo wybiera typ licencji oraz skład grupy. 
+Algorytm losowy pełni rolę metody odniesienia, służącej do oceny jakości rozwiązań generowanych przez inne algorytmy.
+Jego zadaniem jest weryfikacja poprawności - jeżeli dana metoda uzyskuje wyniki gorsze niż losowy dobór licencji i grup, świadczy to o problemie w jej implementacji lub konfiguracji.
+Algorytm przetwarza wierzchołki w losowej kolejności i dla każdego z nich losowo wybiera typ licencji oraz skład grupy.
 W przypadkach, gdy losowy wybór nie jest możliwy (np. brak licencji spełniającej ograniczenia), stosowana jest prosta strategia zachłanna jako rozwiązanie awaryjne.
 
 \paragraph{Idea metody}

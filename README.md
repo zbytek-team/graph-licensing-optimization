@@ -9,7 +9,7 @@ Optimize the cost of software licenses in social networks. Model users as a grap
 This project requires Python 3.13.x explicitly. The version is enforced by:
 - `pyproject.toml` → `requires-python = ">=3.13"` with tools targeting `py313`.
 - `.python-version` → `3.13` (used by pyenv/uv discovery).
-- Import‑time guard in `glopt` that aborts on non‑3.13.
+- Import-time guard in `glopt` that aborts on non-3.13.
 
 Recommended setup with uv:
 ```
@@ -67,20 +67,20 @@ make format    # black formatting
 ```
 
 ## Project layout
-- `src/glopt/` — core models, validators, algorithms, I/O, and CLI entrypoints
-- `scripts/analysis/` — modular analysis (main entry: `scripts/analysis/main.py`)
-- `data/` — graph caches and real datasets (e.g., `data/facebook` ego-networks)
-- `runs/` — outputs (CSV, plots, aggregates)
+- `src/glopt/` -- core models, validators, algorithms, I/O, and CLI entrypoints
+- `scripts/analysis/` -- modular analysis (main entry: `scripts/analysis/main.py`)
+- `data/` -- graph caches and real datasets (e.g., `data/facebook` ego-networks)
+- `runs/` -- outputs (CSV, plots, aggregates)
 
 ## Thesis Mapping (Master’s)
 - Goal: show that optimal low-cost license planning for a friend network (e.g., Duolingo Super: 1-person vs family for 6 people) corresponds to Roman domination in graphs.
-- Static experiments: `make benchmark` (+ `benchmark_real`) — evaluate exact/heuristic/metaheuristic methods and price variants.
-- Dynamic experiments: `make dynamic` (+ `dynamic_real`) — “non-simultaneous purchase” via mutations in the network.
+- Static experiments: `make benchmark` (+ `benchmark_real`) -- evaluate exact/heuristic/metaheuristic methods and price variants.
+- Dynamic experiments: `make dynamic` (+ `dynamic_real`) -- “non-simultaneous purchase” via mutations in the network.
 - License models:
-  - `duolingo_super` — realistic prices (1-seat and up to 6 seats).
-  - `duolingo_p_<k>` — normalized Duolingo-style with 1-seat price=1.0 and family price=k (capacity=6), e.g., `duolingo_p_2_0`, `duolingo_p_3_0`.
-  - `roman_domination` — normalized Roman model: Solo=1.0, Group=2.0, unbounded capacity (canonical equivalence).
-  - `roman_p_<k>` — Roman model sweep: Group price=k, unbounded capacity.
+  - `duolingo_super` -- realistic prices (1-seat and up to 6 seats).
+  - `duolingo_p_<k>` -- normalized Duolingo-style with 1-seat price=1.0 and family price=k (capacity=6), e.g., `duolingo_p_2_0`, `duolingo_p_3_0`.
+  - `roman_domination` -- normalized Roman model: Solo=1.0, Group=2.0, unbounded capacity (canonical equivalence).
+  - `roman_p_<k>` -- Roman model sweep: Group price=k, unbounded capacity.
 - How this aligns with tasks:
   - Social network model → `src/glopt/io/graph_generator.py` + real ego-nets.
   - License schemes → `src/glopt/license_config.py`.

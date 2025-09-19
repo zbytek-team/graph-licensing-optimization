@@ -2,17 +2,11 @@
 
 \section{Założenia i konfiguracja}
 
-Eksperymenty dynamiczne wykonano w tym samym środowisku obliczeniowym co testy statyczne: procesor Intel Core i5-14600KF (12 rdzeni, 3,49~GHz), 16~GB RAM oraz Ubuntu~24.04~LTS uruchomione w WSL2. Implementacja bazuje na Pythonie~3.13 oraz bibliotece NetworkX. Każda symulacja obejmuje 30 kroków, a po każdej mutacji sieci algorytmy otrzymują maksymalnie 45~s na ponowne zbilansowanie licencji. Analizowano dwie konfiguracje licencyjne (Duolingo Super oraz dominowanie rzymskie); w dalszej części rozdziału prezentowane wartości odnoszą się do całego zbioru, przy czym hierarchia metod pozostaje taka sama niezależnie od konfiguracji.
-
-W dynamicznych scenariuszach rozróżniono dwa sposoby inicjalizacji:
-\begin{itemize}
-  \item \textbf{ciepły start} -- algorytm rozpoczyna od rozwiązania z poprzedniego kroku i tylko dobilansowuje zmodyfikowaną część sieci,
-  \item \textbf{zimny start} -- rozwiązanie wyznaczane jest od zera, pełniąc rolę punktu odniesienia.
-\end{itemize}
+Eksperymenty dynamiczne wykonano w tym samym środowisku obliczeniowym co testy statyczne. Każda symulacja obejmuje 30 kroków, a po każdej mutacji sieci algorytmy otrzymują maksymalnie 45~s na ponowne zbilansowanie licencji. Analizowano dwie konfiguracje licencyjne -- Duolingo Super oraz dominowanie rzymskie.
 
 \subsection{Poziomy intensywności mutacji}
 
-Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieństwami modyfikacji wierzchołków i krawędzi (tab.~\ref{tab:dyn-mutation-levels}). Przy każdej aktywacji danej mutacji losowanych jest do trzech nowych wierzchołków, maksymalnie dwa są usuwane, a w obrębie krawędzi dodajemy do pięciu nowych połączeń i zrywamy do trzech istniejących.
+Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieństwami modyfikacji wierzchołków i krawędzi (tab.~\ref{tab:dyn-mutation-levels}).
 
 \begin{table}[H]
   \centering
@@ -30,292 +24,164 @@ Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieńs
 
 \subsection{Scenariusze realistyczne}
 
-Dodatkowo zbadano trzy bardziej realistyczne profile ewolucji sieci (tab.~\ref{tab:dyn-realistic-modes}). Wszystkie operują na tych samych limitach liczby dodawanych/usuwanych elementów co warianty syntetyczne, różnią się jednak mechanizmem wyboru sąsiedztwa. Wariant \emph{pref\_triadic} tworzy nowe wierzchołki z preferencyjnym przyłączaniem (stopień +1) i zamyka trójkąty w sąsiedztwie bieżących wierzchołków. Wariant \emph{pref\_pref} stosuje preferencyjne przyłączanie zarówno do węzłów, jak i krawędzi. Wreszcie \emph{rand\_rewire} łączy losowe dodawanie węzłów z przekształcaniem istniejących krawędzi w stylu Wattsa--Strogatza (losowa zamiana końców z prawdopodobieństwem 0,1 na operację).
+Dodatkowo zbadano trzy bardziej realistyczne profile ewolucji sieci. Wszystkie operują na tych samych limitach liczby dodawanych/usuwanych elementów co warianty syntetyczne, różnią się jednak mechanizmem wyboru sąsiedztwa. Wariant \emph{pref\_triadic} tworzy nowe wierzchołki z preferencyjnym przyłączaniem (stopień +1) i zamyka trójkąty w sąsiedztwie bieżących wierzchołków. Wariant \emph{pref\_pref} stosuje preferencyjne przyłączanie zarówno do węzłów, jak i krawędzi. Wreszcie \emph{rand\_rewire} łączy losowe dodawanie węzłów z przekształcaniem istniejących krawędzi w stylu Wattsa--Strogatza, gdzie losowa zamiana końców krawędzi zachodzi z prawdopodobieństwem 0,1 na operację.
+
+\section{Algorytm zachłanny}
+
+W tym wariancie algorytm zachłanny w każdym kroku symulacji buduje rozwiązanie całkowicie od zera. Stanowi to dolną granicę narzutu czasowego dla metod bez pamięci oraz bazowy punkt odniesienia jakości, do którego porównujemy bardziej zaawansowane metaheurystyki korzystające z rozwiązań z poprzedniego kroku.
+
+\subsection{Zestawienie dla wszystkich mutacji}
+Tabela~\ref{tab:greedy-cold-summary} zestawia średni koszt na węzeł i średni czas na krok dla sześciu badanych profili mutacji: trzech syntetycznych oraz trzech realistycznych. Wszystkie czasy mieszczą się w przedziale 0.5--1.8 ms na krok, a średni koszt na węzeł oscyluje wokół 0.46--0.48.
 
 \begin{table}[H]
   \centering
-  \caption{Realistyczne tryby mutacji użyte w symulatorze.}
-  \label{tab:dyn-realistic-modes}
-  \begin{tabular}{lll}
-    \toprule
-    \textbf{Wariant}       & \textbf{Nowe węzły}                        & \textbf{Nowe/zmienione krawędzie}                         \\
+  \caption{Algorytm zachłanny: średni koszt na węzeł oraz średni czas na krok dla wszystkich wariantów mutacji.}
+  \label{tab:greedy-cold-summary}
+  \begin{tabular}{lcc}
+    oprule
+    extbf{Metoda mutacji} & \textbf{Koszt/węzeł (mean)} & \textbf{Średni czas [s]} \\
     \midrule
-    \texttt{pref\_triadic} & preferencyjne przyłączanie (do 2 sąsiadów) & triadyczne domykanie sąsiedztwa (20 prób)                 \\
-    \texttt{pref\_pref}    & preferencyjne przyłączanie                 & preferencyjne dobieranie par (proporcjonalnie do stopnia) \\
-    \texttt{rand\_rewire}  & losowy dobór sąsiadów                      & losowe przełączanie krawędzi (p=0.1 na rewiring)          \\
+    high                  & 0.48009                     & 0.00159                  \\
+    low                   & 0.47983                     & 0.00165                  \\
+    med                   & 0.47491                     & 0.00181                  \\
+    pref\_pref            & 0.46371                     & 0.000835                 \\
+    pref\_triadic         & 0.46787                     & 0.000535                 \\
+    rand\_rewire          & 0.47556                     & 0.000833                 \\
+    \bottomrule
   \end{tabular}
 \end{table}
 
-\section{Wyniki na grafach syntetycznych}
+Algorytm zachłanny jest bardzo szybki (sub-milisekundowy do \SI{1.8}{\ms}), co potwierdza jego przydatność jako lekki baseline czasowy w środowisku dynamicznym. Warianty realistyczne sprzyjają nieco niższym kosztom: \texttt{pref\_pref} osiąga najniższy średni koszt (0.464), a \texttt{pref\_triadic} jest jednocześnie najszybszy (\SI{0.000535}{\s}). Wariant \texttt{rand\_rewire} jest trudniejszy (0.476), ale pozostaje bardzo szybki czasowo.
 
-\subsection{Ciepły start metaheurystyk}
+Różnice kosztu dla mutacji syntetycznych są niewielkie (0.475--0.480), natomiast czasy są wyższe niż w profilach realistycznych, szczególnie dla \texttt{med/high}. Wskazuje to, że bardziej lokalne, realistyczne przekształcenia struktury grafu są łatwiejsze do obsłużenia. Mediany czasów są niższe niż średnie (np. \texttt{pref\_pref}: mediana \SI{0.00058}{\s} vs średnia \SI{0.00083}{\s}, \emph{n}=930; \texttt{pref\_triadic}: \SI{0.00046}{\s} vs \SI{0.00053}{\s}, \emph{n}=744), co sugeruje długi ogon rzadkich, nieco wolniejszych kroków. Analogiczne zjawisko obserwujemy w mutacjach syntetycznych (\emph{n}=1116 na wariant).
 
-Tabela~\ref{tab:dyn-synth-warm} zestawia mediany i średnie kosztów oraz czasów dla głównych metaheurystyk uruchamianych z ciepłym startem. Najniższy koszt całkowity uzyskuje \textbf{Algorytm mrówkowy}, natomiast \textbf{Przeszukiwanie tabu} utrzymuje porównywalne wartości celu przy wyraźnie wyższym czasie. \textbf{Wyżarzanie symulowane} jest najszybsze wśród metod przybliżonych, ale ustępuje jakością mrówkom i tabu.
+\section{Wyniki na mutacjach syntetycznych}
+\subsection{Metaheurystyki}
+
+Tabela~\ref{tab:dyn-synth-warm} przedstawia zbiorcze wyniki dla różnych metod mutacji. Średni koszt na węzeł jest bardzo zbliżony dla wszystkich poziomów intensywności, z jedynie nieznacznym wzrostem dla wariantu \texttt{high}. Sugeruje to, że algorytmy są w stanie skutecznie adaptować się do zmian w topologii sieci.
+
+Średni czas wykonania rośnie wraz z intensywnością mutacji. Wariant \texttt{low} jest najszybszy, podczas gdy \texttt{high} wymaga najwięcej czasu na ponowne zbilansowanie. Jest to naturalna konsekwencja faktu, że większa liczba modyfikacji grafu (dodawanie/usuwanie węzłów i krawędzi) stanowi większe wyzwanie obliczeniowe dla algorytmów optymalizacyjnych. Mimo to, różnice w czasach nie są drastyczne, co świadczy o dobrej skalowalności zastosowanych metod.
 
 \begin{table}[H]
   \centering
-  \caption{Ciepły start (średnia z wariantów intensywności, grafy syntetyczne).}
+  \caption{Wyniki dla różnych metod mutacji.}
   \label{tab:dyn-synth-warm}
-  \begin{tabular}{lrrrrrr}
+  \begin{tabular}{lcc}
     \toprule
-    \textbf{Algorytm}     & \textbf{Med. koszt} & \textbf{Śr. koszt} & \textbf{Med. koszt/węzeł} & \textbf{Śr. koszt/węzeł} & \textbf{Med. czas [s]} & \textbf{Śr. czas [s]} \\
+    \textbf{Metoda mutacji} & \textbf{Średni koszt} & \textbf{Średni czas [s]} \\
     \midrule
-    Algorytm genetyczny   & 42.66               & 86.48              & 0.416                     & 0.428                    & 1.379                  & 3.112                 \\
-    Algorytm mrówkowy     & 32.50               & 47.99              & 0.425                     & 0.425                    & 2.660                  & 7.800                 \\
-    Przeszukiwanie tabu   & 40.66               & 92.38              & 0.430                     & 0.441                    & 3.248                  & 6.584                 \\
-    Wyżarzanie symulowane & 46.96               & 97.76              & 0.466                     & 0.478                    & 0.988                  & 2.796                 \\
-  \end{tabular}
-\end{table}
-
-\subsection{Zimny start i algorytmy referencyjne}
-
-Przy zimnym starcie dominują algorytmy deterministyczne (tab.~\ref{tab:dyn-synth-cold}). \textbf{Solver ILP} gwarantuje najniższy koszt, lecz wymaga średnio niemal 4~s na krok. \textbf{Algorytm zachłanny} pozostaje najszybszym punktem odniesienia, lecz traci ok.~5--10\% względem metaheurystyk pod kątem kosztu na węzeł.
-
-\begin{table}[H]
-  \centering
-  \caption{Zimny start (średnia z wariantów intensywności, grafy syntetyczne).}
-  \label{tab:dyn-synth-cold}
-  \begin{tabular}{lrrrrrr}
-    \toprule
-    \textbf{Algorytm}  & \textbf{Med. koszt} & \textbf{Śr. koszt} & \textbf{Med. koszt/węzeł} & \textbf{Śr. koszt/węzeł} & \textbf{Med. czas [s]} & \textbf{Śr. czas [s]} \\
-    \midrule
-    Algorytm losowy    & 78.71               & 151.62             & 0.779                     & 0.772                    & 0.001                  & 0.002                 \\
-    Algorytm zachłanny & 49.47               & 93.36              & 0.474                     & 0.478                    & 0.001                  & 0.002                 \\
-    Solver ILP         & 22.20               & 46.41              & 0.385                     & 0.404                    & 1.146                  & 3.989                 \\
-    Zbiór dominujący   & 45.67               & 90.68              & 0.463                     & 0.466                    & 0.005                  & 0.039                 \\
-  \end{tabular}
-\end{table}
-
-\subsection{Zysk względem algorytmu zachłannego}
-
-Tabela~\ref{tab:dyn-synth-delta} pokazuje, o ile metaheurystyki poprawiają wynik względem rozwiązania zachłannego liczonego od zera. \textbf{Algorytm mrówkowy} i \textbf{Przeszukiwanie tabu} redukują koszt na węzeł o 10--11\%, odpowiednio kosztem dodatkowych 2.7–3.3~s rebalansowania. \textbf{Wyżarzanie symulowane} jest szybsze, lecz poprawa kosztu jest symboliczna (–2.4\%).
-
-\begin{table}[H]
-  \centering
-  \caption{Różnice względem algorytmu zachłannego (ciepły start metaheurystyk, grafy syntetyczne).}
-  \label{tab:dyn-synth-delta}
-  \begin{tabular}{lrr}
-    \toprule
-    \textbf{Algorytm}     & \textbf{$\Delta$ koszt/węzeł} & \textbf{$\Delta$ czas [s]} \\
-    \midrule
-    Algorytm genetyczny   & $-0.067$ (–14.1\%)            & $+1.401$                   \\
-    Algorytm mrówkowy     & $-0.050$ (–10.5\%)            & $+2.658$                   \\
-    Przeszukiwanie tabu   & $-0.054$ (–11.2\%)            & $+3.250$                   \\
-    Wyżarzanie symulowane & $-0.012$ (–2.4\%)             & $+1.007$                   \\
+    high                    & 0.4893                & 3.169                    \\
+    med                     & 0.4850                & 3.075                    \\
+    low                     & 0.4852                & 2.878                    \\
+    \bottomrule
   \end{tabular}
 \end{table}
 
 \subsection{Profil kosztu i czasu w czasie}
+Jako przykład ewolucji kosztu i czasu w krokach symulacji wybrano algorytm genetyczny. Rysunki~\ref{fig:dyn-synth-genetic-cost} i~\ref{fig:dyn-synth-genetic-time} przedstawiają odpowiednio przebieg kosztu na węzeł oraz czasu wykonania w zależności od kroku symulacji dla różnych poziomów intensywności mutacji.
 
-Rysunki~\ref{fig:dyn-synth-tabu-cost} i~\ref{fig:dyn-synth-tabu-time} prezentują przebieg kosztu oraz czasu przeszukiwania tabu w zależności od kroku symulacji i poziomu intensywności mutacji. Przy niskim natężeniu sieć stabilizuje się po kilkunastu krokach, natomiast przy wysokim natężeniu widoczny jest stały dryf kosztu oraz ponad trzykrotny wzrost czasu rebalansowania.
-
-Analogiczne przebiegi dla algorytmu genetycznego i mrówkowego zawarto odpowiednio na rys.~\ref{fig:dyn-synth-genetic-cost}--\ref{fig:dyn-synth-genetic-time} oraz rys.~\ref{fig:dyn-synth-aco-cost}--\ref{fig:dyn-synth-aco-time}.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_przeszukiwanie_tabu_cost_over_steps_low.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_przeszukiwanie_tabu_cost_over_steps_med.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_przeszukiwanie_tabu_cost_over_steps_high.pdf}
-  \caption{Przeszukiwanie tabu -- koszt na węzeł w funkcji kroku (warianty low/med/high).}
-  \label{fig:dyn-synth-tabu-cost}
-\end{figure}
+Dla wariantu \texttt{high} można zaobserwować niewielkie, lecz zauważalne wahania średniego kosztu na węzeł, które nie są tak widoczne w przypadku wariantów \texttt{low} i \texttt{med}. Jeśli chodzi o czasy wykonania, dla każdego z trzech wariantów widoczne są zbliżone wahania w trakcie trwania symulacji.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_przeszukiwanie_tabu_time_over_steps_low.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_przeszukiwanie_tabu_time_over_steps_med.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_przeszukiwanie_tabu_time_over_steps_high.pdf}
-  \caption{Przeszukiwanie tabu -- czas wykonania w funkcji kroku (warianty low/med/high).}
-  \label{fig:dyn-synth-tabu-time}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_low.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_med.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_high.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_low.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_med.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_high.pdf}
   \caption{Algorytm genetyczny -- koszt na węzeł w funkcji kroku (warianty low/med/high).}
   \label{fig:dyn-synth-genetic-cost}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_low.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_med.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_high.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_low.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_med.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_high.pdf}
   \caption{Algorytm genetyczny -- czas wykonania w funkcji kroku (warianty low/med/high).}
   \label{fig:dyn-synth-genetic-time}
 \end{figure}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_mrowkowy_cost_over_steps_low.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_mrowkowy_cost_over_steps_med.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_mrowkowy_cost_over_steps_high.pdf}
-  \caption{Algorytm mrówkowy -- koszt na węzeł w funkcji kroku (warianty low/med/high).}
-  \label{fig:dyn-synth-aco-cost}
-\end{figure}
+\section{Wyniki na mutacjach realistycznych}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_mrowkowy_time_over_steps_low.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_mrowkowy_time_over_steps_med.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_mrowkowy_time_over_steps_high.pdf}
-  \caption{Algorytm mrówkowy -- czas wykonania w funkcji kroku (warianty low/med/high).}
-  \label{fig:dyn-synth-aco-time}
-\end{figure}
-
-\section{Wyniki realistyczne}
-
-\subsection{Ciepły start metaheurystyk}
-
-Tabela~\ref{tab:dyn-real-alg} prezentuje zbiorcze wyniki dla symulacji z preferencyjnym i triadycznym przyłączaniem. \textbf{Algorytm mrówkowy} pozostaje najtańszy jakościowo, ale \textbf{Przeszukiwanie tabu} oferuje porównywalny koszt przy najniższych medianach czasowych wśród metod wysokiej jakości (ok.~1.3~s).
+Tabela~\ref{tab:dyn-real-warm} przedstawia zbiorcze wyniki dla scenariuszy realistycznych. Wariant \texttt{pref\_triadic} wyróżnia się najkrótszym średnim czasem wykonania (poniżej 1 sekundy), przy zachowaniu kosztu na poziomie zbliżonym do wariantu \texttt{pref\_pref}. Scenariusz \texttt{rand\_rewire} okazał się najtrudniejszy -- charakteryzuje się zarówno najwyższym średnim kosztem, jak i najdłuższym czasem przetwarzania.
 
 \begin{table}[H]
   \centering
-  \caption{Ciepły start (średnia po wariantach realistycznych).}
-  \label{tab:dyn-real-alg}
-  \begin{tabular}{lrrrrrr}
+  \caption{Wyniki dla różnych metod mutacji w scenariuszach realistycznych.}
+  \label{tab:dyn-real-warm}
+  \begin{tabular}{lcc}
     \toprule
-    \textbf{Algorytm}     & \textbf{Med. koszt} & \textbf{Śr. koszt} & \textbf{Med. koszt/węzeł} & \textbf{Śr. koszt/węzeł} & \textbf{Med. czas [s]} & \textbf{Śr. czas [s]} \\
+    \textbf{Metoda mutacji} & \textbf{Średni koszt} & \textbf{Średni czas [s]} \\
     \midrule
-    Algorytm genetyczny   & 54.83               & 89.51              & 0.397                     & 0.416                    & 0.502                  & 0.991                 \\
-    Algorytm mrówkowy     & 52.50               & 83.60              & 0.418                     & 0.424                    & 1.891                  & 5.909                 \\
-    Przeszukiwanie tabu   & 56.14               & 96.24              & 0.415                     & 0.426                    & 1.284                  & 2.175                 \\
-    Wyżarzanie symulowane & 66.46               & 102.44             & 0.467                     & 0.473                    & 0.415                  & 0.884                 \\
+    pref\_pref              & 0.4699                & 1.743                    \\
+    pref\_triadic           & 0.4704                & 0.896                    \\
+    rand\_rewire            & 0.4855                & 1.908                    \\
+    \bottomrule
   \end{tabular}
 \end{table}
 
-\subsection{Wpływ wariantu mutacji}
-
-Mediany kosztu i czasu przeszukiwania tabu dla poszczególnych scenariuszy pokazano w tab.~\ref{tab:dyn-real-variants}. Wariant \texttt{pref\_triadic} generuje najtańsze rozwiązania dzięki wzmocnionej klastrowości, lecz jest tylko nieznacznie szybszy od \texttt{pref\_pref}. Dodanie losowego przełączania krawędzi (\texttt{rand\_rewire}) podnosi zarówno koszt, jak i czas rebalansowania.
+\subsection{Wybrane algorytmy i metody mutacji}
+Poniżej wybrano kilka par algorytmów i metod mutacji, które pokazują różne kompromisy. Dla porównania uwzględniono również dwie mutacje syntetyczne. Nie są to zawsze najlepsze jakościowo konfiguracje, ale dobrze ilustrują różne scenariusze.
 
 \begin{table}[H]
   \centering
-  \caption{Przeszukiwanie tabu -- mediany w zależności od scenariusza realistycznego.}
-  \label{tab:dyn-real-variants}
-  \begin{tabular}{lrr}
+  \caption{Wybrane pary algorytmów i metod mutacji (różne kompromisy).}
+  \label{tab:dyn-synth-selected-best}
+  \begin{tabular}{llcc}
     \toprule
-    \textbf{Wariant}       & \textbf{Med. koszt/węzeł} & \textbf{Med. czas [s]} \\
+    \textbf{Algorytm}     & \textbf{Metoda} & \textbf{Koszt/węzeł} & \textbf{Śr. czas [s]} \\
     \midrule
-    \texttt{pref\_triadic} & 0.397                     & 1.194                  \\
-    \texttt{pref\_pref}    & 0.416                     & 1.280                  \\
-    \texttt{rand\_rewire}  & 0.431                     & 1.376                  \\
+    Solver ILP            & pref\_triadic   & 0.362                & 1.525                 \\
+    Solver ILP            & rand\_rewire    & 0.390                & 2.553                 \\
+    Algorytm genetyczny   & pref\_triadic   & 0.409                & 0.615                 \\
+    Algorytm genetyczny   & high            & 0.429                & 3.269                 \\
+    Przeszukiwanie tabu   & pref\_triadic   & 0.413                & 1.470                 \\
+    Przeszukiwanie tabu   & high            & 0.447                & 6.454                 \\
+    Algorytm mrówkowy     & pref\_pref      & 0.417                & 6.906                 \\
+    Algorytm mrówkowy     & pref\_triadic   & 0.424                & 3.002                 \\
+    Wyżarzanie symulowane & pref\_triadic   & 0.460                & 0.555                 \\
+    Algorytm zachłanny    & pref\_pref      & 0.464                & 0.001                 \\
+    Zbiór dominujący      & pref\_triadic   & 0.457                & 0.005                 \\
+    Algorytm losowy       & pref\_pref      & 0.754                & 0.001                 \\
+    \bottomrule
   \end{tabular}
 \end{table}
 
-Dodatkowa agregacja względem typu grafu (losowy, scale-free, małoświatowy) przedstawiona w tab.~\ref{tab:dyn-real-graph-type} potwierdza, że struktury scale-free są najkosztowniejsze, natomiast sieci małoświatowe pozostają najszybsze do obsługi.
+Solver ILP osiąga najniższe koszty, ale wymaga około 1.5--2.6 sekundy na krok. Algorytm genetyczny dobrze sprawdza się przy zmianach klastrowych (\texttt{pref\_triadic}), oferując niski koszt i czas około 0.6 sekundy. Jednak przy intensywnych mutacjach (\texttt{high}) staje się wyraźnie wolniejszy i droższy. Z kolei wyżarzanie symulowane jest szybkie (około pół sekundy) i stabilne, ale jakościowo ustępuje bardziej zaawansowanym metodom.
 
-\begin{table}[H]
-  \centering
-  \caption{Mediany kosztu na węzeł i czasu według typu grafu rzeczywistego.}
-  \label{tab:dyn-real-graph-type}
-  \begin{tabular}{lrr}
-    \toprule
-    \textbf{Typ grafu} & \textbf{Med. koszt/węzeł} & \textbf{Med. czas [s]} \\
-    \midrule
-    losowy             & 0.453                     & 0.205                  \\
-    scale-free         & 0.686                     & 0.222                  \\
-    małoświatowy       & 0.467                     & 0.193                  \\
-  \end{tabular}
-\end{table}
+Przeszukiwanie tabu korzysta z lokalności zmian, osiągając sensowny koszt i czas około 1.5 sekundy przy \texttt{pref\_triadic}. Jednak przy intensywnych mutacjach (\texttt{high}) czas wzrasta do około 6.5 sekundy, a koszt również rośnie. Algorytm mrówkowy zapewnia bardzo dobrą jakość przy \texttt{pref\_pref}, ale działa najwolniej. Przejście na \texttt{pref\_triadic} prawie podwaja szybkość kosztem niewielkiego pogorszenia jakości.
 
-\subsection{Zimny start i benchmarki}
-
-Zimny start dla scenariuszy realistycznych zestawiono w tab.~\ref{tab:dyn-real-cold}. Podobnie jak w przypadku danych syntetycznych, \textbf{Solver ILP} zapewnia najniższe koszty, ale wymaga rzędu 2~s na krok. \textbf{Algorytm zachłanny} i \textbf{Algorytm losowy} działają praktycznie natychmiast, pozostając użytecznymi baseline'ami.
-
-\begin{table}[H]
-  \centering
-  \caption{Zimny start (średnia po wariantach realistycznych).}
-  \label{tab:dyn-real-cold}
-  \begin{tabular}{lrrrrrr}
-    \toprule
-    \textbf{Algorytm}  & \textbf{Med. koszt} & \textbf{Śr. koszt} & \textbf{Med. koszt/węzeł} & \textbf{Śr. koszt/węzeł} & \textbf{Med. czas [s]} & \textbf{Śr. czas [s]} \\
-    \midrule
-    Algorytm losowy    & 104.23              & 157.91             & 0.766                     & 0.763                    & 0.001                  & 0.001                 \\
-    Algorytm zachłanny & 60.84               & 97.29              & 0.462                     & 0.469                    & 0.001                  & 0.001                 \\
-    Solver ILP         & 30.57               & 60.22              & 0.343                     & 0.375                    & 0.790                  & 2.154                 \\
-    Zbiór dominujący   & 56.50               & 94.41              & 0.458                     & 0.456                    & 0.003                  & 0.013                 \\
-  \end{tabular}
-\end{table}
-
-Różnice pomiędzy metaheurystykami a algorytmem zachłannym z zimnego startu zebrano w tab.~\ref{tab:dyn-real-delta}. Przeszukiwanie tabu oraz algorytm mrówkowy poprawiają koszt na węzeł o 7--8\% kosztem dodatkowych 1.4--2.4~s. \textbf{Wyżarzanie symulowane} jest najszybsze, lecz nieznacznie przegrywa kosztowo z zachłannym.
-
-\begin{table}[H]
-  \centering
-  \caption{Różnice względem algorytmu zachłannego (ciepły start, scenariusze realistyczne).}
-  \label{tab:dyn-real-delta}
-  \begin{tabular}{lrr}
-    \toprule
-    \textbf{Algorytm}     & \textbf{$\Delta$ koszt/węzeł} & \textbf{$\Delta$ czas [s]} \\
-    \midrule
-    Algorytm genetyczny   & $-0.055$ (–12.0\%)            & $+0.602$                   \\
-    Algorytm mrówkowy     & $-0.038$ (–8.2\%)             & $+2.386$                   \\
-    Przeszukiwanie tabu   & $-0.031$ (–6.7\%)             & $+1.376$                   \\
-    Wyżarzanie symulowane & $+0.036$ (+7.8\%)             & $+0.474$                   \\
-  \end{tabular}
-\end{table}
+Heurystyki szybkie, takie jak algorytm zachłanny (około 1 ms) i zbiór dominujący (około 5 ms), są bardzo efektywne. Zbiór dominujący zwykle osiąga niższy koszt niż zachłanny, co czyni go dobrym wyborem przy ograniczeniach czasowych. Mutacje klastrowe (\texttt{pref\_triadic}, \texttt{pref\_pref}) pomagają wszystkim algorytmom utrzymać niski koszt i krótszy czas. Natomiast \texttt{rand\_rewire} i wariant \texttt{high} zwiększają zarówno koszt, jak i czas.
 
 \subsection{Ewolucja kosztów w czasie}
+Pełne przebiegi dla algorytmu genetycznego pokazano na rys.~\ref{fig:dyn-real-genetic-cost}--\ref{fig:dyn-real-genetic-time}. Łączenie preferencyjnego przyłączania z triadycznym domykaniem sprzyja utrzymaniu najniższych kosztów, natomiast wariant z losowym przełączaniem krawędzi prowadzi do wolniejszej stabilizacji. Analizując koszt na węzeł (Rys. \ref{fig:dyn-real-genetic-cost}), można zauważyć, że dla każdego z typów mutacji przebiega on podobnie, oscylując wokół zbliżonego poziomu.
 
-Rysunki~\ref{fig:dyn-real-tabu-cost} i~\ref{fig:dyn-real-tabu-time} prezentują przebieg kosztu i czasu przeszukiwania tabu w zależności od wariantu realistycznego. Łączenie preferencyjnego przyłączania z triadycznym domykaniem sprzyja utrzymaniu najniższych kosztów, natomiast wariant z losowym przełączaniem krawędzi prowadzi do wolniejszej stabilizacji.
-
-Pełne przebiegi dla algorytmu genetycznego i mrówkowego pokazano na rys.~\ref{fig:dyn-real-genetic-cost}--\ref{fig:dyn-real-genetic-time} oraz rys.~\ref{fig:dyn-real-aco-cost}--\ref{fig:dyn-real-aco-time}.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_przeszukiwanie_tabu_cost_over_steps_pref_triadic.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_przeszukiwanie_tabu_cost_over_steps_pref_pref.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_przeszukiwanie_tabu_cost_over_steps_rand_rewire.pdf}
-  \caption{Przeszukiwanie tabu -- koszt na węzeł w scenariuszach realistycznych.}
-  \label{fig:dyn-real-tabu-cost}
-\end{figure}
+Z kolei, patrząc na czas wykonania (Rys. \ref{fig:dyn-real-genetic-time}), widać, że dla wariantu \texttt{rand\_rewire} występują największe wahania, co sugeruje większą niestabilność w procesie optymalizacji. Warianty \texttt{pref\_triadic} i \texttt{pref\_pref} charakteryzują się bardziej stabilnym czasem wykonania.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_przeszukiwanie_tabu_time_over_steps_pref_triadic.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_przeszukiwanie_tabu_time_over_steps_pref_pref.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_przeszukiwanie_tabu_time_over_steps_rand_rewire.pdf}
-  \caption{Przeszukiwanie tabu -- czas wykonania w scenariuszach realistycznych.}
-  \label{fig:dyn-real-tabu-time}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_pref_triadic.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_pref_pref.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_rand_rewire.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_pref_triadic.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_pref_pref.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_rand_rewire.pdf}
   \caption{Algorytm genetyczny -- koszt na węzeł w wariantach realistycznych.}
   \label{fig:dyn-real-genetic-cost}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_pref_triadic.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_pref_pref.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_rand_rewire.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_pref_triadic.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_pref_pref.pdf}
+  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_rand_rewire.pdf}
   \caption{Algorytm genetyczny -- czas wykonania w wariantach realistycznych.}
   \label{fig:dyn-real-genetic-time}
 \end{figure}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_mrowkowy_cost_over_steps_pref_triadic.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_mrowkowy_cost_over_steps_pref_pref.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_mrowkowy_cost_over_steps_rand_rewire.pdf}
-  \caption{Algorytm mrówkowy -- koszt na węzeł w wariantach realistycznych.}
-  \label{fig:dyn-real-aco-cost}
-\end{figure}
+\subsection{Wnioski}
+Analiza dynamiczna pokazała, że metaheurystyki radzą sobie z adaptacją do zmian w sieci i utrzymaniem jakości rozwiązań bez potrzeby liczenia wszystkiego od nowa.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_mrowkowy_time_over_steps_pref_triadic.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_mrowkowy_time_over_steps_pref_pref.pdf}\\[0.4em]
-  \includegraphics[width=0.62\linewidth]{assets/figures/dynamic/real/real_algorytm_mrowkowy_time_over_steps_rand_rewire.pdf}
-  \caption{Algorytm mrówkowy -- czas wykonania w wariantach realistycznych.}
-  \label{fig:dyn-real-aco-time}
-\end{figure}
+Zwiększenie intensywności zmian, szczególnie w testach syntetycznych, powodowało wydłużenie czasu potrzebnego na zrównoważenie. Algorytmy takie jak przeszukiwanie tabu miały też tendencję do wzrostu kosztu przy bardzo dużych zmianach.
 
-\section{Warm start kontra zimny start}
+Metody zmian oparte na preferencyjnym dołączaniu i zamykaniu trójkątów (\texttt{pref\_triadic}) tworzyły struktury, które łatwiej było optymalizować. Przekładało się to na niższy koszt i krótszy czas działania większości algorytmów.
 
-Zestawienie tabel \ref{tab:dyn-synth-warm}--\ref{tab:dyn-synth-delta} oraz \ref{tab:dyn-real-alg}--\ref{tab:dyn-real-delta} pokazuje, że wykorzystanie ciepłego startu pozwala metaheurystykom utrzymać koszt o 6--14\% niższy niż rozwiązanie zachłanne, zachowując akceptowalne czasy rzędu 1--3~s dla scenariuszy realistycznych i kilku sekund dla intensywnych mutacji syntetycznych. Mimo wzrostu czasów rebalansowania, ciepły start eliminuje konieczność pełnej rekalkulacji i umożliwia stabilne utrzymanie jakości rozwiązań w kolejnych krokach ewolucji sieci.
+Solver ILP nadal dawał najlepsze wyniki pod względem jakości, ale działał dość długo. Z kolei proste metody, jak algorytm zachłanny, działały bardzo szybko, ale dawały gorsze wyniki. Metaheurystyki były czymś pośrodku, oferując dobry balans między jakością a czasem.
+
+Reasumując, symulacje dynamiczne potwierdziły, że adaptacyjne zarządzanie licencjami za pomocą metaheurystyk ma sens. Pozwalają one na utrzymanie stabilnego kosztu w zmieniającej się sieci, przy akceptowalnym kompromisie między jakością a czasem.

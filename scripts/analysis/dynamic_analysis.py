@@ -3,9 +3,10 @@ from __future__ import annotations
 import argparse
 import csv
 from collections import Counter, defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import matplotlib.pyplot as plt
 
@@ -231,6 +232,7 @@ def compute_warm_advantage(rows: list[dict[str, Any]], dataset: str) -> list[War
     for (lic, g, alg, step), d in buckets.items():
         if not d.get("warm") or not d.get("cold"):
             continue
+
         # median warm/cold cost at this step
         def _med(xs: Iterable[float]) -> float:
             s = sorted([x for x in xs if x == x])
@@ -261,12 +263,14 @@ def compute_warm_advantage(rows: list[dict[str, Any]], dataset: str) -> list[War
                 continue
             if not d.get("warm") or not d.get("cold"):
                 continue
+
             def _med(xs: Iterable[float]) -> float:
                 s = sorted([x for x in xs if x == x])
                 if not s:
                     return float("nan")
                 n = len(s)
                 return s[n // 2] if n % 2 == 1 else 0.5 * (s[n // 2 - 1] + s[n // 2])
+
             cw = _med(d["cold"])
             ww = _med(d["warm"])
             tc = _med(times[(lic2, g2, alg2, step)].get("cold", []))
@@ -304,27 +308,31 @@ def write_warm_advantage(rows: list[dict[str, Any]], dataset: str, out_csv: Path
     adv = compute_warm_advantage(rows, dataset)
     with out_csv.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow([
-            "dataset",
-            "license_config",
-            "graph",
-            "algorithm",
-            "steps",
-            "median_cost_delta",
-            "improved_steps_share",
-            "median_time_ratio",
-        ])
+        w.writerow(
+            [
+                "dataset",
+                "license_config",
+                "graph",
+                "algorithm",
+                "steps",
+                "median_cost_delta",
+                "improved_steps_share",
+                "median_time_ratio",
+            ]
+        )
         for a in adv:
-            w.writerow([
-                a.dataset,
-                a.license_config,
-                a.graph,
-                a.algorithm,
-                a.steps,
-                f"{a.median_cost_delta:.6f}",
-                f"{a.improved_steps_share:.6f}",
-                f"{a.median_time_ratio:.6f}" if a.median_time_ratio == a.median_time_ratio else "",
-            ])
+            w.writerow(
+                [
+                    a.dataset,
+                    a.license_config,
+                    a.graph,
+                    a.algorithm,
+                    a.steps,
+                    f"{a.median_cost_delta:.6f}",
+                    f"{a.improved_steps_share:.6f}",
+                    f"{a.median_time_ratio:.6f}" if a.median_time_ratio == a.median_time_ratio else "",
+                ]
+            )
 
 
 def run_plots_dynamic(rows: list[dict[str, Any]], title_prefix: str, out_root: Path, include_licenses: set[str] | None = None) -> None:
@@ -339,7 +347,7 @@ def run_plots_dynamic(rows: list[dict[str, Any]], title_prefix: str, out_root: P
             if not sub:
                 continue
             out_dir = out_root / lic / g
-            plot_dynamic_warm_cold(sub, f"{title_prefix} — {lic} — {g}", out_dir)
+            plot_dynamic_warm_cold(sub, f"{title_prefix} -- {lic} -- {g}", out_dir)
 
 
 def main() -> None:

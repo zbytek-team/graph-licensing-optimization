@@ -1,4 +1,4 @@
-# Thesis Guide — Mapping Code to Chapters
+# Thesis Guide -- Mapping Code to Chapters
 
 This guide maps the thesis table of contents to code, data, and outputs produced by this repository.
 

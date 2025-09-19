@@ -34,36 +34,36 @@ def analyze_benchmark(csv_path: Path, rows: list[dict[str, object]]) -> None:
         sub = [r for r in rows if str(r.get("license_config", "")) == lic and str(r.get("graph", "")) == gname]
         out_dir = run_dir / "analysis" / lic / gname
         ensure_dir(out_dir)
-        plot_cost_vs_n(sub, title=f"{title} — {lic} — {gname}", out_path=out_dir / f"{gname}_cost_vs_n")
+        plot_cost_vs_n(sub, title=f"{title} -- {lic} -- {gname}", out_path=out_dir / f"{gname}_cost_vs_n")
         plot_time_vs_n(
             sub,
-            title=f"{title} — {lic} — {gname} time vs n",
+            title=f"{title} -- {lic} -- {gname} time vs n",
             out_path=out_dir / f"{gname}_time_vs_n",
         )
         plot_pareto(
             sub,
-            title=f"{title} — {lic} — {gname} Pareto",
+            title=f"{title} -- {lic} -- {gname} Pareto",
             out_path=out_dir / f"{gname}_pareto_cost_time",
         )
         plot_density_vs_time(
             sub,
-            title=f"{title} — {lic} — {gname} density vs time",
+            title=f"{title} -- {lic} -- {gname} density vs time",
             out_path=out_dir / f"{gname}_density_vs_time",
         )
-        plot_performance_profiles(sub, title_prefix=f"{title} — {lic} — {gname}", out_dir=out_dir)
+        plot_performance_profiles(sub, title_prefix=f"{title} -- {lic} -- {gname}", out_dir=out_dir)
     # overall heatmap and license mix
     out_dir_all = run_dir / "analysis" / "all"
     ensure_dir(out_dir_all)
-    plot_cost_heatmap(rows, title=f"{title} — cost heatmap", out_path=out_dir_all / "heatmap_cost")
+    plot_cost_heatmap(rows, title=f"{title} -- cost heatmap", out_path=out_dir_all / "heatmap_cost")
     # Global mix (all configs together)
-    plot_license_mix(rows, title=f"{title} — license mix by algorithm (all configs)", out_path=out_dir_all / "license_mix_all_configs")
+    plot_license_mix(rows, title=f"{title} -- license mix by algorithm (all configs)", out_path=out_dir_all / "license_mix_all_configs")
     # Per-config license mix breakdowns
     configs = sorted({str(r.get("license_config", "")) for r in rows if r.get("license_config")})
     for cfg in configs:
         sub_cfg = [r for r in rows if str(r.get("license_config", "")) == cfg]
         out_cfg = run_dir / "analysis" / cfg / "all"
         ensure_dir(out_cfg)
-        plot_license_mix(sub_cfg, title=f"{title} — license mix by algorithm — {cfg}", out_path=out_cfg / f"license_mix_{cfg}")
+        plot_license_mix(sub_cfg, title=f"{title} -- license mix by algorithm -- {cfg}", out_path=out_cfg / f"license_mix_{cfg}")
     write_aggregates(rows, out_path=out_dir_all / "aggregates.csv")
     # pandas-based summaries if available
     write_pandas_summaries(csv_path, out_dir_all)
@@ -90,7 +90,7 @@ def analyze_dynamic(csv_path: Path, rows: list[dict[str, object]]) -> None:
     for g, lic in sorted(combos):
         sub = [r for r in rows if str(r.get("graph", "")) == g and str(r.get("license_config", "")) == lic]
         out_dir = run_dir / "analysis" / lic / g
-        plot_dynamic_warm_cold(sub, title_prefix=f"{title} — {lic} — {g}", out_dir=out_dir)
+        plot_dynamic_warm_cold(sub, title_prefix=f"{title} -- {lic} -- {g}", out_dir=out_dir)
 
 
 def main() -> None:
@@ -110,7 +110,7 @@ def main() -> None:
             else:
                 analyze_benchmark(csv_path, rows)
     else:
-        print("no CSVs under runs/*/csv — checking filtered_results.zip")
+        print("no CSVs under runs/*/csv -- checking filtered_results.zip")
         zip_path = Path("filtered_results.zip")
         if zip_path.exists():
             with zipfile.ZipFile(zip_path) as z:

@@ -25,7 +25,7 @@ def emit_report(run_dir: Path, out_path: Path) -> None:
     pivots = sorted(analysis.rglob("pivot_cost_per_node.csv"))
 
     lines: list[str] = []
-    lines.append(f"# Report — {title}\n")
+    lines.append(f"# Report -- {title}\n")
     lines.append("This report summarizes experiments and analysis outputs.\n")
     lines.append("## Contents\n")
     lines.append("- Figures\n- Tables\n- Notes\n")
