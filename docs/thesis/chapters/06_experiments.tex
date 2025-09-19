@@ -167,21 +167,21 @@ Porównania z dominowaniem rzymskim ograniczono do wspólnych instancji i algory
 
 \begin{table}[H]
   \centering
-  \caption{Mediany czasu i kosztu na węzeł według typu grafu (wspólne instancje).}
+  \caption{Średnie czasu i kosztu na węzeł według typu grafu (wspólne instancje).}
   \label{tab:duo-roman-graph}
   \begin{tabular}{lcccc}
     \toprule
     \multirow{2}{*}{\textbf{Typ grafu}} & \multicolumn{2}{c}{\textbf{Duolingo Super}} & \multicolumn{2}{c}{\textbf{Dominowanie rzymskie}}                                            \\
                                         & \textbf{Czas [s]}                           & \textbf{Koszt/węzeł}                              & \textbf{Czas [s]} & \textbf{Koszt/węzeł} \\
     \midrule
-    Losowy                              & 0.205                                       & 0.453                                             & 0.201             & 0.288                \\
-    Bezskalowy                          & 0.222                                       & 0.686                                             & 0.162             & 0.478                \\
-    Małoświatowy                        & 0.193                                       & 0.467                                             & 0.173             & 0.387                \\
+    Losowy                              & 1.598                                       & 0.502                                             & 0.815             & 0.344                \\
+    Bezskalowy                          & 1.655                                       & 0.661                                             & 0.913             & 0.490                \\
+    Małoświatowy                        & 1.346                                       & 0.495                                             & 1.544             & 0.409                \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Dominowanie rzymskie zapewnia niższy koszt na węzeł we wszystkich porównywanych rodzinach grafów. Największa różnica dotyczy struktur losowych, gdzie przewaga wynosi ok.~0,16 punktu (35\%). W sieciach bezskalowych rozpiętość maleje do 0,21, natomiast w małoświatowych do 0,08. Czasy wykonania pozostają porównywalne, przy lekkiej przewadze dominowania rzymskiego (różnica 10--25~ms). Rysunek~\ref{fig:duo-roman-cost} ilustruje te obserwacje dla pełnego rozkładu, a rysunek~\ref{fig:duo-roman-time} prezentuje analogiczne dane czasowe. Warto jednak zauważyć, że wyższe koszty na węzeł w przypadku Duolingo Super wynikają z ograniczeń w opłacalności licencji grupowych. Licencja grupowa jest około 2,1 razy droższa od indywidualnej, co oznacza, że opłaca się ją tworzyć dopiero dla grup liczących co najmniej trzy osoby (właściciel i dwóch sąsiadów). W efekcie liczba licencji indywidualnych w Duolingo Super jest większa, co przekłada się na wyższy średni koszt na węzeł w porównaniu do dominowania rzymskiego.
+Dominowanie rzymskie zapewnia niższy koszt na węzeł we wszystkich porównywanych rodzinach grafów. Największa różnica dotyczy struktur losowych, gdzie przewaga wynosi ok.~0,16 punktu (32\%). W sieciach bezskalowych różnica maleje do 0,17, natomiast w małoświatowych do 0,09. Czasy wykonania są porównywalne, przy lekkiej przewadze Duolingo Super w grafach małoświatowych, ale dominowanie rzymskie jest szybsze w grafach losowych i bezskalowych. Rysunek~\ref{fig:duo-roman-cost} ilustruje te obserwacje dla pełnego rozkładu, a rysunek~\ref{fig:duo-roman-time} prezentuje analogiczne dane czasowe. Warto zauważyć, że wyższe koszty na węzeł w przypadku Duolingo Super wynikają z ograniczeń w opłacalności licencji grupowych. Licencja grupowa jest około 2,1 razy droższa od indywidualnej, co oznacza, że opłaca się ją tworzyć dopiero dla grup liczących co najmniej trzy osoby (właściciel i dwóch sąsiadów). W efekcie liczba licencji indywidualnych w Duolingo Super jest większa, co przekłada się na wyższy średni koszt na węzeł w porównaniu do dominowania rzymskiego.
 
 \begin{figure}[H]
   \centering
