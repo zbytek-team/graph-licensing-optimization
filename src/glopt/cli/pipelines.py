@@ -38,7 +38,6 @@ def _run_benchmark() -> None:
     bench.main()
 
 
-
 def _run_benchmark_real() -> None:
     m = importlib.import_module("glopt.cli.benchmark_real")
     run_id = _now_id("benchmark_real")
@@ -59,7 +58,6 @@ def _run_trees() -> None:
     t.main()
 
 
-
 def _run_dynamic() -> None:
     d = importlib.import_module("glopt.cli.dynamic")
     run_id = _now_id("dynamic")
@@ -70,7 +68,6 @@ def _run_dynamic() -> None:
     d.TIMEOUT_SECONDS = 45.0
     d.LICENSE_CONFIG_NAMES = ["duolingo_super", "roman_domination"]
     d.main()
-
 
 
 def _run_dynamic_realistic(tag: str, sizes: list[int], steps: int, nodes_mode: str, edges_mode: str) -> None:
@@ -87,7 +84,6 @@ def _run_dynamic_realistic(tag: str, sizes: list[int], steps: int, nodes_mode: s
     d.main()
 
 
-
 def _run_extensions_static() -> None:
     bench = importlib.import_module("glopt.cli.benchmark")
     run_id = _now_id("extensions")
@@ -99,11 +95,10 @@ def _run_extensions_static() -> None:
     bench.LICENSE_CONFIG_NAMES = [
         "spotify",
         "netflix",
-        *[f"roman_p_{p}" for p in ("1_5", "2_5", "3_0")],
-        *[f"duolingo_p_{p}" for p in ("1_5", "2_0", "3_0")],
+        *[f"roman_p_{p}" for p in ("3", "4", "5")],
+        *[f"duolingo_p_{p}" for p in ("2", "4", "5")],
     ]
     bench.main()
-
 
 
 def _run_extensions_dynamic() -> None:
@@ -117,8 +112,8 @@ def _run_extensions_dynamic() -> None:
     d.LICENSE_CONFIG_NAMES = [
         "spotify",
         "netflix",
-        *[f"roman_p_{p}" for p in ("1_5", "2_5", "3_0")],
-        *[f"duolingo_p_{p}" for p in ("1_5", "2_0", "3_0")],
+        *[f"roman_p_{p}" for p in ("3", "4", "5")],
+        *[f"duolingo_p_{p}" for p in ("2", "4", "5")],
     ]
     d.main()
 
@@ -157,17 +152,15 @@ def export_thesis_figs() -> None:
     subprocess.run([sys.executable, "-m", "scripts.analysis.export_thesis_figs"], check=True)
 
 
-
-
 def meta_sweep() -> None:
     _run_meta_sweep()
 
 
-def _run_dynamic_synthetic(label: str, sizes_with_20: list[int], steps: int, add_nodes: float, rem_nodes: float, add_edges: float, rem_edges: float) -> None:
+def _run_dynamic_synthetic(label: str, sizes: list[int], steps: int, add_nodes: float, rem_nodes: float, add_edges: float, rem_edges: float) -> None:
     d = importlib.import_module("glopt.cli.dynamic")
     run_id = _now_id(f"dynamic_{label}")
     d.RUN_ID = run_id
-    d.SIZES = sizes_with_20
+    d.SIZES = sizes
     d.NUM_STEPS = steps
     d.REPEATS_PER_GRAPH = 1
     d.TIMEOUT_SECONDS = 45.0
@@ -180,10 +173,18 @@ def _run_dynamic_synthetic(label: str, sizes_with_20: list[int], steps: int, add
     d.MODE_EDGES = "random"
     d.main()
 
+
 def dynamic() -> None:
     # Three intensity variants on synthetic graphs: low / medium / high; each run includes size 20
-    sizes = [20, 40, 80, 160, 320, 640]
-    # _run_dynamic_synthetic("low", sizes, 30, add_nodes=0.02, rem_nodes=0.01, add_edges=0.06, rem_edges=0.04)
+    sizes = [
+        20,
+        40,
+        # 80,
+        # 160,
+        # 320,
+        # 640,
+    ]
+    _run_dynamic_synthetic("low", sizes, 30, add_nodes=0.02, rem_nodes=0.01, add_edges=0.06, rem_edges=0.04)
     _run_dynamic_synthetic("med", sizes, 30, add_nodes=0.06, rem_nodes=0.04, add_edges=0.18, rem_edges=0.12)
     _run_dynamic_synthetic("high", sizes, 30, add_nodes=0.12, rem_nodes=0.08, add_edges=0.30, rem_edges=0.20)
 
@@ -199,10 +200,10 @@ def quick() -> None:
     # static_all()
     # trees()
     # real_ego()
-    # dynamic()
-    dynamic_real()
-    extensions_static()
-    extensions_dynamic()
+    dynamic()
+    # dynamic_real()
+    # extensions_static()
+    # extensions_dynamic()
     return None
 
 

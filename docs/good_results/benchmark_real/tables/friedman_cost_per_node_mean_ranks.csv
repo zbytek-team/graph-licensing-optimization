@@ -1,0 +1,8 @@
+algorithm,mean_rank
+AntColonyOptimization,2.0462962962962963
+DominatingSetAlgorithm,4.412037037037037
+GeneticAlgorithm,2.5185185185185186
+GreedyAlgorithm,4.988425925925926
+RandomizedAlgorithm,7.0
+SimulatedAnnealing,4.296296296296297
+TabuSearch,2.738425925925926
