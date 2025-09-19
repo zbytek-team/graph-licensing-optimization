@@ -1,4 +1,5 @@
 \chapter{Podsumowanie}
+\subsection{Symulacje dynamiczne}
 \begin{itemize}
   \item Rozdział~\ref{chap:dynamic} zdefiniował symulator zmian sieci (mutacje węzłów i krawędzi, tryby preferencyjne, triadyczne i losowe). Ciepły start (wykorzystanie poprzedniego rozwiązania) znacząco obniżał koszt względem rekalkulacji od zera (redukcje 6--14\% w scenariuszach syntetycznych i 7--12\% w realistycznych), utrzymując czasy rebalansowania na poziomie 1--3~s. Algorytm zachłanny, działający w czasie milisekund, stanowił ważny punkt odniesienia.
   \item Poziom intensywności mutacji miał większy wpływ na czas niż na koszt. Algorytm mrówkowy pozostawał najdokładniejszy, lecz przeszukiwanie tabu i algorytm genetyczny oferowały lepszy kompromis czasowy. W realistycznych dynamikach najtrudniejszy okazał się wariant z losowym przełączaniem krawędzi (\texttt{rand\_rewire}).
