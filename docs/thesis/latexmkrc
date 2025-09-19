@@ -1,0 +1,41 @@
+# # Project-local latexmk configuration for WSL2/Windows and Linux viewers
+# # This file is read by latexmk when building the thesis.
+
+# # Always build PDF
+# $pdf_mode = 1;
+
+# # Keep outputs in build/ (consistent with VS Code and Makefile)
+# $out_dir = 'build';
+
+# # Be chatty on errors but non-interactive
+# $interaction = 'nonstopmode';
+
+# # Detect WSL (kernel osrelease contains "Microsoft")
+# my $is_wsl = 0;
+# if (open my $fh, '<', '/proc/sys/kernel/osrelease') {
+#   my $osr = <$fh> // '';
+#   close $fh;
+#   if ($osr =~ /microsoft/i) { $is_wsl = 1; }
+# }
+
+# # Helper to test if a command exists in PATH
+# sub _cmd_exists {
+#   my ($cmd) = @_;
+#   return system("command -v $cmd >/dev/null 2>&1") == 0;
+# }
+
+# # Force a single, simple previewer: xdg-open (works with WSLg or any Linux desktop)
+# $pdf_previewer = 'sumatrapdf';
+
+# # Ensure latexmk doesn't try to prepend its own 'start' wrapper
+# $pvc_view_file_via_system_start = 0;
+
+# # Notes:
+# # - For continuous preview from terminal, run inside docs/thesis:
+# #     latexmk -lualatex -outdir=build -pvc main.tex
+# #   This will auto-open and auto-refresh the PDF using the previewer above.
+# # - On WSL, installing wslu provides wslview:
+# #     sudo apt update && sudo apt install -y wslu
+# # - If you prefer SumatraPDF on Windows explicitly, uncomment and adjust the following:
+# #     # $pdf_previewer = 'powershell.exe -NoProfile -Command Start-Process -FilePath "C:\\Program Files\\SumatraPDF\\SumatraPDF.exe"';
+# #   (wslview is usually simpler because it auto-converts WSL paths.)

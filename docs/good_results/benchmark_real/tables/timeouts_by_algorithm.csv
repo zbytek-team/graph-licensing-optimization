@@ -1,0 +1,4 @@
+algorithm,count
+AntColonyOptimization,8
+ILPSolver,18
+TabuSearch,6

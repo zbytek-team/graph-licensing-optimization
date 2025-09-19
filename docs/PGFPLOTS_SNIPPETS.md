@@ -142,7 +142,7 @@ Wskazówka: aby wykreślić kilka serii na jednym wykresie, powtórz `\addplot` 
   columns/algorithm/.style={string type},
   columns/graph/.style={string type},
   every head row/.style={before row=\toprule, after row=\midrule},
-  every last row/.style={after row=\bottomrule},
+  every last row/.style={after row=},
 ]{results/benchmark_all/all/aggregates.csv}
 ```
 

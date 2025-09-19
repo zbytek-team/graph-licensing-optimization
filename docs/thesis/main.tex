@@ -1,4 +1,3 @@
-% !TeX program = lualatex
 \documentclass[10pt,a4paper]{report}
 
 \input{preamble} % Load custom preamble for packages and formatting settings
@@ -7,7 +6,6 @@
 
 % official template must be downloaded and placed in assets/titlepage.pdf
 \includepdf[pages=1,pagecommand={}]{assets/titlepage.pdf}
-
 % Include abstracts
 \input{frontmatter/abstract_pl}
 \input{frontmatter/abstract_en}
@@ -20,7 +18,7 @@
 \listofalgorithms
 
 \input{frontmatter/list_of_symbols}
-
+asd
 % Include main chapters of the thesis
 \input{chapters/01_introduction}
 \input{chapters/02_graph_model}
@@ -35,10 +33,10 @@
 \printbibliography
 
 % Wpis dot. użycia narzędzi GenAI zgodnie z wytycznymi PG
-\nocite{genai_usage}
+% \nocite{genai_usage}
 
 % Appendices (additional materials, calculations, etc.)
-\appendix
-\include{chapters/99_appendix}
+% \appendix
+% \include{chapters/99_appendix}
 
 \end{document}
