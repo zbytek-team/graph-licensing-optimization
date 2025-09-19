@@ -50,16 +50,16 @@ Tabela~\ref{tab:greedy-cold-summary} zestawia średni koszt na węzeł i średni
     high                    & 0.48009                     & 0.00159                  \\
     low                     & 0.47983                     & 0.00165                  \\
     med                     & 0.47491                     & 0.00181                  \\
-    pref\_pref              & 0.46371                     & 0.000835                 \\
-    pref\_triadic           & 0.46787                     & 0.000535                 \\
-    rand\_rewire            & 0.47556                     & 0.000833                 \\
+    pref\_pref              & 0.46371                     & 0.00083                  \\
+    pref\_triadic           & 0.46787                     & 0.00053                  \\
+    rand\_rewire            & 0.47556                     & 0.00083                  \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Algorytm zachłanny jest bardzo szybki (sub-milisekundowy do \SI{1.8}{\ms}), co potwierdza jego przydatność jako lekki baseline czasowy w środowisku dynamicznym. Warianty realistyczne sprzyjają nieco niższym kosztom: \texttt{pref\_pref} osiąga najniższy średni koszt (0.464), a \texttt{pref\_triadic} jest jednocześnie najszybszy (\SI{0.000535}{\s}). Wariant \texttt{rand\_rewire} jest trudniejszy (0.476), ale pozostaje bardzo szybki czasowo.
+Algorytm zachłanny jest bardzo szybki (sub-milisekundowy do \SI{1.8}{\ms}), co potwierdza jego przydatność jako lekki baseline czasowy w środowisku dynamicznym. Warianty realistyczne sprzyjają nieco niższym kosztom: \texttt{pref\_pref} osiąga najniższy średni koszt (0.464), a \texttt{pref\_triadic} jest jednocześnie najszybszy (\SI{0.00053}{\s}). Wariant \texttt{rand\_rewire} jest trudniejszy (0.476), ale pozostaje bardzo szybki czasowo.
 
-Różnice kosztu dla mutacji syntetycznych są niewielkie (0.475--0.480), natomiast czasy są wyższe niż w profilach realistycznych, szczególnie dla \texttt{med/high}. Wskazuje to, że bardziej lokalne, realistyczne przekształcenia struktury grafu są łatwiejsze do obsłużenia. Mediany czasów są niższe niż średnie (np. \texttt{pref\_pref}: mediana \SI{0.00058}{\s} vs średnia \SI{0.00083}{\s}, \emph{n}=930; \texttt{pref\_triadic}: \SI{0.00046}{\s} vs \SI{0.00053}{\s}, \emph{n}=744), co sugeruje długi ogon rzadkich, nieco wolniejszych kroków. Analogiczne zjawisko obserwujemy w mutacjach syntetycznych (\emph{n}=1116 na wariant).
+Różnice kosztu dla mutacji syntetycznych są niewielkie (0.475--0.480), natomiast czasy są wyższe niż w profilach realistycznych, szczególnie dla \texttt{med/high}. Wskazuje to, że bardziej lokalne, realistyczne przekształcenia struktury grafu są łatwiejsze do obsłużenia. Czasy dla \texttt{pref\_pref} wynoszą średnio \SI{0.00083}{\s}, a dla \texttt{pref\_triadic} \SI{0.00053}{\s}, co potwierdza ich przewagę czasową nad mutacjami syntetycznymi (\SI{0.00159}{\s} dla \texttt{high}).
 
 \section{Wyniki na mutacjach syntetycznych}
 \subsection{Metaheurystyki}
@@ -107,20 +107,19 @@ Dla wariantu \texttt{high} można zaobserwować niewielkie, lecz zauważalne wah
 \end{figure}
 
 \section{Wyniki na mutacjach realistycznych}
-
 Tabela~\ref{tab:dyn-real-warm} przedstawia zbiorcze wyniki dla scenariuszy realistycznych. Wariant \texttt{pref\_triadic} wyróżnia się najkrótszym średnim czasem wykonania (poniżej 1 sekundy), przy zachowaniu kosztu na poziomie zbliżonym do wariantu \texttt{pref\_pref}. Scenariusz \texttt{rand\_rewire} okazał się najtrudniejszy -- charakteryzuje się zarówno najwyższym średnim kosztem, jak i najdłuższym czasem przetwarzania.
 
 \begin{table}[H]
   \centering
   \caption{Wyniki dla różnych metod mutacji w scenariuszach realistycznych.}
   \label{tab:dyn-real-warm}
-  \begin{tabular}{lcc}
+  \begin{tabular}{lccc}
     \toprule
-    \textbf{Metoda mutacji} & \textbf{Średni koszt} & \textbf{Średni czas [s]} \\
+    \textbf{Metoda mutacji} & \textbf{Średni koszt całkowity} & \textbf{Koszt/węzeł (mean)} & \textbf{Średni czas [s]} \\
     \midrule
-    pref\_pref              & 0.4699                & 1.743                    \\
-    pref\_triadic           & 0.4704                & 0.896                    \\
-    rand\_rewire            & 0.4855                & 1.908                    \\
+    pref\_pref              & 113.34                          & 0.4764                      & 1.6774                   \\
+    pref\_triadic           & 70.08                           & 0.4764                      & 0.8619                   \\
+    rand\_rewire            & 116.83                          & 0.4917                      & 1.8421                   \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -132,31 +131,32 @@ Poniżej wybrano kilka par algorytmów i metod mutacji, które pokazują różne
   \centering
   \caption{Wybrane pary algorytmów i metod mutacji (różne kompromisy).}
   \label{tab:dyn-synth-selected-best}
-  \begin{tabular}{llcc}
+  \begin{tabular}{llccc}
     \toprule
-    \textbf{Algorytm}     & \textbf{Metoda} & \textbf{Koszt/węzeł} & \textbf{Śr. czas [s]} \\
+    \textbf{Algorytm}     & \textbf{Metoda} & \textbf{Liczba kroków} & \textbf{Koszt/węzeł} & \textbf{Śr. czas [s]} \\
     \midrule
-    Solver ILP            & pref\_triadic   & 0.362                & 1.525                 \\
-    Solver ILP            & rand\_rewire    & 0.390                & 2.553                 \\
-    Algorytm genetyczny   & pref\_triadic   & 0.409                & 0.615                 \\
-    Algorytm genetyczny   & high            & 0.429                & 3.269                 \\
-    Przeszukiwanie tabu   & pref\_triadic   & 0.413                & 1.470                 \\
-    Przeszukiwanie tabu   & high            & 0.447                & 6.454                 \\
-    Algorytm mrówkowy     & pref\_pref      & 0.417                & 6.906                 \\
-    Algorytm mrówkowy     & pref\_triadic   & 0.424                & 3.002                 \\
-    Wyżarzanie symulowane & pref\_triadic   & 0.460                & 0.555                 \\
-    Algorytm zachłanny    & pref\_pref      & 0.464                & 0.001                 \\
-    Zbiór dominujący      & pref\_triadic   & 0.457                & 0.005                 \\
-    Algorytm losowy       & pref\_pref      & 0.754                & 0.001                 \\
+    Solver ILP            & pref\_triadic   & 434                    & 0.362                & 1.525                 \\
+    Solver ILP            & rand\_rewire    & 496                    & 0.390                & 2.553                 \\
+    Algorytm genetyczny   & pref\_triadic   & 744                    & 0.409                & 0.615                 \\
+    Algorytm genetyczny   & pref\_pref      & 930                    & 0.414                & 1.134                 \\
+    Przeszukiwanie tabu   & pref\_triadic   & 744                    & 0.413                & 1.470                 \\
+    Przeszukiwanie tabu   & rand\_rewire    & 930                    & 0.445                & 2.581                 \\
+    Algorytm mrówkowy     & pref\_pref      & 899                    & 0.417                & 6.906                 \\
+    Algorytm mrówkowy     & pref\_triadic   & 744                    & 0.424                & 3.002                 \\
+    Wyżarzanie symulowane & pref\_triadic   & 744                    & 0.460                & 0.555                 \\
+    Algorytm zachłanny    & pref\_pref      & 930                    & 0.464                & 0.001                 \\
+    Zbiór dominujący      & pref\_triadic   & 744                    & 0.457                & 0.005                 \\
+    Algorytm losowy       & pref\_pref      & 930                    & 0.754                & 0.001                 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Solver ILP osiąga najniższe koszty, ale wymaga około 1.5--2.6 sekundy na krok. Algorytm genetyczny dobrze sprawdza się przy zmianach klastrowych (\texttt{pref\_triadic}), oferując niski koszt i czas około 0.6 sekundy. Jednak przy intensywnych mutacjach (\texttt{high}) staje się wyraźnie wolniejszy i droższy. Z kolei wyżarzanie symulowane jest szybkie (około pół sekundy) i stabilne, ale jakościowo ustępuje bardziej zaawansowanym metodom.
+Solver ILP osiąga najniższe koszty, ale wymaga około 1.5--2.6 sekundy na krok. Algorytm genetyczny dobrze sprawdza się przy zmianach klastrowych (\texttt{pref\_triadic}), oferując niski koszt i czas około 0.6 sekundy. Przy wariancie \texttt{pref\_pref} jest wolniejszy (1.1 s), ale zachowuje dobrą jakość. Z kolei wyżarzanie symulowane jest szybkie (około pół sekundy) i stabilne, ale jakościowo ustępuje bardziej zaawansowanym metodom.
 
-Przeszukiwanie tabu korzysta z lokalności zmian, osiągając sensowny koszt i czas około 1.5 sekundy przy \texttt{pref\_triadic}. Jednak przy intensywnych mutacjach (\texttt{high}) czas wzrasta do około 6.5 sekundy, a koszt również rośnie. Algorytm mrówkowy zapewnia bardzo dobrą jakość przy \texttt{pref\_pref}, ale działa najwolniej. Przejście na \texttt{pref\_triadic} prawie podwaja szybkość kosztem niewielkiego pogorszenia jakości.
+Przeszukiwanie tabu korzysta z lokalności zmian, osiągając sensowny koszt i czas około 1.5 sekundy przy \texttt{pref\_triadic}. Jednak przy mutacjach losowych (\texttt{rand\_rewire}) czas wzrasta do około 2.6 sekundy, a koszt również rośnie. Algorytm mrówkowy zapewnia bardzo dobrą jakość przy \texttt{pref\_pref}, ale działa najwolniej (prawie 7 sekund). Przejście na \texttt{pref\_triadic} ponad dwukrotnie przyspiesza jego działanie kosztem niewielkiego pogorszenia jakości.
 
-Heurystyki szybkie, takie jak algorytm zachłanny (około 1 ms) i zbiór dominujący (około 5 ms), są bardzo efektywne. Zbiór dominujący zwykle osiąga niższy koszt niż zachłanny, co czyni go dobrym wyborem przy ograniczeniach czasowych. Mutacje klastrowe (\texttt{pref\_triadic}, \texttt{pref\_pref}) pomagają wszystkim algorytmom utrzymać niski koszt i krótszy czas. Natomiast \texttt{rand\_rewire} i wariant \texttt{high} zwiększają zarówno koszt, jak i czas.
+Heurystyki szybkie, takie jak algorytm zachłanny (około 1 ms) i zbiór dominujący (około 5 ms), są bardzo efektywne. Zbiór dominujący zwykle osiąga niższy koszt niż zachłanny, co czyni go dobrym wyborem przy ograniczeniach czasowych. Mutacje klastrowe (\texttt{pref\_triadic}, \texttt{pref\_pref}) pomagają wszystkim algorytmom utrzymać niski koszt i krótszy czas. Natomiast \texttt{rand\_rewire} zwiększa zarówno koszt, jak i czas.
+
 
 \subsection{Ewolucja kosztów w czasie}
 Pełne przebiegi dla algorytmu genetycznego pokazano na rys.~\ref{fig:dyn-real-genetic-cost}--\ref{fig:dyn-real-genetic-time}. Łączenie preferencyjnego przyłączania z triadycznym domykaniem sprzyja utrzymaniu najniższych kosztów, natomiast wariant z losowym przełączaniem krawędzi prowadzi do wolniejszej stabilizacji. Analizując koszt na węzeł (Rys. \ref{fig:dyn-real-genetic-cost}), można zauważyć, że dla każdego z typów mutacji przebiega on podobnie, oscylując wokół zbliżonego poziomu.
