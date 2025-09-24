@@ -1,0 +1,64 @@
+\chapter{Wprowadzenie}\label{chap:introduction}
+\section{Wstęp i motywacja}
+W ostatnich latach coraz większe znaczenie zyskują modele subskrypcyjne w sektorze oprogramowania i usług cyfrowych. Zgodnie z indeksem gospodarki subskrypcyjnej rynek ten zwiększył swoją wartość o ponad 400\% od roku 2012 do roku 2021 \cite{subscriptionEconomyIndex}, a w 2024 roku osiągnął przybliżoną wartość blisko 600 miliardów dolarów \cite{subscriptionEconomyPrice2024}.
+
+Konsumenci coraz częściej opłacają regularne abonamenty zamiast jednorazowych zakupów, co zapewnia firmom stałe przychody, a użytkownikom wygodny dostęp do usług. Wiele popularnych platform, w tym aplikacje edukacyjne, serwisy streamingowe czy oprogramowanie w modelu Software as a Service (SaaS), opiera się na modelu subskrypcyjnym. Serwisy streamingowe, takie jak Spotify czy Netflix, często oferują plany rodzinne, w których kilka osób może współdzielić jedną subskrypcję grupową, której koszt jest niższy niż zakup kilku subskrypcji indywidualnych. W podobny sposób platforma edukacyjna do nauki języków Duolingo udostępnia plan rodzinny Super Duolingo (ang. Duolingo Super Family) \cite{duolingo_family}, który pozwala grupie znajomych lub osób spokrewnionych współdzielić korzyści subskrypcji premium. Zachęca to użytkowników do grupowego zakupu subskrypcji, redukując jednocześnie koszt przypadający na jedną osobę. Subskrypcja wiąże się z czasowym nabyciem licencji, dlatego w dalszej części pracy oba pojęcia będą używane zamiennie.
+
+W przypadku formowania się takich grup kontekst społeczny odgrywa istotną rolę. Rozsądne i optymalne korzystanie z subskrypcji grupowych wymaga, aby główny posiadacz subskrypcji znał osoby zainteresowane wspólnym korzystaniem z usługi, czy to ze względu na chęć podziału kosztów, podobne zainteresowania lub zwyczajną bliskość relacji. Użytkownicy często łączą się w grupy z rodziną czy przyjaciółmi, ponieważ łatwiej wtedy o zaufanie w zakresie współdzielenia konta. Innym powodem może być też wygoda, ponieważ jedna wspólna subskrypcja upraszcza zarządzanie płatnościami i zapewnia wszystkim członkom grupy taki sam dostęp do usługi. Takie czynniki społeczne mają więc istotny wpływ na to, jak faktycznie kształtują się struktury współdzielenia w sieciach użytkowników. Rozwój mediów społecznościowych i komunikatorów ułatwia zawieranie takich porozumień w gronie znajomych lub osób o podobnych zainteresowaniach. W praktyce często dochodzi do sytuacji, w których użytkownicy umawiają się na wspólny zakup abonamentu. Sieć powiązań społecznych determinuje, kto z kim może skutecznie współdzielić licencję.
+
+Analiza przedstawionych mechanizmów prowadzi do sformułowania problemu optymalizacyjnego: jak zaplanować zakup licencji w grupie powiązanych użytkowników, aby zminimalizować łączny koszt dostępu do usługi. Innymi słowy, mając daną sieć znajomości oraz dostępne opcje licencyjne, należy dobrać podzbiór użytkowników kupujących licencje (oraz rodzaj tych licencji) tak, by wszyscy użytkownicy mieli dostęp do usługi przy możliwie najniższym koszcie. Intuicyjnie jest to problem pokrycia grafu zbiorem \emph{właścicieli} (osób wykupujących licencje), w taki sposób, by każdy wierzchołek był albo objęty licencją, albo sąsiadował z kimś, kto licencję posiada.
+
+Warto zauważyć, że opisana struktura problemu ma ścisłe powiązania z zagadnieniami teorii grafów. Jest ona bliska klasycznemu problemowi dominowania, ponieważ wybór użytkowników kupujących licencje grupowe pełni tę samą funkcję co wybór zbioru dominującego. W obu przypadkach chodzi o to, aby wybrany zestaw wierzchołków pokrywał całą sieć. W dalszej części pracy został również pokazany związek z wariantem znanym jako \emph{dominowanie rzymskie}. Takie odniesienia do teorii grafów stanowią istotne uzupełnienie głównego celu badań, którym jest optymalizacja kosztów licencji w społeczności użytkowników.
+
+
+
+\section{Cele i zakres pracy}
+Celem niniejszej pracy jest formalizacja i analiza problemu optymalnego zakupu licencji w sieciach społecznościowych, zaproponowanie metod jego rozwiązania oraz weryfikacja przyjętych rozwiązań. W pierwszej kolejności opracowany został model grafowy opisujący powiązania między użytkownikami oraz różne strategie zakupowe wraz z odpowiadającymi im kosztami. Taki model pozwolił zdefiniować problem minimalizacji kosztów jako zadanie optymalizacyjne na grafie. Następnie wykazano ścisły związek z problemem dominowania w grafach. W szczególności pokazano, że dla pewnej klasy modeli licencjonowania zadanie optymalnego doboru subskrypcji jest równoważne znalezieniu minimalnego zbioru dominującego lub rozwiązaniu pokrewnego problemu \emph{dominowania rzymskiego}. Odwołanie do znanych wyników o dominowaniu obejmuje zarówno aspekty złożoności obliczeniowej, jak i badania nad algorytmami aproksymacyjnymi, co pozwala lepiej zrozumieć trudności badanego problemu oraz zaprojektować efektywne metody jego rozwiązywania.
+
+Zakres pracy obejmuje analizę teoretyczną badanego problemu oraz metody algorytmiczne jego rozwiązania, uzupełnione o eksperymenty obliczeniowe. Rozpatrzone zostały różne modele cenowe licencji, zarówno hipotetyczne, jak i rzeczywiste. Do pierwszej grupy należą warianty nawiązujące do dominowania rzymskiego, w których koszt licencji grupowej stanowi wielokrotność ceny licencji indywidualnej. W drugiej grupie znajdują się modele oparte na rzeczywistych ofertach usług, takich jak Spotify, Netflix czy Duolingo, co pozwala zweryfikować otrzymane wyniki w kontekście praktycznych scenariuszy.
+
+
+Osobno przeanalizowane zostały warianty, w których decyzje zakupowe podejmowane są globalnie (jednocześnie dla całej społeczności), oraz scenariusze dynamiczne. W wersji dynamicznej zakupy realizowane są w kolejnych krokach czasowych, a struktura sieci społecznościowej może się zmieniać (rozszerzanie lub zmniejszanie liczby użytkowników, powstawanie lub zanik relacji). Ze względu na wysoką złożoność obliczeniową problemu przedstawione zostały zarówno metody dokładne, jak i heurystyczne. Metody dokładne gwarantują znalezienie rozwiązania optymalnego, lecz ich czas działania szybko rośnie wraz z rozmiarem grafu. Z kolei metody heurystyczne nie dają gwarancji optymalności, ale pozwalają uzyskać rozwiązania dobrej jakości w akceptowalnym czasie. Celem praktycznym jest wskazanie podejść skutecznych w optymalizacji kosztów subskrypcji w dużych sieciach społecznościowych oraz identyfikacja czynników najsilniej wpływających na wyniki, co zilustrowane jest wynikami eksperymentów.
+
+Podsumowując, w ramach pracy zrealizowane zostały następujące zadania badawcze i implementacyjne:
+\begin{itemize}
+  \item Sformalizowano model optymalizacji zakupu licencji w sieciach społecznościowych, obejmujący etykietowanie ról $f:V\to\{0,1,2\}$, warunki wykonalności (pokrycie, sąsiedztwo, pojemność) oraz funkcję kosztu.
+  \item Wykazano powiązania z \emph{dominowaniem rzymskim} i sformułowano twierdzenie o równoważności w szczególnym przypadku kosztów i pojemności; omówiono również konsekwencje złożonościowe i aproksymacyjne.
+  \item Zaimplementowano i porównano różne metody: ILP (PuLP/CBC), algorytm zachłanny, metaheurystyki (algorytm genetyczny, symulowane wyżarzanie, przeszukiwanie tabu, algorytm mrówkowy).
+  \item Opracowano środowisko eksperymentalne dla grafów syntetycznych i ego-sieci Facebooka, wraz z pomiarem czasu działania i kosztu.
+  \item Przeanalizowano wariant dynamiczny (mutacje grafu) oraz porównano podejścia cold-start i warm-start dla metaheurystyk.
+  \item Zbadano wpływ polityk cenowych i typów planów (Individual/Duo/Family) na strukturę rozwiązań i koszt całkowity.
+\end{itemize}
+
+\section{Struktura}
+% \subsection*{Wkład pracy}
+% \begin{itemize}
+%   \item Sformalizowanie modelu optymalizacji zakupu licencji w sieciach społecznościowych: etykietowanie ról $f:V\to\{0,1,2\}$, warunki wykonalności (pokrycie, sąsiedztwo, pojemność) oraz funkcja kosztu.
+%   \item Wykazanie powiązania z \emph{dominowaniem rzymskim} i sformułowanie twierdzenia o równoważności w szczególnym przypadku kosztów/pojemności; omówienie konsekwencji złożonościowych i aproksymacyjnych.
+%   \item Implementacja i porównanie metod: ILP (PuLP/CBC), algorytm zachłanny oraz metaheurystyki (algorytm genetyczny, symulowane wyżarzanie, tabu search, ant colony optimization).
+%   \item Opracowanie środowiska eksperymentalnego dla grafów syntetycznych i ego-sieci Facebooka, wraz z pomiarem czasu działania/kosztu, profilami wydajności i analizą granicy czasowej ILP.
+%   \item Analiza wariantu dynamicznego (mutacje grafu) i porównanie cold-start vs warm-start dla metaheurystyk.
+%   \item Studium wpływu polityk cenowych i typów planów (Individual/Duo/Family) na strukturę rozwiązań i koszt całkowity.
+% \end{itemize}
+
+Struktura pracy została zorganizowana w dziewięciu rozdziałach. Obejmują one część wprowadzającą, w której przedstawiono tło i motywację podjętego zagadnienia, część analityczno-badawczą, zawierającą opis zaproponowanych modeli oraz przeprowadzonych eksperymentów, a także część podsumowującą, w której sformułowano wnioski oraz wskazano możliwe kierunki dalszych badań. Poniżej zaprezentowano opis treści wszystkich rozdziałów, stanowiących kolejne etapy realizacji pracy. \\
+
+\begin{description}
+  \item \textbf{Rozdział 1} -- Wprowadzenie. Przedstawia tło problemu, motywację podjęcia tematu oraz znaczenie optymalizacji kosztów w kontekście współdzielenia licencji w sieciach społecznościowych. Określone są cele i zakres pracy oraz jej ogólna struktura.
+
+  \item \textbf{Rozdział 2} -- Model grafowy i analiza problemu. Definiuje reprezentację sieci społecznościowej w postaci grafu oraz formalny opis problemu optymalizacji kosztów. Uwzględnione są przyjęte założenia, definicje pojęć oraz warianty wynikające z odmiennych modeli cenowych i ograniczeń pojemnościowych. Rozdział stanowi podstawę do dalszych rozważań algorytmicznych.
+
+  \item \textbf{Rozdział 3} -- Związek z dominowaniem w grafach. Omawia pojęcie zbiorów dominujących i dominowania rzymskiego, pokazując, w jaki sposób badany problem można interpretować w tych kategoriach. Przedstawione są również aspekty złożoności obliczeniowej, w tym dowód NP-trudności, oraz wynikające z tego konsekwencje dla możliwości projektowania algorytmów.
+
+  \item \textbf{Rozdział 4} -- Dane testowe. Opisuje rodzaje grafów wykorzystanych w eksperymentach: syntetyczne, generowane przy pomocy popularnych modeli (Barabási--Albert, Watts--Strogatz oraz Erdős--Rényi), oraz grafy rzeczywiste pochodzące z repozytoriów badawczych. Uwzględniono także sposób przygotowania instancji testowych oraz narzędzia użyte do wizualizacji sieci.
+
+  \item \textbf{Rozdział 5} -- Metody algorytmiczne optymalizacji kosztów licencji. Rozdział skupia się na części obliczeniowej. Przedstawiona jest formalizacja problemu w postaci programu całkowitoliczbowego oraz opis metod dokładnych, które mogą znaleźć optymalne rozwiązania dla mniejszych instancji. Omówione są także podejścia przybliżone i heurystyczne.
+
+  \item \textbf{Rozdział 6} -- Eksperymenty i analiza wyników. Przedstawia proces oceny algorytmów na przygotowanych danych testowych. Określone są kryteria porównawcze (m.in. czas działania, złożoność obliczeniowa, uzyskane koszty), a następnie zaprezentowane wyniki eksperymentów dla różnych typów grafów i ich skal. Analizowany jest wpływ parametrów algorytmów na efektywność i jakość uzyskiwanych rozwiązań.
+
+  \item \textbf{Rozdział 7} -- Analiza dynamicznej wersji problemu. Rozważany jest scenariusz, w którym zakupy licencji odbywają się sekwencyjnie, a struktura sieci może ulegać zmianie w czasie. Opisane są możliwe adaptacje algorytmów do takiej sytuacji oraz przeprowadzone eksperymenty badające ich skuteczność. Poruszona jest także kwestia stabilności i elastyczności strategii w środowisku dynamicznym.
+
+  \item \textbf{Rozdział 8} -- Rozszerzenia modelu. Omawia dodatkowe aspekty, które mogą wpływać na decyzje optymalizacyjne, takie jak polityki cenowe oraz zróżnicowanie typów licencji. Analizowane są również potencjalne ograniczenia modelu i możliwości jego dalszego uogólnienia.
+
+  \item \textbf{Rozdział 9} -- Podsumowanie i wnioski. Zawiera syntetyczne zestawienie wyników pracy. Wskazuje, w jakim stopniu zrealizowane zostały założone cele, oraz proponuje kierunki dalszych badań, w tym rozwój modeli, udoskonalenia algorytmów oraz badania nad skalowalnością i praktycznymi zastosowaniami. Rozdział ten zamyka całość pracy, odpowiadając na pytania badawcze i wskazując, jak uzyskane rezultaty mogą zostać wykorzystane w praktyce.
+\end{description}
