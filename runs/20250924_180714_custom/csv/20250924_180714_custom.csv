@@ -1,0 +1,2 @@
+run_id,algorithm,graph,n_nodes,n_edges,graph_params,license_config,total_cost,time_ms,valid,issues,image_path,notes
+20250924_180714_custom,genetic,scale_free,200,396,{'seed': 2},spotify,2662.08,811.9271299947286,True,0,runs/20250924_180714_custom/graphs/genetic_200n_396e.png,
