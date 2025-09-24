@@ -1,0 +1,35 @@
+\documentclass[10pt,a4paper]{report}
+\input{preamble}
+
+\begin{document}
+
+\includepdf[pages=1,pagecommand={}]{assets/titlepage.pdf}
+
+\pagenumbering{arabic}
+\setcounter{page}{3}
+\input{frontmatter/abstract_pl}
+\input{frontmatter/abstract_en}
+
+\tableofcontents
+\listoffigures
+\listoftables
+\listofalgorithms
+
+\input{frontmatter/list_of_symbols}
+
+\input{chapters/01_introduction}
+\input{chapters/02_graph_model}
+\input{chapters/03_roman_domination}
+\input{chapters/04_test_data}
+\input{chapters/05_algorithmic_methods}
+\input{chapters/06_experiments}
+\input{chapters/07_dynamic_analysis}
+\input{chapters/08_model_extensions}
+\input{chapters/09_conclusion}
+
+\printbibliography
+
+% \appendix
+% \include{chapters/99_appendix}
+
+\end{document}

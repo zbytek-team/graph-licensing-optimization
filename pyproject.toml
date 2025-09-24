@@ -1,28 +1,51 @@
 [project]
-name = "graph-licensing-optimization"
-version = "0.1.0"
-description = "Add your description here"
+name = "glopt"
+version = "1.0.2"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "click>=8.1.0",
-    "matplotlib>=3.10.3",
-    "networkx>=3.4.2",
-    "numpy>=2.2.6",
-    "optuna>=4.3.0",
-    "pandas>=2.2.3",
-    "pulp>=3.2.1",
-    "pytest>=8.3.5",
-    "ruff>=0.11.11",
-    "scipy>=1.15.3",
-    "seaborn>=0.13.2",
-    "tabulate>=0.9.0",
-    "tqdm>=4.67.1",
+    "matplotlib>=3.8",
+    "networkx>=3.3",
+    "pulp>=3.2.2",
+    "hypothesis>=6.0",
+    "tqdm>=4.66",
+    "pillow>=10.0",
+    "scipy>=1.16.2",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[project.optional-dependencies]
+analysis = [
+    "numpy>=2.3.3",
+    "pandas>=2.3.2",
+    "scikit-posthocs>=0.11.4",
+    "seaborn>=0.13.2",
+    "statsmodels>=0.14.5",
+]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/graph_licensing"]
+[tool.black]
+line-length = 220
+target-version = ["py313"]
+
+[tool.ruff]
+line-length = 220
+target-version = "py313"
+fix = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = []
+
+[tool.basedpyright]
+typeCheckingMode = "basic"
+pythonVersion = "3.13"
+include = [
+  "src",
+  "scripts",
+]
+exclude = [
+  ".venv",
+  "runs",
+  "results",
+  "data",
+  "docs/thesis",
+]
