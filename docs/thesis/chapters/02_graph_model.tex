@@ -34,7 +34,9 @@ Optymalizacja kosztu dostępu do usługi wymaga przypisania wszystkim wierzchoł
   \item Poprzez wykupienie licencji grupowej.
   \item Jako odbiorca, korzystający z licencji grupowej należącej do innego użytkownika.
 \end{enumerate}
-Licencja indywidualna zapewnia dostęp wyłącznie jej właścicielowi, natomiast licencja grupowa umożliwia współdzielenie dostępu z maksymalnie $k-1$ sąsiadami w grafie.
+Licencja indywidualna zapewnia dostęp wyłącznie jej właścicielowi, natomiast licencja grupowa umożliwia współdzielenie dostępu z maksymalnie $k-1$ sąsiadami w grafie. Należy przy tym podkreślić, że pojedynczy użytkownik może posiadać najwyżej jedną licencję grupową, nawet jeśli liczba jego sąsiadów przekracza dopuszczalny limit. 
+Ograniczenie to odzwierciedla praktyczne zasady zakładania kont, takie jak konieczność powiązania ich z jednym numerem telefonu, brak chęci zakładania wielu adresów e-mail czy inne regulacje usługodawców. 
+Dla uproszczenia przyjmuje się, że zasada ta obowiązuje wszystkie typy licencji, niezależnie od rzeczywistych warunków oferowanych przez poszczególnych dostawców usług.
 
 Dla przejrzystego i precyzyjnego zdefiniowania modelu wprowadzamy trzy zbiory reprezentujące użytkowników, czyli węzły posiadające własną licencję bądź korzystające z licencji innego węzła:
 \begin{itemize}
@@ -67,6 +69,7 @@ Spełnienie rozwiązania wymaga, aby dla etykietowania $f:V\to\{0,1,2\}$ zachodz
   \item Pokrycie: Każdy użytkownik $v \in V$ musi mieć dostęp do usługi, tj. $f(v)\in\{1,2\}$ lub istnieje sąsiad $u\in N(v)$ taki, że $f(u)=2$ i $v$ jest przypisany do grupy $u$.
   \item Sąsiedztwo: Odbiorca $v\in R$ może być przypisany tylko do właściciela $u\in H$ z $\{u,v\}\in E$.
   \item Pojemność: Liczba użytkowników przypisanych do właściciela $u\in H$ (wraz z nim samym) musi spełniać $m \le 1+|R_u| \le k$, gdzie $R_u$ oznacza zbiór odbiorców korzystających z licencji $u$.
+  \item Jednoznaczność licencji: Każdy wierzchołek $v\in V$ może być oznaczony jako właściciel grupowy ($f(v)=2$) najwyżej raz, tj. $v \in H$ w co najwyżej jednym przypisaniu.
 \end{enumerate}
 
 
@@ -88,12 +91,6 @@ gdzie:
 Celem problemu jest minimalizacja funkcji kosztu~(\ref{eq:cost_function}) dla danego grafu $G=(V,E)$, przy spełnieniu wszystkich istotnych warunków wykonalności.
 
 
-% Odpowiadający problem decyzyjny polega na sprawdzeniu, czy istnieje taki wybór zbiorów $I$ i $G$, że spełnione są wszystkie warunki oraz zachodzi nierówność:
-% \[
-% |I| + p \cdot |G| \leq K,
-% \]
-% dla danego ograniczenia kosztowego $K$.
-
 \section{Koszty i ograniczenia}
 
 \subsection{Ograniczenia techniczne i społeczne współdzielenia licencji}
@@ -103,20 +100,6 @@ Kluczowymi parametrami modelu są najmniejsza oraz największa liczba osób, kt�
 Analogicznie wprowadzamy parametr $m$, który określa najmniejszą liczbę osób niezbędnych do utworzenia grupy. Oznacza to, że licencja grupowa jest ważna tylko wtedy, gdy zostanie wykorzystana przez co najmniej $m$ osób (łącznie z właścicielem). Przykładem jest tzw. plan „Duo”, w którym licencję mogą współdzielić dokładnie dwie osoby ($m=2, k=2$). W innych przypadkach $m$ może przyjmować wartości mniejsze niż $k$, np. $m=2, k=6$ dla planów rodzinnych.
 
 W analizie przyjmujemy $m$ oraz $k$ jako zmienne parametry. Nawet jeśli użytkownik posiada wielu znajomych (czyli ma wysoki stopień w grafie), ograniczenie $k$ sprawia, że może objąć współdzieleniem tylko określoną najwyższą liczbę osób, natomiast ograniczenie $m$ wymusza, by grupy nie były zbyt małe. Parametry te modelują zarówno ograniczenia techniczne narzucane przez dostawców usług, jak i czynniki społeczne, takie jak opłacalność czy gotowość do współdzielenia subskrypcji. W konsekwencji grupy współdzielenia odwzorowują typowe sytuacje, w których w praktyce licencje grupowe są wykorzystywane.
-
-
-% \subsection{Struktura kosztów i modele cenowe}
-
-% Przyjmujemy, że koszt licencji indywidualnej wynosi $1$ jednostkę, natomiast koszt licencji grupowej oznaczamy przez $p$. W rzeczywistych ofertach wartość $p$ różni się w zależności od usługi, lecz zazwyczaj jest mniejsza niż suma kosztów indywidualnych licencji dla wszystkich użytkowników planu, co stanowi zachętę do współdzielenia. W szczególności interesujące są przypadki, gdy $p < k$, ponieważ wtedy koszt jednostkowy w planie grupowym, równy $p/k$, jest niższy niż $1$.
-
-% Jeżeli natomiast $p = k$, oznaczałoby to brak korzyści ze współdzielenia - koszt na osobę byłby identyczny jak w przypadku zakupu licencji indywidualnej. W praktyce jednak zazwyczaj zachodzi $p < k$, a często nawet $p \ll k$, co czyni współdzielenie ekonomicznie korzystnym.
-
-% Do zilustrowania różnych scenariuszy rozważane będą miedzy innymi poniższe modele cenowe:
-% \begin{enumerate}
-%     \item \textbf{Model A}: $p=2$, $k=5$ - licencja grupowa dwukrotnie droższa od indywidualnej, obejmująca pięć osoby,
-%     \item \textbf{Model B}: $p=3$, $k=5$ - licencja grupowa trzykrotnie droższa od indywidualnej, również obejmująca pięć osób.
-% \end{enumerate}
-% Zarówno model A jak i model B reprezentują rzeczywisty rozmiar ilości osób mogących korzystać z jednej zakupionej licencji grupowej. Istotną różnicą jest tutaj cena obu tych przypadków. Interesujący może być wpływ ceny na ilość występowania zakupionych licencji indywidualnych oraz grupowych w porównaniu modeli o różnych wartości obu tych licencji.
 
 \subsection{Struktura kosztów i modele cenowe}
 
@@ -166,14 +149,6 @@ W przypadku usług rzeczywistych koszty planów grupowych są znacznie niższe n
 
 W modelu teoretycznym opartym na dominowaniu rzymskim koszty są podane w jednostkach względnych. Licencja indywidualna ma koszt $1.0$, a licencja grupowa koszt $2.0$, co odpowiada klasycznemu przypisaniu wag w problemie dominowania rzymskiego. W ramach przeprowadzanych eksperymentów etykieta „2” będzie zmieniała swoją wartość jako wielokrotność kosztu ceny indywidualnej, co pozwala na analizę różnych wariantów tego zagadnienia.
 
-
-% \subsection{Zakup jednoczesny i sekwencyjny}
-
-% W podstawowej wersji problemu zakłada się, że decyzje zakupowe wszystkich użytkowników są podejmowane jednocześnie, co umożliwia globalną optymalizację. W praktyce jednak proces współdzielenia często przebiega dynamicznie. Najpierw pewne grupy użytkowników kupują licencje indywidualnie, a dopiero później tworzą grupy współdzielenia.
-
-% Taki dynamiczny scenariusz można modelować jako proces wieloetapowy, w którym w kolejnych krokach następuje przydział użytkowników do nowych licencji. Warto zauważyć, że rozwiązanie optymalne przy jednoczesnym zakupie może być trudne do osiągnięcia w procesie sekwencyjnym. Decyzje podejmowane wcześniej mogą ograniczać dostępne opcje w kolejnych etapach.
-
-% W pracy omówione zostaną wyzwania związane z rozwiązaniami sekwencyjnymi, takie jak stabilność struktur współdzielenia czy mechanizmy motywujące do współpracy. Główny nacisk kładziony jest jednak na analizę wariantu jednoczesnego, który umożliwia zastosowanie klasycznych narzędzi teorii grafów i optymalizacji dyskretnej, oraz stanowi punkt odniesienia dla bardziej złożonych scenariuszy dynamicznych.
 
 \subsection{Zakup jednoczesny i sekwencyjny}
 
