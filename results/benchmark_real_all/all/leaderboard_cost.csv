@@ -1,6 +1,0 @@
-bin,graph,algorithm,wins
-200<n<=1000,facebook_ego,GreedyAlgorithm,22
-200<n<=1000,facebook_ego,ILPSolver,13
-n<=200,facebook_ego,GreedyAlgorithm,20
-n<=200,facebook_ego,ILPSolver,8
-n>1000,facebook_ego,ILPSolver,7
