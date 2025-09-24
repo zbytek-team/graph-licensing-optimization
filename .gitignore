@@ -127,3 +127,30 @@ data/graphs_cache/
 *.tbz2
 *.tar.xz
 *.txz
+
+# LaTeX build artifacts
+docs/thesis/build/
+*.synctex.gz
+*.aux */*.aux
+*.bbl *.bcf *.blg
+
+# LaTeX build files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.lot
+*.lof
+*.loa
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.xdv
+
+
+# Build directory
+/build/

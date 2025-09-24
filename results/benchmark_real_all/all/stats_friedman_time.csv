@@ -1,8 +1,0 @@
-algorithm,avg_rank
-DominatingSetAlgorithm,3.956522
-GeneticAlgorithm,5.043478
-GreedyAlgorithm,1.260870
-ILPSolver,6.978261
-RandomizedAlgorithm,2.173913
-SimulatedAnnealing,5.869565
-TabuSearch,2.717391
