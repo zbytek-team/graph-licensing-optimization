@@ -9,7 +9,7 @@ Przedstawione w tabelach wartości stanowią statystyki zagregowane dla danej ko
 \subsection{Warianty rodziny Duolingo}
 Na rys.~\ref{fig:ext-duolingo-cost} przedstawiono mediany kosztu na węzeł dla konfiguracji, w których koszt licencji grupowej wynosi odpowiednio dwukrotność (\texttt{duolingo\_p\_2}), czterokrotność (\texttt{duolingo\_p\_4}) oraz pięciokrotność (\texttt{duolingo\_p\_5}) ceny licencji indywidualnej. Widać, że wyższe mnożniki prowadzą do wzrostu kosztu na węzeł, co wynika z preferencji algorytmów do korzystania z licencji indywidualnych przy wyższych kosztach planów grupowych. W przypadku konfiguracji \texttt{duolingo\_p\_4} oznacza to, że sens kupna licencji grupowej pojawia się dopiero dla grup liczących 4 lub więcej osób, ponieważ dopiero wtedy koszt licencji grupowej jest równy lub niższy niż koszt czterech licencji indywidualnych.
 
-Szczegółowe statystyki dla wariantów Duolingo zebrano w tabeli~\ref{tab:ext-duolingo-stats}. Wzrost mnożnika ceny grupowej z 2 do 5 powoduje wzrost średniego kosztu na węzeł o 77\% (z 0,554 do 0,982) oraz wydłużenie średniego czasu obliczeń o 47\% (z 0,637 s do 0,938 s).
+Szczegółowe statystyki dla wariantów Duolingo zebrano w tabeli~\ref{tab:ext-duolingo-stats}. Wzrost mnożnika ceny grupowej z 2 do 5 powoduje wzrost średniego kosztu na węzeł o 77\% (z 0.554 do 0.982) oraz wydłużenie średniego czasu obliczeń o 47\% (z 0.637 s do 0.938 s).
 
 \begin{table}[H]
   \centering
@@ -36,7 +36,7 @@ Szczegółowe statystyki dla wariantów Duolingo zebrano w tabeli~\ref{tab:ext-d
 
 
 
-Analiza rozrzutu wartości w tabeli~\ref{tab:ext-duolingo-stats} pokazuje stabilność wyników. Odchylenie standardowe dla kosztu na węzeł pozostaje na niskim poziomie (0,152--0,198), co wskazuje na konsekwentność rozwiązań algorytmów w różnych instancjach. Warto zauważyć, że w konfiguracji \texttt{duolingo\_p\_5} odnotowano najwyższy maksymalny czas obliczeń (26,589 s), co może wynikać z większej złożoności problemu przy wyższych kosztach planów grupowych. Zwiększone odchylenie standardowe dla czasów wykonania w tej konfiguracji (2,721 s) sugeruje większą wrażliwość algorytmów na charakterystykę konkretnej instancji sieci.
+Analiza rozrzutu wartości w tabeli~\ref{tab:ext-duolingo-stats} pokazuje stabilność wyników. Odchylenie standardowe dla kosztu na węzeł pozostaje na niskim poziomie (0.152--0.198), co wskazuje na konsekwentność rozwiązań algorytmów w różnych instancjach. Warto zauważyć, że w konfiguracji \texttt{duolingo\_p\_5} odnotowano najwyższy maksymalny czas obliczeń (26.589 s), co może wynikać z większej złożoności problemu przy wyższych kosztach planów grupowych. Zwiększone odchylenie standardowe dla czasów wykonania w tej konfiguracji (2.721 s) sugeruje większą wrażliwość algorytmów na charakterystykę konkretnej instancji sieci.
 
 \begin{figure}[H]
   \centering
@@ -50,7 +50,7 @@ Zmiana struktury licencji wpływa również na udział planów grupowych. W konf
 \subsection{Warianty dominowania rzymskiego}
 Na rys.~\ref{fig:ext-roman-cost} przedstawiono mediany kosztu na węzeł dla konfiguracji, w których koszt licencji grupowej wynosi odpowiednio trzykrotność (\texttt{roman\_p\_3}), czterokrotność (\texttt{roman\_p\_4}) oraz pięciokrotność (\texttt{roman\_p\_5}) ceny licencji indywidualnej. Podobnie jak w przypadku planów Duolingo, wyższe mnożniki prowadzą do wzrostu kosztu na węzeł, co wynika z preferencji algorytmów do korzystania z licencji indywidualnych przy wyższych kosztach planów grupowych. Wariant \texttt{roman\_p\_5} charakteryzuje się najwyższym kosztem, co odzwierciedla ograniczoną opłacalność licencji grupowych w tej konfiguracji.
 
-Szczegółowe statystyki dla wariantów dominowania rzymskiego zebrano w tabeli~\ref{tab:ext-roman-stats}. Wzrost mnożnika ceny grupowej z 3 do 5 powoduje wzrost średniego kosztu na węzeł o 37\% (z 0,585 do 0,800) oraz nieznaczne wydłużenie średniego czasu obliczeń (z 0,477 s do 0,493 s).
+Szczegółowe statystyki dla wariantów dominowania rzymskiego zebrano w tabeli~\ref{tab:ext-roman-stats}. Wzrost mnożnika ceny grupowej z 3 do 5 powoduje wzrost średniego kosztu na węzeł o 37\% (z 0.585 do 0.800) oraz nieznaczne wydłużenie średniego czasu obliczeń (z 0.477 s do 0.493 s).
 
 \begin{table}[H]
   \centering
@@ -86,7 +86,7 @@ Zmiana struktury licencji wpływa również na udział planów grupowych (tabela
 
 \subsection{Spotify i Netflix}
 
-Spotify wprowadza trzecią licencję (Duo), co otwiera możliwość parowania użytkowników zamiast budowania dużych grup. Tabela~\ref{tab:ext-additional-static} potwierdza, że przeszukiwanie tabu i algorytm genetyczny osiągają najniższe koszty ($0{,}335$ i $0{,}400$ na węzeł), wyraźnie dystansując heurystykę zachłanną. W przypadku Netflixa plan Standard (pojemność 2) wypełnia lukę między kontem solo a planem rodzinnym czterech kont, dzięki czemu metaheurystyki utrzymują koszt w granicach $0{,}60$--$0{,}65$ przy czasie poniżej 1~s.
+Spotify wprowadza trzecią licencję (Duo), co otwiera możliwość parowania użytkowników zamiast budowania dużych grup. Tabela~\ref{tab:ext-additional-static} potwierdza, że przeszukiwanie tabu i algorytm genetyczny osiągają najniższe koszty ($0.335$ i $0.400$ na węzeł), wyraźnie dystansując heurystykę zachłanną. W przypadku Netflixa plan Standard (pojemność 2) wypełnia lukę między kontem solo a planem rodzinnym czterech kont, dzięki czemu metaheurystyki utrzymują koszt w granicach $0.60$--$0.65$ przy czasie poniżej 1~s.
 
 \begin{table}[H]
   \centering
@@ -138,11 +138,11 @@ Podstawowe statystyki dla wszystkich konfiguracji zestawiono w tabeli~\ref{tab:e
   \end{tabular}
 \end{table}
 
-Analiza agregowanych statystyk w tabeli~\ref{tab:ext-overall-static} ujawnia wyraźne różnice między rodzinami konfiguracji. W przypadku wariantów Duolingo obserwuje się silną korelację między mnożnikiem ceny grupowej a kosztem na węzeł -- wzrost parametru z 2 do 5 prowadzi do zwiększenia kosztu o 77\% (z 0,554 do 0,982). Jednocześnie czas obliczeń wydłuża się o 47\%, co wskazuje na rosnącą złożoność problemu przy wyższych kosztach planów grupowych.
+Analiza agregowanych statystyk w tabeli~\ref{tab:ext-overall-static} ujawnia wyraźne różnice między rodzinami konfiguracji. W przypadku wariantów Duolingo obserwuje się silną korelację między mnożnikiem ceny grupowej a kosztem na węzeł -- wzrost parametru z 2 do 5 prowadzi do zwiększenia kosztu o 77\% (z 0.554 do 0.982). Jednocześnie czas obliczeń wydłuża się o 47\%, co wskazuje na rosnącą złożoność problemu przy wyższych kosztach planów grupowych.
 
-Warianty dominowania rzymskiego charakteryzują się większą stabilnością obliczeniową, z czasami wykonania w zakresie 0,477--0,493~s niezależnie od parametru $p$. Wzrost kosztu na węzeł jest bardziej umiarkowany (37\% przy wzroście $p$ z 3 do 5), co sugeruje odmienną strukturę przestrzeni rozwiązań w porównaniu z planami Duolingo.
+Warianty dominowania rzymskiego charakteryzują się większą stabilnością obliczeniową, z czasami wykonania w zakresie 0.477--0.493~s niezależnie od parametru $p$. Wzrost kosztu na węzeł jest bardziej umiarkowany (37\% przy wzroście $p$ z 3 do 5), co sugeruje odmienną strukturę przestrzeni rozwiązań w porównaniu z planami Duolingo.
 
-Najkorzystniejszy stosunek kosztu do wydajności obliczeniowej wykazuje konfiguracja Spotify (0,479 kosztu na węzeł przy 0,547~s), co potwierdza skuteczność wprowadzenia planu pośredniego (Duo) między licencjami indywidualnymi a rodzinnymi. Netflix zajmuje pozycję pośrednią z kosztem 0,729 na węzeł, pozostając jednak konkurencyjny pod względem czasu obliczeń (0,623~s).
+Najkorzystniejszy stosunek kosztu do wydajności obliczeniowej wykazuje konfiguracja Spotify (0.479 kosztu na węzeł przy 0.547~s), co potwierdza skuteczność wprowadzenia planu pośredniego (Duo) między licencjami indywidualnymi a rodzinnymi. Netflix zajmuje pozycję pośrednią z kosztem 0.729 na węzeł, pozostając jednak konkurencyjny pod względem czasu obliczeń (0.623~s).
 
 \subsection{Analiza wpływu liczby użytkowników na koszty}
 
@@ -175,7 +175,7 @@ W środowisku dynamicznym przeanalizowano te same osiem konfiguracji rozszerzeń
 
 \subsection{Statystyki agregowane}
 
-Tabela~\ref{tab:ext-dynamic-family} przedstawia statystyki zagregowane według rodzin konfiguracji. Warianty Duolingo charakteryzują się najwyższymi kosztami średnimi (73,83 na instancję) oraz najdłuższymi czasami wykonania (0,97~s), co wynika z konieczności rozważania licencji o pojemności 6 osób. Problem dominowania rzymskiego wykazuje umiarkowane koszty (59,96) przy porównywalnym czasie obliczeń (0,85~s). Konfiguracje rzeczywistych serwisów -- Spotify i Netflix -- osiągają najkorzystniejsze wyniki, z najniższymi kosztami odpowiednio 43,32 i 66,58.
+Tabela~\ref{tab:ext-dynamic-family} przedstawia statystyki zagregowane według rodzin konfiguracji. Warianty Duolingo charakteryzują się najwyższymi kosztami średnimi (73.83 na instancję) oraz najdłuższymi czasami wykonania (0.97~s), co wynika z konieczności rozważania licencji o pojemności 6 osób. Problem dominowania rzymskiego wykazuje umiarkowane koszty (59.96) przy porównywalnym czasie obliczeń (0.85~s). Konfiguracje rzeczywistych serwisów -- Spotify i Netflix -- osiągają najkorzystniejsze wyniki, z najniższymi kosztami odpowiednio 43.32 i 66.58.
 
 \begin{table}[H]
   \centering
@@ -195,7 +195,7 @@ Tabela~\ref{tab:ext-dynamic-family} przedstawia statystyki zagregowane według r
 
 \subsection{Porównanie szczegółowe konfiguracji}
 
-Tabela~\ref{tab:ext-dynamic-detailed} zawiera szczegółowe statystyki dla wszystkich wariantów rozszerzeń. W rodzinie Duolingo obserwuje się wyraźny wzrost kosztu na węzeł wraz ze wzrostem mnożnika ceny grupowej -- od 0,539 w konfiguracji \texttt{duolingo\_p\_2} do 0,980 w \texttt{duolingo\_p\_5}. Podobną tendencję wykazują warianty dominowania rzymskiego, gdzie koszt rośnie z 0,554 (\texttt{roman\_p\_3}) do 0,763 (\texttt{roman\_p\_5}).
+Tabela~\ref{tab:ext-dynamic-detailed} zawiera szczegółowe statystyki dla wszystkich wariantów rozszerzeń. W rodzinie Duolingo obserwuje się wyraźny wzrost kosztu na węzeł wraz ze wzrostem mnożnika ceny grupowej -- od 0.539 w konfiguracji \texttt{duolingo\_p\_2} do 0.980 w \texttt{duolingo\_p\_5}. Podobną tendencję wykazują warianty dominowania rzymskiego, gdzie koszt rośnie z 0.554 (\texttt{roman\_p\_3}) do 0.763 (\texttt{roman\_p\_5}).
 
 \begin{table}[H]
   \centering
@@ -217,7 +217,7 @@ Tabela~\ref{tab:ext-dynamic-detailed} zawiera szczegółowe statystyki dla wszys
   \end{tabular}
 \end{table}
 
-Konfiguracja Spotify potwierdza swoją przewagę osiągając najniższy koszt na węzeł (0,467), co stanowi wynik o 13\% lepszy niż w najbliższej konfiguracji \texttt{roman\_p\_3}. Plan Duo umożliwia efektywne parowanie użytkowników, co przekłada się na oszczędności w całym spektrze rozmiarów sieci. Netflix zajmuje pozycję pośrednią z kosztem 0,714 na węzeł, pozostając konkurencyjny wobec wariantów o wysokich mnożnikach.
+Konfiguracja Spotify potwierdza swoją przewagę osiągając najniższy koszt na węzeł (0.467), co stanowi wynik o 13\% lepszy niż w najbliższej konfiguracji \texttt{roman\_p\_3}. Plan Duo umożliwia efektywne parowanie użytkowników, co przekłada się na oszczędności w całym spektrze rozmiarów sieci. Netflix zajmuje pozycję pośrednią z kosztem 0.714 na węzeł, pozostając konkurencyjny wobec wariantów o wysokich mnożnikach.
 
 \subsection{Struktura wykorzystania licencji}
 
@@ -276,15 +276,15 @@ Zestawienie wyników dynamicznych ze statycznymi (tabela~\ref{tab:ext-static-dyn
   \end{tabular}
 \end{table}
 
-Najstabilniejsze wyniki wykazuje konfiguracja \texttt{duolingo\_p\_5}, gdzie koszty różnią się jedynie o 0,002 między benchmarkami. Największą poprawę w środowisku dynamicznym odnotowano dla \texttt{roman\_p\_4} (redukcja kosztu o 5\%) i \texttt{roman\_p\_5} (redukcja o 4,6\%). Może to wynikać z lepszego wykorzystania możliwości rebalansowania w mniejszych grupach charakterystycznych dla tych konfiguracji.
+Najstabilniejsze wyniki wykazuje konfiguracja \texttt{duolingo\_p\_5}, gdzie koszty różnią się jedynie o 0.002 między benchmarkami. Największą poprawę w środowisku dynamicznym odnotowano dla \texttt{roman\_p\_4} (redukcja kosztu o 5\%) i \texttt{roman\_p\_5} (redukcja o 4.6\%). Może to wynikać z lepszego wykorzystania możliwości rebalansowania w mniejszych grupach charakterystycznych dla tych konfiguracji.
 \section{Wnioski}
 
 Przeprowadzone badania nad rozszerzeniami modelu licencjonowania pozwoliły na kompleksową analizę wpływu struktury cenowej na optymalizację kosztów w sieciach społecznych. Kluczowe wnioski z analizy ośmiu wariantów licencyjnych można podzielić na trzy główne obszary.
 
-Wpływ mnożnika ceny grupowej na efektywność algorytmów. Badania wykazały silną zależność między stosunkiem ceny licencji grupowej do indywidualnej a skutecznością optymalizacji. W wariantach Duolingo wzrost mnożnika z 2 do 5 powoduje zwiększenie średniego kosztu na węzeł o 77\% (z 0,554 do 0,982) oraz wydłużenie czasu obliczeń o 47\%. Podobną, choć łagodniejszą tendencję obserwuje się w wariantach dominowania rzymskiego, gdzie wzrost parametru $p$ z 3 do 5 prowadzi do 37\% wzrostu kosztu przy stabilnym czasie wykonania. Te wyniki wskazują, że metaheurystyki osiągają największe korzyści przy niskich mnożnikach, gdzie licencje grupowe pozostają atrakcyjne ekonomicznie.
+Wpływ mnożnika ceny grupowej na efektywność algorytmów. Badania wykazały silną zależność między stosunkiem ceny licencji grupowej do indywidualnej a skutecznością optymalizacji. W wariantach Duolingo wzrost mnożnika z 2 do 5 powoduje zwiększenie średniego kosztu na węzeł o 77\% (z 0.554 do 0.982) oraz wydłużenie czasu obliczeń o 47\%. Podobną, choć łagodniejszą tendencję obserwuje się w wariantach dominowania rzymskiego, gdzie wzrost parametru $p$ z 3 do 5 prowadzi do 37\% wzrostu kosztu przy stabilnym czasie wykonania. Te wyniki wskazują, że metaheurystyki osiągają największe korzyści przy niskich mnożnikach, gdzie licencje grupowe pozostają atrakcyjne ekonomicznie.
 
-Znaczenie planów pośrednich w strukturze licencji. Analiza konfiguracji rzeczywistych serwisów ujawniła istotną rolę licencji o pojemności pośredniej. Spotify z planem Duo (pojemność 2) osiąga najkorzystniejszy stosunek kosztu do wydajności (0,467 kosztu na węzeł przy 0,547s czasu), podczas gdy Netflix z planem Standard oferuje skuteczne wypełnienie luki między licencjami indywidualnymi a rodzinnymi. W obu przypadkach udział licencji grupowych przekracza 63\%, co potwierdza efektywność elastycznego spektrum opcji licencyjnych.
+Znaczenie planów pośrednich w strukturze licencji. Analiza konfiguracji rzeczywistych serwisów ujawniła istotną rolę licencji o pojemności pośredniej. Spotify z planem Duo (pojemność 2) osiąga najkorzystniejszy stosunek kosztu do wydajności (0.467 kosztu na węzeł przy 0.547s czasu), podczas gdy Netflix z planem Standard oferuje skuteczne wypełnienie luki między licencjami indywidualnymi a rodzinnymi. W obu przypadkach udział licencji grupowych przekracza 63\%, co potwierdza efektywność elastycznego spektrum opcji licencyjnych.
 
-Stabilność wyników w środowisku dynamicznym. Porównanie benchmarków statycznego i dynamicznego wykazało wysoką zgodność rezultatów -- różnice w kosztach na węzeł nie przekraczają 3\% dla większości konfiguracji. Jednocześnie zaobserwowano wzrost czasów wykonania o 30-60\%, co odzwierciedla dodatkową złożoność związaną z dynamicznym rebalansowaniem. Najstabilniejsze wyniki uzyskano w konfiguracji \texttt{duolingo\_p\_5}, gdzie różnica między środowiskami wynosi jedynie 0,002. Te obserwacje potwierdzają, że proponowane rozszerzenia modelu zachowują skuteczność w realistycznych scenariuszach z czasowymi zmianami struktury sieci.
+Stabilność wyników w środowisku dynamicznym. Porównanie benchmarków statycznego i dynamicznego wykazało wysoką zgodność rezultatów -- różnice w kosztach na węzeł nie przekraczają 3\% dla większości konfiguracji. Jednocześnie zaobserwowano wzrost czasów wykonania o 30-60\%, co odzwierciedla dodatkową złożoność związaną z dynamicznym rebalansowaniem. Najstabilniejsze wyniki uzyskano w konfiguracji \texttt{duolingo\_p\_5}, gdzie różnica między środowiskami wynosi jedynie 0.002. Te obserwacje potwierdzają, że proponowane rozszerzenia modelu zachowują skuteczność w realistycznych scenariuszach z czasowymi zmianami struktury sieci.
 
 Otrzymane wyniki mają istotne implikacje praktyczne dla projektowania systemów licencjonowania. Po pierwsze, wprowadzenie planów o pojemności pośredniej może znacząco poprawić efektywność kosztową bez zwiększenia złożoności obliczeniowej. Po drugie, przy wysokich mnożnikach ceny grupowej (powyżej 4-5) korzyści z metaheurystyk maleją, co sugeruje ekonomiczne ograniczenia optymalizacji algorytmicznej. Po trzecie, stabilność wyników w środowisku dynamicznym wskazuje na praktyczną stosowalność proponowanych rozwiązań w rzeczywistych systemach z fluktuacją użytkowników.
