@@ -4,7 +4,7 @@
 
 Aby formalnie opisać zjawisko współdzielenia licencji, sieć relacji społecznych modelujemy jako graf nieskierowany \( G = (V, E) \). Każdy wierzchołek \( v \in V \) reprezentuje pojedynczego użytkownika, natomiast krawędź \( \{u, v\} \in E \) oznacza, że użytkownicy \( u \) i \( v \) znajdują się w relacji umożliwiającej współdzielenie licencji grupowej. Graf jest nieskierowany, ponieważ zakładamy symetryczność tej relacji: jeśli \( u \) zna \( v \), to również \( v \) zna \( u \).
 
-Przyjmujemy również, że graf \( G \) nie zawiera pętli, tj. \( \{v, v\} \notin E \) dla każdego \( v \in V \), ani krawędzi wielokrotnych - każda para użytkowników może być powiązana co najwyżej jedną krawędzią. Przykład takiej struktury zilustrowano na Rysunku \ref{fig:social_graph}.
+Przyjmujemy również, że graf \( G \) nie zawiera pętli, ani krawędzi wielokrotnych - każda para użytkowników może być powiązana co najwyżej jedną krawędzią. Przykład takiej struktury zilustrowano na Rysunku \ref{fig:social_graph}.
 
 \begin{figure}[H]
   \centering
@@ -17,8 +17,8 @@ Opisana reprezentacja, w której wierzchołki odpowiadają jednostkom, a krawęd
 
 W przyjętym modelu zakłada się, że współdzielenie licencji może odbywać się wyłącznie między osobami połączonymi bezpośrednią krawędzią w grafie. Licencja grupowa oznacza w tym kontekście typ umożliwiający współdzielenie dostępu przez właściciela oraz jego bezpośrednich sąsiadów. Oznacza to, że użytkownicy muszą znać się bezpośrednio i mieć wzajemne zaufanie, co jest istotne na przykład w przypadku przekazywania danych logowania lub zapraszania do planu rodzinnego. Relacje pośrednie, w których użytkownicy są powiązani poprzez wspólnych znajomych (np. \( A \sim B \) oraz \( B \sim C \), lecz brak bezpośredniego powiązania \( A \sim C \)), nie są uwzględniane w analizie. Oznacza to, że dla danego grafu \( G = (V, E) \),
 w którym \( V \) to zbiór użytkowników, a \( E \subseteq \{ \{u,v\} : u,v \in V, u \neq v \} \) to zbiór relacji znajomości, analizie podlegają wyłącznie relacje bezpośrednie, czyli pary \( \{u, v\} \in E \).
-Na przykład w grafie przedstawionym na Rysunku \ref{fig:social_graph}, użytkownicy \( A \) i \( D \) są wprawdzie połączeni za pośrednictwem ścieżki \( A \rightarrow C \rightarrow D \), jednak ponieważ brakuje bezpośredniego połączenia \( \{A,D\} \in E \), to taka relacja nie jest uznawana za podstawę do współdzielenia licencji w tym modelu.
-Mimo że w praktyce relacje pośrednie, takie jak ścieżki długości większej niż jeden, mogą sprzyjać tworzeniu grup subskrypcyjnych, w analizie zostały one pominięte w celu uproszczenia problemu.
+Na przykład w grafie przedstawionym na rysunku~\ref{fig:social_graph}, użytkownicy \( A \) i \( D \) są wprawdzie połączeni za pośrednictwem ścieżki \( A \rightarrow C \rightarrow D \), jednak ponieważ brakuje bezpośredniego połączenia \( \{A,D\} \in E \), to taka relacja nie jest uznawana za podstawę do współdzielenia licencji w tym modelu.
+Mimo, że w praktyce relacje pośrednie, takie jak ścieżki długości większej niż jeden, mogą sprzyjać tworzeniu grup subskrypcyjnych, w analizie zostały one pominięte w celu uproszczenia problemu.
 
 Graf społecznościowy nie musi być pełny. Dopuszcza się dowolną strukturę odpowiadającą rzeczywistym relacjom społecznym. W analizie istotną rolę odgrywa stopień wierzchołków, ponieważ decyduje on o liczbie osób, którym dany użytkownik może udostępnić swoją licencję. Dla wierzchołka \( v \in V \), jego stopień oznaczamy przez \( \deg(v) \), co odpowiada liczbie sąsiadów użytkownika \( v \) w grafie \( G = (V, E) \).
 
@@ -39,14 +39,14 @@ Licencja indywidualna zapewnia dostęp wyłącznie jej właścicielowi, natomias
 Dla przejrzystego i precyzyjnego zdefiniowania modelu wprowadzamy trzy zbiory reprezentujące użytkowników, czyli węzły posiadające własną licencję bądź korzystające z licencji innego węzła:
 \begin{itemize}
   \item $I$ - posiadacze licencji indywidualnych;
-  \item $G$ - posiadacze licencji grupowych;
+  \item $H$ - posiadacze licencji grupowych;
   \item $R$ - odbiorcy, którzy sami nie kupują licencji, lecz korzystają z licencji innego użytkownika.
 \end{itemize}
 
 Aby formalnie opisać ten podział, wprowadzamy etykietowanie ról $f:V\to\{0,1,2\}$.
 Wartość $0$ oznacza węzeł będący odbiorcą, $1$ odpowiada licencji indywidualnej, a $2$ licencji grupowej.
 Takie przypisanie nawiązuje do klasycznego problemu dominowania rzymskiego, w którym wierzchołki również otrzymują etykiety z tego samego zbioru wartości.
-Odpowiadające zbiory definiujemy jako $I=\{v:f(v)=1\}$, $G=\{v:f(v)=2\}$ oraz $R=V\setminus(I\cup G)$.
+Odpowiadające zbiory definiujemy jako $I=\{v:f(v)=1\}$, $H=\{v:f(v)=2\}$ oraz $R=V\setminus(I\cup G)$.
 Przyjmujemy zbiór dostępnych typów licencji
 \begin{equation}
   \mathcal{L} = \{ \ell_t = (c_t, m_t, k_t) \mid t = 1,2,\dots,T \},
@@ -55,9 +55,9 @@ Przyjmujemy zbiór dostępnych typów licencji
 gdzie:
 \begin{itemize}
   \item $c_t$ - koszt licencji typu $t$,
-  \item $m_t$ -- minimalna liczba użytkowników wliczając właściciela,
-  \item $k_t$ -- maksymalna liczba użytkowników wliczając właściciela,
-  \item $T$ -- całkowita liczba dostępnych typów licencji.
+  \item $m_t$ - minimalna liczba użytkowników wliczając właściciela,
+  \item $k_t$ - maksymalna liczba użytkowników wliczając właściciela,
+  \item $T$ - całkowita liczba dostępnych typów licencji.
 \end{itemize}
 W podstawowym wariancie rozważanym w tym rozdziale zakładamy, że zbiór $\mathcal{L}$ opisany we wzorze~(\ref{eq:license_family}) obejmuje wyłącznie dwa typy licencji: indywidualną oraz jedną grupową, a zatem przyjęte jest $T = 2$. Model ten nie przewiduje sytuacji z wieloma rodzajami planów grupowych (np. Duo, Family), lecz ogranicza się do najprostszego przypadku odpowiadającego rozwiązaniom takim jak w Duolingo.
 
@@ -65,21 +65,21 @@ W podstawowym wariancie rozważanym w tym rozdziale zakładamy, że zbiór $\mat
 Spełnienie rozwiązania wymaga, aby dla etykietowania $f:V\to\{0,1,2\}$ zachodziły następujące warunki:
 \begin{enumerate}
   \item Pokrycie: Każdy użytkownik $v \in V$ musi mieć dostęp do usługi, tj. $f(v)\in\{1,2\}$ lub istnieje sąsiad $u\in N(v)$ taki, że $f(u)=2$ i $v$ jest przypisany do grupy $u$.
-  \item Sąsiedztwo: Odbiorca $v\in R$ może być przypisany tylko do właściciela $u\in G$ z $\{u,v\}\in E$.
-  \item Pojemność: Liczba użytkowników przypisanych do właściciela $u\in G$ (wraz z nim samym) musi spełniać $m \le 1+|R_u| \le k$, gdzie $R_u$ oznacza zbiór odbiorców korzystających z licencji $u$.
+  \item Sąsiedztwo: Odbiorca $v\in R$ może być przypisany tylko do właściciela $u\in H$ z $\{u,v\}\in E$.
+  \item Pojemność: Liczba użytkowników przypisanych do właściciela $u\in H$ (wraz z nim samym) musi spełniać $m \le 1+|R_u| \le k$, gdzie $R_u$ oznacza zbiór odbiorców korzystających z licencji $u$.
 \end{enumerate}
 
 
 \paragraph{Funkcja kosztu.}
 W wariancie podstawowym, w którym $T=2$, całkowity koszt rozwiązania wyraża się zależnością:
 \begin{equation}
-  \cost(f) = |I|\cdot c_i + |G|\cdot c_g ,
+  \cost(f) = |I|\cdot c_i + |H|\cdot c_g ,
   \label{eq:cost_function}
 \end{equation}
 gdzie:
 \begin{itemize}
   \item $I$ - zbiór użytkowników z licencją indywidualną,
-  \item $G$ - zbiór użytkowników z licencją grupową,
+  \item $H$ - zbiór użytkowników z licencją grupową,
   \item $c_i$ - koszt licencji indywidualnej,
   \item $c_g$ - koszt licencji grupowej.
 \end{itemize}
@@ -98,11 +98,11 @@ Celem problemu jest minimalizacja funkcji kosztu~(\ref{eq:cost_function}) dla da
 
 \subsection{Ograniczenia techniczne i społeczne współdzielenia licencji}
 
-Kluczowymi parametrami modelu są minimalna oraz maksymalna liczba osób, które mogą współdzielić jedną licencję grupową. Maksymalny rozmiar grupy oznaczamy przez $k$ i wliczamy do niego także użytkownika nabywającego licencję. Parametr $k$ jest zwykle narzucany przez dostawcę usługi. Przykładowo, plan rodzinny Spotify Premium pozwala na korzystanie maksymalnie sześciu osobom (właściciel + pięć członków rodziny), co odpowiada wartości $k=6$.
+Kluczowymi parametrami modelu są najmniejsza oraz największa liczba osób, które mogą współdzielić jedną licencję grupową. Największy rozmiar grupy oznaczamy przez $k$ i wliczamy do niego także użytkownika nabywającego licencję. Parametr $k$ jest zwykle narzucany przez dostawcę usługi. Przykładowo, plan rodzinny Spotify Premium pozwala na korzystanie co najwyżej sześciu osobom (właściciel + pięć członków rodziny), co odpowiada wartości $k=6$.
 
-Analogicznie wprowadzamy parametr $m$, który określa minimalną liczbę osób niezbędnych do utworzenia grupy. Oznacza to, że licencja grupowa jest ważna tylko wtedy, gdy zostanie wykorzystana przez co najmniej $m$ osób (łącznie z właścicielem). Przykładem jest tzw. plan „Duo”, w którym licencję mogą współdzielić dokładnie dwie osoby ($m=2, k=2$). W innych przypadkach $m$ może przyjmować wartości mniejsze niż $k$, np. $m=2, k=6$ dla planów rodzinnych.
+Analogicznie wprowadzamy parametr $m$, który określa najmniejszą liczbę osób niezbędnych do utworzenia grupy. Oznacza to, że licencja grupowa jest ważna tylko wtedy, gdy zostanie wykorzystana przez co najmniej $m$ osób (łącznie z właścicielem). Przykładem jest tzw. plan „Duo”, w którym licencję mogą współdzielić dokładnie dwie osoby ($m=2, k=2$). W innych przypadkach $m$ może przyjmować wartości mniejsze niż $k$, np. $m=2, k=6$ dla planów rodzinnych.
 
-W analizie przyjmujemy $m$ oraz $k$ jako zmienne parametry. Nawet jeśli użytkownik posiada wielu znajomych (czyli ma wysoki stopień w grafie), ograniczenie $k$ sprawia, że może objąć współdzieleniem tylko określoną maksymalną liczbę osób, natomiast ograniczenie $m$ wymusza, by grupy nie były zbyt małe. Parametry te modelują zarówno ograniczenia techniczne narzucane przez dostawców usług, jak i czynniki społeczne, takie jak opłacalność czy gotowość do współdzielenia subskrypcji. W konsekwencji grupy współdzielenia odwzorowują typowe sytuacje, w których w praktyce licencje grupowe są wykorzystywane.
+W analizie przyjmujemy $m$ oraz $k$ jako zmienne parametry. Nawet jeśli użytkownik posiada wielu znajomych (czyli ma wysoki stopień w grafie), ograniczenie $k$ sprawia, że może objąć współdzieleniem tylko określoną najwyższą liczbę osób, natomiast ograniczenie $m$ wymusza, by grupy nie były zbyt małe. Parametry te modelują zarówno ograniczenia techniczne narzucane przez dostawców usług, jak i czynniki społeczne, takie jak opłacalność czy gotowość do współdzielenia subskrypcji. W konsekwencji grupy współdzielenia odwzorowują typowe sytuacje, w których w praktyce licencje grupowe są wykorzystywane.
 
 
 % \subsection{Struktura kosztów i modele cenowe}
@@ -121,16 +121,12 @@ W analizie przyjmujemy $m$ oraz $k$ jako zmienne parametry. Nawet jeśli użytko
 \subsection{Struktura kosztów i modele cenowe}
 
 W analizowanym problemie istotnym elementem jest sposób odwzorowania polityki cenowej dostawców usług.
-Różne plany subskrypcyjne charakteryzują się nie tylko innym kosztem, ale również odmiennym zakresem liczby użytkowników $k$, którzy mogą korzystać z jednej licencji.
-Dodatkowo wprowadzane jest ograniczenie dolne $m$, które definiuje minimalną liczbę użytkowników planu.
-Mimo że w rzeczywistości takie ograniczenia nie są formalnie narzucane, w prezentowanym modelu pełnią ważną rolę, gdyż odzwierciedlają ekonomiczny sens wyboru licencji grupowych.
-W praktyce bowiem korzystanie z planu grupowego przez jedną osobę jest nieopłacalne.
-Przykładowo, dla planów typu Duo czy Family naturalne jest przyjęcie $m=2$, mimo że technicznie możliwe byłoby używanie takiej subskrypcji w pojedynkę.
+Różne plany subskrypcyjne charakteryzują się nie tylko innym kosztem, ale również odmiennym zakresem liczby użytkowników $m$ oraz $k$, którzy mogą korzystać z jednej licencji.
 Rodzinę typów licencji zdefiniowaną we wzorze~\eqref{eq:license_family} stosujemy tutaj do opisu struktury kosztów i ograniczeń dostępnych planów.
 W testach syntetycznych wartości parametrów licencji dobierane są eksperymentalnie, co pozwala badać zachowanie algorytmów w różnych wariantach cenowych i strukturalnych.
 W testach na danych rzeczywistych wykorzystywane są faktyczne ceny subskrypcji.
-Dla wariantu teoretycznego odpowiadającego dominacji rzymskiej koszty normalizowane są względem licencji indywidualnej, co umożliwia powiązanie modelu z klasycznymi zagadnieniami teorii grafów.
-Przykłady zestawiono w~Tabeli~\ref{tab:license_models_real}.
+Dla wariantu teoretycznego odpowiadającego dominowaniu rzymskiemu koszty normalizowane są względem licencji indywidualnej, co umożliwia powiązanie modelu z klasycznymi zagadnieniami teorii grafów.
+Przykłady zestawiono w~tabeli~\ref{tab:license_models_real}.
 
 
 \begin{table}[h!]
@@ -166,9 +162,9 @@ Przykłady zestawiono w~Tabeli~\ref{tab:license_models_real}.
 \end{table}
 
 
-W przypadku usług rzeczywistych koszty planów grupowych są znacznie niższe niż suma odpowiadających im licencji indywidualnych. Na przykład plan Spotify Family pozwala na współdzielenie subskrypcji przez maksymalnie sześć osób przy koszcie $37{,}99$ PLN, co czyni go zdecydowanie bardziej opłacalnym od planu indywidualnego ($23{,}99$ PLN). Podobna sytuacja występuje w przypadku Duolingo Super Family.
+W przypadku usług rzeczywistych koszty planów grupowych są znacznie niższe niż suma odpowiadających im licencji indywidualnych. Na przykład plan Spotify Family pozwala na współdzielenie subskrypcji przez co najwyżej sześć osób przy koszcie $37{,}99$ PLN, co czyni go zdecydowanie bardziej opłacalnym od planu indywidualnego ($23{,}99$ PLN). Podobna sytuacja występuje w przypadku Duolingo Super Family.
 
-W modelu teoretycznym opartym na dominacji rzymskiej koszty są podane w jednostkach względnych. Licencja indywidualna ma koszt $1.0$, a licencja grupowa koszt $2.0$, co odpowiada klasycznemu przypisaniu wag w problemie dominacji rzymskiej. W ramach przeprowadzanych eksperymentów etykieta „2” będzie zmieniała swoją wartość jako wielokrotność kosztu ceny indywidualnej, co pozwala na analizę różnych wariantów tego zagadnienia.
+W modelu teoretycznym opartym na dominowaniu rzymskim koszty są podane w jednostkach względnych. Licencja indywidualna ma koszt $1.0$, a licencja grupowa koszt $2.0$, co odpowiada klasycznemu przypisaniu wag w problemie dominowania rzymskiego. W ramach przeprowadzanych eksperymentów etykieta „2” będzie zmieniała swoją wartość jako wielokrotność kosztu ceny indywidualnej, co pozwala na analizę różnych wariantów tego zagadnienia.
 
 
 % \subsection{Zakup jednoczesny i sekwencyjny}
