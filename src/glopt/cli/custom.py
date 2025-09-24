@@ -9,18 +9,18 @@ from glopt.license_config import LicenseConfigFactory
 
 RUN_ID: str | None = None
 GRAPH_NAME: str = "small_world"
-GRAPH_PARAMS: dict[str, Any] = {"k": 4, "p": 0.1, "seed": 42}
-N_NODES: int = 100
-LICENSE_CONFIG_NAME: str = "spotify"
+GRAPH_PARAMS: dict[str, Any] = {"seed": 1}
+N_NODES: int = 30
+LICENSE_CONFIG_NAME: str = "duolingo_super"
 ALGORITHMS: list[str] = [
     "ILPSolver",
-    "RandomizedAlgorithm",
-    "GreedyAlgorithm",
-    "DominatingSetAlgorithm",
-    "AntColonyOptimization",
-    "SimulatedAnnealing",
-    "TabuSearch",
-    "GeneticAlgorithm",
+    # "RandomizedAlgorithm",
+    # "GreedyAlgorithm",
+    # "DominatingSetAlgorithm",
+    # "AntColonyOptimization",
+    # "SimulatedAnnealing",
+    # "TabuSearch",
+    # "GeneticAlgorithm",
 ]
 
 
