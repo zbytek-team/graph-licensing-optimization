@@ -24,11 +24,6 @@ class NaiveAlgorithm(Algorithm):
         nodes: list[Any] = list(graph.nodes())
         n = len(nodes)
 
-        max_n = 10
-        if n > max_n:
-            msg = f"graph too large for naive algorithm: {n} nodes > {max_n}"
-            raise ValueError(msg)
-
         if n == 0:
             return Solution(groups=())
 

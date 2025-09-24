@@ -33,6 +33,16 @@ class GraphGeneratorFactory:
 
     @staticmethod
     def _scale_free(n_nodes: int, *, m: int = 2, seed: int | None = None) -> nx.Graph:
+        if n_nodes <= 1:
+            graph = nx.empty_graph(n_nodes)
+            return graph
+
+        m = max(1, min(m, n_nodes - 1))
+        if m >= n_nodes:
+            m = n_nodes - 1
+        if m < 1:
+            return nx.empty_graph(n_nodes)
+
         return nx.barabasi_albert_graph(n=n_nodes, m=m, seed=seed)
 
     @staticmethod

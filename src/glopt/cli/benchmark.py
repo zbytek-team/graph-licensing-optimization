@@ -18,18 +18,18 @@ from glopt.io import ensure_dir
 from glopt.license_config import LicenseConfigFactory
 
 RUN_ID: str | None = None
-GRAPH_NAMES: list[str] = ["random", "small_world", "scale_free"]
+GRAPH_NAMES: list[str] = ["scale_free"]
 GRAPH_DEFAULTS: dict[str, dict[str, Any]] = {
     "random": {"p": 0.10, "seed": 42},
     "small_world": {"k": 6, "p": 0.05, "seed": 42},
     "scale_free": {"m": 2, "seed": 42},
 }
-SIZES_SMALL: list[int] = list(range(20, 201, 20))
-SIZES_LARGE: list[int] = [300, 400, 600, 800, 1000, 1500, 2000, 2500, 3000]
+SIZES_SMALL: list[int] = list(range(1, 16))
+SIZES_LARGE: list[int] = []
 SIZES: list[int] = SIZES_SMALL + SIZES_LARGE
-SAMPLES_PER_SIZE: int = 3
-REPEATS_PER_GRAPH: int = 2
-TIMEOUT_SECONDS: float = 60.0
+SAMPLES_PER_SIZE: int = 1
+REPEATS_PER_GRAPH: int = 1
+TIMEOUT_SECONDS: float = 600.0
 LICENSE_CONFIG_NAMES: list[str] = [
     "duolingo_super",
     "roman_domination",
@@ -39,14 +39,7 @@ LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNA
 DYNAMIC_DUO_PS: list[float] = [2.0, 3.0]
 LICENSE_CONFIG_NAMES.extend([f"duolingo_p_{str(p).replace('.', '_')}" for p in DYNAMIC_DUO_PS])
 ALGORITHM_CLASSES: list[str] = [
-    "ILPSolver",
-    "GreedyAlgorithm",
-    "RandomizedAlgorithm",
-    "DominatingSetAlgorithm",
-    "AntColonyOptimization",
-    "SimulatedAnnealing",
-    "TabuSearch",
-    "GeneticAlgorithm",
+    "NaiveAlgorithm",
 ]
 ILP_MAX_N: int | None = None
 GRAPH_CACHE_DIR: str = "data/graphs_cache"
@@ -59,12 +52,16 @@ def _adjust_params(name: str, n: int, base: dict[str, Any]) -> dict[str, Any]:
         p["m"] = max(1, min(m, max(1, n - 1)))
     if name == "small_world":
         k = int(p.get("k", 6))
-        if n > 2:
+        if n <= 2:
+            k = 0
+        else:
             k = max(2, min(k, n - 1))
             if k % 2 == 1:
-                k = k + 1 if k + 1 < n else k - 1
-        else:
-            k = 2
+                if k + 1 < n:
+                    k += 1
+                else:
+                    k -= 1
+            k = max(0, min(k, n - 1))
         p["k"] = k
     return p
 
