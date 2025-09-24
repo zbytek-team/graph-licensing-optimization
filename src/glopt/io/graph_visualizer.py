@@ -17,8 +17,8 @@ from glopt.core import Solution
 class GraphVisualizer:
     def __init__(
         self,
-        figsize: tuple[int, int] = (12, 8),
-        layout_seed: int = 42,
+        figsize: tuple[int, int] = (6, 4),
+        layout_seed: int = 60,
         reuse_layout: bool = True,
     ) -> None:
         self.figsize = figsize
@@ -26,9 +26,9 @@ class GraphVisualizer:
         self.reuse_layout = reuse_layout
 
         self.default_edge_color = "#808080"
-        self.owner_size = 500
-        self.member_size = 300
-        self.solo_size = 400
+        self.owner_size = 1000
+        self.member_size = 600
+        self.solo_size = 800
 
         self._pos: dict[Any, tuple[float, float]] | None = None
 
@@ -152,7 +152,7 @@ class GraphVisualizer:
             )
             for lt in license_types
         ]
-        elems.append(Line2D([0], [0], color=self.default_edge_color, linewidth=2, label="Other Edges"))
+        elems.append(Line2D([0], [0], color=self.default_edge_color, linewidth=2, label="Inne połączenia"))
         ax.legend(handles=elems, loc="upper right", bbox_to_anchor=(0.98, 0.98))
 
 
