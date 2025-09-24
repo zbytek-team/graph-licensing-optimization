@@ -12,6 +12,3 @@
 - YAML/XML: `yq`
 
 If ast-grep is available avoid tools `rg` or `grep` unless a plain-text search is explicitly requested.
-
-## Safety & PRs
-- Do not edit `/public` or files marked `@generated`

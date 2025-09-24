@@ -13,6 +13,15 @@ dependencies = [
     "scipy>=1.16.2",
 ]
 
+[project.optional-dependencies]
+analysis = [
+    "numpy>=2.3.3",
+    "pandas>=2.3.2",
+    "scikit-posthocs>=0.11.4",
+    "seaborn>=0.13.2",
+    "statsmodels>=0.14.5",
+]
+
 [tool.black]
 line-length = 220
 target-version = ["py313"]
