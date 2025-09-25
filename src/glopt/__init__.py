@@ -1,4 +1,4 @@
-from . import algorithms
+from . import experiments
 from .core import (
     Algorithm,
     LicenseGroup,
@@ -8,22 +8,20 @@ from .core import (
     Solution,
     SolutionBuilder,
     SolutionValidator,
+    algorithms,
     generate_graph,
     instantiate_algorithms,
     run_once,
 )
-from .dynamic_simulator import DynamicNetworkSimulator
-from .io.csv_writer import BenchmarkCSVWriter
-from .io.data_loader import RealWorldDataLoader
-from .io.graph_generator import GraphGeneratorFactory
-from .io.graph_visualizer import GraphVisualizer
-from .license_config import LicenseConfigFactory
-from .utils.runtime import ensure_python_313
-
-# Enforce Python 3.13 at import-time
-ensure_python_313()
+from .core.dynamic_simulator import DynamicNetworkSimulator
+from .core.io.csv_writer import BenchmarkCSVWriter
+from .core.io.data_loader import RealWorldDataLoader
+from .core.io.graph_generator import GraphGeneratorFactory
+from .core.io.graph_visualizer import GraphVisualizer
+from .core.license_config import LicenseConfigFactory
 
 __all__ = [
+    "experiments",
     "Algorithm",
     "BenchmarkCSVWriter",
     "DynamicNetworkSimulator",
