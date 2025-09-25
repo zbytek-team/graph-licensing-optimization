@@ -18,8 +18,8 @@ pipeline:
 	$(UV_RUN) python -m glopt.experiments.pipeline
 
 analyze:
-	$(UV_RUN) python glopt/analysis/static_synthetic_analyze.py
-	$(UV_RUN) python glopt/analysis/static_real_analyze.py
-	$(UV_RUN) python glopt/analysis/dynamic_analyze.py
-	$(UV_RUN) python glopt/analysis/extensions_analyze.py
-	$(UV_RUN) python glopt/analysis/extensions_dynamic_analyze.py
+	$(UV_RUN) python src/glopt/analysis/static_synthetic_analyze.py
+	$(UV_RUN) python src/glopt/analysis/static_real_analyze.py
+	$(UV_RUN) python src/glopt/analysis/dynamic_analyze.py
+	$(UV_RUN) python src/glopt/analysis/extensions_analyze.py
+	$(UV_RUN) python src/glopt/analysis/extensions_dynamic_analyze.py

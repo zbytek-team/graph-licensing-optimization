@@ -14,6 +14,7 @@ from glopt.core.license_config import LicenseConfigFactory
 from glopt.experiments.common import (
     build_run_id,
     fmt_ms,
+    normalize_license_costs,
     print_banner,
     print_footer,
     print_stage,
@@ -43,7 +44,9 @@ def main() -> None:
         },
     )
     graph = generate_graph(GRAPH_NAME, N_NODES, GRAPH_PARAMS)
-    license_types = LicenseConfigFactory.get_config(LICENSE_CONFIG_NAME)
+    license_types = normalize_license_costs(
+        LicenseConfigFactory.get_config(LICENSE_CONFIG_NAME)
+    )
     algos = instantiate_algorithms(ALGORITHMS)
     results: list[RunResult] = []
     for algo in algos:
