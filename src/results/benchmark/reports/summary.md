@@ -2,8 +2,8 @@
 
 Duolingo Super - średni czas: 1.54 s
 Duolingo Super - średni koszt/węzeł: 0.557
-Roman Domination - średni czas: 1.09 s
-Roman Domination - średni koszt/węzeł: 0.416
+Dominowanie rzymskie - średni czas: 1.09 s
+Dominowanie rzymskie - średni koszt/węzeł: 0.416
 
 Friedman test (time_s): statistic=577.927, p-value=1.377e-120
 Friedman test (cost_per_node): statistic=518.011, p-value=1.074e-107
