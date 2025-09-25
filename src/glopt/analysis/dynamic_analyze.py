@@ -84,9 +84,7 @@ def assign_source(variant: str) -> str:
     return "synthetic" if variant in {"low", "med", "high"} else "real"
 
 
-def add_labels(
-    df: pd.DataFrame, source_hint: str | None = None
-) -> pd.DataFrame:
+def add_labels(df: pd.DataFrame, source_hint: str | None = None) -> pd.DataFrame:
     result = df.copy()
     result["variant"] = result["run_id"].apply(extract_variant)
     if source_hint:
@@ -98,15 +96,11 @@ def add_labels(
     return result
 
 
-def _plot_metric_vs_nodes(
-    df: pd.DataFrame, source: str, value: str, filename: str
-) -> None:
+def _plot_metric_vs_nodes(df: pd.DataFrame, source: str, value: str, filename: str) -> None:
     subset = df[df["source"] == source]
     if subset.empty:
         return
-    aggregated = subset.groupby(["algorithm", "n_nodes"], as_index=False).agg(
-        mean=(value, "mean")
-    )
+    aggregated = subset.groupby(["algorithm", "n_nodes"], as_index=False).agg(mean=(value, "mean"))
     fig, ax = plt.subplots()
     algo_values = aggregated["algorithm"].unique().tolist()
     palette = algorithm_palette(algo_values)
@@ -120,9 +114,7 @@ def _plot_metric_vs_nodes(
         ax=ax,
     )
     source_title = SOURCE_LABELS.get(source, source)
-    ax.set_title(
-        f"{source_title} - średni {METRIC_DISPLAY.get(value, value)} względem liczby węzłów"
-    )
+    ax.set_title(f"{source_title} - średni {METRIC_DISPLAY.get(value, value)} względem liczby węzłów")
     ax.set_xlabel("Liczba węzłów")
     ax.set_ylabel(_axis_label(value, "mean"))
     ax.set_ylim(bottom=0)
@@ -144,9 +136,7 @@ def _plot_metric_over_steps(
     subset = df[(df["source"] == source) & (df["algorithm"] == algorithm)]
     if subset.empty:
         return
-    aggregated = subset.groupby(
-        ["variant", "step", "warm_label"], as_index=False
-    ).agg(mean=(metric, "mean"))
+    aggregated = subset.groupby(["variant", "step", "warm_label"], as_index=False).agg(mean=(metric, "mean"))
     if aggregated.empty:
         return
     source_title = SOURCE_LABELS.get(source, source)
@@ -155,12 +145,8 @@ def _plot_metric_over_steps(
         if frame.empty:
             continue
         fig, ax = plt.subplots()
-        sns.lineplot(
-            data=frame, x="step", y="mean", hue="warm_label", marker="o", ax=ax
-        )
-        ax.set_title(
-            f"{source_title} - {algorithm} ({variant}): {metric_title} w krokach"
-        )
+        sns.lineplot(data=frame, x="step", y="mean", hue="warm_label", marker="o", ax=ax)
+        ax.set_title(f"{source_title} - {algorithm} ({variant}): {metric_title} w krokach")
         ax.set_xlabel("Krok symulacji")
         ax.set_ylabel(_axis_label(metric, "mean"))
         ax.set_ylim(bottom=0)
@@ -191,14 +177,9 @@ def compute_warm_cold_delta(df: pd.DataFrame, metric: str) -> pd.DataFrame:
         columns="warm_label",
         values="mean",
     )
-    if (
-        WARM_LABEL_WARM not in pivot.columns
-        or WARM_LABEL_COLD not in pivot.columns
-    ):
+    if WARM_LABEL_WARM not in pivot.columns or WARM_LABEL_COLD not in pivot.columns:
         return pd.DataFrame()
-    pivot = pivot.rename(
-        columns={WARM_LABEL_WARM: "mean_cieply", WARM_LABEL_COLD: "mean_zimny"}
-    )
+    pivot = pivot.rename(columns={WARM_LABEL_WARM: "mean_cieply", WARM_LABEL_COLD: "mean_zimny"})
     pivot = pivot.dropna(subset=["mean_cieply", "mean_zimny"], how="any")
     pivot["delta"] = pivot["mean_cieply"] - pivot["mean_zimny"]
     return pivot.reset_index()
@@ -208,42 +189,22 @@ def main() -> None:
     apply_plot_style()
 
     real_raw = expand_license_counts(load_dataset(DATA_DIR / "real_df.csv"))
-    synthetic_raw = expand_license_counts(
-        load_dataset(DATA_DIR / "synthetic_df.csv")
-    )
-    timeout_raw = expand_license_counts(
-        load_dataset(DATA_DIR / "timeout_df.csv")
-    )
+    synthetic_raw = expand_license_counts(load_dataset(DATA_DIR / "synthetic_df.csv"))
+    timeout_raw = expand_license_counts(load_dataset(DATA_DIR / "timeout_df.csv"))
 
     baseline_df = pd.concat([real_raw, synthetic_raw], ignore_index=True)
-    _, unit_costs = normalize_cost_columns(
-        baseline_df, attach_group_multiplier=True
-    )
+    _, unit_costs = normalize_cost_columns(baseline_df, attach_group_multiplier=True)
 
-    real_norm, _ = normalize_cost_columns(
-        real_raw, unit_costs=unit_costs, attach_group_multiplier=True
-    )
-    synthetic_norm, _ = normalize_cost_columns(
-        synthetic_raw, unit_costs=unit_costs, attach_group_multiplier=True
-    )
-    timeout_norm, _ = normalize_cost_columns(
-        timeout_raw, unit_costs=unit_costs, attach_group_multiplier=True
-    )
+    real_norm, _ = normalize_cost_columns(real_raw, unit_costs=unit_costs, attach_group_multiplier=True)
+    synthetic_norm, _ = normalize_cost_columns(synthetic_raw, unit_costs=unit_costs, attach_group_multiplier=True)
+    timeout_norm, _ = normalize_cost_columns(timeout_raw, unit_costs=unit_costs, attach_group_multiplier=True)
 
     real_df = apply_algorithm_labels(add_labels(real_norm, "real"))
-    synthetic_df = apply_algorithm_labels(
-        add_labels(synthetic_norm, "synthetic")
-    )
+    synthetic_df = apply_algorithm_labels(add_labels(synthetic_norm, "synthetic"))
     timeout_df = apply_algorithm_labels(add_labels(timeout_norm))
 
     combined = pd.concat([real_df, synthetic_df], ignore_index=True)
-    combined["method"] = (
-        combined["variant"]
-        .map(METHOD_LABELS)
-        .fillna(
-            combined["variant"].where(combined["variant"].notna(), "unknown")
-        )
-    )
+    combined["method"] = combined["variant"].map(METHOD_LABELS).fillna(combined["variant"].where(combined["variant"].notna(), "unknown"))
 
     metrics = ["time_s", "total_cost", "cost_per_node"]
     real_overall = describe_numeric(real_df, metrics)
@@ -251,16 +212,10 @@ def main() -> None:
     save_table(real_overall, TAB_DIR / "real_overall_stats.csv")
     save_table(synthetic_overall, TAB_DIR / "synthetic_overall_stats.csv")
 
-    real_algo = describe_numeric(
-        real_df, metrics, ["algorithm", "variant", "warm_label"]
-    )
-    synthetic_algo = describe_numeric(
-        synthetic_df, metrics, ["algorithm", "variant", "warm_label"]
-    )
+    real_algo = describe_numeric(real_df, metrics, ["algorithm", "variant", "warm_label"])
+    synthetic_algo = describe_numeric(synthetic_df, metrics, ["algorithm", "variant", "warm_label"])
     save_table(real_algo, TAB_DIR / "real_algorithm_variant_warm_stats.csv")
-    save_table(
-        synthetic_algo, TAB_DIR / "synthetic_algorithm_variant_warm_stats.csv"
-    )
+    save_table(synthetic_algo, TAB_DIR / "synthetic_algorithm_variant_warm_stats.csv")
 
     real_mutation_means = (
         real_df.groupby("variant", dropna=False)
@@ -277,15 +232,9 @@ def main() -> None:
         TAB_DIR / "real_mutation_means.csv",
     )
 
-    combined_algo = describe_numeric(
-        combined, metrics, ["source", "algorithm", "variant", "warm_label"]
-    )
-    save_table(
-        combined_algo, TAB_DIR / "combined_algorithm_variant_warm_stats.csv"
-    )
-    combined_variant = describe_numeric(
-        combined, metrics, ["source", "variant"]
-    )
+    combined_algo = describe_numeric(combined, metrics, ["source", "algorithm", "variant", "warm_label"])
+    save_table(combined_algo, TAB_DIR / "combined_algorithm_variant_warm_stats.csv")
+    combined_variant = describe_numeric(combined, metrics, ["source", "variant"])
     save_table(combined_variant, TAB_DIR / "combined_variant_stats.csv")
 
     method_whitelist = set(METHOD_LABELS.values())
@@ -312,21 +261,10 @@ def main() -> None:
             TAB_DIR / "algorithm_method_mean_cost_time.csv",
         )
 
-    timeout_counts = (
-        timeout_df.groupby(["source", "variant", "algorithm"])
-        .size()
-        .rename("count")
-        .sort_values(ascending=False)
-    )
+    timeout_counts = timeout_df.groupby(["source", "variant", "algorithm"]).size().rename("count").sort_values(ascending=False)
     timeout_counts.to_csv(TAB_DIR / "timeouts_by_source_variant_algorithm.csv")
-    timeout_graph = (
-        timeout_df.groupby(["source", "variant", "algorithm", "graph"])
-        .size()
-        .rename("count")
-    )
-    timeout_graph.to_csv(
-        TAB_DIR / "timeouts_by_source_variant_algorithm_graph.csv"
-    )
+    timeout_graph = timeout_df.groupby(["source", "variant", "algorithm", "graph"]).size().rename("count")
+    timeout_graph.to_csv(TAB_DIR / "timeouts_by_source_variant_algorithm_graph.csv")
 
     for algo in TARGET_ALGOS_DISPLAY:
         safe_name = _slugify_label(algo)
@@ -401,52 +339,28 @@ def main() -> None:
     summary_lines.append("# Dynamiczne mutacje - podsumowanie")
     summary_lines.append("")
 
-    real_time_target = real_algo[
-        (real_algo["metric"] == "time_s")
-        & (real_algo["algorithm"].isin(TARGET_ALGOS_DISPLAY))
-    ].sort_values("mean")
+    real_time_target = real_algo[(real_algo["metric"] == "time_s") & (real_algo["algorithm"].isin(TARGET_ALGOS_DISPLAY))].sort_values("mean")
     if not real_time_target.empty:
-        summary_lines.append(
-            "Dane rzeczywiste - czasy dla algorytmów docelowych:"
-        )
+        summary_lines.append("Dane rzeczywiste - czasy dla algorytmów docelowych:")
         for _, row in real_time_target.head(6).iterrows():
-            summary_lines.append(
-                f"- {row['algorithm']} ({row['variant']}, {row['warm_label']}): średnia {row['mean']:.2f} s"
-            )
+            summary_lines.append(f"- {row['algorithm']} ({row['variant']}, {row['warm_label']}): średnia {row['mean']:.2f} s")
         summary_lines.append("")
 
-    synthetic_cpn = synthetic_algo[
-        (synthetic_algo["metric"] == "cost_per_node")
-        & (synthetic_algo["algorithm"].isin(TARGET_ALGOS_DISPLAY))
-    ].sort_values("mean")
+    synthetic_cpn = synthetic_algo[(synthetic_algo["metric"] == "cost_per_node") & (synthetic_algo["algorithm"].isin(TARGET_ALGOS_DISPLAY))].sort_values("mean")
     if not synthetic_cpn.empty:
-        summary_lines.append(
-            "Dane syntetyczne - koszt/węzeł dla algorytmów docelowych:"
-        )
+        summary_lines.append("Dane syntetyczne - koszt/węzeł dla algorytmów docelowych:")
         for _, row in synthetic_cpn.head(6).iterrows():
-            summary_lines.append(
-                f"- {row['algorithm']} ({row['variant']}, {row['warm_label']}): średnia {row['mean']:.2f}"
-            )
+            summary_lines.append(f"- {row['algorithm']} ({row['variant']}, {row['warm_label']}): średnia {row['mean']:.2f}")
         summary_lines.append("")
 
-    summary_lines.append(
-        "Ciepły vs zimny start - koszt: ujemna delta oznacza przewagę ciepłego startu"
-    )
+    summary_lines.append("Ciepły vs zimny start - koszt: ujemna delta oznacza przewagę ciepłego startu")
     if delta_cost.empty:
-        summary_lines.append(
-            "- Brak pełnych par ciepły/zimny start dla wskazanych algorytmów w danych"
-        )
+        summary_lines.append("- Brak pełnych par ciepły/zimny start dla wskazanych algorytmów w danych")
     else:
-        key_deltas = (
-            delta_cost.groupby(["source", "algorithm"])
-            .agg(mean_delta=("delta", "mean"))
-            .reset_index()
-        )
+        key_deltas = delta_cost.groupby(["source", "algorithm"]).agg(mean_delta=("delta", "mean")).reset_index()
         for _, row in key_deltas.sort_values("mean_delta").head(6).iterrows():
             source_title = SOURCE_LABELS.get(row["source"], row["source"])
-            summary_lines.append(
-                f"- {source_title} {row['algorithm']}: średnia różnica {row['mean_delta']:.2f}"
-            )
+            summary_lines.append(f"- {source_title} {row['algorithm']}: średnia różnica {row['mean_delta']:.2f}")
     summary_lines.append("")
     summary_lines.append("Statystyki szczegółowe zapisano w katalogu tables/")
     write_text(REPORTS_DIR / "summary.md", summary_lines)

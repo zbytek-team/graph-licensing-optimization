@@ -136,8 +136,8 @@ Poniżej wybrano kilka par algorytmów i metod mutacji, które pokazują różne
     \toprule
     \textbf{Algorytm}     & \textbf{Metoda} & \textbf{Liczba kroków} & \textbf{Koszt/węzeł} & \textbf{Śr. czas [s]} \\
     \midrule
-    Solver ILP            & pref\_triadic   & 434                    & 0.362                & 1.525                 \\
-    Solver ILP            & rand\_rewire    & 496                    & 0.390                & 2.553                 \\
+    Algorytm ILP          & pref\_triadic   & 434                    & 0.362                & 1.525                 \\
+    Algorytm ILP          & rand\_rewire    & 496                    & 0.390                & 2.553                 \\
     Algorytm genetyczny   & pref\_triadic   & 744                    & 0.409                & 0.615                 \\
     Algorytm genetyczny   & pref\_pref      & 930                    & 0.414                & 1.134                 \\
     Przeszukiwanie tabu   & pref\_triadic   & 744                    & 0.413                & 1.470                 \\
@@ -152,7 +152,7 @@ Poniżej wybrano kilka par algorytmów i metod mutacji, które pokazują różne
   \end{tabular}
 \end{table}
 
-Solver ILP osiąga najniższe koszty, ale wymaga około 1.5--2.6 sekundy na krok. Algorytm genetyczny dobrze sprawdza się przy zmianach klastrowych (\texttt{pref\_triadic}), oferując niski koszt i czas około 0.6 sekundy. Przy wariancie \texttt{pref\_pref} jest wolniejszy (1.1 s), ale zachowuje dobrą jakość. Z kolei wyżarzanie symulowane jest szybkie (około pół sekundy) i stabilne, ale jakościowo ustępuje bardziej zaawansowanym metodom.
+Algorytm ILP osiąga najniższe koszty, ale wymaga około 1.5--2.6 sekundy na krok. Algorytm genetyczny dobrze sprawdza się przy zmianach klastrowych (\texttt{pref\_triadic}), oferując niski koszt i czas około 0.6 sekundy. Przy wariancie \texttt{pref\_pref} jest wolniejszy (1.1 s), ale zachowuje dobrą jakość. Z kolei wyżarzanie symulowane jest szybkie (około pół sekundy) i stabilne, ale jakościowo ustępuje bardziej zaawansowanym metodom.
 
 Przeszukiwanie tabu korzysta z lokalności zmian, osiągając sensowny koszt i czas około 1.5 sekundy przy \texttt{pref\_triadic}. Jednak przy mutacjach losowych (\texttt{rand\_rewire}) czas wzrasta do około 2.6 sekundy, a koszt również rośnie. Algorytm mrówkowy zapewnia bardzo dobrą jakość przy \texttt{pref\_pref}, ale działa najwolniej (prawie 7 sekund). Przejście na \texttt{pref\_triadic} ponad dwukrotnie przyspiesza jego działanie kosztem niewielkiego pogorszenia jakości.
 
@@ -187,7 +187,7 @@ Przeprowadzona analiza dynamiczna wykazała, że dobór algorytmu optymalizacyjn
 
 Mutacje realistyczne, takie jak \texttt{pref\_triadic} oraz \texttt{pref\_pref}, okazały się łatwiejsze do obsłużenia w porównaniu z wariantami syntetycznymi o wysokiej intensywności. Mechanizmy preferencyjnego przyłączania oraz domykania trójkątów sprzyjają wzmacnianiu klastrowości i tworzeniu hubów, co zmniejsza efektywny rozmiar problemu pokrycia. W rezultacie algorytmy osiągały niższe koszty (0.470--0.475 w porównaniu do 0.485--0.489) oraz krótsze czasy wykonania (0.9--1.7 s w porównaniu do 2.9--3.2 s). Z kolei mutacje typu \texttt{rand\_rewire} zwiększały entropię topologii poprzez zrywanie lokalnych połączeń, co prowadziło do najgorszych wyników zarówno pod względem kosztu (0.486), jak i czasu (1.9 s).
 
-Algorytmy wykazywały różną odporność na poszczególne typy zmian w zależności od mechanizmu wykorzystania poprzedniego rozwiązania. Solver ILP zapewniał najwyższą jakość (koszt 0.362--0.390), lecz wymagał znacznego czasu na ponowne rozwiązanie zmodyfikowanych ograniczeń. Algorytm genetyczny dobrze radził sobie przy zmianach klastrowych, oferując korzystny kompromis między jakością a czasem (koszt 0.409 przy czasie 0.615 s dla \texttt{pref\_triadic}), jednak jego efektywność spadała w przypadku mutacji destrukcyjnych. Przeszukiwanie tabu, jako metoda intensywnie lokalna, sprawdzało się przy zmianach o ograniczonym zasięgu, lecz przy mutacjach o większej skali wymagało rozszerzenia promienia poszukiwań, co wydłużało czas działania nawet do 6.5 sekundy.
+Algorytmy wykazywały różną odporność na poszczególne typy zmian w zależności od mechanizmu wykorzystania poprzedniego rozwiązania. Algorytm ILP zapewniał najwyższą jakość (koszt 0.362--0.390), lecz wymagał znacznego czasu na ponowne rozwiązanie zmodyfikowanych ograniczeń. Algorytm genetyczny dobrze radził sobie przy zmianach klastrowych, oferując korzystny kompromis między jakością a czasem (koszt 0.409 przy czasie 0.615 s dla \texttt{pref\_triadic}), jednak jego efektywność spadała w przypadku mutacji destrukcyjnych. Przeszukiwanie tabu, jako metoda intensywnie lokalna, sprawdzało się przy zmianach o ograniczonym zasięgu, lecz przy mutacjach o większej skali wymagało rozszerzenia promienia poszukiwań, co wydłużało czas działania nawet do 6.5 sekundy.
 
 Szybkie heurystyki, takie jak algorytm zachłanny oraz zbiór dominujący, zachowywały swoją użyteczność również w środowisku dynamicznym, oferując czasy wykonania poniżej 5 ms przy kosztach porównywalnych z bardziej złożonymi metodami. Algorytm zachłanny osiągał stabilny czas w zakresie 0.5--1.8 ms przy koszcie 0.464--0.480, natomiast zbiór dominujący zapewniał nieco niższy koszt przy czasie około 5 ms.
 

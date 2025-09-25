@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import replace
 from datetime import datetime
 from typing import Any
+
+from glopt.core import LicenseType
 
 
 def build_run_id(suffix: str, run_id: str | None = None) -> str:
@@ -41,3 +44,17 @@ def print_step(prefix: str, **kv: Any) -> None:
     for k, v in kv.items():
         parts.append(f"{k}={v}")
     print(" ".join(parts))
+
+
+def normalize_license_costs(license_types: list[LicenseType]) -> list[LicenseType]:
+    if not license_types:
+        return []
+    singles = [lt for lt in license_types if lt.min_capacity == 1 and lt.max_capacity == 1 and lt.cost > 0]
+    if singles:
+        baseline = singles[0].cost
+    else:
+        positive = [lt.cost for lt in license_types if lt.cost > 0]
+        baseline = min(positive) if positive else 1.0
+    if baseline == 0:
+        return license_types
+    return [replace(lt, cost=lt.cost / baseline) for lt in license_types]
