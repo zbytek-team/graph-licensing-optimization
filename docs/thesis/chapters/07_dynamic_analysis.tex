@@ -2,11 +2,11 @@
 
 \section{Założenia i konfiguracja}
 
-Eksperymenty dynamiczne wykonano w tym samym środowisku obliczeniowym co testy statyczne. Każda symulacja obejmuje 30 kroków, a po każdej mutacji sieci algorytmy otrzymują maksymalnie 45~s na ponowne zbilansowanie licencji. Analizowano dwie konfiguracje licencyjne -- Duolingo Super oraz dominowanie rzymskie. Do testów wykorzystano różne typy grafów: losowe, bezskalowe oraz małoświatowe.
+Eksperymenty dynamiczne wykonano w tym samym środowisku obliczeniowym co testy statyczne. Każda symulacja składa się z 30 kroków czasowych, gdzie jeden krok obejmuje: (1) zastosowanie mutacji do struktury grafu zgodnie z wybranym profilem, oraz (2) ponowną optymalizację dystrybucji licencji przez algorytmy z limitem czasu 45 sekund. Analizowano dwie konfiguracje licencyjne -- Duolingo Super oraz dominowanie rzymskie. Do testów wykorzystano różne typy grafów: losowe, bezskalowe oraz małoświatowe.
 
-Testy przeprowadzono dla sześciu profili mutacji: trzech syntetycznych, które charakteryzują się prostą logiką modyfikacji (low, med, high), oraz trzech bardziej złożonych i realistycznych, które uwzględniają mechanizmy takie jak preferencyjne przyłączanie, domykanie triad czy losowe przekształcanie krawędzi (pref\_triadic, pref\_pref, rand\_rewire).
+Testy przeprowadzono dla sześciu różnych profili mutacji, gdzie każdy profil definiuje stały zestaw parametrów stosowany przez całą symulację. Profile obejmują: trzy syntetyczne charakteryzujące się prostą logiką modyfikacji (low, med, high), oraz trzy bardziej złożone uwzględniające mechanizmy takie jak preferencyjne przyłączanie, domykanie triad czy losowe przekształcanie krawędzi (pref\_triadic, pref\_pref, rand\_rewire).
 
-Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieństwami modyfikacji wierzchołków i krawędzi (tabela~\ref{tab:dyn-mutation-levels}).
+Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieństwami mutacji w każdym kroku symulacji (tabela~\ref{tab:dyn-mutation-levels}). W każdym kroku niezależnie losowane jest czy dana operacja zostanie wykonana, a następnie losowana jest liczba elementów do modyfikacji (1-3 węzły, 1-5 krawędzi). Usunięcie węzła automatycznie powoduje usunięcie wszystkich incydentnych z nim krawędzi. Prawdopodobieństwa dobrano tak, aby uzyskać trzy wyraźnie różniące się poziomy intensywności zmian: niski (modyfikacje w około 1-6\% kroków), średni (4-18\% kroków) oraz wysoki (8-30\% kroków).
 
 \begin{table}[H]
   \centering
@@ -25,19 +25,20 @@ Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieńs
 
 Dodatkowo zbadano trzy bardziej realistyczne profile ewolucji sieci. Wszystkie operują na tych samych limitach liczby dodawanych/usuwanych elementów co warianty syntetyczne, różnią się jednak mechanizmem wyboru sąsiedztwa.
 
-Wariant \emph{pref\_triadic} łączy dwa mechanizmy typowe dla sieci społecznych: preferencyjne przyłączanie i domykanie triad. Nowe węzły dołączają do sieci, preferencyjnie łącząc się z istniejącymi węzłami o wysokim stopniu. Nowe krawędzie powstają natomiast poprzez domykanie trójkątów -- wyszukiwanie dwóch niepołączonych węzłów, które mają wspólnego sąsiada, i tworzenie między nimi połączenia. Mechanizm ten wzmacnia lokalną strukturę klastrową sieci, co odzwierciedla tendencję do tworzenia zamkniętych grup w rzeczywistych sieciach.
+Wariant \emph{pref\_triadic} łączy dwa mechanizmy typowe dla sieci społecznych: preferencyjne przyłączanie i domykanie triad. Nowe węzły dołączają do sieci, preferencyjnie łącząc się z istniejącymi węzłami o wysokim stopniu. Nowe krawędzie powstają natomiast poprzez domykanie trójkątów -- wyszukiwanie dwóch niepołączonych węzłów, które mają wspólnego sąsiada, i tworzenie między nimi połączenia. Mechanizm ten wzmacnia lokalną strukturę klastrową sieci, co odzwierciedla tendencję do tworzenia zamkniętych grup w rzeczywistych sieciach~\cite{albert2002statistical,kamola2016dynamika}.
 
-Wariant \emph{pref\_pref} stosuje mechanizm preferencyjnego przyłączania zarówno przy dodawaniu nowych węzłów, jak i tworzeniu krawędzi między już istniejącymi. Oznacza to, że nie tylko nowe węzły chętniej łączą się z popularnymi wierzchołkami, ale również nowe krawędzie z większym prawdopodobieństwem powstaną między dwoma węzłami, które już teraz mają wysoki stopień. Takie podejście intensywnie promuje tworzenie centralnych hubów w sieci, co jest kluczową cechą topologii bezskalowych.
+Wariant \emph{pref\_pref} stosuje mechanizm preferencyjnego przyłączania zarówno przy dodawaniu nowych węzłów, jak i tworzeniu krawędzi między już istniejącymi. Oznacza to, że nie tylko nowe węzły chętniej łączą się z popularnymi wierzchołkami, ale również nowe krawędzie z większym prawdopodobieństwem powstaną między dwoma węzłami, które już teraz mają wysoki stopień. Takie podejście intensywnie promuje tworzenie centralnych hubów w sieci, co jest kluczową cechą topologii bezskalowych~\cite{albert2002statistical}.
 
-Wreszcie wariant \emph{rand\_rewire} wprowadza do sieci element losowości, inspirowany modelem Wattsa--Strogatza. Nowe węzły dołączane są w sposób losowy, bez preferencji dla popularniejszych wierzchołków. Zamiast dodawania nowych krawędzi, model ten modyfikuje istniejącą strukturę poprzez operację "przełączania" (rewiring): losowa krawędź jest usuwana, a jeden z jej końców jest następnie łączony z innym, losowo wybranym węzłem w sieci. Proces ten prowadzi do powstawania "skrótów" i zmniejsza regularność struktury grafu.
+Wreszcie wariant \emph{rand\_rewire} wprowadza do sieci element losowości, inspirowany modelem Wattsa--Strogatza. Nowe węzły dołączane są w sposób losowy, bez preferencji dla popularniejszych wierzchołków. Zamiast dodawania nowych krawędzi, model ten modyfikuje istniejącą strukturę poprzez operację przełączania (rewiring): losowa krawędź jest usuwana, a jeden z jej końców jest następnie łączony z innym, losowo wybranym węzłem w sieci. Proces ten prowadzi do powstawania "skrótów" i zmniejsza regularność struktury grafu~\cite{watts1998collective}.
+
 
 
 \section{Algorytm zachłanny}
 
-W tym wariancie algorytm zachłanny w każdym kroku symulacji buduje rozwiązanie całkowicie od zera. Stanowi to dolną granicę narzutu czasowego dla metod bez pamięci oraz bazowy punkt odniesienia jakości, do którego porównujemy bardziej zaawansowane metaheurystyki korzystające z rozwiązań z poprzedniego kroku.
+W tym wariancie algorytm zachłanny w każdym kroku symulacji buduje rozwiązanie całkowicie od zera, ignorując poprzednie wyniki optymalizacji. Stanowi to dolne ograniczenie narzutu czasowego dla metod konstruktywnych oraz bazowy punkt odniesienia jakości, do którego porównujemy bardziej zaawansowane metaheurystyki wykorzystujące rozwiązania z poprzednich kroków jako punkt startowy dla dalszej optymalizacji.
 
 \subsection{Zestawienie dla wszystkich mutacji}
-Tabela~\ref{tab:greedy-cold-summary} zestawia średni koszt na węzeł i średni czas na krok dla sześciu badanych profili mutacji: trzech syntetycznych oraz trzech realistycznych. Wszystkie czasy mieszczą się w przedziale 0.5--1.8 ms na krok, a średni koszt na węzeł oscyluje wokół 0.46--0.48.
+Tabela~\ref{tab:greedy-cold-summary} zestawia średni koszt na węzeł i średni czas wykonania algorytmu na krok symulacji dla sześciu badanych profili mutacji: trzech syntetycznych oraz trzech realistycznych. Wszystkie czasy mieszczą się w przedziale 0.5--1.8 ms na krok, a średni koszt na węzeł oscyluje wokół 0.46--0.48.
 
 \begin{table}[H]
   \centering
@@ -126,11 +127,11 @@ Tabela~\ref{tab:dyn-real-warm} przedstawia zbiorcze wyniki dla scenariuszy reali
 \end{table}
 
 \subsection{Wybrane algorytmy i metody mutacji}
-Poniżej wybrano kilka par algorytmów i metod mutacji, które pokazują różne kompromisy. Dla porównania uwzględniono również dwie mutacje syntetyczne. Nie są to zawsze najlepsze jakościowo konfiguracje, ale dobrze ilustrują różne scenariusze.
+W celu zilustrowania zachowania różnych algorytmów optymalizacyjnych w środowisku dynamicznym, wybrano reprezentatywne pary algorytmów i metod mutacji. Zestawienie obejmuje algorytmy o różnej złożoności obliczeniowej -- od prostych heurystyk po zaawansowane metaheurystyki -- testowane na wybranych profilach mutacji realistycznych oraz syntetycznych. Dobór przedstawia spektrum możliwych rozwiązań, od szybkich metod przybliżonych po dokładne, ale czasochłonne podejścia optymalizacyjne.
 
 \begin{table}[H]
   \centering
-  \caption{Wybrane pary algorytmów i metod mutacji (różne kompromisy).}
+  \caption{Wybrane pary algorytmów i metod mutacji.}
   \label{tab:dyn-synth-selected-best}
   \begin{tabular}{llccc}
     \toprule

@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import warnings
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,6 +18,8 @@ try:
     import scikit_posthocs as sp
 except ImportError:  # pragma: no cover
     sp = None
+
+from glopt.core.license_config import LicenseConfigFactory
 
 LATEX_STYLE = {
     "figure.figsize": (6.2, 4.0),  # ~\textwidth, proporcje 3:2
@@ -71,6 +74,15 @@ ALGORITHM_DISPLAY = {
 }
 
 REVERSE_ALGORITHM_DISPLAY = {label: key for key, label in ALGORITHM_DISPLAY.items()}
+
+SAMPLE_IDENTIFIER_COLUMNS = [
+    "graph",
+    "n_nodes",
+    "license_config",
+    "rep",
+    "sample",
+    "run_id",
+]
 
 ALGORITHM_COLOR_MAP: dict[str, str] = {}
 for idx, canonical in enumerate(ALGORITHM_CANONICAL_ORDER):
@@ -364,6 +376,33 @@ def _resolve_unit_costs(
     return unit_costs
 
 
+def _fallback_unit_costs(configs: Iterable[object]) -> dict[str, dict[str, float]]:
+    fallback: dict[str, dict[str, float]] = {}
+    for config in configs:
+        if config is None or (isinstance(config, float) and np.isnan(config)):
+            continue
+        name = str(config)
+        try:
+            license_types = LicenseConfigFactory.get_config(name)
+        except ValueError:
+            continue
+        solo_cost = None
+        group_cost = None
+        for license_type in license_types:
+            if license_type.max_capacity <= 1:
+                if solo_cost is None or license_type.cost < solo_cost:
+                    solo_cost = float(license_type.cost)
+            else:
+                if group_cost is None or license_type.cost < group_cost:
+                    group_cost = float(license_type.cost)
+        if solo_cost is None:
+            continue
+        fallback[name] = {"solo": solo_cost}
+        if group_cost is not None:
+            fallback[name]["group"] = group_cost
+    return fallback
+
+
 def normalize_cost_columns(
     df: pd.DataFrame,
     cost_columns: Sequence[str] = ("total_cost", "cost_per_node"),
@@ -373,6 +412,10 @@ def normalize_cost_columns(
     result = df.copy()
     if unit_costs is None:
         unit_costs = _resolve_unit_costs(result)
+        configs = result["license_config"].dropna().unique()
+        missing = {str(cfg) for cfg in configs} - set(unit_costs.keys())
+        if missing:
+            unit_costs.update(_fallback_unit_costs(missing))
     if not unit_costs:
         return result, {}
 
@@ -498,10 +541,103 @@ def run_friedman_nemenyi(pivot: pd.DataFrame) -> FriedmanResult | None:
     )
 
 
+def filter_complete_samples(
+    df: pd.DataFrame,
+    index_cols: Sequence[str],
+    *,
+    algorithm_col: str = "algorithm",
+    value_cols: Sequence[str] | None = None,
+    warn_label: str | None = None,
+) -> tuple[pd.DataFrame, bool]:
+    """Return rows that have results for every algorithm within the provided identifiers.
+
+    Parameters
+    ----------
+    df:
+        Input dataframe.
+    index_cols:
+        Columns that jointly identify a single sample (graph instance, replicate, etc.).
+    algorithm_col:
+        Column that identifies the algorithm.
+    value_cols:
+        Optional columns that must be non-null for a row to be retained.
+    warn_label:
+        Optional label used when emitting a warning about incomplete coverage.
+
+    Returns
+    -------
+    tuple[pd.DataFrame, bool]
+        Filtered dataframe and a flag indicating whether complete blocks were found.
+    """
+
+    if df.empty:
+        return df.copy(), False
+
+    existing_index_cols = [col for col in index_cols if col in df.columns]
+    if not existing_index_cols:
+        base = df.copy()
+        if value_cols:
+            base = base.dropna(subset=list(value_cols))
+        return base, False
+
+    required_cols = set(existing_index_cols) | {algorithm_col}
+    missing = [col for col in required_cols if col not in df.columns]
+    if missing:
+        raise KeyError(f"Missing required columns for completeness filtering: {missing}")
+
+    filtered = df.copy()
+    if value_cols:
+        filtered = filtered.dropna(subset=list(value_cols))
+
+    filtered = filtered.dropna(subset=[algorithm_col])
+
+    algorithms = filtered[algorithm_col].dropna().unique()
+    if algorithms.size == 0:
+        return filtered.reset_index(drop=True), False
+
+    coverage = (
+        filtered.groupby(existing_index_cols, dropna=False)[algorithm_col]
+        .nunique(dropna=True)
+    )
+    required = len(algorithms)
+    complete_index = coverage[coverage == required].index
+
+    if len(complete_index) == 0:
+        if warn_label:
+            warnings.warn(
+                f"Brak kompletnych próbek dla {warn_label}; wykorzystuję wszystkie dostępne rekordy.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+        return filtered.reset_index(drop=True), False
+
+    complete_df = (
+        filtered.set_index(existing_index_cols)
+        .loc[complete_index]
+        .reset_index()
+    )
+    return complete_df, True
+
+
 def pivot_complete_blocks(df: pd.DataFrame, index_cols: Sequence[str], column_col: str, value_col: str) -> pd.DataFrame:
-    pivot = df.pivot_table(index=list(index_cols), columns=column_col, values=value_col, aggfunc="mean")
-    pivot = pivot.dropna()
-    return pivot
+    filtered, _ = filter_complete_samples(
+        df,
+        index_cols,
+        algorithm_col=column_col,
+        value_cols=[value_col],
+    )
+    existing_index_cols = [col for col in index_cols if col in filtered.columns]
+    if value_col not in filtered.columns:
+        raise KeyError(f"Column '{value_col}' not found in dataframe for pivot")
+    if not existing_index_cols:
+        raise KeyError("No index columns available to pivot complete blocks")
+    pivot = filtered.pivot_table(
+        index=existing_index_cols,
+        columns=column_col,
+        values=value_col,
+        aggfunc="mean",
+    )
+    return pivot.dropna()
 
 
 def save_table(df: pd.DataFrame, path: Path | str) -> None:
