@@ -13,7 +13,8 @@ tworzą raporty i wykresy użyte w częściach eksperymentalnych.
 Poniżej zamieszczono fragment implementacji solvera ILP odpowiedzialnego
 za wyznaczanie rozwiązań wzorcowych.
 
-\begin{verbatim}
+    {\footnotesize
+        \begin{verbatim}
 from collections.abc import Sequence
 from typing import Any
 
@@ -144,12 +145,14 @@ class ILPSolver(Algorithm):
 
         return Solution(groups=tuple(groups))
 \end{verbatim}
+    }
 
 \section{Algorytmy metaheurystyczne}
 \subsection{Optymalizacja mrówkowa}
 Kod przedstawia główną pętlę algorytmu mrówkowego wraz z
 procedurami konstrukcji rozwiązania.
 
+{\footnotesize
 \begin{verbatim}
 from __future__ import annotations
 
@@ -392,13 +395,15 @@ class AntColonyOptimization(Algorithm):
         ]
         return Solution(groups=tuple(groups))
 \end{verbatim}
+}
 
 \section{Funkcje pomocnicze}
 \subsection{Budowanie i scalanie grup}
 Wybrane metody klasy budującej rozwiązania, wykorzystywane przez
 algorytmy konstrukcyjne i metaheurystyki.
 
-\begin{verbatim}
+    {\footnotesize
+        \begin{verbatim}
 from collections.abc import Hashable, Sequence
 
 import networkx as nx
@@ -474,6 +479,7 @@ class SolutionBuilder:
         ]
         return min(compat, key=lambda lt: lt.cost) if compat else None
 \end{verbatim}
+    }
 
 \section{Analiza wyników}
 \subsection{Główny skrypt raportujący}
@@ -481,7 +487,8 @@ Poniższy fragment prezentuje funkcję główną narzędzia analitycznego,
 które agreguje wyniki benchmarków i generuje raporty tekstowe oraz
 graficzne.
 
-\begin{verbatim}
+    {\footnotesize
+        \begin{verbatim}
 def main() -> None:
     apply_plot_style()
 
@@ -833,3 +840,4 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 \end{verbatim}
+    }

@@ -50,7 +50,7 @@ GRAPH_LABELS = {
 
 DATASET_LABELS = {
     "duolingo_super": "Duolingo Super",
-    "roman_domination": "Roman Domination",
+    "roman_domination": "Dominowanie rzymskie",
 }
 
 ALGORITHM_ORDER_DISPLAY = [algorithm_display_name(name) for name in ALGORITHM_CANONICAL_ORDER]
@@ -229,8 +229,8 @@ def _plot_license_mix(summary: pd.DataFrame, filename: str) -> None:
     ax.set_xticks(indices)
     ax.set_xticklabels(summary["dataset"], rotation=20)
     ax.set_ylabel("Udział licencji")
-    ax.legend()
-    plt.tight_layout()
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, 1.12), ncol=2)
+    fig.tight_layout(rect=(0.0, 0.0, 1.0, 0.9))
     fig.savefig(FIG_DIR / filename)
     plt.close(fig)
 
