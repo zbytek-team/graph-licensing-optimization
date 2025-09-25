@@ -15,7 +15,14 @@ W eksperymentach wykorzystywano kilka odrębnych konfiguracji rozmiaru w zależn
 
 
 \subsection{Model Erdős--Rényi - klasyczne grafy losowe}
-Pierwszym rozważanym modelem jest klasyczny losowy graf Erdős--Rényi (ER) zaproponowany przez Erd\H{o}s'a i Rényi'ego w 1959 roku \cite{ErdosRenyi1960}. W modelu tym rozpatruje się zbiór $n$ wierzchołków, a każda z $\binom{n}{2}$ potencjalnych krawędzi pojawia się niezależnie z prawdopodobieństwem $p$. Parametrami modelu są więc $n$ oraz $p$. W używanej implementacji zaadaptowano właśnie ten wariant $G(n,p)$.
+Pierwszym rozważanym modelem jest klasyczny losowy graf Erdős--Rényi (ER) zaproponowany przez Erd\H{o}s'a i Rényi'ego w 1959 roku \cite{ErdosRenyi1960}. W modelu tym rozpatruje się zbiór $n$ wierzchołków, a każda z $\binom{n}{2}$ potencjalnych krawędzi pojawia się niezależnie z prawdopodobieństwem $p$. Parametrami modelu są więc $n$ oraz $p$. W używanej implementacji zaadaptowano właśnie ten wariant $G(n,p)$, który prezentuje się w sposób przedstawiony na rys. \ref{fig:ER}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{assets/test_data/random.png}
+    \caption{Przykładowa realizacja grafu Erdős--Rényi}
+    \label{fig:ER}
+\end{figure}
 
 Model ER stanowi istotny punkt odniesienia jako najprostszy model sieci pozbawiony struktury społecznościowej. Motywacją uwzględnienia go w testach jest możliwość porównania działania algorytmów na zupełnie przypadkowych sieciach z ich działaniem na bardziej uporządkowanych grafach takich jak grafy skalowane, małego świata oraz rzeczywiste. Choć prawdziwe sieci społecznościowe odbiegają od założeń pełnej losowości, mają zwykle wyższy poziom klasteryzacji węzłów i nierównomierny rozkład stopni, to jednak model $G(n, p)$ stanowi istotną podstawę porównawczą.
 
@@ -24,11 +31,18 @@ Współczynnik klasteryzacji mierzy, w jakim stopniu sąsiedzi danego wierzchoł
 Dokładniej, oblicza się go jako stosunek liczby krawędzi faktycznie istniejących między sąsiadami wierzchołka do liczby wszystkich możliwych krawędzi między tymi sąsiadami. 
 Średni współczynnik klasteryzacji dla całego grafu definiuje się jako średnią arytmetyczną wartości współczynników klasteryzacji po wszystkich wierzchołkach.
 Oczekiwana wartość współczynnika klasteryzacji jest równa $p$ dla wystarczająco dużego $n$, a dla dostatecznie dużego $p$ istnieje możliwość powstania jednej gigantycznej składowej spójności.
-Istnieje znana granica perkolacji, gdy $p>\frac{\ln n}{n}$, graf $G(n, p)$ jest z dużym prawdopodobieństwem spójny - poniżej tego progu sieć rozpada się na wiele składowych \cite{ErdosRenyi1960}. Gęstość grafu, rozumiana jako odsetek istniejących krawędzi w stosunku do wszystkich możliwych, wynosi w tym modelu w przybliżeniu $p$. Przykładowo, dla $p=0.1$ graf będzie miał ok. 10\% maksymalnej liczby krawędzi. Rozkład stopni w modelu ER ma charakter dwumianowy, przy czym zbiega do rozkładu Poissona przy $n\to\infty$. Oznacza to, że w grafach tych nie występują węzły o niezwykle wysokich stopniach (tzw. huby), które są charakterystyczne dla wielu rzeczywistych sieci społecznościowych. W konsekwencji model ER nie oddaje wielu kluczowych właściwości takich sieci - stanowi jednak użyteczny model kontrolny, pozbawiony zjawisk typu mały świat czy skalowość, dzięki czemu można wyraźnie uwypuklić wpływ tych cech w innych modelach.
+Istnieje znana granica perkolacji, gdy $p>\frac{\ln n}{n}$, graf ER jest z dużym prawdopodobieństwem spójny - poniżej tego progu sieć rozpada się na wiele składowych \cite{ErdosRenyi1960}. Gęstość grafu, rozumiana jako odsetek istniejących krawędzi w stosunku do wszystkich możliwych, wynosi w tym modelu w przybliżeniu $p$. Przykładowo, dla $p=0.1$ graf będzie miał ok. 10\% maksymalnej liczby krawędzi. Rozkład stopni w modelu ER ma charakter dwumianowy, przy czym zbiega do rozkładu Poissona przy $n\to\infty$. Oznacza to, że w grafach tych nie występują węzły o niezwykle wysokich stopniach (tzw. huby), które są charakterystyczne dla wielu rzeczywistych sieci społecznościowych. W konsekwencji model ER nie oddaje wielu kluczowych właściwości takich sieci - stanowi jednak użyteczny model kontrolny, pozbawiony zjawisk typu mały świat czy skalowość, dzięki czemu można wyraźnie uwypuklić wpływ tych cech w innych modelach.
 
 
 \subsection{Model Barabási--Albert - sieci bezskalowe}
-Drugim wykorzystanym generatorem jest model Barabási--Albert (BA), wprowadzony przez Barabási'ego i Alberta w 1999 roku \cite{barabasi1999emergence}. Model BA pozwala generować grafy o strukturze bezskalowej, których rozkład stopni wierzchołków ma rozkład wykładniczy. Tego typu sieci charakteryzują się istnieniem niewielkiej liczby wierzchołków o bardzo wysokim stopniu (tzw. hubów) oraz wielu wierzchołków o małym stopniu - jest to cecha obserwowana w wielu rzeczywistych sieciach, w tym społecznościowych. W przypadku sieci społecznościowych odnosi się to do tego, że niektórzy użytkownicy mogą mieć tysiące znajomych/obserwujących, podczas gdy większość ma ich kilkadziesiąt lub mniej.
+Drugim wykorzystanym generatorem jest model Barabási--Albert (BA), wprowadzony przez Barabási'ego i Alberta w 1999 roku \cite{barabasi1999emergence}. Model BA pozwala generować grafy o strukturze bezskalowej, których rozkład stopni wierzchołków ma rozkład wykładniczy. Tego typu sieci charakteryzują się istnieniem niewielkiej liczby wierzchołków o bardzo wysokim stopniu (tzw. hubów) oraz wielu wierzchołków o małym stopniu - jest to cecha obserwowana w wielu rzeczywistych sieciach, w tym społecznościowych. Dla ilustracji, na rys.~\ref{fig:BA} przedstawiono przykładową realizację grafu BA, w której wyraźnie widoczne są huby. W przypadku sieci społecznościowych odnosi się to do tego, że niektórzy użytkownicy mogą mieć tysiące znajomych/obserwujących, podczas gdy większość ma ich kilkadziesiąt lub mniej.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{assets/test_data/scalefree.png}
+    \caption{Przykładowa realizacja grafu Barabási--Albert z widocznymi hubami}
+    \label{fig:BA}
+\end{figure}
 
 Parametrem wejściowym modelu Barabási--Albert jest przede wszystkim $n$ - docelowa liczba węzłów w grafie - oraz $m$ - liczba krawędzi, jakie dodaje każdy nowy węzeł. Procedura generowania rozpoczyna się od małego grafu startowego (np. klika złożona z $m$ wierzchołków, aby zapewnić początkową spójność). Następnie dodaje się kolejno nowe wierzchołki; każdy nowy węzeł łączy się z $m$ już istniejącymi wierzchołkami, przy czym prawdopodobieństwo połączenia z danym istniejącym węzłem jest proporcjonalne do jego bieżącego stopnia (tzw. reguła preferencyjnego łączenia, ang. preferential attachment). Mechanizm preferencyjnego przyłączania zwiększa prawdopodobieństwo dalszego wzrostu stopnia wierzchołków o wysokiej liczbie połączeń, czyli wierzchołki, które zyskały wiele połączeń na wcześniejszych etapach, mają większą szansę zdobyć kolejne połączenia, co prowadzi do wykładniczego rozkładu stopni wierzchołków.
 
@@ -39,8 +53,15 @@ Grafy generowane modelem BA mają z reguły jedną składową spójności. Przy 
 \subsection{Model Watts--Strogatz - graf małego świata}
 Trzecim fundamentalnym modelem wykorzystanym w pracy jest model Watts--Strogatz (WS), opisany przez Wattsa i Strogatza w 1998 roku~\cite{Watts1998}. Umożliwia on generowanie grafów małego świata (small-world networks), które łączą w sobie dwie istotne cechy: wysoki współczynnik skupienia (podobny do obserwowanego w sieciach regularnych) oraz niską średnią odległość (podobnie jak w grafach losowych). Model ten odzwierciedla fakt, że w sieciach społecznościowych często występują silnie zżyte grupy znajomych, a jednocześnie dowolne dwie osoby są połączone relatywnie krótką ścieżką znajomości.
 
-Generacja grafu WS wymaga dostarczenia mu trzech parametrów: liczby wierzchołków, stopnia każdego wierzchołka w początkowej regularnej strukturze oraz prawdopodobieństwa istnienia krawędzi. Procedura rozpoczyna się od utworzenia grafu regularnego, gdzie każdy wierzchołek jest połączony z $k$ najbliższymi sąsiadami w cyklu (tj. tworzymy cykl z $n$ węzłów, a następnie każdy węzeł łączymy z $\frac{k}{2}$ następnymi i $\frac{k}{2}$ poprzednimi na cyklu, zakładając dla uproszczenia, że $k$ jest parzyste). Tak powstała sieć charakteryzuje się wysokim współczynnikiem klasteryzacji — węzły sąsiadujące na cyklu tworzą małe kliki.
-Jednocześnie początkowa średnia odległość jest stosunkowo duża, bo graf tuż przed modyfikacją krawędzi ma strukturę cyklu, więc dystans między węzłami oddalonymi na cyklu jest znaczny.
+Generacja grafu WS wymaga dostarczenia mu trzech parametrów: liczby wierzchołków, stopnia każdego wierzchołka w początkowej regularnej strukturze oraz prawdopodobieństwa istnienia krawędzi. Procedura rozpoczyna się od utworzenia grafu regularnego, gdzie każdy wierzchołek jest połączony z $k$ najbliższymi sąsiadami w cyklu (tj. tworzymy cykl z $n$ węzłów, a następnie każdy węzeł łączymy z $\frac{k}{2}$ następnymi i $\frac{k}{2}$ poprzednimi na cyklu, zakładając dla uproszczenia, że $k$ jest parzyste). Tak powstała sieć charakteryzuje się wysokim współczynnikiem klasteryzacji - węzły sąsiadujące na cyklu tworzą małe kliki.
+Jednocześnie początkowa średnia odległość jest stosunkowo duża, bo graf tuż przed modyfikacją krawędzi ma strukturę cyklu, więc dystans między węzłami oddalonymi na cyklu jest znaczny. Na rys.~\ref{fig:WS} zilustrowano przykładową realizację grafu Watts--Strogatz, w której widoczne są opisane wyżej właściwości.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.65\textwidth]{assets/test_data/smallworld.png}
+    \caption{Przykładowa realizacja grafu Watts--Strogatz, w której widoczne są lokalne kliki oraz losowe połączenia długodystansowe skracające średnie odległości}
+    \label{fig:WS}
+\end{figure}
 
 Następnie, w modelu WS wprowadza się losowe przepięcia. Dla każdej krawędzi łączącej węzeł z jednym z $\frac{k}{2}$ najbliższych sąsiadów w cyklu. Dokonuje się, z prawdopodobieństwem $p$, przepięcia jednego końca tej krawędzi do losowo wybranego innego wierzchołka. Przepięcie polega na usunięciu oryginalnej krawędzi i dodaniu nowej krawędzi łączącej dany węzeł z innym losowym węzłem. W wyniku tych losowych przepięć, przy zachowaniu większości lokalnych połączeń cyklu, otrzymujemy graf, który dla małych $p$ wciąż charakteryzuje się wysokim współczynnikiem klasteryzacji, ale jednocześnie kilka losowych połączeń długodystansowych znacząco skraca średnie odległości w sieci. 
 Dla umiarkowanych wartości $p$ (np. $p \approx 0.01$ czy $0.1$) sieć uzyskuje bardzo małą średnią odległość - zbliżoną do grafów losowych - podczas gdy współczynnik klasteryzacji pozostaje o rząd wielkości wyższy niż w grafie Erdős--Rényi o porównywalnej gęstości.
