@@ -42,11 +42,7 @@ def _candidate_data_dirs() -> list[Path]:
             Path("/data/benchmark_real"),
             Path("/data/analysis/processed/benchmark_real"),
             Path("/data/glopt/analysis/processed/benchmark_real"),
-            BASE_DIR.parent
-            / "glopt"
-            / "analysis"
-            / "processed"
-            / "benchmark_real",
+            BASE_DIR.parent / "glopt" / "analysis" / "processed" / "benchmark_real",
             BASE_DIR / "data" / "benchmark_real",
         ]
     )
@@ -63,10 +59,7 @@ def _resolve_data_dir() -> Path:
         if all((candidate / name).exists() for name in REQUIRED_DATA_FILES):
             return candidate
     searched = "\n".join(str(path) for path in _candidate_data_dirs())
-    raise FileNotFoundError(
-        "Nie można odnaleźć danych benchmark_real. Sprawdzono następujące katalogi:\n"
-        f"{searched}"
-    )
+    raise FileNotFoundError(f"Nie można odnaleźć danych benchmark_real. Sprawdzono następujące katalogi:\n{searched}")
 
 
 DATA_DIR = _resolve_data_dir()
@@ -97,12 +90,8 @@ def _filter_algorithms(df: pd.DataFrame) -> pd.DataFrame:
     return df[~df["algorithm"].isin(EXCLUDED)].copy()
 
 
-def _plot_metric_vs_nodes(
-    df: pd.DataFrame, value: str, title: str, filename: str
-) -> None:
-    aggregated = df.groupby(["algorithm", "n_nodes"], as_index=False).agg(
-        mean=(value, "mean")
-    )
+def _plot_metric_vs_nodes(df: pd.DataFrame, value: str, title: str, filename: str) -> None:
+    aggregated = df.groupby(["algorithm", "n_nodes"], as_index=False).agg(mean=(value, "mean"))
     fig, ax = plt.subplots()
     sns.lineplot(
         data=aggregated,
@@ -124,9 +113,7 @@ def _plot_metric_vs_nodes(
     plt.close(fig)
 
 
-def _plot_metric_by_graph(
-    df: pd.DataFrame, value: str, title: str, filename: str
-) -> None:
+def _plot_metric_by_graph(df: pd.DataFrame, value: str, title: str, filename: str) -> None:
     fig, ax = plt.subplots()
     sns.barplot(
         data=df,
@@ -149,9 +136,7 @@ def _plot_metric_by_graph(
     plt.close(fig)
 
 
-def _plot_duo_vs_roman(
-    df: pd.DataFrame, value: str, title: str, filename: str
-) -> None:
+def _plot_duo_vs_roman(df: pd.DataFrame, value: str, title: str, filename: str) -> None:
     fig, ax = plt.subplots()
     sns.barplot(
         data=df,
@@ -177,9 +162,7 @@ def _plot_duo_vs_roman(
 def main() -> None:
     apply_plot_style()
 
-    duolingo = expand_license_counts(
-        load_dataset(DATA_DIR / "duolingo_df.csv")
-    )
+    duolingo = expand_license_counts(load_dataset(DATA_DIR / "duolingo_df.csv"))
     duolingo, _ = normalize_cost_columns(duolingo)
     roman = expand_license_counts(load_dataset(DATA_DIR / "roman_df.csv"))
     roman, _ = normalize_cost_columns(roman)
@@ -230,9 +213,7 @@ def main() -> None:
     timeout_counts_agg = timeout.groupby("algorithm").size().rename("count")
     timeout_counts_agg.to_csv(TAB_DIR / "timeouts_by_algorithm.csv")
 
-    timeout_counts_graph = (
-        timeout.groupby(["algorithm", "graph"]).size().rename("count")
-    )
+    timeout_counts_graph = timeout.groupby(["algorithm", "graph"]).size().rename("count")
     timeout_counts_graph.to_csv(TAB_DIR / "timeouts_by_algorithm_graph.csv")
 
     pareto_cols = [
@@ -243,18 +224,12 @@ def main() -> None:
         "time_s",
         "cost_per_node",
     ]
-    pareto_df = compute_pareto_front(
-        duolingo[pareto_cols], "total_cost", "time_s"
-    )
+    pareto_df = compute_pareto_front(duolingo[pareto_cols], "total_cost", "time_s")
     pareto_df.to_csv(TAB_DIR / "duolingo_pareto_cost_time.csv", index=False)
 
     id_cols = ["graph", "n_nodes", "license_config", "rep", "sample"]
-    pivot_time = pivot_complete_blocks(
-        duolingo, id_cols, "algorithm", "time_s"
-    )
-    pivot_cost = pivot_complete_blocks(
-        duolingo, id_cols, "algorithm", "cost_per_node"
-    )
+    pivot_time = pivot_complete_blocks(duolingo, id_cols, "algorithm", "time_s")
+    pivot_cost = pivot_complete_blocks(duolingo, id_cols, "algorithm", "cost_per_node")
 
     friedman_lines: list[str] = []
     time_result = run_friedman_nemenyi(pivot_time)
@@ -264,16 +239,10 @@ def main() -> None:
             TAB_DIR / "friedman_time_mean_ranks.csv",
         )
         if time_result.nemenyi is not None:
-            save_table(
-                time_result.nemenyi, TAB_DIR / "nemenyi_time_pvalues.csv"
-            )
-        friedman_lines.append(
-            f"Friedman test (time_s): statistic={time_result.statistic:.3f}, p-value={time_result.pvalue:.4g}"
-        )
+            save_table(time_result.nemenyi, TAB_DIR / "nemenyi_time_pvalues.csv")
+        friedman_lines.append(f"Friedman test (time_s): statistic={time_result.statistic:.3f}, p-value={time_result.pvalue:.4g}")
     else:
-        friedman_lines.append(
-            "Friedman test (time_s): insufficient paired samples"
-        )
+        friedman_lines.append("Friedman test (time_s): insufficient paired samples")
 
     cost_result = run_friedman_nemenyi(pivot_cost)
     if cost_result:
@@ -286,13 +255,9 @@ def main() -> None:
                 cost_result.nemenyi,
                 TAB_DIR / "nemenyi_cost_per_node_pvalues.csv",
             )
-        friedman_lines.append(
-            f"Friedman test (cost_per_node): statistic={cost_result.statistic:.3f}, p-value={cost_result.pvalue:.4g}"
-        )
+        friedman_lines.append(f"Friedman test (cost_per_node): statistic={cost_result.statistic:.3f}, p-value={cost_result.pvalue:.4g}")
     else:
-        friedman_lines.append(
-            "Friedman test (cost_per_node): insufficient paired samples"
-        )
+        friedman_lines.append("Friedman test (cost_per_node): insufficient paired samples")
 
     _plot_metric_vs_nodes(
         duolingo,
@@ -352,11 +317,7 @@ def main() -> None:
     )
     save_table(comparison, TAB_DIR / "duo_vs_roman_algorithm_means.csv")
 
-    by_graph = (
-        combined.groupby(["dataset", "graph"])
-        .agg(time_mean=("time_s", "mean"), cpn_mean=("cost_per_node", "mean"))
-        .reset_index()
-    )
+    by_graph = combined.groupby(["dataset", "graph"]).agg(time_mean=("time_s", "mean"), cpn_mean=("cost_per_node", "mean")).reset_index()
     save_table(by_graph, TAB_DIR / "duo_vs_roman_graph_means.csv")
     _plot_duo_vs_roman(
         combined,
@@ -375,12 +336,8 @@ def main() -> None:
     lines.append("# Benchmark real - podsumowanie")
     lines.append("Wykluczono ILPSolver ze wszystkich statystyk.")
     lines.append("")
-    lines.append(
-        f"Duolingo - średni czas: {duo_overall.loc[duo_overall['metric'] == 'time_s', 'mean'].iloc[0]:.2f} s"
-    )
-    lines.append(
-        f"Roman - średni czas: {roman_overall.loc[roman_overall['metric'] == 'time_s', 'mean'].iloc[0]:.2f} s"
-    )
+    lines.append(f"Duolingo - średni czas: {duo_overall.loc[duo_overall['metric'] == 'time_s', 'mean'].iloc[0]:.2f} s")
+    lines.append(f"Roman - średni czas: {roman_overall.loc[roman_overall['metric'] == 'time_s', 'mean'].iloc[0]:.2f} s")
     lines.append("")
     lines.extend(friedman_lines)
     write_text(REPORTS_DIR / "summary.md", lines)

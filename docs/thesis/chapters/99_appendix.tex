@@ -510,7 +510,7 @@ def main() -> None:
     roman["dataset"] = DATASET_LABELS["roman_domination"]
 
     timeout_raw = expand_license_counts(
-        load_dataset(DATA_DIR / "timeout_df.csv")
+        load_dataset(DATA_DIR / "przekroczenie_limitu_czasu_df.csv")
     )
     combined_unit_costs = {**duolingo_unit_costs, **roman_unit_costs}
     timeout, _ = normalize_cost_columns(
@@ -561,13 +561,13 @@ def main() -> None:
         .size().rename("count")
         .sort_values(ascending=False)
     )
-    timeout_counts_algo.to_csv(TAB_DIR / "timeouts_by_algorithm.csv")
+    timeout_counts_algo.to_csv(TAB_DIR / "przekroczenia_limitu_czasu_by_algorithm.csv")
 
     timeout_counts_graph = (
         timeout.groupby(["algorithm", "graph"]).size().rename("count")
     )
     timeout_counts_graph.to_csv(
-        TAB_DIR / "timeouts_by_algorithm_graph.csv"
+        TAB_DIR / "przekroczenia_limitu_czasu_by_algorithm_graph.csv"
     )
 
     timeout_license = (
@@ -575,7 +575,7 @@ def main() -> None:
         .size().rename("count")
     )
     timeout_license.to_csv(
-        TAB_DIR / "timeouts_by_algorithm_license.csv"
+        TAB_DIR / "przekroczenia_limitu_czasu_by_algorithm_license.csv"
     )
 
     pareto_cols = [

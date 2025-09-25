@@ -16,7 +16,7 @@ from glopt.core.algorithms.greedy import GreedyAlgorithm
 from glopt.core.io import ensure_dir
 from glopt.core.license_config import LicenseConfigFactory
 from glopt.core.solution_validator import SolutionValidator
-from glopt.experiments.common import build_run_id, print_footer
+from glopt.experiments.common import build_run_id, normalize_license_costs, print_footer
 
 RUN_ID: str | None = None
 GRAPH_NAMES: list[str] = ["scale_free"]
@@ -173,7 +173,9 @@ def _worker_solve(
     try:
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
-        lts = LicenseConfigFactory.get_config(license_config)
+        lts = normalize_license_costs(
+            LicenseConfigFactory.get_config(license_config)
+        )
         kwargs: dict[str, Any] = {"seed": seed}
         warm_names = {
             "GeneticAlgorithm",

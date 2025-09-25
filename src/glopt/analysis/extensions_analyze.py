@@ -43,9 +43,7 @@ LICENSE_FAMILY = {
 TARGET_ALGOS = ["AntColonyOptimization", "GeneticAlgorithm", "TabuSearch"]
 
 TARGET_ALGOS_DISPLAY = [algorithm_display_name(name) for name in TARGET_ALGOS]
-ALGORITHM_ORDER_DISPLAY = [
-    algorithm_display_name(name) for name in ALGORITHM_CANONICAL_ORDER
-]
+ALGORITHM_ORDER_DISPLAY = [algorithm_display_name(name) for name in ALGORITHM_CANONICAL_ORDER]
 
 METRIC_DISPLAY = {
     "time_s": "czas [s]",
@@ -63,16 +61,10 @@ def _axis_label(metric: str, aggregate: str | None = None) -> str:
 
 def add_metadata(df: pd.DataFrame) -> pd.DataFrame:
     result = df.copy()
-    result["license_family"] = (
-        result["license_config"].map(LICENSE_FAMILY).fillna("other")
-    )
-    result["variant"] = result["license_config"].str.replace(
-        ".*p_", "p_", regex=True
-    )
+    result["license_family"] = result["license_config"].map(LICENSE_FAMILY).fillna("other")
+    result["variant"] = result["license_config"].str.replace(".*p_", "p_", regex=True)
     result["variant"] = result.apply(
-        lambda row: row["license_config"]
-        if row["variant"] == row["license_config"]
-        else row["variant"],
+        lambda row: row["license_config"] if row["variant"] == row["license_config"] else row["variant"],
         axis=1,
     )
     return result
@@ -119,9 +111,7 @@ def _plot_metric_by_license(
     plt.close(fig)
 
 
-def _plot_family_comparison(
-    df: pd.DataFrame, family: str, metric: str, filename: str, title: str
-) -> None:
+def _plot_family_comparison(df: pd.DataFrame, family: str, metric: str, filename: str, title: str) -> None:
     subset = df[df["license_family"] == family]
     if subset.empty:
         return
@@ -152,21 +142,13 @@ def main() -> None:
     apply_plot_style()
 
     extensions_raw = expand_license_counts(load_dataset(DATA_DIR / "df.csv"))
-    timeout_raw = expand_license_counts(
-        load_dataset(DATA_DIR / "timeout_df.csv")
-    )
+    timeout_raw = expand_license_counts(load_dataset(DATA_DIR / "timeout_df.csv"))
 
     baseline_raw = pd.concat([extensions_raw, timeout_raw], ignore_index=True)
-    _, unit_costs = normalize_cost_columns(
-        baseline_raw, attach_group_multiplier=True
-    )
+    _, unit_costs = normalize_cost_columns(baseline_raw, attach_group_multiplier=True)
 
-    extensions_norm, _ = normalize_cost_columns(
-        extensions_raw, unit_costs=unit_costs, attach_group_multiplier=True
-    )
-    timeout_norm, _ = normalize_cost_columns(
-        timeout_raw, unit_costs=unit_costs, attach_group_multiplier=True
-    )
+    extensions_norm, _ = normalize_cost_columns(extensions_raw, unit_costs=unit_costs, attach_group_multiplier=True)
+    timeout_norm, _ = normalize_cost_columns(timeout_raw, unit_costs=unit_costs, attach_group_multiplier=True)
 
     extensions = apply_algorithm_labels(add_metadata(extensions_norm))
     timeout = apply_algorithm_labels(add_metadata(timeout_norm))
@@ -182,9 +164,7 @@ def main() -> None:
     overall_stats = describe_numeric(extensions, metrics, ["license_config"])
     save_table(overall_stats, TAB_DIR / "overall_stats_by_license.csv")
 
-    algo_stats = describe_numeric(
-        extensions, metrics, ["license_config", "algorithm"]
-    )
+    algo_stats = describe_numeric(extensions, metrics, ["license_config", "algorithm"])
     save_table(algo_stats, TAB_DIR / "algo_stats_by_license.csv")
 
     family_stats = describe_numeric(
@@ -194,30 +174,15 @@ def main() -> None:
     )
     save_table(family_stats, TAB_DIR / "family_stats.csv")
 
-    license_mix = extensions.groupby("license_config")[
-        ["license_group", "license_individual", "license_other"]
-    ].sum()
+    license_mix = extensions.groupby("license_config")[["license_group", "license_individual", "license_other"]].sum()
     license_mix["total"] = license_mix.sum(axis=1)
-    license_mix["group_share"] = (
-        license_mix["license_group"] / license_mix["total"]
-    )
-    license_mix["individual_share"] = (
-        license_mix["license_individual"] / license_mix["total"]
-    )
+    license_mix["group_share"] = license_mix["license_group"] / license_mix["total"]
+    license_mix["individual_share"] = license_mix["license_individual"] / license_mix["total"]
     save_table(license_mix, TAB_DIR / "license_mix_summary.csv")
 
-    timeout_counts = (
-        timeout.groupby(["license_config", "algorithm"])
-        .size()
-        .rename("count")
-        .sort_values(ascending=False)
-    )
+    timeout_counts = timeout.groupby(["license_config", "algorithm"]).size().rename("count").sort_values(ascending=False)
     timeout_counts.to_csv(TAB_DIR / "timeouts_by_license_algorithm.csv")
-    timeout_graph = (
-        timeout.groupby(["license_config", "algorithm", "graph"])
-        .size()
-        .rename("count")
-    )
+    timeout_graph = timeout.groupby(["license_config", "algorithm", "graph"]).size().rename("count")
     timeout_graph.to_csv(TAB_DIR / "timeouts_by_license_algorithm_graph.csv")
 
     _plot_metric_by_license(
@@ -235,25 +200,14 @@ def main() -> None:
     )
 
     # Porównanie z benchmarkiem na wspólnych n_nodes
-    bench_duo_raw = expand_license_counts(
-        load_dataset(BASE_DIR / "data" / "benchmark" / "duolingo_df.csv")
-    )
-    bench_duo_norm, _ = normalize_cost_columns(
-        bench_duo_raw, attach_group_multiplier=True
-    )
+    bench_duo_raw = expand_license_counts(load_dataset(BASE_DIR / "data" / "benchmark" / "duolingo_df.csv"))
+    bench_duo_norm, _ = normalize_cost_columns(bench_duo_raw, attach_group_multiplier=True)
     bench_duo = apply_algorithm_labels(bench_duo_norm)
-    bench_roman_raw = expand_license_counts(
-        load_dataset(BASE_DIR / "data" / "benchmark" / "roman_df.csv")
-    )
-    bench_roman_norm, _ = normalize_cost_columns(
-        bench_roman_raw, attach_group_multiplier=True
-    )
+    bench_roman_raw = expand_license_counts(load_dataset(BASE_DIR / "data" / "benchmark" / "roman_df.csv"))
+    bench_roman_norm, _ = normalize_cost_columns(bench_roman_raw, attach_group_multiplier=True)
     bench_roman = apply_algorithm_labels(bench_roman_norm)
 
-    target_nodes = sorted(
-        set(extensions["n_nodes"].unique())
-        & set(bench_duo["n_nodes"].unique())
-    )
+    target_nodes = sorted(set(extensions["n_nodes"].unique()) & set(bench_duo["n_nodes"].unique()))
     bench_duo = bench_duo[bench_duo["n_nodes"].isin(target_nodes)].copy()
     bench_roman = bench_roman[bench_roman["n_nodes"].isin(target_nodes)].copy()
 
@@ -314,53 +268,23 @@ def main() -> None:
     summary_lines: list[str] = []
     summary_lines.append("# Extensions - podsumowanie")
     summary_lines.append("")
-    summary_lines.append(
-        "Konfiguracje duolingo (p_2/p_4/p_5) redukują koszt/węzeł względem benchmarku:"
-    )
-    duo_cpn = duo_stats[
-        (duo_stats["metric"] == "cost_per_node")
-        & (duo_stats["source"] != "benchmark_duolingo_super")
-    ]
-    duo_base = (
-        duo_stats[
-            (duo_stats["metric"] == "cost_per_node")
-            & (duo_stats["source"] == "benchmark_duolingo_super")
-        ]
-        .groupby("algorithm")["mean"]
-        .mean()
-    )
+    summary_lines.append("Konfiguracje duolingo (p_2/p_4/p_5) redukują koszt/węzeł względem benchmarku:")
+    duo_cpn = duo_stats[(duo_stats["metric"] == "cost_per_node") & (duo_stats["source"] != "benchmark_duolingo_super")]
+    duo_base = duo_stats[(duo_stats["metric"] == "cost_per_node") & (duo_stats["source"] == "benchmark_duolingo_super")].groupby("algorithm")["mean"].mean()
     for _, row in duo_cpn.sort_values("mean").head(5).iterrows():
         baseline = duo_base.get(row["algorithm"], np.nan)
         baseline_txt = f"{baseline:.2f}" if not np.isnan(baseline) else "n/a"
-        summary_lines.append(
-            f"- {row['source']} / {row['algorithm']}: średnia {row['mean']:.2f} vs benchmark {baseline_txt}"
-        )
+        summary_lines.append(f"- {row['source']} / {row['algorithm']}: średnia {row['mean']:.2f} vs benchmark {baseline_txt}")
     summary_lines.append("")
-    summary_lines.append(
-        "Konfiguracje roman (p_3/p_4/p_5) względem benchmarku:"
-    )
-    roman_cpn = roman_stats[
-        (roman_stats["metric"] == "cost_per_node")
-        & (roman_stats["source"] != "benchmark_roman_domination")
-    ]
-    base_roman_med = (
-        roman_stats[
-            (roman_stats["metric"] == "cost_per_node")
-            & (roman_stats["source"] == "benchmark_roman_domination")
-        ]
-        .groupby("algorithm")["mean"]
-        .mean()
-    )
+    summary_lines.append("Konfiguracje roman (p_3/p_4/p_5) względem benchmarku:")
+    roman_cpn = roman_stats[(roman_stats["metric"] == "cost_per_node") & (roman_stats["source"] != "benchmark_roman_domination")]
+    base_roman_med = roman_stats[(roman_stats["metric"] == "cost_per_node") & (roman_stats["source"] == "benchmark_roman_domination")].groupby("algorithm")["mean"].mean()
     for _, row in roman_cpn.sort_values("mean").head(5).iterrows():
         baseline = base_roman_med.get(row["algorithm"], np.nan)
         baseline_txt = f"{baseline:.2f}" if not np.isnan(baseline) else "n/a"
-        summary_lines.append(
-            f"- {row['source']} / {row['algorithm']}: średnia {row['mean']:.2f} vs benchmark {baseline_txt}"
-        )
+        summary_lines.append(f"- {row['source']} / {row['algorithm']}: średnia {row['mean']:.2f} vs benchmark {baseline_txt}")
     summary_lines.append("")
-    summary_lines.append(
-        "Szczegółowe statystyki i wykresy zapisano w katalogach tables/ oraz figures/"
-    )
+    summary_lines.append("Szczegółowe statystyki i wykresy zapisano w katalogach tables/ oraz figures/")
     write_text(REPORTS_DIR / "summary.md", summary_lines)
 
 

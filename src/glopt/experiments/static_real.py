@@ -15,6 +15,7 @@ from glopt.core.license_config import LicenseConfigFactory
 from glopt.core.solution_validator import SolutionValidator
 from glopt.experiments.common import (
     build_run_id,
+    normalize_license_costs,
     print_footer,
 )
 
@@ -56,7 +57,9 @@ def _worker_solve(
     try:
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
-        lts = LicenseConfigFactory.get_config(license_config)
+        lts = normalize_license_costs(
+            LicenseConfigFactory.get_config(license_config)
+        )
         kwargs: dict[str, Any] = {"seed": seed}
         warm_names = {
             "GeneticAlgorithm",
@@ -197,8 +200,12 @@ def main() -> None:
     ego_ids = sorted(networks.keys())
     algorithm_classes = list(ALGORITHM_CLASSES)
     licenses = list(LICENSE_CONFIG_NAMES)
-    licenses_summary = ", ".join(licenses) if licenses else "none"
-    algorithms_summary = ", ".join(algorithm_classes) if algorithm_classes else "none"
+    licenses_summary = (
+        ", ".join(licenses) if licenses else "none"
+    )
+    algorithms_summary = (
+        ", ".join(algorithm_classes) if algorithm_classes else "none"
+    )
     print(f"Starting glopt static-real run {run_id}")
     print(f"Run directory: {base}")
     print(f"Results file: {out_path}")

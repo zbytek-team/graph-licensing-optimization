@@ -2,11 +2,11 @@
 \label{chap:experiments}
 \section{Środowisko i metodologia}
 
-Eksperymenty wykonano na komputerze z procesorem Intel Core i5-14600KF (12 rdzeni ograniczone przez konfigurację WSL2, taktowanie 3.49~GHz) oraz 16~GB pamięci RAM. System operacyjny stanowił Ubuntu~24.04~LTS uruchomiony w środowisku WSL2. Implementacja algorytmów powstała w języku Python~3.13; wykorzystano biblioteki NumPy, NetworkX, a także PuLP jako interfejs do solverów ILP. Każdy pomiar obejmował wyłącznie czas obliczeń, pomijając koszt przygotowania instancji oraz operacje wejścia/wyjścia.
+Eksperymenty wykonano na komputerze z procesorem Intel Core i5-14600KF (12 rdzeni ograniczone przez konfigurację WSL2, taktowanie 3.49~GHz) oraz 16~GB pamięci RAM. System operacyjny stanowił Ubuntu~24.04~LTS uruchomiony w środowisku WSL2. Implementacja algorytmów powstała w języku Python~3.13; wykorzystano biblioteki NumPy, NetworkX, a także PuLP jako interfejs do algorytmów ILP. Każdy pomiar obejmował wyłącznie czas obliczeń, pomijając koszt przygotowania instancji oraz operacje wejścia/wyjścia.
 
 Środowisko badawcze udostępniono jako zbiór skryptów w języku Python. Osobne moduły obsługują benchmark statyczny, symulacje dynamiczne oraz scenariusze rozszerzeń, a uproszczone polecenia w interfejsie wiersza poleceń pozwalają uruchamiać pojedyncze algorytmy w trybie diagnostycznym. Taki podział umożliwia równoległe prowadzenie szerokich serii eksperymentów i szybkie weryfikowanie jakości poszczególnych metod.
 
-Analiza objęła dwa zestawy danych: syntetyczne grafy losowe, bezskalowe oraz małoświatowe o liczebności od 50 do 450 wierzchołków, a także grafy ego z serwisu Facebook o liczebności od 53 do 1035 wierzchołków. Dla każdej instancji uruchamiano wszystkie algorytmy z limitem czasu wynoszącym 60 sekund, a przekroczenie tego limitu oznaczano jako timeout i wyłączano z dalszych obliczeń. W przypadku grafów syntetycznych odnotowano w sumie 10 timeoutów dla algorytmu mrówkowego oraz solvera ILP, natomiast na grafach rzeczywistych odpowiednio 8, 18 i 6 przypadków dla algorytmu mrówkowego, solvera ILP oraz przeszukiwania tabu. Wszystkie pozostałe uruchomienia zakończyły się sukcesem.
+Analiza objęła dwa zestawy danych: syntetyczne grafy losowe, bezskalowe oraz małoświatowe o liczebności od 50 do 450 wierzchołków, a także grafy ego z serwisu Facebook o liczebności od 53 do 1035 wierzchołków. Dla każdej instancji uruchamiano wszystkie algorytmy z limitem czasu wynoszącym 60 sekund, a przekroczenie tego limitu oznaczano jako przekroczenie limitu czasu i wyłączano z dalszych obliczeń. W przypadku grafów syntetycznych odnotowano w sumie 10 przekroczeń limitu czasu dla algorytmu mrówkowego oraz algorytmu ILP, natomiast na grafach rzeczywistych odpowiednio 8, 18 i 6 przypadków dla algorytmu mrówkowego, algorytmu ILP oraz przeszukiwania tabu. Wszystkie pozostałe uruchomienia zakończyły się sukcesem.
 
 W przypadku grafów syntetycznych dla każdego rozmiaru generowano trzy niezależne instancje, a następnie wykonywano po dwa uruchomienia algorytmów na każdej z nich. Analiza sieci ego Facebooka obejmowała po jednym grafie na rozmiar oraz dwa powtórzenia dla każdej pary (graf, algorytm), co pozwoliło oszacować zmienność wyników przy zachowaniu rozsądnego budżetu obliczeniowego. W każdej próbie zapisano całkowity koszt licencji, czas wykonania oraz średni koszt licencji przypadający na jednego użytkownika (wierzchołek). Wyniki agregowano jako wartości średnie. Istotność różnic między algorytmami oceniono przy użyciu testów Friedmana, gdzie $\chi^2_F$ to wartość statystyki testu Friedmana oraz $p$ to poziom istotności, a następnie następujących po nich porównań post-hoc metodą Nemenyi'ego. Na syntetycznym benchmarku otrzymano statystyki $\chi^2_F = 577.93$ dla czasu oraz $\chi^2_F = 518.01$ dla kosztu na węzeł ($p < 10^{-100}$ w obu przypadkach), co uzasadnia szczegółowe porównania par algorytmów.
 
@@ -35,7 +35,7 @@ Po przygotowaniu grafów wyświetlane są szczegóły dotyczące liczby rozmiar�
 \section{Duolingo Super na grafach syntetycznych}
 
 \subsection{Statystyki zbiorcze}
-Tabela~\ref{tab:duo-synth-summary} zestawia średnie wartości kosztu licencji na wierzchołek oraz czasu dla licencji Duolingo Super. Solver ILP pozostaje najlepszym punktem odniesienia jakościowego (średni koszt na węzeł 0.445), lecz ma zastosowanie jedynie dla mniejszych instancji. Posiada tyle samo timeoutów co algorytm mrówkowy. Wśród metaheurystyk najniższy koszt na węzeł osiąga właśnie algorytm mrówkowy (0.506), natomiast przeszukiwanie tabu zapewnia najlepszy kompromis kosztu na węzeł i czasu w grupie metod przybliżonych. Algorytm zachłanny i algorytm losowy działają prawie natychmiast, ale tylko pierwszy z nich zachowuje akceptowalny koszt na węzeł (0.548), podczas gdy algorytm losowy pozostaje wyraźnie gorszy jakościowo.
+Tabela~\ref{tab:duo-synth-summary} zestawia średnie wartości kosztu licencji na wierzchołek oraz czasu dla licencji Duolingo Super. Solver ILP pozostaje najlepszym punktem odniesienia jakościowego (średni koszt na węzeł 0.445), lecz ma zastosowanie jedynie dla mniejszych instancji. Posiada tyle samo przekroczeń limitu czasu co algorytm mrówkowy. Wśród metaheurystyk najniższy koszt na węzeł osiąga właśnie algorytm mrówkowy (0.506), natomiast przeszukiwanie tabu zapewnia najlepszy kompromis kosztu na węzeł i czasu w grupie metod przybliżonych. Algorytm zachłanny i algorytm losowy działają prawie natychmiast, ale tylko pierwszy z nich zachowuje akceptowalny koszt na węzeł (0.548), podczas gdy algorytm losowy pozostaje wyraźnie gorszy jakościowo.
 
 \begin{table}[H]
   \centering
@@ -45,7 +45,7 @@ Tabela~\ref{tab:duo-synth-summary} zestawia średnie wartości kosztu licencji n
     \toprule
     \textbf{Algorytm}     & \textbf{Średni koszt/węzeł} & \textbf{Średni koszt} & \textbf{Średni czas [s]} \\
     \midrule
-    Solver ILP            & 0.445                       & 73.83                 & 2.492                    \\
+    Algorytm ILP          & 0.445                       & 73.83                 & 2.492                    \\
     Algorytm mrówkowy     & 0.506                       & 83.58                 & 5.124                    \\
     Przeszukiwanie tabu   & 0.500                       & 117.80                & 3.298                    \\
     Algorytm genetyczny   & 0.515                       & 118.36                & 1.222                    \\
@@ -60,7 +60,7 @@ Tabela~\ref{tab:duo-synth-summary} zestawia średnie wartości kosztu licencji n
 
 \subsection{Porównanie algorytmów na grafach syntetycznych}
 
-Rysunki~\ref{fig:duo-synth-cost-random}--\ref{fig:duo-synth-cost-small-world} pokazują, że algorytmy dla licencji Duolingo Super osiągają wyniki porównywalne z solverem ILP w przypadku grafów losowych i małoświatowych. Natomiast w przypadku grafów bezskalowych wyniki są zauważalnie gorsze.
+Rysunki~\ref{fig:duo-synth-cost-random}--\ref{fig:duo-synth-cost-small-world} pokazują, że algorytmy dla licencji Duolingo Super osiągają wyniki porównywalne z algorytmem ILP w przypadku grafów losowych i małoświatowych. Natomiast w przypadku grafów bezskalowych wyniki są zauważalnie gorsze.
 
 
 \begin{figure}[H]
@@ -84,7 +84,7 @@ Rysunki~\ref{fig:duo-synth-cost-random}--\ref{fig:duo-synth-cost-small-world} po
   \label{fig:duo-synth-cost-small-world}
 \end{figure}
 
-Podobne obserwacje dotyczą czasów wykonania, jak ilustrują rysunki~\ref{fig:duo-synth-time-random}--\ref{fig:duo-synth-time-small-world}. Czasy działania algorytmów są zbliżone dla różnych typów grafów, z wyjątkiem solvera ILP, który średnio działa szybciej na grafach bezskalowych, oraz przeszukiwania tabu, które działa na nich dłużej. Pozostałe algorytmy wykazują porównywalne czasy działania niezależnie od struktury grafu. Tabela~\ref{tab:duo-synth-summary-times} podsumowuje średnie czasów i kosztów na węzeł dla różnych typów grafów.
+Podobne obserwacje dotyczą czasów wykonania, jak ilustrują rysunki~\ref{fig:duo-synth-time-random}--\ref{fig:duo-synth-time-small-world}. Czasy działania algorytmów są zbliżone dla różnych typów grafów, z wyjątkiem algorytmu ILP, który średnio działa szybciej na grafach bezskalowych, oraz przeszukiwania tabu, które działa na nich dłużej. Pozostałe algorytmy wykazują porównywalne czasy działania niezależnie od struktury grafu. Tabela~\ref{tab:duo-synth-summary-times} podsumowuje średnie czasów i kosztów na węzeł dla różnych typów grafów.
 
 \begin{figure}[H]
   \centering
@@ -129,7 +129,7 @@ Z powyższych danych wynika, że dominowanie rzymskie osiąga niższy koszt na w
 
 
 \section{Duolingo Super na grafach rzeczywistych}
-W analizie grafów ego z serwisu Facebook pominięto obserwacje, w których solver ILP nie zakończył pracy przed limitem czasu (18 przypadków). Dodatkowo odnotowano 8 timeoutów algorytmu mrówkowego i 6 przypadków w przeszukiwaniu tabu; pozostałe uruchomienia zakończyły się sukcesem.
+W analizie grafów ego z serwisu Facebook pominięto obserwacje, w których algorytm ILP nie zakończył pracy przed limitem czasu (18 przypadków). Dodatkowo odnotowano 8 przekroczeń limitu czasu algorytmu mrówkowego i 6 przypadków w przeszukiwaniu tabu; pozostałe uruchomienia zakończyły się sukcesem.
 
 \begin{table}[H]
   \centering
@@ -153,7 +153,7 @@ Tabela~\ref{tab:duo-real-alg} pokazuje, że zarówno przeszukiwanie tabu, jak i 
 
 \subsection{Skalowanie i jakość}
 
-Rysunek~\ref{fig:duo-real-size} pokazuje, że wraz ze wzrostem liczby wierzchołków koszt na węzeł rośnie umiarkowanie, przy czym przeszukiwanie tabu utrzymuje najniższe wartości, a algorytm mrówkowy plasuje się tuż za nim. Czasy działania wszystkich metod mieszczą się w przedziale do kilku sekund i rosną łagodnie wraz z rozmiarem grafu; algorytm zachłanny nadal pozostaje niemal natychmiastowy i stanowi dobry punkt startowy dla metaheurystyk. Dodatkowo tabela~\ref{tab:duo-real-size-table} zbiera średnie wartości (TabuSearch) dla kolejnych rozmiarów sieci ego i pokazuje, że koszt na węzeł utrzymuje się w przedziale 1.8--2.5 przy czasie rosnącym od ułamka sekundy do około 5.5~s dla największych grafów.
+Rysunek~\ref{fig:duo-real-size} pokazuje, że koszt na węzeł pozostaje relatywnie stały w okolicach 6-7 jednostek niezależnie od liczby wierzchołków, z niewielkimi wahaniami spowodowanymi różnicami między poszczególnymi instancjami grafów. Przeszukiwanie tabu utrzymuje najniższe wartości, a algorytm mrówkowy plasuje się tuż za nim. Czasy działania wszystkich metod mieszczą się w przedziale do kilku sekund i rosną łagodnie wraz z rozmiarem grafu; algorytm zachłanny nadal pozostaje niemal natychmiastowy i stanowi dobry punkt startowy dla metaheurystyk. Dodatkowo tabela~\ref{tab:duo-real-size-table} agreguje średnie wartości (Przeszukiwanie Tabu) dla kolejnych rozmiarów sieci ego i pokazuje, że koszt na węzeł oscyluje w przedziale 5.2--7.8 przy czasie rosnącym od około 2~s do około 58~s dla największych grafów.
 
 \begin{figure}[H]
   \centering

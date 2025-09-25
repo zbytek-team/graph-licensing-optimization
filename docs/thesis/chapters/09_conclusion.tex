@@ -5,7 +5,7 @@ Praca pokazuje pełny cykl badawczy dotyczący optymalizacji kosztów licencji g
 \section{Wyniki}
 
 \subsection{Model i metody}
-Rozdziały~\ref{chap:introduction}--\ref{chap:testdata} definiują problem jako uogólnienie dominowania rzymskiego z ograniczeniami pojemności oraz różnymi typami licencji. Wykazano wysoką złożoność obliczeniową. Rozdział~\ref{chap:algorithms} prezentuje pełen zestaw metod: dokładny solver ILP, heurystyki konstrukcyjne (m.in. algorytm zachłanny, podejście przez zbiór dominujący), metaheurystyki (algorytm genetyczny, algorytm mrówkowy, przeszukiwanie tabu, wyżarzanie symulowane) oraz algorytm losowy. Wszystkie implementacje mają wspólny interfejs, co ułatwiło porównania.
+Rozdziały~\ref{chap:introduction}--\ref{chap:testdata} definiują problem jako uogólnienie dominowania rzymskiego z ograniczeniami pojemności oraz różnymi typami licencji. Wykazano wysoką złożoność obliczeniową. Rozdział~\ref{chap:algorithms} prezentuje pełen zestaw metod: dokładny algorytm ILP, heurystyki konstrukcyjne (m.in. algorytm zachłanny, podejście przez zbiór dominujący), metaheurystyki (algorytm genetyczny, algorytm mrówkowy, przeszukiwanie tabu, wyżarzanie symulowane) oraz algorytm losowy. Wszystkie implementacje mają wspólny interfejs, co ułatwiło porównania.
 
 \subsection{Eksperymenty statyczne}
 Rozdział~\ref{chap:experiments} potwierdza hierarchię jakości: $ILP >$ algorytm mrówkowy $>$ przeszukiwanie tabu/algorytm genetyczny $>$ wyżarzanie symulowane $>$ heurystyki konstrukcyjne $>$ algorytm losowy. Różnice są istotne statystycznie (test Friedmana oraz porównania Nemenyi'ego). Grafy bezskalowe okazały się łatwiejsze do pokrycia z powodu hubów. Czas działania metaheurystyk rósł szybko, a heurystyki konstrukcyjne utrzymywały czasy rzędu milisekund. W praktyce wyróżniono trzy zakresy: dla małych grafów warto stosować ILP jako punkt odniesienia; dla średnich grafów najlepsze są metaheurystyki; dla dużych grafów albo gdy liczy się szybkość, użyteczną aproksymację daje algorytm zachłanny.
@@ -18,7 +18,7 @@ Rozdział~\ref{chap:extensions} analizuje osiem wariantów taryf. W planach Duol
 
 \section{Rekomendacje praktyczne}
 
-\textbf{Dobór algorytmu.} Dla instancji do około 200 węzłów solver ILP jest najlepszym punktem odniesienia. Dla większych sieci zalecane są algorytm mrówkowy albo przeszukiwanie tabu; w środowisku dynamicznym krótsze czasy rebalansowania daje przeszukiwanie tabu.
+\textbf{Dobór algorytmu.} Dla instancji do około 200 węzłów algorytm ILP jest najlepszym punktem odniesienia. Dla większych sieci zalecane są algorytm mrówkowy albo przeszukiwanie tabu; w środowisku dynamicznym krótsze czasy rebalansowania daje przeszukiwanie tabu.
 
 \textbf{Strategia inicjalizacji.} Ciepły start metaheurystyk, czyli start z poprzedniego rozwiązania, obniża koszt o 6--14\% przy niewielkim koszcie czasowym. W systemach aktualizowanych częściowo powinien to być standard.
 

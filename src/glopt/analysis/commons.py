@@ -168,9 +168,7 @@ def algorithm_display_name(name: object) -> str:
     return ALGORITHM_DISPLAY.get(text, text)
 
 
-def apply_algorithm_labels(
-    df: pd.DataFrame, column: str = "algorithm", new_column: str | None = None
-) -> pd.DataFrame:
+def apply_algorithm_labels(df: pd.DataFrame, column: str = "algorithm", new_column: str | None = None) -> pd.DataFrame:
     result = df.copy()
     target = new_column or column
     result[target] = result[column].map(algorithm_display_name)
@@ -187,9 +185,7 @@ def _color_for_label(label: str) -> str:
         if color:
             ALGORITHM_COLOR_MAP[label] = color
             return color
-    idx = int(hashlib.sha1(label.encode("utf-8")).hexdigest(), 16) % len(
-        BASE_COLOR_SEQUENCE
-    )
+    idx = int(hashlib.sha1(label.encode("utf-8")).hexdigest(), 16) % len(BASE_COLOR_SEQUENCE)
     color = BASE_COLOR_SEQUENCE[idx]
     ALGORITHM_COLOR_MAP[label] = color
     return color
@@ -281,9 +277,7 @@ def load_dataset(path: Path | str, parse_json: bool = True) -> pd.DataFrame:
     return df
 
 
-def expand_license_counts(
-    df: pd.DataFrame, column: str = "license_counts_json", prefix: str = "license"
-) -> pd.DataFrame:
+def expand_license_counts(df: pd.DataFrame, column: str = "license_counts_json", prefix: str = "license") -> pd.DataFrame:
     if column not in df.columns:
         return df
     result = df.copy()
@@ -316,11 +310,7 @@ def _resolve_unit_costs(
     individual_col: str = "license_individual",
     group_col: str = "license_group",
 ) -> dict[str, dict[str, float]]:
-    if (
-        total_col not in df.columns
-        or individual_col not in df.columns
-        or group_col not in df.columns
-    ):
+    if total_col not in df.columns or individual_col not in df.columns or group_col not in df.columns:
         return {}
 
     unit_costs: dict[str, dict[str, float]] = {}
@@ -353,9 +343,7 @@ def _resolve_unit_costs(
             ind_mask = A[:, 0] > 0
             if ind_mask.any():
                 solo_candidates = b[ind_mask] / A[ind_mask, 0]
-                solo_candidates = solo_candidates[
-                    np.isfinite(solo_candidates) & (solo_candidates > 0)
-                ]
+                solo_candidates = solo_candidates[np.isfinite(solo_candidates) & (solo_candidates > 0)]
                 if solo_candidates.size:
                     solo_cost = float(np.mean(solo_candidates))
 
@@ -363,9 +351,7 @@ def _resolve_unit_costs(
             grp_mask = A[:, 1] > 0
             if grp_mask.any():
                 group_candidates = b[grp_mask] / A[grp_mask, 1]
-                group_candidates = group_candidates[
-                    np.isfinite(group_candidates) & (group_candidates > 0)
-                ]
+                group_candidates = group_candidates[np.isfinite(group_candidates) & (group_candidates > 0)]
                 if group_candidates.size:
                     group_cost = float(np.mean(group_candidates))
 
@@ -390,9 +376,7 @@ def normalize_cost_columns(
     if not unit_costs:
         return result, {}
 
-    solo_map = {
-        cfg: vals.get("solo") for cfg, vals in unit_costs.items() if vals.get("solo")
-    }
+    solo_map = {cfg: vals.get("solo") for cfg, vals in unit_costs.items() if vals.get("solo")}
     if not solo_map:
         return result, {}
 
@@ -420,16 +404,12 @@ def normalize_cost_columns(
             if solo and group_cost and solo > 0:
                 multiplier_map[cfg] = group_cost / solo
         if multiplier_map:
-            result["license_group_multiplier"] = result["license_config"].map(
-                multiplier_map
-            )
+            result["license_group_multiplier"] = result["license_config"].map(multiplier_map)
 
     return result, dict(unit_costs)
 
 
-def describe_numeric(
-    df: pd.DataFrame, value_cols: Sequence[str], group_cols: Sequence[str] | None = None
-) -> pd.DataFrame:
+def describe_numeric(df: pd.DataFrame, value_cols: Sequence[str], group_cols: Sequence[str] | None = None) -> pd.DataFrame:
     if group_cols:
         grouped = df.groupby(list(group_cols), dropna=False)
         records: list[dict] = []
@@ -471,9 +451,7 @@ def describe_numeric(
     return pd.DataFrame(series_records)
 
 
-def compute_pareto_front(
-    df: pd.DataFrame, cost_col: str, time_col: str, objective: str = "min"
-) -> pd.DataFrame:
+def compute_pareto_front(df: pd.DataFrame, cost_col: str, time_col: str, objective: str = "min") -> pd.DataFrame:
     subset = df.dropna(subset=[cost_col, time_col]).copy()
     if subset.empty:
         return subset
@@ -481,11 +459,7 @@ def compute_pareto_front(
     subset = subset.sort_values([cost_col, time_col], ascending=ascending)
     pareto_mask = []
     best_time = np.inf if ascending else -np.inf
-    comparator = (
-        (lambda current, best: current <= best)
-        if ascending
-        else (lambda current, best: current >= best)
-    )
+    comparator = (lambda current, best: current <= best) if ascending else (lambda current, best: current >= best)
     for _, row in subset.iterrows():
         current = row[time_col]
         if comparator(current, best_time):
@@ -524,12 +498,8 @@ def run_friedman_nemenyi(pivot: pd.DataFrame) -> FriedmanResult | None:
     )
 
 
-def pivot_complete_blocks(
-    df: pd.DataFrame, index_cols: Sequence[str], column_col: str, value_col: str
-) -> pd.DataFrame:
-    pivot = df.pivot_table(
-        index=list(index_cols), columns=column_col, values=value_col, aggfunc="mean"
-    )
+def pivot_complete_blocks(df: pd.DataFrame, index_cols: Sequence[str], column_col: str, value_col: str) -> pd.DataFrame:
+    pivot = df.pivot_table(index=list(index_cols), columns=column_col, values=value_col, aggfunc="mean")
     pivot = pivot.dropna()
     return pivot
 

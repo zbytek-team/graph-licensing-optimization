@@ -26,6 +26,7 @@ from glopt.core.license_config import LicenseConfigFactory
 from glopt.core.solution_validator import SolutionValidator
 from glopt.experiments.common import (
     build_run_id,
+    normalize_license_costs,
     print_footer,
 )
 
@@ -175,7 +176,9 @@ def _worker_solve(
     try:
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
-        lts = LicenseConfigFactory.get_config(license_config)
+        lts = normalize_license_costs(
+            LicenseConfigFactory.get_config(license_config)
+        )
         kwargs: dict[str, Any] = {"seed": seed}
         warm_names = {
             "GeneticAlgorithm",
@@ -346,8 +349,12 @@ def main() -> None:
         sizes_summary = f"{min(SIZES)}..{max(SIZES)} ({len(SIZES)} sizes)"
     else:
         sizes_summary = "no sizes configured"
-    licenses_summary = ", ".join(LICENSE_CONFIG_NAMES) if LICENSE_CONFIG_NAMES else "none"
-    algorithms_summary = ", ".join(ALGORITHM_CLASSES) if ALGORITHM_CLASSES else "none"
+    licenses_summary = (
+        ", ".join(LICENSE_CONFIG_NAMES) if LICENSE_CONFIG_NAMES else "none"
+    )
+    algorithms_summary = (
+        ", ".join(ALGORITHM_CLASSES) if ALGORITHM_CLASSES else "none"
+    )
     print(f"Starting glopt dynamic run {run_id}")
     print(f"Run directory: {base}")
     print(f"Results file: {out_path}")
@@ -371,7 +378,9 @@ def main() -> None:
     def _project_solution(
         prev: Solution, graph: nx.Graph, lic_name: str
     ) -> Solution:
-        lts = LicenseConfigFactory.get_config(lic_name)
+        lts = normalize_license_costs(
+            LicenseConfigFactory.get_config(lic_name)
+        )
         nodes = set(graph.nodes())
         used: set = set()
         new_groups: list[LicenseGroup] = []

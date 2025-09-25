@@ -50,9 +50,7 @@ DATASET_LABELS = {
     "roman_domination": "Roman Domination",
 }
 
-ALGORITHM_ORDER_DISPLAY = [
-    algorithm_display_name(name) for name in ALGORITHM_CANONICAL_ORDER
-]
+ALGORITHM_ORDER_DISPLAY = [algorithm_display_name(name) for name in ALGORITHM_CANONICAL_ORDER]
 
 
 def _axis_label(metric: str, aggregate: str | None = None) -> str:
@@ -63,20 +61,14 @@ def _axis_label(metric: str, aggregate: str | None = None) -> str:
 
 
 def _mean_gap(df: pd.DataFrame, value: str, group: str) -> pd.DataFrame:
-    pivot = df.pivot_table(
-        index="algorithm", columns=group, values=value, aggfunc="mean"
-    )
+    pivot = df.pivot_table(index="algorithm", columns=group, values=value, aggfunc="mean")
     pivot["range"] = pivot.max(axis=1) - pivot.min(axis=1)
     pivot["spread_ratio"] = pivot.max(axis=1) / pivot.min(axis=1)
     return pivot.sort_values("range", ascending=False)
 
 
-def _plot_metric_vs_nodes(
-    df: pd.DataFrame, value: str, title: str, filename: str
-) -> None:
-    aggregated = df.groupby(["algorithm", "n_nodes"], as_index=False).agg(
-        mean=(value, "mean")
-    )
+def _plot_metric_vs_nodes(df: pd.DataFrame, value: str, title: str, filename: str) -> None:
+    aggregated = df.groupby(["algorithm", "n_nodes"], as_index=False).agg(mean=(value, "mean"))
     if aggregated.empty:
         return
     algo_values = aggregated["algorithm"].unique().tolist()
@@ -118,9 +110,7 @@ def _plot_metric_by_graph(
             continue
         algo_values = subset["algorithm"].unique().tolist()
         palette = algorithm_palette(algo_values)
-        order = [
-            name for name in ALGORITHM_ORDER_DISPLAY if name in algo_values
-        ]
+        order = [name for name in ALGORITHM_ORDER_DISPLAY if name in algo_values]
         fig, ax = plt.subplots()
         sns.barplot(
             data=subset,
@@ -147,15 +137,9 @@ def _plot_metric_by_graph(
         plt.close(fig)
 
 
-def _plot_duo_vs_roman(
-    df: pd.DataFrame, value: str, title: str, filename: str
-) -> None:
+def _plot_duo_vs_roman(df: pd.DataFrame, value: str, title: str, filename: str) -> None:
     fig, ax = plt.subplots()
-    order = [
-        label
-        for label in GRAPH_LABELS.values()
-        if label in df["graph"].unique()
-    ]
+    order = [label for label in GRAPH_LABELS.values() if label in df["graph"].unique()]
     sns.barplot(
         data=df,
         x="graph",
@@ -210,33 +194,21 @@ def _plot_license_mix(summary: pd.DataFrame, filename: str) -> None:
 def main() -> None:
     apply_plot_style()
 
-    duolingo_raw = expand_license_counts(
-        load_dataset(DATA_DIR / "duolingo_df.csv")
-    )
-    duolingo, duolingo_unit_costs = normalize_cost_columns(
-        duolingo_raw, attach_group_multiplier=True
-    )
+    duolingo_raw = expand_license_counts(load_dataset(DATA_DIR / "duolingo_df.csv"))
+    duolingo, duolingo_unit_costs = normalize_cost_columns(duolingo_raw, attach_group_multiplier=True)
     duolingo = apply_algorithm_labels(duolingo)
     duolingo["graph_key"] = duolingo["graph"]
-    duolingo["graph"] = (
-        duolingo["graph_key"].map(GRAPH_LABELS).fillna(duolingo["graph_key"])
-    )
+    duolingo["graph"] = duolingo["graph_key"].map(GRAPH_LABELS).fillna(duolingo["graph_key"])
     duolingo["dataset"] = DATASET_LABELS["duolingo_super"]
 
     roman_raw = expand_license_counts(load_dataset(DATA_DIR / "roman_df.csv"))
-    roman, roman_unit_costs = normalize_cost_columns(
-        roman_raw, attach_group_multiplier=True
-    )
+    roman, roman_unit_costs = normalize_cost_columns(roman_raw, attach_group_multiplier=True)
     roman = apply_algorithm_labels(roman)
     roman["graph_key"] = roman["graph"]
-    roman["graph"] = (
-        roman["graph_key"].map(GRAPH_LABELS).fillna(roman["graph_key"])
-    )
+    roman["graph"] = roman["graph_key"].map(GRAPH_LABELS).fillna(roman["graph_key"])
     roman["dataset"] = DATASET_LABELS["roman_domination"]
 
-    timeout_raw = expand_license_counts(
-        load_dataset(DATA_DIR / "timeout_df.csv")
-    )
+    timeout_raw = expand_license_counts(load_dataset(DATA_DIR / "timeout_df.csv"))
     combined_unit_costs = {**duolingo_unit_costs, **roman_unit_costs}
     timeout, _ = normalize_cost_columns(
         timeout_raw,
@@ -245,9 +217,7 @@ def main() -> None:
     )
     timeout = apply_algorithm_labels(timeout)
     timeout["graph_key"] = timeout["graph"]
-    timeout["graph"] = (
-        timeout["graph_key"].map(GRAPH_LABELS).fillna(timeout["graph_key"])
-    )
+    timeout["graph"] = timeout["graph_key"].map(GRAPH_LABELS).fillna(timeout["graph_key"])
 
     combined = pd.concat([duolingo, roman], ignore_index=True)
 
@@ -287,22 +257,13 @@ def main() -> None:
     )
     save_table(roman_graph, TAB_DIR / "roman_algorithm_graph_stats.csv")
 
-    timeout_counts_algo = (
-        timeout.groupby("algorithm")
-        .size()
-        .rename("count")
-        .sort_values(ascending=False)
-    )
+    timeout_counts_algo = timeout.groupby("algorithm").size().rename("count").sort_values(ascending=False)
     timeout_counts_algo.to_csv(TAB_DIR / "timeouts_by_algorithm.csv")
 
-    timeout_counts_graph = (
-        timeout.groupby(["algorithm", "graph"]).size().rename("count")
-    )
+    timeout_counts_graph = timeout.groupby(["algorithm", "graph"]).size().rename("count")
     timeout_counts_graph.to_csv(TAB_DIR / "timeouts_by_algorithm_graph.csv")
 
-    timeout_license = (
-        timeout.groupby(["algorithm", "license_config"]).size().rename("count")
-    )
+    timeout_license = timeout.groupby(["algorithm", "license_config"]).size().rename("count")
     timeout_license.to_csv(TAB_DIR / "timeouts_by_algorithm_license.csv")
 
     pareto_cols = [
@@ -313,18 +274,12 @@ def main() -> None:
         "time_s",
         "cost_per_node",
     ]
-    pareto_df = compute_pareto_front(
-        duolingo[pareto_cols], "total_cost", "time_s"
-    )
+    pareto_df = compute_pareto_front(duolingo[pareto_cols], "total_cost", "time_s")
     pareto_df.to_csv(TAB_DIR / "duolingo_pareto_cost_time.csv", index=False)
 
     id_cols = ["graph", "n_nodes", "license_config", "rep", "sample"]
-    pivot_time = pivot_complete_blocks(
-        duolingo, id_cols, "algorithm", "time_s"
-    )
-    pivot_cost = pivot_complete_blocks(
-        duolingo, id_cols, "algorithm", "cost_per_node"
-    )
+    pivot_time = pivot_complete_blocks(duolingo, id_cols, "algorithm", "time_s")
+    pivot_cost = pivot_complete_blocks(duolingo, id_cols, "algorithm", "cost_per_node")
 
     friedman_reports: list[str] = []
     time_result = run_friedman_nemenyi(pivot_time)
@@ -334,16 +289,10 @@ def main() -> None:
             TAB_DIR / "friedman_time_mean_ranks.csv",
         )
         if time_result.nemenyi is not None:
-            save_table(
-                time_result.nemenyi, TAB_DIR / "nemenyi_time_pvalues.csv"
-            )
-        friedman_reports.append(
-            f"Friedman test (time_s): statistic={time_result.statistic:.3f}, p-value={time_result.pvalue:.4g}"
-        )
+            save_table(time_result.nemenyi, TAB_DIR / "nemenyi_time_pvalues.csv")
+        friedman_reports.append(f"Friedman test (time_s): statistic={time_result.statistic:.3f}, p-value={time_result.pvalue:.4g}")
     else:
-        friedman_reports.append(
-            "Friedman test (time_s): insufficient paired samples"
-        )
+        friedman_reports.append("Friedman test (time_s): insufficient paired samples")
 
     cost_result = run_friedman_nemenyi(pivot_cost)
     if cost_result:
@@ -356,13 +305,9 @@ def main() -> None:
                 cost_result.nemenyi,
                 TAB_DIR / "nemenyi_cost_per_node_pvalues.csv",
             )
-        friedman_reports.append(
-            f"Friedman test (cost_per_node): statistic={cost_result.statistic:.3f}, p-value={cost_result.pvalue:.4g}"
-        )
+        friedman_reports.append(f"Friedman test (cost_per_node): statistic={cost_result.statistic:.3f}, p-value={cost_result.pvalue:.4g}")
     else:
-        friedman_reports.append(
-            "Friedman test (cost_per_node): insufficient paired samples"
-        )
+        friedman_reports.append("Friedman test (cost_per_node): insufficient paired samples")
 
     # Visualisations
     _plot_metric_vs_nodes(
@@ -427,12 +372,8 @@ def main() -> None:
     pareto_fig.savefig(FIG_DIR / "duolingo_pareto_cost_time.pdf")
     plt.close(pareto_fig)
 
-    duo_license_totals = duolingo[
-        ["license_group", "license_individual", "license_other"]
-    ].sum()
-    roman_license_totals = roman[
-        ["license_group", "license_individual", "license_other"]
-    ].sum()
+    duo_license_totals = duolingo[["license_group", "license_individual", "license_other"]].sum()
+    roman_license_totals = roman[["license_group", "license_individual", "license_other"]].sum()
     license_summary = pd.DataFrame(
         {
             "dataset": [
@@ -455,38 +396,20 @@ def main() -> None:
     )
     for column in ["group", "individual", "other"]:
         license_summary[column] = license_summary[column].round().astype(int)
-    license_summary["total"] = license_summary[
-        ["group", "individual", "other"]
-    ].sum(axis=1)
-    license_summary["group_share"] = (
-        license_summary["group"] / license_summary["total"]
-    )
-    license_summary["individual_share"] = (
-        license_summary["individual"] / license_summary["total"]
-    )
+    license_summary["total"] = license_summary[["group", "individual", "other"]].sum(axis=1)
+    license_summary["group_share"] = license_summary["group"] / license_summary["total"]
+    license_summary["individual_share"] = license_summary["individual"] / license_summary["total"]
     save_table(license_summary, TAB_DIR / "license_mix_duo_vs_roman.csv")
     _plot_license_mix(license_summary, "license_mix_duo_vs_roman.pdf")
 
-    license_summary_words = license_summary[
-        ["dataset", "group", "individual", "other"]
-    ].copy()
-    license_summary_words["group_slowo"] = license_summary_words[
-        "group"
-    ].apply(number_to_polish_words)
-    license_summary_words["individual_slowo"] = license_summary_words[
-        "individual"
-    ].apply(number_to_polish_words)
-    license_summary_words["other_slowo"] = license_summary_words[
-        "other"
-    ].apply(number_to_polish_words)
-    save_table(
-        license_summary_words, TAB_DIR / "license_mix_duo_vs_roman_words.csv"
-    )
+    license_summary_words = license_summary[["dataset", "group", "individual", "other"]].copy()
+    license_summary_words["group_slowo"] = license_summary_words["group"].apply(number_to_polish_words)
+    license_summary_words["individual_slowo"] = license_summary_words["individual"].apply(number_to_polish_words)
+    license_summary_words["other_slowo"] = license_summary_words["other"].apply(number_to_polish_words)
+    save_table(license_summary_words, TAB_DIR / "license_mix_duo_vs_roman_words.csv")
     license_text_lines = ["# Udział licencji (słownie)", ""]
     for _, row in license_summary_words.iterrows():
-        license_text_lines.append(
-            f"- {row['dataset']}: {row['group_slowo']} grupowych, {row['individual_slowo']} indywidualnych, {row['other_slowo']} pozostałych"
-        )
+        license_text_lines.append(f"- {row['dataset']}: {row['group_slowo']} grupowych, {row['individual_slowo']} indywidualnych, {row['other_slowo']} pozostałych")
     write_text(REPORTS_DIR / "license_mix_duo_vs_roman.md", license_text_lines)
 
     comparison = (
@@ -500,11 +423,7 @@ def main() -> None:
     )
     save_table(comparison, TAB_DIR / "duo_vs_roman_algorithm_means.csv")
 
-    by_graph = (
-        combined.groupby(["dataset", "graph"])
-        .agg(time_mean=("time_s", "mean"), cpn_mean=("cost_per_node", "mean"))
-        .reset_index()
-    )
+    by_graph = combined.groupby(["dataset", "graph"]).agg(time_mean=("time_s", "mean"), cpn_mean=("cost_per_node", "mean")).reset_index()
     save_table(by_graph, TAB_DIR / "duo_vs_roman_graph_means.csv")
     _plot_duo_vs_roman(
         combined,
@@ -525,18 +444,10 @@ def main() -> None:
     lines.append("")
     duo_label = DATASET_LABELS["duolingo_super"]
     roman_label = DATASET_LABELS["roman_domination"]
-    lines.append(
-        f"{duo_label} - średni czas: {duo_overall.loc[duo_overall['metric'] == 'time_s', 'mean'].iloc[0]:.2f} s"
-    )
-    lines.append(
-        f"{duo_label} - średni koszt/węzeł: {duo_overall.loc[duo_overall['metric'] == 'cost_per_node', 'mean'].iloc[0]:.3f}"
-    )
-    lines.append(
-        f"{roman_label} - średni czas: {roman_overall.loc[roman_overall['metric'] == 'time_s', 'mean'].iloc[0]:.2f} s"
-    )
-    lines.append(
-        f"{roman_label} - średni koszt/węzeł: {roman_overall.loc[roman_overall['metric'] == 'cost_per_node', 'mean'].iloc[0]:.3f}"
-    )
+    lines.append(f"{duo_label} - średni czas: {duo_overall.loc[duo_overall['metric'] == 'time_s', 'mean'].iloc[0]:.2f} s")
+    lines.append(f"{duo_label} - średni koszt/węzeł: {duo_overall.loc[duo_overall['metric'] == 'cost_per_node', 'mean'].iloc[0]:.3f}")
+    lines.append(f"{roman_label} - średni czas: {roman_overall.loc[roman_overall['metric'] == 'time_s', 'mean'].iloc[0]:.2f} s")
+    lines.append(f"{roman_label} - średni koszt/węzeł: {roman_overall.loc[roman_overall['metric'] == 'cost_per_node', 'mean'].iloc[0]:.3f}")
     lines.append("")
     lines.extend(friedman_reports)
     lines.append("")
@@ -545,9 +456,7 @@ def main() -> None:
     for alg, value in time_gap.items():
         lines.append(f"- {alg}: {value:.2f} s")
     lines.append("")
-    lines.append(
-        "Rozkład udziału licencji: license_mix_duo_vs_roman.csv oraz license_mix_duo_vs_roman_words.csv"
-    )
+    lines.append("Rozkład udziału licencji: license_mix_duo_vs_roman.csv oraz license_mix_duo_vs_roman_words.csv")
     write_text(REPORTS_DIR / "summary.md", lines)
 
 
