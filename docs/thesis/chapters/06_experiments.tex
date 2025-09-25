@@ -2,13 +2,13 @@
 \label{chap:experiments}
 \section{Środowisko i metodologia}
 
-Eksperymenty wykonano na komputerze z procesorem Intel Core i5-14600KF (12 rdzeni ograniczone przez konfigurację WSL2, taktowanie 3.49~GHz) oraz 16~GB pamięci RAM. System operacyjny stanowił Ubuntu~24.04~LTS uruchomiony w środowisku WSL2. Implementacja algorytmów powstała w języku Python~3.13; wykorzystano biblioteki NumPy, NetworkX, a także PuLP jako interfejs do algorytmów ILP. Każdy pomiar obejmował wyłącznie czas obliczeń, pomijając koszt przygotowania instancji oraz operacje wejścia/wyjścia.
+Eksperymenty wykonano na komputerze z procesorem Intel Core i5-14600KF (12 rdzeni ograniczone przez konfigurację Wyniki potwierdzają również znaczenie struktury grafu. W przypadku grafów losowych i małoświatowych uzyskuje się wyniki zbliżone do solvera ILP, natomiast grafy bezskalowe generują wyższe koszty. Rysunek~\ref{fig:duo-real-size} ilustruje, że przeszukiwanie tabu utrzymuje niskie koszty na węzeł także przy rosnącej liczbie wierzchołków, a czasy działania rosną umiarkowanie.SL2, taktowanie 3.49~GHz) oraz 16~GB pamięci RAM. System operacyjny stanowił Ubuntu~24.04~LTS uruchomiony w środowisku WSL2. Implementacja algorytmów powstała w języku Python~3.13; wykorzystano biblioteki NumPy, NetworkX, a także PuLP jako interfejs do algorytmów ILP. Każdy pomiar obejmował wyłącznie czas obliczeń, pomijając koszt przygotowania instancji oraz operacje wejścia/wyjścia.
 
-Środowisko badawcze udostępniono jako zbiór skryptów w języku Python. Osobne moduły obsługują benchmark statyczny, symulacje dynamiczne oraz scenariusze rozszerzeń, a uproszczone polecenia w interfejsie wiersza poleceń pozwalają uruchamiać pojedyncze algorytmy w trybie diagnostycznym. Taki podział umożliwia równoległe prowadzenie szerokich serii eksperymentów i szybkie weryfikowanie jakości poszczególnych metod.
+Środowisko badawcze udostępniono jako zbiór skryptów w języku Python. Osobne moduły obsługują benchmark statyczny, symulacje dynamiczne oraz scenariusze rozszerzeń, a uproszczone polecenia w interfejsie wiersza poleceń umożliwiają uruchamianie pojedynczych algorytmów w trybie diagnostycznym. Taki podział umożliwia równoległe prowadzenie rozległych serii eksperymentów i sprawną weryfikację jakości poszczególnych metod.
 
-Analiza objęła dwa zestawy danych: syntetyczne grafy losowe, bezskalowe oraz małoświatowe o liczebności od 50 do 450 wierzchołków, a także grafy ego z serwisu Facebook o liczebności od 53 do 1035 wierzchołków. Dla każdej instancji uruchamiano wszystkie algorytmy z limitem czasu wynoszącym 60 sekund, a przekroczenie tego limitu oznaczano jako przekroczenie limitu czasu i wyłączano z dalszych obliczeń. W przypadku grafów syntetycznych odnotowano w sumie 10 przekroczeń limitu czasu dla algorytmu mrówkowego oraz algorytmu ILP, natomiast na grafach rzeczywistych odpowiednio 8, 18 i 6 przypadków dla algorytmu mrówkowego, algorytmu ILP oraz przeszukiwania tabu. Wszystkie pozostałe uruchomienia zakończyły się sukcesem.
+Analiza objęła dwa zestawy danych: syntetyczne grafy losowe, bezskalowe oraz małoświatowe o liczebności od 50 do 450 wierzchołków, a także grafy ego z serwisu Facebook o liczebności od 53 do 1035 wierzchołków. Dla każdej instancji uruchamiano wszystkie algorytmy z limitem czasu 60 s, a przekroczenie tego limitu klasyfikowano jako przekroczenie limitu czasu i wyłączano z dalszych obliczeń. W przypadku grafów syntetycznych odnotowano w sumie 10 przekroczeń limitu czasu dla algorytmu mrówkowego oraz algorytmu ILP, natomiast na grafach rzeczywistych odpowiednio 8, 18 i 6 przypadków dla algorytmu mrówkowego, algorytmu ILP oraz przeszukiwania tabu. Wszystkie pozostałe uruchomienia zakończyły się sukcesem.
 
-W przypadku grafów syntetycznych dla każdego rozmiaru generowano trzy niezależne instancje, a następnie wykonywano po dwa uruchomienia algorytmów na każdej z nich. Analiza sieci ego Facebooka obejmowała po jednym grafie na rozmiar oraz dwa powtórzenia dla każdej pary (graf, algorytm), co pozwoliło oszacować zmienność wyników przy zachowaniu rozsądnego budżetu obliczeniowego. W każdej próbie zapisano całkowity koszt licencji, czas wykonania oraz średni koszt licencji przypadający na jednego użytkownika (wierzchołek). Wyniki agregowano jako wartości średnie. Istotność różnic między algorytmami oceniono przy użyciu testów Friedmana, gdzie $\chi^2_F$ to wartość statystyki testu Friedmana oraz $p$ to poziom istotności, a następnie następujących po nich porównań post-hoc metodą Nemenyi'ego. Na syntetycznym benchmarku otrzymano statystyki $\chi^2_F = 577.93$ dla czasu oraz $\chi^2_F = 518.01$ dla kosztu na węzeł ($p < 10^{-100}$ w obu przypadkach), co uzasadnia szczegółowe porównania par algorytmów.
+W przypadku grafów syntetycznych dla każdego rozmiaru generowano trzy niezależne instancje, a następnie wykonywano po dwa uruchomienia algorytmów na każdej z nich. Analiza sieci ego Facebooka obejmowała po jednym grafie na rozmiar oraz dwa powtórzenia dla każdej pary (graf, algorytm), co pozwoliło oszacować zmienność wyników przy zachowaniu określonego budżetu obliczeniowego. W każdej próbie zapisano całkowity koszt licencji, czas wykonania oraz średni koszt licencji przypadający na jednego użytkownika (wierzchołek). Wyniki agregowano jako wartości średnie. Istotność różnic między algorytmami oceniono przy użyciu testów Friedmana, gdzie $\chi^2_F$ to wartość statystyki testu Friedmana oraz $p$ to poziom istotności, a następnie następujących po nich porównań post-hoc metodą Nemenyi'ego. Na syntetycznym benchmarku otrzymano statystyki $\chi^2_F = 577.93$ dla czasu oraz $\chi^2_F = 518.01$ dla kosztu na węzeł ($p < 10^{-100}$ w obu przypadkach), co uzasadnia szczegółowe porównania par algorytmów.
 
 Dodatkowo, w celu ułatwienia porównań między różnymi typami licencji, ceny każdej z licencji zostały znormalizowane. Cena licencji indywidualnej została ustalona na poziomie 1, a ceny licencji grupowych przeskalowano zgodnie z ich pierwotnym stosunkiem do ceny licencji indywidualnej. Dzięki temu możliwe było bardziej przejrzyste porównanie kosztów między różnymi strategiami licencjonowania, niezależnie od ich bezwzględnych wartości.
 
@@ -28,14 +28,14 @@ Na rysunku~\ref{fig:cli-content} przedstawiono przykładowy przebieg uruchomieni
   \label{fig:cli-content}
 \end{figure}
 
-Na początku wyświetlane są informacje o wybranych parametrach uruchomienia, takich jak typ potoku, konfiguracje licencji, lista algorytmów oraz limity czasowe. Następnie rozpoczyna się proces przygotowania grafów. Tworzony jest \textit{magazyn grafów} (cache), który pozwala na wielokrotne wykorzystanie tych samych instancji grafów pomiędzy różnymi algorytmami i konfiguracjami licencji. Dzięki temu nie ma potrzeby generowania grafów od nowa dla każdej próby, co znacząco skraca czas obliczeń, zwłaszcza dla dużych instancji.
+Na początku wyświetlane są informacje o wybranych parametrach uruchomienia, takich jak typ potoku, konfiguracje licencji, lista algorytmów oraz limity czasowe. Następnie rozpoczyna się proces przygotowania grafów. Tworzona jest pamięć podręczna grafów (cache), która umożliwia wielokrotne wykorzystanie tych samych instancji grafów między różnymi algorytmami i konfiguracjami licencji. Eliminuje to konieczność ponownego generowania grafów dla każdej próby, co istotnie skraca czas obliczeń, zwłaszcza dla dużych instancji.
 
-Po przygotowaniu grafów wyświetlane są szczegóły dotyczące liczby rozmiarów, próbek i powtórzeń dla każdej instancji. Następnie dla każdej kombinacji licencji i algorytmu prezentowane są postępy obliczeń. Każda iteracja pokazuje podstawowe statystyki, takie jak rozmiar grafu, koszt rozwiązania, koszt na węzeł oraz czas wykonania. Pozwala to na bieżąco monitorować przebieg eksperymentu i szybko wykryć ewentualne anomalie.
+Po przygotowaniu grafów wyświetlane są szczegóły dotyczące liczby rozmiarów, próbek i powtórzeń dla każdej instancji. Następnie dla każdej kombinacji licencji i algorytmu prezentowane są postępy obliczeń. Każda iteracja prezentuje podstawowe statystyki, takie jak rozmiar grafu, koszt rozwiązania, koszt na węzeł oraz czas wykonania. Umożliwia to bieżące monitorowanie przebiegu eksperymentu i szybkie wykrywanie ewentualnych anomalii.
 
 \section{Duolingo Super na grafach syntetycznych}
 
 \subsection{Statystyki zbiorcze}
-Tabela~\ref{tab:duo-synth-summary} zestawia średnie wartości kosztu licencji na wierzchołek oraz czasu dla schematu licencyjnego Duolingo Super. Solver ILP pozostaje najlepszym punktem odniesienia jakościowego (średni koszt na węzeł 0.445), lecz ma zastosowanie jedynie dla mniejszych instancji. Posiada tyle samo przekroczeń limitu czasu co algorytm mrówkowy. Wśród metaheurystyk najniższy koszt na węzeł osiąga właśnie algorytm mrówkowy (0.506), natomiast przeszukiwanie tabu zapewnia najlepszy kompromis kosztu na węzeł i czasu w grupie metod przybliżonych. Algorytm zachłanny i algorytm losowy działają prawie natychmiast, ale tylko pierwszy z nich zachowuje akceptowalny koszt na węzeł (0.548), podczas gdy algorytm losowy pozostaje wyraźnie gorszy jakościowo.
+Tabela~\ref{tab:duo-synth-summary} zestawia średnie wartości kosztu licencji na wierzchołek oraz czasu dla schematu licencyjnego Duolingo Super. Aby zapewnić porównywalność wyników, analizy statystyczne i wizualizacje oparto na podzbiorze instancji, dla których wszystkie algorytmy zakończyły działanie przed upływem limitu czasu; w praktyce oznacza to przycięcie rozmiarów grafów do zakresu wspólnego dla solvera ILP i algorytmu mrówkowego, które najczęściej przekraczały limit. Solver ILP pozostaje najlepszym punktem odniesienia jakościowego (średni koszt na węzeł 0{,}445), lecz ma zastosowanie jedynie dla mniejszych instancji. Liczba przekroczeń limitu czasu jest taka sama jak w algorytmie mrówkowym. Wśród metaheurystyk najniższy koszt na węzeł osiąga właśnie algorytm mrówkowy (0{,}506), natomiast przeszukiwanie tabu zapewnia najlepszy kompromis kosztu na węzeł i czasu w grupie metod przybliżonych. Algorytm zachłanny i algorytm losowy charakteryzują się czasem działania rzędu milisekund, ale tylko pierwszy z nich utrzymuje akceptowalny koszt na węzeł (0{,}548), podczas gdy algorytm losowy generuje rozwiązania o istotnie wyższym koszcie na węzeł.
 
 \begin{table}[H]
   \centering
@@ -60,50 +60,50 @@ Tabela~\ref{tab:duo-synth-summary} zestawia średnie wartości kosztu licencji n
 
 \subsection{Porównanie algorytmów na grafach syntetycznych}
 
-Rysunki~\ref{fig:duo-synth-cost-random}--\ref{fig:duo-synth-cost-small-world} pokazują, że algorytmy dla schematu licencyjnego Duolingo Super osiągają wyniki porównywalne z algorytmem ILP w przypadku grafów losowych i małoświatowych. Natomiast w przypadku grafów bezskalowych wyniki są zauważalnie gorsze.
+Rysunki~\ref{fig:duo-synth-cost-random}--\ref{fig:duo-synth-cost-small-world} ilustrują, że algorytmy dla schematu licencyjnego Duolingo Super osiągają wyniki porównywalne z algorytmem ILP w przypadku grafów losowych i małoświatowych. Natomiast w przypadku grafów bezskalowych wyniki są zauważalnie gorsze.
 
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.65\linewidth]{assets/figures/benchmark/synthetic/duolingo_cost_per_node_by_graph_random.pdf}
-  \caption{Koszt na węzeł w zależności od struktury grafu losowej.}
+  \caption{Koszt na węzeł w zależności od struktury grafu losowego.}
   \label{fig:duo-synth-cost-random}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.65\linewidth]{assets/figures/benchmark/synthetic/duolingo_cost_per_node_by_graph_scale_free.pdf}
-  \caption{Koszt na węzeł w zależności od struktury grafu bezskalowej.}
+  \caption{Koszt na węzeł w zależności od struktury grafu bezskalowego.}
   \label{fig:duo-synth-cost-scale-free}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.65\linewidth]{assets/figures/benchmark/synthetic/duolingo_cost_per_node_by_graph_small_world.pdf}
-  \caption{Koszt na węzeł w zależności od struktury grafu małoświatowej.}
+  \caption{Koszt na węzeł w zależności od struktury grafu małoświatowego.}
   \label{fig:duo-synth-cost-small-world}
 \end{figure}
 
-Podobne obserwacje dotyczą czasów wykonania, jak ilustrują rysunki~\ref{fig:duo-synth-time-random}--\ref{fig:duo-synth-time-small-world}. Czasy działania algorytmów są zbliżone dla różnych typów grafów, z wyjątkiem algorytmu ILP, który średnio działa szybciej na grafach bezskalowych, oraz przeszukiwania tabu, które działa na nich dłużej. Pozostałe algorytmy wykazują porównywalne czasy działania niezależnie od struktury grafu. Tabela~\ref{tab:duo-synth-summary-times} podsumowuje średnie czasów i kosztów na węzeł dla różnych typów grafów.
+Podobne obserwacje dotyczą czasów wykonania, jak ilustrują rysunki~\ref{fig:duo-synth-time-random}--\ref{fig:duo-synth-time-small-world}. Czasy działania algorytmów są zbliżone dla różnych typów grafów, z wyjątkiem algorytmu ILP, który średnio osiąga krótszy czas wykonania na grafach bezskalowych, oraz przeszukiwania tabu, które działa na nich dłużej. Pozostałe algorytmy wykazują porównywalne czasy działania niezależnie od struktury grafu. Tabela~\ref{tab:duo-synth-summary-times} podsumowuje średnie czasów i kosztów na węzeł dla różnych typów grafów.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.65\linewidth]{assets/figures/benchmark/synthetic/duolingo_time_by_graph_random.pdf}
-  \caption{Czas wykonania w zależności od struktury grafu losowej.}
+  \caption{Czas wykonania w zależności od struktury grafu losowego.}
   \label{fig:duo-synth-time-random}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.65\linewidth]{assets/figures/benchmark/synthetic/duolingo_time_by_graph_scale_free.pdf}
-  \caption{Czas wykonania w zależności od struktury grafu bezskalowej.}
+  \caption{Czas wykonania w zależności od struktury grafu bezskalowego.}
   \label{fig:duo-synth-time-scale-free}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.65\linewidth]{assets/figures/benchmark/synthetic/duolingo_time_by_graph_small_world.pdf}
-  \caption{Czas wykonania w zależności od struktury grafu małoświatowej.}
+  \caption{Czas wykonania w zależności od struktury grafu małoświatowego.}
   \label{fig:duo-synth-time-small-world}
 \end{figure}
 
@@ -125,7 +125,7 @@ Podobne obserwacje dotyczą czasów wykonania, jak ilustrują rysunki~\ref{fig:d
   \end{tabular}
 \end{table}
 
-Z powyższych danych wynika, że schemat licencyjny dominowania rzymskiego osiąga niższy koszt na węzeł we wszystkich typach grafów syntetycznych. Największą przewagę wykazuje w grafach losowych (różnica 0.158), następnie w bezskalowych (0.171), a najmniejszą w małoświatowych (0.086). Pod względem czasów wykonania algorytmy dla schematu Duolingo Super charakteryzują się dłuższymi czasami w strukturach bezskalowych i losowych, jednak w grafach małoświatowych działają nieco szybciej niż w schemacie dominowania rzymskiego. Struktura bezskalowa okazuje się najkosztowniejsza dla obu schematów licencjonowania, podczas gdy grafy małoświatowe oferują najbardziej korzystny stosunek kosztu do wydajności obliczeniowej. Przewaga kosztowa schematu dominowania rzymskiego wynika naturalnie z tego, że stosunek ceny licencji grupowej do indywidualnej jest w niej niższy niż w schemacie Duolingo Super.
+Z powyższych danych wynika, że schemat licencyjny dominowania rzymskiego osiąga niższy koszt na węzeł we wszystkich typach grafów syntetycznych. Największą przewagę wykazuje w grafach losowych (różnica 0{,}158), następnie w bezskalowych (0{,}171), a najmniejszą w małoświatowych (0{,}086). Pod względem czasów wykonania algorytmy dla schematu Duolingo Super charakteryzują się dłuższymi czasami w strukturach bezskalowych i losowych, jednak w grafach małoświatowych działają nieco szybciej niż w schemacie dominowania rzymskiego. Struktura bezskalowa generuje najwyższy koszt dla obu schematów licencjonowania, natomiast grafy małoświatowe zapewniają najkorzystniejszy stosunek kosztu do wydajności obliczeniowej. Przewaga kosztowa schematu dominowania rzymskiego wynika naturalnie z tego, że stosunek ceny licencji grupowej do indywidualnej jest w niej niższy niż w schemacie Duolingo Super.
 
 
 \section{Duolingo Super na grafach rzeczywistych}
@@ -149,11 +149,11 @@ W analizie grafów ego z serwisu Facebook pominięto obserwacje, w których algo
     \bottomrule
   \end{tabular}
 \end{table}
-Tabela~\ref{tab:duo-real-alg} pokazuje, że zarówno przeszukiwanie tabu, jak i algorytm mrówkowy zachowują przewagę kosztową nad heurystykami losowymi i zachłannymi, choć okupują ją dłuższym czasem działania.
+Tabela~\ref{tab:duo-real-alg} wskazuje, że zarówno przeszukiwanie tabu, jak i algorytm mrówkowy zachowują przewagę kosztową nad heurystykami losowymi i zachłannymi, kosztem dłuższego czasu działania.
 
 \subsection{Skalowanie i jakość}
 
-Rysunek~\ref{fig:duo-real-size} pokazuje, że koszt na węzeł pozostaje relatywnie stabilny niezależnie od liczby wierzchołków, z niewielkimi wahaniami spowodowanymi różnicami między poszczególnymi instancjami grafów. Przeszukiwanie tabu utrzymuje najniższe wartości, a algorytm mrówkowy plasuje się tuż za nim. Czasy działania wszystkich metod mieszczą się w przedziale do kilku sekund i rosną łagodnie wraz z rozmiarem grafu; algorytm zachłanny nadal pozostaje niemal natychmiastowy i stanowi dobry punkt startowy dla metaheurystyk. Dodatkowo tabela~\ref{tab:duo-real-size-table} agreguje średnie wartości (przeszukiwanie tabu) dla kolejnych rozmiarów sieci ego i pokazuje, że koszt na węzeł oscyluje w przedziale 0.37--0.56 przy czasie rosnącym od około 2~s do około 33~s dla największych grafów.
+Rysunek~\ref{fig:duo-real-size} ilustruje, że koszt na węzeł pozostaje względnie stabilny niezależnie od liczby wierzchołków, z niewielkimi wahaniami spowodowanymi różnicami między poszczególnymi instancjami grafów. Przeszukiwanie tabu utrzymuje najniższe wartości, a algorytm mrówkowy osiąga wartości zbliżone. Czasy działania wszystkich metod nie przekraczają kilku sekund i rosną łagodnie wraz z rozmiarem grafu; algorytm zachłanny zachowuje czas działania rzędu milisekund i stanowi efektywną procedurę inicjalizacji dla metaheurystyk. Dodatkowo tabela~\ref{tab:duo-real-size-table} agreguje średnie wartości (przeszukiwanie tabu) dla kolejnych rozmiarów sieci ego i pokazuje, że koszt na węzeł oscyluje w przedziale 0.37--0.56 przy czasie rosnącym od około 2~s do około 33~s dla największych grafów.
 
 \begin{figure}[H]
   \centering
@@ -203,7 +203,7 @@ Porównania schematu licencyjnego Duolingo Super z konfiguracją imitującą dom
   \end{tabular}
 \end{table}
 
-Algorytmy optymalizacji dla schematu licencyjnego dominowania rzymskiego osiągają niższy koszt na węzeł we wszystkich porównywanych typach grafów. Największa różnica dotyczy struktur losowych, gdzie przewaga wynosi ok.~0.158 jednostki kosztu na węzeł (32\%). W sieciach bezskalowych różnica wynosi 0.171 jednostki, natomiast w małoświatowych 0.086 jednostki. Algorytmy dla różnych schematów licencyjnych wykazują porównywalne czasy wykonania, przy czym w grafach małoświatowych algorytmy dla schematu licencyjnego Duolingo Super działają nieznacznie szybciej, natomiast w grafach losowych i bezskalowych szybciej działają algorytmy dla schematu licencyjnego dominowania rzymskiego. Rysunek~\ref{fig:duo-roman-cost} ilustruje te obserwacje dla pełnego rozkładu kosztów, a rysunek~\ref{fig:duo-roman-time} prezentuje analogiczne dane dotyczące czasów wykonania. Warto zauważyć, że wyższe koszty na węzeł w przypadku Duolingo Super wynikają z ograniczeń w opłacalności licencji grupowych. Licencja grupowa jest około 2.1 razy droższa od indywidualnej, co oznacza, że opłaca się ją tworzyć dopiero dla grup liczących co najmniej trzy osoby (właściciel i dwóch sąsiadów). W efekcie liczba licencji indywidualnych w schemacie Duolingo Super jest większa, co przekłada się na wyższy średni koszt na węzeł w porównaniu z konfiguracją dominowania rzymskiego.
+Algorytmy optymalizacji dla schematu licencyjnego dominowania rzymskiego osiągają niższy koszt na węzeł we wszystkich porównywanych typach grafów. Największa różnica dotyczy struktur losowych, gdzie przewaga wynosi ok.~0{,}158 jednostki kosztu na węzeł (32\%). W sieciach bezskalowych różnica wynosi 0{,}171 jednostki, natomiast w małoświatowych 0{,}086 jednostki. Algorytmy dla różnych schematów licencyjnych wykazują porównywalne czasy wykonania, przy czym w grafach małoświatowych algorytmy dla schematu licencyjnego Duolingo Super działają nieznacznie szybciej, natomiast w grafach losowych i bezskalowych szybciej działają algorytmy dla schematu licencyjnego dominowania rzymskiego. Rysunek~\ref{fig:duo-roman-cost} ilustruje te obserwacje dla pełnego rozkładu kosztów, a rysunek~\ref{fig:duo-roman-time} prezentuje analogiczne dane dotyczące czasów wykonania. Warto zauważyć, że wyższe koszty na węzeł w przypadku Duolingo Super wynikają z ograniczeń w opłacalności licencji grupowych. Licencja grupowa jest około 2{,}1 razy droższa od indywidualnej, co oznacza, że opłaca się ją tworzyć dopiero dla grup liczących co najmniej trzy osoby (właściciel i dwaj sąsiedzi w grafie). W konsekwencji liczba licencji indywidualnych w schemacie Duolingo Super jest większa, co przekłada się na wyższy średni koszt na węzeł w porównaniu z konfiguracją dominowania rzymskiego.
 
 \begin{figure}[H]
   \centering
@@ -219,9 +219,9 @@ Algorytmy optymalizacji dla schematu licencyjnego dominowania rzymskiego osiąga
   \label{fig:duo-roman-time}
 \end{figure}
 
-Rysunek~\ref{fig:duo-roman-license} pokazuje, że w rozwiązaniach optymalnych dla konfiguracji licencyjnej dominowania rzymskiego obserwuje się wyższy stosunek licencji grupowych do indywidualnych w porównaniu do rozwiązań dla konfiguracji licencyjnej Duolingo Super. W konfiguracji dominowania rzymskiego stosunek licencji grupowych do indywidualnych wynosi około 1.15:1, natomiast w schemacie Duolingo Super stosunek ten jest odwrócony i wynosi około 0.88:1 (więcej licencji indywidualnych niż grupowych).
+Rysunek~\ref{fig:duo-roman-license} pokazuje, że w rozwiązaniach optymalnych dla konfiguracji licencyjnej dominowania rzymskiego obserwuje się wyższy stosunek licencji grupowych do indywidualnych w porównaniu do rozwiązań dla konfiguracji licencyjnej Duolingo Super. W konfiguracji dominowania rzymskiego stosunek licencji grupowych do indywidualnych wynosi około 1{,}15:1, natomiast w schemacie Duolingo Super stosunek ten jest odwrócony i wynosi około 0{,}88:1 (więcej licencji indywidualnych niż grupowych).
 
-Różnica w strukturze wykorzystania licencji wynika z faktu, że konfiguracja licencyjna dominowania rzymskiego nie posiada ograniczenia maksymalnej pojemności grupy licencyjnej. W schemacie Duolingo Super, gdy grupa osiąga maksymalną pojemność, dodatkowi użytkownicy, którzy mogliby do niej należeć, są zmuszeni do zakupu licencji indywidualnych. W pełnym zbiorze danych, obejmującym trzy typy grafów syntetycznych, zaobserwowano 137690 licencji w schemacie Duolingo Super, z czego 73176 (53.15\%) to licencje indywidualne. W konfiguracji dominowania rzymskiego, dzięki brakowi ograniczeń pojemności grup, liczba licencji indywidualnych jest proporcjonalnie niższa.
+Różnica w strukturze wykorzystania licencji wynika z faktu, że konfiguracja licencyjna dominowania rzymskiego nie posiada ograniczenia maksymalnej pojemności grupy licencyjnej. W schemacie Duolingo Super, gdy grupa osiąga maksymalną pojemność, dodatkowi użytkownicy, którzy mogliby do niej należeć, są zmuszeni do zakupu licencji indywidualnych. W pełnym zbiorze danych, obejmującym trzy typy grafów syntetycznych, odnotowano 137 690 licencji w schemacie Duolingo Super, z czego 73 176 (53{,}15\%) to licencje indywidualne. W konfiguracji dominowania rzymskiego, dzięki brakowi ograniczeń pojemności grup, liczba licencji indywidualnych jest proporcjonalnie niższa.
 
 \begin{figure}[H]
   \centering
@@ -232,10 +232,10 @@ Różnica w strukturze wykorzystania licencji wynika z faktu, że konfiguracja l
 
 \section{Wnioski}
 
-Przeprowadzone eksperymenty pokazują, że schemat licencjonowania Duolingo Super zapewnia stabilne i powtarzalne wyniki. Spośród badanych metod najlepiej wypadły algorytm mrówkowy oraz przeszukiwanie tabu. Algorytm mrówkowy osiąga najniższy koszt na węzeł w grupie metaheurystyk, lecz wymaga dłuższego czasu działania. Przeszukiwanie tabu pozwala uzyskać porównywalną jakość i jednocześnie zachowuje lepszy kompromis między kosztem a czasem obliczeń.
+Przeprowadzone eksperymenty wskazują, że schemat licencjonowania Duolingo Super zapewnia stabilne i powtarzalne wyniki. Spośród badanych metod najlepsze wyniki uzyskały algorytm mrówkowy oraz przeszukiwanie tabu. Algorytm mrówkowy osiąga najniższy koszt na węzeł w grupie metaheurystyk, lecz wymaga dłuższego czasu działania. Przeszukiwanie tabu umożliwia uzyskanie porównywalnej jakości i jednocześnie zachowuje lepszy kompromis między kosztem a czasem obliczeń.
 
-Solver ILP stanowi wartościowe odniesienie jakościowe, jednak jego zastosowanie jest ograniczone do mniejszych instancji ze względu na częste przekroczenia limitu czasu. Proste heurystyki, takie jak algorytm zachłanny czy losowy, działają bardzo szybko, ale ich wyniki są wyraźnie gorsze jakościowo.
+Solver ILP stanowi wartościowe odniesienie jakościowe, jednak jego zastosowanie jest ograniczone do mniejszych instancji ze względu na częste przekroczenia limitu czasu. Proste heurystyki, takie jak algorytm zachłanny czy losowy, charakteryzują się bardzo krótkim czasem działania, ale rozwiązania mają istotnie wyższy koszt na węzeł.
 
 Wyniki potwierdzają również znaczenie struktury grafu. W przypadku grafów losowych i małoświatowych możliwe jest osiągnięcie rezultatów zbliżonych do solvera ILP, natomiast grafy bezskalowe okazały się trudniejsze i generowały wyższe koszty. Skalowanie pokazane na rysunku~\ref{fig:duo-real-size} dowodzi, że przeszukiwanie tabu zachowuje niskie koszty na węzeł nawet przy rosnącej liczbie wierzchołków, a czasy działania rosną umiarkowanie.
 
-Porównanie ze schematem licencyjnym dominowania rzymskiego wskazuje, że schemat ten osiąga niższy koszt na węzeł we wszystkich typach grafów. Wynika to z większego udziału licencji grupowych i niższego kosztu jednostkowego. Schemat Duolingo Super charakteryzuje się natomiast krótszym czasem działania w grafach małoświatowych.
+Porównanie ze schematem licencyjnym dominowania rzymskiego wskazuje, że schemat ten osiąga niższy koszt na węzeł we wszystkich typach grafów. Wynika to z większego udziału licencji grupowych i niższego kosztu jednostkowego. Schemat Duolingo Super cechuje się natomiast krótszym czasem wykonania w grafach małoświatowych.
