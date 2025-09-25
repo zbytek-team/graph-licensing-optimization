@@ -12,6 +12,26 @@ W przypadku grafów syntetycznych dla każdego rozmiaru generowano trzy niezale�
 
 Dodatkowo, w celu ułatwienia porównań między różnymi typami licencji, ceny każdej z licencji zostały znormalizowane. Cena licencji indywidualnej została ustalona na poziomie 1, a ceny licencji grupowych przeskalowano zgodnie z ich pierwotnym stosunkiem do ceny licencji indywidualnej. Dzięki temu możliwe było bardziej przejrzyste porównanie kosztów między różnymi strategiami licencjonowania, niezależnie od ich bezwzględnych wartości.
 
+\subsection{Przykład uruchomienia aplikacji i interpretacja wyników}
+
+Aby uruchomić eksperymenty, należy skorzystać z polecenia \texttt{make run-experiments} która uruchamia główny potok eksperymentalny:
+\begin{verbatim}
+PYTHONPATH=src UV_CACHE_DIR=.uv_cache uv run -m glopt.cli.pipelines full
+\end{verbatim}
+
+Na rysunku~\ref{fig:cli-content} przedstawiono przykładowy przebieg uruchomienia aplikacji z poziomu terminala.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{assets/cli-content.png}
+  \caption{Przykładowy przebieg uruchomienia potoku eksperymentalnego z Makefile.}
+  \label{fig:cli-content}
+\end{figure}
+
+Na początku wyświetlane są informacje o wybranych parametrach uruchomienia, takich jak typ potoku, konfiguracje licencji, lista algorytmów oraz limity czasowe. Następnie rozpoczyna się proces przygotowania grafów. Tworzony jest \textit{magazyn grafów} (cache), który pozwala na wielokrotne wykorzystanie tych samych instancji grafów pomiędzy różnymi algorytmami i konfiguracjami licencji. Dzięki temu nie ma potrzeby generowania grafów od nowa dla każdej próby, co znacząco skraca czas obliczeń, zwłaszcza dla dużych instancji.
+
+Po przygotowaniu grafów wyświetlane są szczegóły dotyczące liczby rozmiarów, próbek i powtórzeń dla każdej instancji. Następnie dla każdej kombinacji licencji i algorytmu prezentowane są postępy obliczeń. Każda iteracja pokazuje podstawowe statystyki, takie jak rozmiar grafu, koszt rozwiązania, koszt na węzeł oraz czas wykonania. Pozwala to na bieżąco monitorować przebieg eksperymentu i szybko wykryć ewentualne anomalie.
+
 \section{Duolingo Super na grafach syntetycznych}
 
 \subsection{Statystyki zbiorcze}
