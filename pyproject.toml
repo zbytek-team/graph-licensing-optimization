@@ -7,13 +7,13 @@ dependencies = [
     "matplotlib>=3.8",
     "networkx>=3.3",
     "pulp>=3.2.2",
-    "hypothesis>=6.0",
     "tqdm>=4.66",
     "pillow>=10.0",
     "scipy>=1.16.2",
     "pandas>=2.3.2",
     "seaborn>=0.13.2",
-    "pytest>=8.4.2",
+    "vulture>=2.14",
+    "ruff>=0.13.1",
 ]
 
 [project.optional-dependencies]
@@ -26,11 +26,11 @@ analysis = [
 ]
 
 [tool.black]
-line-length = 220
+line-length = 79
 target-version = ["py313"]
 
 [tool.ruff]
-line-length = 220
+line-length = 79
 target-version = "py313"
 fix = true
 
