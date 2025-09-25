@@ -1,2 +1,0 @@
-run_id,algorithm,graph,n_nodes,n_edges,graph_params,license_config,total_cost,time_ms,valid,issues,image_path,notes
-20250924_180307_custom,ilp,scale_free,30,56,{},spotify,251.93,98.21893899788847,True,0,runs/20250924_180307_custom/graphs/ilp_30n_56e.png,

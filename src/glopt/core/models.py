@@ -46,8 +46,15 @@ class LicenseGroup[N: Hashable]:
 
     def __post_init__(self) -> None:
         s = self.size
-        if not (self.license_type.min_capacity <= s <= self.license_type.max_capacity):
-            msg = f"group size {s} violates [{self.license_type.min_capacity}, {self.license_type.max_capacity}] for {self.license_type.name}"
+        if (
+            not self.license_type.min_capacity
+            <= s
+            <= self.license_type.max_capacity
+        ):
+            msg = f"group size {s} violates [" \
+                f"{self.license_type.min_capacity}, " \
+                f"{self.license_type.max_capacity}] " \
+                f"for {self.license_type.name}"
             raise ValueError(msg)
 
 
@@ -62,7 +69,12 @@ class Solution[N: Hashable]:
 
 class Algorithm[N: Hashable](ABC):
     @abstractmethod
-    def solve(self, graph: nx.Graph, license_types: Sequence[LicenseType], **kwargs: Any) -> Solution[N]: ...
+    def solve(
+        self,
+        graph: nx.Graph,
+        license_types: Sequence[LicenseType],
+        **kwargs: Any,
+    ) -> Solution[N]: ...
 
     @property
     @abstractmethod

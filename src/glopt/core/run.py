@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING, Any
 
 import networkx as nx
 
-from glopt import algorithms
-from glopt.core.solution_validator import SolutionValidator
-from glopt.io.graph_generator import GraphGeneratorFactory
-from glopt.io.graph_visualizer import GraphVisualizer
+from . import algorithms
+from .io.graph_generator import GraphGeneratorFactory
+from .io.graph_visualizer import GraphVisualizer
+from .solution_validator import SolutionValidator
 
 if TYPE_CHECKING:
     from glopt.core.models import Algorithm, LicenseType, Solution
@@ -23,7 +23,6 @@ class RunResult:
     graph: str
     n_nodes: int
     n_edges: int
-    graph_params: str
     license_config: str
     total_cost: float
     time_ms: float
@@ -33,7 +32,9 @@ class RunResult:
     notes: str = ""
 
 
-def generate_graph(name: str, n_nodes: int, params: dict[str, Any]) -> nx.Graph:
+def generate_graph(
+    name: str, n_nodes: int, params: dict[str, Any]
+) -> nx.Graph:
     gen = GraphGeneratorFactory.get(name)
     g = gen(n_nodes=n_nodes, **params)
     if not all(isinstance(v, int) for v in g.nodes()):
@@ -67,19 +68,15 @@ def run_once(
     license_types: list[LicenseType],
     run_id: str,
     graphs_dir: str,
-    print_issue_limit: int | None = 20,
 ) -> RunResult:
     validator = SolutionValidator(debug=False)
     visualizer = GraphVisualizer(figsize=(12, 8))
-
     t0 = perf_counter()
     solution: Solution = algo.solve(graph=graph, license_types=license_types)
     elapsed_ms = (perf_counter() - t0) * 1000.0
-
     ok, issues = validator.validate(solution, graph)
-    # Keep validation but avoid noisy prints; leave issues count in the result.
-
-    img_name = f"{algo.name}_{graph.number_of_nodes()}n_{graph.number_of_edges()}e.png"
+    img_name = f"{algo.name}_{graph.number_of_nodes()}n_" \
+        f"{graph.number_of_edges()}e.png"
     img_path = str(Path(graphs_dir) / img_name)
     try:
         visualizer.visualize_solution(
@@ -89,16 +86,14 @@ def run_once(
             timestamp_folder=run_id,
             save_path=img_path,
         )
-    except Exception:  # defensive: visualization may fail in headless environments
+    except Exception:
         img_path = ""
-
     return RunResult(
         run_id=run_id,
         algorithm=algo.name,
         graph="?",
         n_nodes=graph.number_of_nodes(),
         n_edges=graph.number_of_edges(),
-        graph_params="{}",
         license_config="?",
         total_cost=float(solution.total_cost),
         time_ms=elapsed_ms,
