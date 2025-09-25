@@ -10,6 +10,15 @@ Analiza przedstawionych mechanizmów prowadzi do sformułowania problemu optymal
 
 Warto zauważyć, że opisana struktura problemu ma ścisłe powiązania z zagadnieniami teorii grafów. Jest ona bliska klasycznemu problemowi dominowania, ponieważ wybór użytkowników kupujących licencje grupowe pełni tę samą funkcję co wybór zbioru dominującego. W obu przypadkach chodzi o to, aby wybrany zestaw wierzchołków pokrywał całą sieć. W dalszej części pracy został również pokazany związek z wariantem znanym jako \emph{dominowanie rzymskie}. Takie odniesienia do teorii grafów stanowią istotne uzupełnienie głównego celu badań, którym jest optymalizacja kosztów licencji w społeczności użytkowników.
 
+\section{Przegląd istniejących rozwiązań}
+
+Dotychczas w literaturze brak jest opracowań bezpośrednio analizujących problem optymalnego podziału licencji w sieciach społecznościowych. Innymi słowy, zagadnienie minimalizacji kosztów zakupu planów grupowych w sieciach powiązanych użytkowników nie zostało jeszcze opisane. Niniejsza praca podejmuje je po raz pierwszy, lokując je w ramach teorii grafów.
+
+Najbliższą analogią jest klasyczne zagadnienie zbioru dominującego, które polega na znalezieniu minimalnego podzbioru wierzchołków, tak by każdy wierzchołek grafu należał do tego zbioru lub był jego sąsiadem. Problem ten jest NP-zupełny, co otwiera pole dla badań algorytmicznych i heurystycznych~\cite{garey1979}. Szczególne znaczenie w kontekście analizowanego problemu ma dominowanie rzymskie, które zostało szczegółowo opisane w rozdziale \ref{chap:roman_domination}. Koncepcja ta znalazła szerokie zastosowania i doczekała się wielu rozszerzeń, m.in. dominowania włoskiego czy dominowania zabezpieczonego \cite{Roman2DominationSurvey}.
+
+Model ten jest szczególnie użyteczny dla odwzorowania problemu podziału licencji. Standardowa wersja dominowania rzymskiego zakłada brak ograniczeń co do liczby sąsiadów, których może dominować wierzchołek z etykietą $2$. W rzeczywistości jednak plany subskrypcyjne narzucają limity (np. maksymalnie $6$ osób w planie rodzinnym). Powoduje to naturalne odwołanie do dominowania z pojemnością, w której każdy wierzchołek dominujący ma przypisaną wartość $c(v)$ określającą, ilu sąsiadów może objąć swoim dominowaniem \cite{CapDom}.
+
+Podsumowując, problem podziału licencji stanowi nowy wariant zagadnienia dominowania w grafach, wykorzystujący idee dominowania rzymskiego oraz jego modyfikacji z ograniczeniami pojemności. Brak specjalistycznych opracowań wskazuje na wyraźną niszę badawczą. Jednocześnie bogata literatura dotycząca dominowania w grafach dostarcza ugruntowanych narzędzi teoretycznych i algorytmicznych, co pozwala formalnie wykazać NP-trudność badanego problemu oraz zastosować zarówno metody dokładne (np. programowanie całkowitoliczbowe), jak i przybliżone heurystyki, wzorując się na podejściach znanych z teorii dominowania \cite{Roman2DominationSurvey, CapDom}.
 
 
 \section{Cele i zakres pracy}
