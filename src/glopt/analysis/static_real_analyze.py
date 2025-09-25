@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import warnings
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -14,8 +15,10 @@ from glopt.analysis.commons import (
     describe_numeric,
     ensure_dir,
     expand_license_counts,
+    filter_complete_samples,
     load_dataset,
     normalize_cost_columns,
+    SAMPLE_IDENTIFIER_COLUMNS,
     pivot_complete_blocks,
     run_friedman_nemenyi,
     save_table,
@@ -78,6 +81,8 @@ METRIC_DISPLAY = {
     "cost_per_node": "koszt na węzeł",
 }
 
+SAMPLE_ID_COLS = list(SAMPLE_IDENTIFIER_COLUMNS)
+
 
 def _axis_label(metric: str, aggregate: str | None = None) -> str:
     base = METRIC_DISPLAY.get(metric, metric.replace("_", " "))
@@ -91,7 +96,20 @@ def _filter_algorithms(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _plot_metric_vs_nodes(df: pd.DataFrame, value: str, title: str, filename: str) -> None:
-    aggregated = df.groupby(["algorithm", "n_nodes"], as_index=False).agg(mean=(value, "mean"))
+    filtered_df, _ = filter_complete_samples(
+        df,
+        SAMPLE_ID_COLS,
+        value_cols=[value],
+        warn_label=title,
+    )
+    aggregated = filtered_df.groupby(["algorithm", "n_nodes"], as_index=False).agg(mean=(value, "mean"))
+    if aggregated.empty:
+        warnings.warn(
+            f"Brak danych do wykresu '{title}' po odfiltrowaniu niekompletnych próbek.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        return
     fig, ax = plt.subplots()
     sns.lineplot(
         data=aggregated,
@@ -114,9 +132,30 @@ def _plot_metric_vs_nodes(df: pd.DataFrame, value: str, title: str, filename: st
 
 
 def _plot_metric_by_graph(df: pd.DataFrame, value: str, title: str, filename: str) -> None:
+    filtered_parts: list[pd.DataFrame] = []
+    for graph_name, graph_frame in df.groupby("graph"):
+        filtered_graph, _ = filter_complete_samples(
+            graph_frame,
+            SAMPLE_ID_COLS,
+            value_cols=[value],
+            warn_label=f"{title} ({graph_name})",
+        )
+        if filtered_graph.empty:
+            continue
+        filtered_parts.append(filtered_graph)
+
+    if not filtered_parts:
+        warnings.warn(
+            f"Brak danych do wykresu '{title}' po odfiltrowaniu niekompletnych próbek.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        return
+
+    plot_df = pd.concat(filtered_parts, ignore_index=True)
     fig, ax = plt.subplots()
     sns.barplot(
-        data=df,
+        data=plot_df,
         x="graph",
         y=value,
         hue="algorithm",
@@ -137,9 +176,30 @@ def _plot_metric_by_graph(df: pd.DataFrame, value: str, title: str, filename: st
 
 
 def _plot_duo_vs_roman(df: pd.DataFrame, value: str, title: str, filename: str) -> None:
+    filtered_parts: list[pd.DataFrame] = []
+    for dataset_name, dataset_frame in df.groupby("dataset"):
+        filtered_dataset, _ = filter_complete_samples(
+            dataset_frame,
+            SAMPLE_ID_COLS,
+            value_cols=[value],
+            warn_label=f"{title} ({dataset_name})",
+        )
+        if filtered_dataset.empty:
+            continue
+        filtered_parts.append(filtered_dataset)
+
+    if not filtered_parts:
+        warnings.warn(
+            f"Brak danych do wykresu '{title}' po odfiltrowaniu niekompletnych próbek.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        return
+
+    plot_df = pd.concat(filtered_parts, ignore_index=True)
     fig, ax = plt.subplots()
     sns.barplot(
-        data=df,
+        data=plot_df,
         x="graph",
         y=value,
         hue="dataset",
@@ -210,6 +270,30 @@ def main() -> None:
     )
     save_table(roman_graph, TAB_DIR / "roman_algorithm_graph_stats.csv")
 
+    tabu_cost_data, _ = filter_complete_samples(
+        duolingo,
+        SAMPLE_ID_COLS,
+        value_cols=["cost_per_node"],
+        warn_label="TabuSearch koszt/węzeł vs liczba węzłów",
+    )
+    tabu_only = tabu_cost_data[tabu_cost_data["algorithm"] == "TabuSearch"]
+    if tabu_only.empty:
+        warnings.warn(
+            "Brak danych TabuSearch do agregacji po liczbie wierzchołków po odfiltrowaniu próbek.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+    else:
+        tabu_by_nodes = (
+            tabu_only.groupby("n_nodes", as_index=False)
+            .agg(
+                mean_cost_per_node=("cost_per_node", "mean"),
+                mean_time_s=("time_s", "mean"),
+            )
+            .sort_values("n_nodes")
+        )
+        save_table(tabu_by_nodes, TAB_DIR / "tabu_search_by_nodes.csv")
+
     timeout_counts_agg = timeout.groupby("algorithm").size().rename("count")
     timeout_counts_agg.to_csv(TAB_DIR / "timeouts_by_algorithm.csv")
 
@@ -227,7 +311,7 @@ def main() -> None:
     pareto_df = compute_pareto_front(duolingo[pareto_cols], "total_cost", "time_s")
     pareto_df.to_csv(TAB_DIR / "duolingo_pareto_cost_time.csv", index=False)
 
-    id_cols = ["graph", "n_nodes", "license_config", "rep", "sample"]
+    id_cols = list(SAMPLE_ID_COLS)
     pivot_time = pivot_complete_blocks(duolingo, id_cols, "algorithm", "time_s")
     pivot_cost = pivot_complete_blocks(duolingo, id_cols, "algorithm", "cost_per_node")
 
