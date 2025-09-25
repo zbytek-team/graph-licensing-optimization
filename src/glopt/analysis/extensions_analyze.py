@@ -84,29 +84,66 @@ def _plot_metric_by_license(
     algo_values = subset["algorithm"].unique().tolist()
     palette = algorithm_palette(algo_values)
     order = [name for name in ALGORITHM_ORDER_DISPLAY if name in algo_values]
-    sns.barplot(
-        data=subset,
-        x="license_config",
-        y=metric,
-        hue="algorithm",
-        hue_order=order if order else None,
-        palette=palette,
-        estimator=np.mean,
-        errorbar="se",
-        ax=ax,
-    )
-    ax.set_title(title)
-    ax.set_xlabel("Konfiguracja licencji")
-    ax.set_ylabel(_axis_label(metric, "mean"))
-    ax.tick_params(axis="x", rotation=25)
-    if metric == "time_s" and not focus_algos:
-        ax.set_ylim(0, 7.5)
+    horizontal = metric == "cost_per_node" and focus_algos is not None
+    if horizontal:
+        base_colors = ["#1f77b4", "#2ca02c", "#ff7f0e"]
+        palette_map = {algo: base_colors[idx % len(base_colors)] for idx, algo in enumerate(order if order else algo_values)}
+        sns.barplot(
+            data=subset,
+            x=metric,
+            y="license_config",
+            hue="algorithm",
+            hue_order=order if order else None,
+            palette=palette_map,
+            estimator=np.mean,
+            errorbar=None,
+            orient="h",
+            ax=ax,
+        )
     else:
-        ax.set_ylim(bottom=0)
+        sns.barplot(
+            data=subset,
+            x="license_config",
+            y=metric,
+            hue="algorithm",
+            hue_order=order if order else None,
+            palette=palette,
+            estimator=np.mean,
+            errorbar="se",
+            ax=ax,
+        )
+    ax.set_title(title)
+    if horizontal:
+        ax.set_xlabel(_axis_label(metric, "mean"))
+        ax.set_ylabel("Konfiguracja licencji")
+        ax.tick_params(axis="y", rotation=0)
+        ax.set_xlim(left=0)
+    else:
+        ax.set_xlabel("Konfiguracja licencji")
+        ax.set_ylabel(_axis_label(metric, "mean"))
+        ax.tick_params(axis="x", rotation=25)
+        if metric == "time_s" and not focus_algos:
+            ax.set_ylim(0, 7.5)
+        else:
+            ax.set_ylim(bottom=0)
     handles, labels = ax.get_legend_handles_labels()
     if handles:
-        ax.legend(handles, labels, title="Algorytm")
-    plt.tight_layout()
+        if horizontal:
+            ax.legend(
+                handles,
+                labels,
+                title="Algorytm",
+                loc="lower center",
+                bbox_to_anchor=(0.5, -0.42),
+                ncol=max(1, len(handles)),
+                frameon=False,
+            )
+        else:
+            ax.legend(handles, labels, title="Algorytm")
+    if horizontal:
+        fig.tight_layout(rect=(0.0, 0.0, 1.0, 1.0))
+    else:
+        fig.tight_layout()
     fig.savefig(FIG_DIR / filename)
     plt.close(fig)
 
