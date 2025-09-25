@@ -153,14 +153,14 @@ Tabela~\ref{tab:duo-real-alg} pokazuje, że zarówno przeszukiwanie tabu, jak i 
 
 \subsection{Skalowanie i jakość}
 
-Rysunek~\ref{fig:duo-real-size} pokazuje, że koszt na węzeł pozostaje relatywnie stały w okolicach 6-7 jednostek niezależnie od liczby wierzchołków, z niewielkimi wahaniami spowodowanymi różnicami między poszczególnymi instancjami grafów. Przeszukiwanie tabu utrzymuje najniższe wartości, a algorytm mrówkowy plasuje się tuż za nim. Czasy działania wszystkich metod mieszczą się w przedziale do kilku sekund i rosną łagodnie wraz z rozmiarem grafu; algorytm zachłanny nadal pozostaje niemal natychmiastowy i stanowi dobry punkt startowy dla metaheurystyk. Dodatkowo tabela~\ref{tab:duo-real-size-table} agreguje średnie wartości (Przeszukiwanie Tabu) dla kolejnych rozmiarów sieci ego i pokazuje, że koszt na węzeł oscyluje w przedziale 5.2--7.8 przy czasie rosnącym od około 2~s do około 58~s dla największych grafów.
+Rysunek~\ref{fig:duo-real-size} pokazuje, że koszt na węzeł pozostaje relatywnie stabilny niezależnie od liczby wierzchołków, z niewielkimi wahaniami spowodowanymi różnicami między poszczególnymi instancjami grafów. Przeszukiwanie tabu utrzymuje najniższe wartości, a algorytm mrówkowy plasuje się tuż za nim. Czasy działania wszystkich metod mieszczą się w przedziale do kilku sekund i rosną łagodnie wraz z rozmiarem grafu; algorytm zachłanny nadal pozostaje niemal natychmiastowy i stanowi dobry punkt startowy dla metaheurystyk. Dodatkowo tabela~\ref{tab:duo-real-size-table} agreguje średnie wartości (przeszukiwanie tabu) dla kolejnych rozmiarów sieci ego i pokazuje, że koszt na węzeł oscyluje w przedziale 0.37--0.56 przy czasie rosnącym od około 2~s do około 33~s dla największych grafów.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.48\linewidth]{assets/figures/benchmark/real/cost_per_node_vs_nodes.pdf}
   \hfill
   \includegraphics[width=0.48\linewidth]{assets/figures/benchmark/real/time_vs_nodes.pdf}
-  \caption{Koszt na węzeł i czas wykonania licencji Duolingo Super w funkcji liczby wierzchołków (grafy ego Facebook).}
+  \caption{Koszt na węzeł i czas wykonania algorytmów dla licencji Duolingo Super w zależności od liczby wierzchołków (grafy ego Facebook).}
   \label{fig:duo-real-size}
 \end{figure}
 
@@ -170,15 +170,14 @@ Rysunek~\ref{fig:duo-real-size} pokazuje, że koszt na węzeł pozostaje relatyw
   \label{tab:duo-real-size-table}
   \begin{tabular}{lrr}
     \toprule
-    \textbf{Liczba wierzchołków} & \textbf{Śr. koszt/węzeł} & \textbf{Śr. czas [ms]} \\
+    \textbf{Liczba wierzchołków} & \textbf{Śr. koszt/węzeł} & \textbf{Śr. czas [s]} \\
     \midrule
-    53                           & 6.175                    & 2161.349               \\
-    62                           & 5.175                    & 3141.926               \\
-    151                          & 5.297                    & 6825.722               \\
-    169                          & 5.499                    & 8726.145               \\
-    225                          & 5.704                    & 12324.041              \\
-    334                          & 7.843                    & 32705.396              \\
-    535                          & 7.400                    & 58557.464              \\
+    53                           & 0.441                    & 2.16                  \\
+    62                           & 0.370                    & 3.14                  \\
+    151                          & 0.379                    & 6.83                  \\
+    169                          & 0.393                    & 8.73                  \\
+    225                          & 0.408                    & 12.32                 \\
+    334                          & 0.561                    & 32.71                 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -186,7 +185,7 @@ Rysunek~\ref{fig:duo-real-size} pokazuje, że koszt na węzeł pozostaje relatyw
 
 \section{Porównanie z dominowaniem rzymskim}
 
-Porównania z dominowaniem rzymskim ograniczono do wspólnych instancji i algorytmów. Rysunki~\ref{fig:duo-roman-cost}--\ref{fig:duo-roman-license} zestawiają różnice w kosztach, czasach i strukturze licencji, a tabela~\ref{tab:duo-roman-graph} gromadzi średnie według typu grafu syntetycznego.
+Porównania licencji Duolingo Super z konfiguracją imitującą dominowanie rzymskie ograniczono do wspólnych instancji grafów i algorytmów. Rysunki~\ref{fig:duo-roman-cost}--\ref{fig:duo-roman-license} zestawiają różnice w kosztach, czasach i strukturze licencji, a tabela~\ref{tab:duo-roman-graph} gromadzi średnie według typu grafu syntetycznego.
 
 \begin{table}[H]
   \centering
@@ -204,7 +203,7 @@ Porównania z dominowaniem rzymskim ograniczono do wspólnych instancji i algory
   \end{tabular}
 \end{table}
 
-Dominowanie rzymskie zapewnia niższy koszt na węzeł we wszystkich porównywanych rodzinach grafów. Największa różnica dotyczy struktur losowych, gdzie przewaga wynosi ok.~0.16 punktu (32\%). W sieciach bezskalowych różnica maleje do 0.17, natomiast w małoświatowych do 0.09. Czasy wykonania są porównywalne, przy lekkiej przewadze Duolingo Super w grafach małoświatowych, ale dominowanie rzymskie jest szybsze w grafach losowych i bezskalowych. Rysunek~\ref{fig:duo-roman-cost} ilustruje te obserwacje dla pełnego rozkładu, a rysunek~\ref{fig:duo-roman-time} prezentuje analogiczne dane czasowe. Warto zauważyć, że wyższe koszty na węzeł w przypadku Duolingo Super wynikają z ograniczeń w opłacalności licencji grupowych. Licencja grupowa jest około 2.1 razy droższa od indywidualnej, co oznacza, że opłaca się ją tworzyć dopiero dla grup liczących co najmniej trzy osoby (właściciel i dwóch sąsiadów). W efekcie liczba licencji indywidualnych w Duolingo Super jest większa, co przekłada się na wyższy średni koszt na węzeł w porównaniu do dominowania rzymskiego.
+Algorytmy optymalizacji dla licencji z dominowaniem rzymskim osiągają niższy koszt na węzeł we wszystkich porównywanych typach grafów. Największa różnica dotyczy struktur losowych, gdzie przewaga wynosi ok.~0.158 jednostki kosztu na węzeł (32\%). W sieciach bezskalowych różnica wynosi 0.171 jednostki, natomiast w małoświatowych 0.086 jednostki. Algorytmy dla różnych schematów licencyjnych wykazują porównywalne czasy wykonania, przy czym w grafach małoświatowych algorytmy dla Duolingo Super działają nieznacznie szybciej, natomiast w grafach losowych i bezskalowych szybciej działają algorytmy dla dominowania rzymskiego. Rysunek~\ref{fig:duo-roman-cost} ilustruje te obserwacje dla pełnego rozkładu kosztów, a rysunek~\ref{fig:duo-roman-time} prezentuje analogiczne dane dotyczące czasów wykonania. Warto zauważyć, że wyższe koszty na węzeł w przypadku Duolingo Super wynikają z ograniczeń w opłacalności licencji grupowych. Licencja grupowa jest około 2.1 razy droższa od indywidualnej, co oznacza, że opłaca się ją tworzyć dopiero dla grup liczących co najmniej trzy osoby (właściciel i dwóch sąsiadów). W efekcie liczba licencji indywidualnych w Duolingo Super jest większa, co przekłada się na wyższy średni koszt na węzeł w porównaniu do dominowania rzymskiego.
 
 \begin{figure}[H]
   \centering
@@ -220,9 +219,9 @@ Dominowanie rzymskie zapewnia niższy koszt na węzeł we wszystkich porównywan
   \label{fig:duo-roman-time}
 \end{figure}
 
-Rysunek~\ref{fig:duo-roman-license} pokazuje, że dominowanie rzymskie charakteryzuje się wyższym stosunkiem licencji grupowych do indywidualnych w porównaniu do Duolingo Super. W przypadku dominowania rzymskiego stosunek ten wynosi około 1.15:1, podczas gdy dla Duolingo Super jest to około 0.88:1.
+Rysunek~\ref{fig:duo-roman-license} pokazuje, że w rozwiązaniach optymalnych dla dominowania rzymskiego obserwuje się wyższy stosunek licencji grupowych do indywidualnych w porównaniu do rozwiązań dla Duolingo Super. Dla dominowania rzymskiego stosunek licencji grupowych do indywidualnych wynosi około 1.15:1, natomiast dla Duolingo Super stosunek ten jest odwrócony i wynosi około 0.88:1 (więcej licencji indywidualnych niż grupowych).
 
-Różnica ta wynika z faktu, że dominowanie rzymskie nie posiada ograniczenia maksymalnej pojemności grupy licencyjnej. W przypadku Duolingo Super, gdy grupa osiąga maksymalną pojemność, dodatkowi użytkownicy, którzy mogliby do niej należeć, są zmuszeni do zakupu licencji indywidualnych. W pełnym zbiorze danych, obejmującym trzy typy grafów syntetycznych, zaobserwowano 137690 licencji w Duolingo Super, z czego 73176 (53.15\%) to licencje indywidualne. W przypadku dominowania rzymskiego, dzięki braku ograniczeń pojemności grup, liczba licencji indywidualnych jest proporcjonalnie niższa.
+Różnica w strukturze wykorzystania licencji wynika z faktu, że dominowanie rzymskie nie posiada ograniczenia maksymalnej pojemności grupy licencyjnej. W przypadku Duolingo Super, gdy grupa osiąga maksymalną pojemność, dodatkowi użytkownicy, którzy mogliby do niej należeć, są zmuszeni do zakupu licencji indywidualnych. W pełnym zbiorze danych, obejmującym trzy typy grafów syntetycznych, zaobserwowano 137690 licencji w Duolingo Super, z czego 73176 (53.15\%) to licencje indywidualne. W przypadku dominowania rzymskiego, dzięki brakowi ograniczeń pojemności grup, liczba licencji indywidualnych jest proporcjonalnie niższa.
 
 \begin{figure}[H]
   \centering
@@ -239,4 +238,4 @@ Solver ILP stanowi wartościowe odniesienie jakościowe, jednak jego zastosowani
 
 Wyniki potwierdzają również znaczenie struktury grafu. W przypadku grafów losowych i małoświatowych możliwe jest osiągnięcie rezultatów zbliżonych do solvera ILP, natomiast grafy bezskalowe okazały się trudniejsze i generowały wyższe koszty. Skalowanie pokazane na rysunku~\ref{fig:duo-real-size} dowodzi, że przeszukiwanie tabu zachowuje niskie koszty na węzeł nawet przy rosnącej liczbie wierzchołków, a czasy działania rosną umiarkowanie.
 
-Porównanie z dominowaniem rzymskim wskazuje, że schemat ten osiąga niższy koszt na węzeł we wszystkich typach grafów. Wynika to z większego udziału licencji grupowych i niższego kosztu jednostkowego. Duolingo Super charakteryzuje się natomiast krótszym czasem działania w grafach małoświatowych oraz większą stabilnością wyników.
+Porównanie z dominowaniem rzymskim wskazuje, że schemat ten osiąga niższy koszt na węzeł we wszystkich typach grafów. Wynika to z większego udziału licencji grupowych i niższego kosztu jednostkowego. Duolingo Super charakteryzuje się natomiast krótszym czasem działania w grafach małoświatowych.

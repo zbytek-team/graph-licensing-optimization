@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,10 +18,12 @@ from glopt.analysis.commons import (
     describe_numeric,
     ensure_dir,
     expand_license_counts,
+    filter_complete_samples,
     load_dataset,
     normalize_cost_columns,
     number_to_polish_words,
     pivot_complete_blocks,
+    SAMPLE_IDENTIFIER_COLUMNS,
     run_friedman_nemenyi,
     save_table,
     write_text,
@@ -51,6 +54,7 @@ DATASET_LABELS = {
 }
 
 ALGORITHM_ORDER_DISPLAY = [algorithm_display_name(name) for name in ALGORITHM_CANONICAL_ORDER]
+SAMPLE_ID_COLS = list(SAMPLE_IDENTIFIER_COLUMNS)
 
 
 def _axis_label(metric: str, aggregate: str | None = None) -> str:
@@ -68,8 +72,19 @@ def _mean_gap(df: pd.DataFrame, value: str, group: str) -> pd.DataFrame:
 
 
 def _plot_metric_vs_nodes(df: pd.DataFrame, value: str, title: str, filename: str) -> None:
-    aggregated = df.groupby(["algorithm", "n_nodes"], as_index=False).agg(mean=(value, "mean"))
+    filtered_df, _ = filter_complete_samples(
+        df,
+        SAMPLE_ID_COLS,
+        value_cols=[value],
+        warn_label=title,
+    )
+    aggregated = filtered_df.groupby(["algorithm", "n_nodes"], as_index=False).agg(mean=(value, "mean"))
     if aggregated.empty:
+        warnings.warn(
+            f"Brak danych do wykresu '{title}' po odfiltrowaniu niekompletnych próbek.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
         return
     algo_values = aggregated["algorithm"].unique().tolist()
     palette = algorithm_palette(algo_values)
@@ -108,12 +123,20 @@ def _plot_metric_by_graph(
         subset = df[df["graph_key"] == graph_key]
         if subset.empty:
             continue
-        algo_values = subset["algorithm"].unique().tolist()
+        filtered_subset, _ = filter_complete_samples(
+            subset,
+            SAMPLE_ID_COLS,
+            value_cols=[value],
+            warn_label=f"{title_prefix} ({graph_label})",
+        )
+        if filtered_subset.empty:
+            continue
+        algo_values = filtered_subset["algorithm"].unique().tolist()
         palette = algorithm_palette(algo_values)
         order = [name for name in ALGORITHM_ORDER_DISPLAY if name in algo_values]
         fig, ax = plt.subplots()
         sns.barplot(
-            data=subset,
+            data=filtered_subset,
             x="algorithm",
             y=value,
             hue="algorithm",
@@ -138,10 +161,31 @@ def _plot_metric_by_graph(
 
 
 def _plot_duo_vs_roman(df: pd.DataFrame, value: str, title: str, filename: str) -> None:
+    filtered_parts: list[pd.DataFrame] = []
+    for dataset_name, dataset_frame in df.groupby("dataset"):
+        filtered_dataset, _ = filter_complete_samples(
+            dataset_frame,
+            SAMPLE_ID_COLS,
+            value_cols=[value],
+            warn_label=f"{title} ({dataset_name})",
+        )
+        if filtered_dataset.empty:
+            continue
+        filtered_parts.append(filtered_dataset)
+
+    if not filtered_parts:
+        warnings.warn(
+            f"Brak danych do wykresu '{title}' po odfiltrowaniu niekompletnych próbek.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        return
+
+    plot_df = pd.concat(filtered_parts, ignore_index=True)
     fig, ax = plt.subplots()
-    order = [label for label in GRAPH_LABELS.values() if label in df["graph"].unique()]
+    order = [label for label in GRAPH_LABELS.values() if label in plot_df["graph"].unique()]
     sns.barplot(
-        data=df,
+        data=plot_df,
         x="graph",
         y=value,
         hue="dataset",
@@ -277,7 +321,7 @@ def main() -> None:
     pareto_df = compute_pareto_front(duolingo[pareto_cols], "total_cost", "time_s")
     pareto_df.to_csv(TAB_DIR / "duolingo_pareto_cost_time.csv", index=False)
 
-    id_cols = ["graph", "n_nodes", "license_config", "rep", "sample"]
+    id_cols = list(SAMPLE_ID_COLS)
     pivot_time = pivot_complete_blocks(duolingo, id_cols, "algorithm", "time_s")
     pivot_cost = pivot_complete_blocks(duolingo, id_cols, "algorithm", "cost_per_node")
 
