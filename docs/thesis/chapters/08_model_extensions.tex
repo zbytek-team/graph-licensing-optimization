@@ -1,13 +1,13 @@
 \chapter{Rozszerzenia modelu licencjonowania}\label{chap:extensions}
 
 \section{Przegląd badanych wariantów}
-Oprócz bazowych konfiguracji rozważono osiem rozszerzeń licencyjnych, które różnią się wielokrotnością kosztu licencji grupowej względem indywidualnej. Warianty Duolingo Super obejmują plany, w których koszt licencji grupowej wynosi odpowiednio dwukrotność, czterokrotność i pięciokrotność ceny licencji indywidualnej, przy zachowaniu stałej pojemności grupy (6 osób). Podobnie, w przypadku dominowania rzymskiego analizowano konfiguracje, w których koszt licencji grupowej wynosi $p$-krotność ceny indywidualnej, dla $p \in \{3, 4, 5\}$. Dwa ostatnie warianty odnoszą się do rzeczywistych ofert: Spotify wprowadza plan Duo (pojemność 2) pomiędzy licencją indywidualną a rodzinną, natomiast Netflix oferuje plany dla 1, 2 lub 4 osób.
+Oprócz bazowych konfiguracji rozważono osiem rozszerzeń licencyjnych, które różnią się wielokrotnością kosztu licencji grupowej względem indywidualnej. Warianty Duolingo Super obejmują plany, w których koszt licencji grupowej wynosi odpowiednio dwukrotność, czterokrotność i pięciokrotność ceny licencji indywidualnej, przy zachowaniu stałej pojemności grupy (6 osób). Podobnie, w przypadku dominowania rzymskiego analizowano konfiguracje, w których koszt licencji grupowej wynosi $p$-krotność ceny indywidualnej, dla $p \in \{3, 4, 5\}$. Dwa ostatnie warianty odnoszą się do rzeczywistych ofert: Spotify oferuje plan Duo (pojemność 2) jako wariant pośredni między licencją indywidualną a rodzinną, natomiast Netflix oferuje plany dla 1, 2 lub 4 osób.
 
 Przedstawione w tabelach wartości stanowią statystyki zagregowane dla danej konfiguracji licencyjnej. Oznacza to, że średnie koszty na węzeł oraz średnie czasy obliczeń zostały obliczone na podstawie wyników wszystkich zastosowanych algorytmów oraz wszystkich typów grafów uwzględnionych w eksperymentach. Tabele nie odnoszą się zatem do pojedynczego algorytmu czy sieci, lecz prezentują uśrednione efekty całej grupy uruchomień dla danej konfiguracji licencji.
 
 
 \subsection{Warianty rodziny Duolingo}
-Na rys.~\ref{fig:ext-duolingo-cost} przedstawiono mediany kosztu na węzeł dla konfiguracji, w których koszt licencji grupowej wynosi odpowiednio dwukrotność (\texttt{duolingo\_p\_2}), czterokrotność (\texttt{duolingo\_p\_4}) oraz pięciokrotność (\texttt{duolingo\_p\_5}) ceny licencji indywidualnej. Widać, że wyższe mnożniki prowadzą do wzrostu kosztu na węzeł, co wynika z preferencji algorytmów do korzystania z licencji indywidualnych przy wyższych kosztach planów grupowych. W przypadku konfiguracji \texttt{duolingo\_p\_4} oznacza to, że sens kupna licencji grupowej pojawia się dopiero dla grup liczących 4 lub więcej osób, ponieważ dopiero wtedy koszt licencji grupowej jest równy lub niższy niż koszt czterech licencji indywidualnych.
+Na rys.~\ref{fig:ext-duolingo-cost} przedstawiono mediany kosztu na węzeł dla konfiguracji, w których koszt licencji grupowej wynosi odpowiednio dwukrotność (\texttt{duolingo\_p\_2}), czterokrotność (\texttt{duolingo\_p\_4}) oraz pięciokrotność (\texttt{duolingo\_p\_5}) ceny licencji indywidualnej. Wyniki wskazują, że wyższe mnożniki prowadzą do wzrostu kosztu na węzeł, co wynika z częstszej selekcji licencji indywidualnych przy wyższych kosztach planów grupowych. W przypadku konfiguracji \texttt{duolingo\_p\_4} oznacza to, że sens kupna licencji grupowej pojawia się dopiero dla grup liczących 4 lub więcej osób, ponieważ dopiero wtedy koszt licencji grupowej jest równy lub niższy niż koszt czterech licencji indywidualnych.
 
 Szczegółowe statystyki dla wariantów Duolingo zebrano w tabeli~\ref{tab:ext-duolingo-stats}. Wzrost mnożnika ceny grupowej z 2 do 5 powoduje wzrost średniego kosztu na węzeł o 77\% (z 0.554 do 0.982) oraz wydłużenie średniego czasu obliczeń o 47\% (z 0.637 s do 0.938 s).
 
@@ -86,9 +86,9 @@ Zmiana struktury licencji wpływa również na udział planów grupowych (tabela
 
 \subsection{Spotify i Netflix}
 
-Spotify wprowadza trzecią licencję -- plan Duo, który przeznaczony jest dla 2 osób. Pozwala to na efektywne parowanie użytkowników zamiast budowania dużych grup rodzinnych. Tabela~\ref{tab:ext-additional-static} potwierdza, że przeszukiwanie tabu i algorytm genetyczny osiągają najniższe koszty ($0.335$ i $0.400$ na węzeł), wyraźnie dystansując heurystykę zachłanną.
+Spotify oferuje plan Duo, przeznaczony dla 2 osób. Umożliwia to efektywne dobieranie użytkowników w pary zamiast tworzenia dużych grup rodzinnych. Tabela~\ref{tab:ext-additional-static} potwierdza, że przeszukiwanie tabu i algorytm genetyczny osiągają najniższe koszty ($0.335$ i $0.400$ na węzeł), uzyskując wyniki niższe niż heurystyka zachłanna.
 
-W przypadku Netflixa plan Standard (również dla 2 osób) wypełnia lukę między kontem solo a planem rodzinnym dla czterech kont, dzięki czemu metaheurystyki utrzymują koszt w granicach $0.60$--$0.65$ przy czasie poniżej 1~s.
+W przypadku Netflixa plan Standard (również dla 2 osób) stanowi wariant pośredni między licencją indywidualną a planem rodzinnym dla czterech kont, co pozwala metaheurystykom utrzymać koszt w zakresie od $0.60$ do $0.65$ przy czasie poniżej 1~s.
 
 \begin{table}[H]
   \centering
@@ -148,7 +148,7 @@ Najkorzystniejszy stosunek kosztu do wydajności obliczeniowej wykazuje konfigur
 
 \subsection{Analiza wpływu liczby użytkowników na koszty}
 
-Struktura wykorzystania licencji zmienia się znacząco (tabela~\ref{tab:ext-license-mix}). W Spotify licencje grupowe odpowiadają za 64\% przydziałów (plan Duo + rodzina), podczas gdy w wariancie \texttt{duolingo\_p\_5} udział grup spada do 24\%. W Netflixie większość przydziałów to plany Standard/Premium (udział 68\%).
+Struktura wykorzystania licencji zmienia się istotnie (tabela~\ref{tab:ext-license-mix}). W Spotify licencje grupowe odpowiadają za 64\% przydziałów (plan Duo + rodzina), podczas gdy w wariancie \texttt{duolingo\_p\_5} udział grup spada do 24\%. W Netflixie większość przydziałów to plany Standard/Premium (udział 68\%).
 
 \begin{table}[H]
   \centering
@@ -252,11 +252,11 @@ Analiza składu licencji (tabela~\ref{tab:ext-dynamic-license-mix}) ujawnia znac
   \label{fig:ext-dynamic-license-mix}
 \end{figure}
 
-Netflix wykazuje najwyższy udział planów grupowych (67\%), co wynika z atrakcyjności planów Standard i Premium dla grup 2-4 osobowych. Ta konfiguracja skutecznie wypełnia lukę między licencjami indywidualnymi a planami o dużej pojemności, umożliwiając algorytmom elastyczne dopasowanie do struktury sieci.
+Netflix wykazuje najwyższy udział planów grupowych (67\%), co wynika z atrakcyjności planów Standard i Premium dla grup 2-4 osobowych. Ta konfiguracja stanowi wariant pośredni między licencjami indywidualnymi a planami o dużej pojemności, umożliwiając algorytmom elastyczne dopasowanie do struktury sieci.
 
 \subsection{Porównanie z benchmarkiem statycznym}
 
-Zestawienie wyników dynamicznych ze statycznymi (tabela~\ref{tab:ext-static-dynamic-comparison}) pokazuje generalną zgodność trendów. Koszty w środowisku dynamicznym pozostają na podobnym poziomie -- różnice nie przekraczają 3\% dla większości konfiguracji. Czasy wykonania wydłużają się o 30-60\%, co odzwierciedla dodatkową złożoność związaną z dynamicznym rebalansowaniem.
+Zestawienie wyników dynamicznych ze statycznymi (tabela~\ref{tab:ext-static-dynamic-comparison}) pokazuje ogólną zgodność trendów. Koszty w środowisku dynamicznym pozostają na podobnym poziomie -- różnice nie przekraczają 3\% dla większości konfiguracji. Czasy wykonania wydłużają się o 30-60\%, co odzwierciedla dodatkową złożoność związaną z dynamicznym rebalansowaniem.
 
 \begin{table}[H]
   \centering
@@ -283,7 +283,7 @@ Najstabilniejsze wyniki wykazuje konfiguracja \texttt{duolingo\_p\_5}, gdzie kos
 
 Przeprowadzone badania nad rozszerzeniami modelu licencjonowania pozwoliły na kompleksową analizę wpływu struktury cenowej na optymalizację kosztów w sieciach społecznych. Kluczowe wnioski z analizy ośmiu wariantów licencyjnych można podzielić na trzy główne obszary.
 
-Wpływ mnożnika ceny grupowej na efektywność algorytmów. Badania wykazały silną zależność między stosunkiem ceny licencji grupowej do indywidualnej a skutecznością optymalizacji. W wariantach Duolingo wzrost mnożnika z 2 do 5 powoduje zwiększenie średniego kosztu na węzeł o 77\% (z 0.554 do 0.982) oraz wydłużenie czasu obliczeń o 47\%. Podobną, choć łagodniejszą tendencję obserwuje się w wariantach dominowania rzymskiego, gdzie wzrost parametru $p$ z 3 do 5 prowadzi do 37\% wzrostu kosztu przy stabilnym czasie wykonania. Te wyniki wskazują, że metaheurystyki osiągają największe korzyści przy niskich mnożnikach, gdzie licencje grupowe pozostają atrakcyjne ekonomicznie.
+Wpływ mnożnika ceny grupowej na efektywność algorytmów. Badania wykazały wyraźną zależność między stosunkiem ceny licencji grupowej do indywidualnej a skutecznością optymalizacji. W wariantach Duolingo wzrost mnożnika z 2 do 5 powoduje zwiększenie średniego kosztu na węzeł o 77\% (z 0.554 do 0.982) oraz wydłużenie czasu obliczeń o 47\%. Podobną, choć łagodniejszą tendencję obserwuje się w wariantach dominowania rzymskiego, gdzie wzrost parametru $p$ z 3 do 5 prowadzi do 37\% wzrostu kosztu przy stabilnym czasie wykonania. Te wyniki wskazują, że metaheurystyki są najbardziej efektywne przy niskich mnożnikach, gdzie licencje grupowe pozostają opłacalne.
 
 Znaczenie planów pośrednich w strukturze licencji. Analiza konfiguracji rzeczywistych serwisów ujawniła istotną rolę licencji o pojemności pośredniej. Spotify z planem Duo (pojemność 2) osiąga najkorzystniejszy stosunek kosztu do wydajności (0.467 kosztu na węzeł przy 0.547s czasu), podczas gdy Netflix z planem Standard oferuje skuteczne wypełnienie luki między licencjami indywidualnymi a rodzinnymi. W obu przypadkach udział licencji grupowych przekracza 63\%, co potwierdza efektywność elastycznego spektrum opcji licencyjnych.
 

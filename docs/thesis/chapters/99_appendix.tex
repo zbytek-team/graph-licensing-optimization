@@ -801,22 +801,22 @@ def main() -> None:
     duo_label = DATASET_LABELS["duolingo_super"]
     roman_label = DATASET_LABELS["roman_domination"]
     lines.append(
-        f"{duo_label} – średni czas: "
+        f"{duo_label} - średni czas: "
         f"{duo_overall.loc[duo_overall['metric'] == 'time_s', "
         f"'mean'].iloc[0]:.2f} s"
     )
     lines.append(
-        f"{duo_label} – średni koszt/węzeł: "
+        f"{duo_label} - średni koszt/węzeł: "
         f"{duo_overall.loc[duo_overall['metric'] == 'cost_per_node', "
         f"'mean'].iloc[0]:.3f}"
     )
     lines.append(
-        f"{roman_label} – średni czas: "
+        f"{roman_label} - średni czas: "
         f"{roman_overall.loc[roman_overall['metric'] == 'time_s', "
         f"'mean'].iloc[0]:.2f} s"
     )
     lines.append(
-        f"{roman_label} – średni koszt/węzeł: "
+        f"{roman_label} - średni koszt/węzeł: "
         f"{roman_overall.loc[roman_overall['metric'] == 'cost_per_node', "
         f"'mean'].iloc[0]:.3f}"
     )
