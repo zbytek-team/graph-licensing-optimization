@@ -2,11 +2,11 @@
 
 \section{Założenia i konfiguracja}
 
-Eksperymenty dynamiczne wykonano w tym samym środowisku obliczeniowym co testy statyczne. Każda symulacja obejmuje 30 kroków czasowych, w których każdy krok składa się z: (1) zastosowania mutacji do struktury grafu zgodnie z wybranym profilem oraz (2) ponownej optymalizacji dystrybucji licencji przez algorytmy z limitem czasu równym \SI{45}{\second}. Analizowano dwie konfiguracje licencyjne: Duolingo Super oraz dominowanie rzymskie. Do testów wykorzystano różne typy grafów: losowe, bezskalowe oraz małoświatowe.
+Eksperymenty dynamiczne wykonano w tym samym środowisku obliczeniowym co testy statyczne. Każda symulacja obejmuje 30 kroków czasowych; w każdym kroku: (1) stosuje się mutację struktury grafu zgodnie z wybranym profilem oraz (2) przeprowadza się ponowną optymalizację dystrybucji licencji z limitem czasu \SI{45}{\second}. Analizowano dwa schematy licencyjne: Duolingo Super oraz wariant odpowiadający dominowaniu rzymskiemu. Do testów wykorzystano grafy losowe, bezskalowe oraz małego świata.
 
 Testy przeprowadzono dla sześciu profili mutacji, przy czym każdy profil definiuje stały zestaw parametrów obowiązujący w całej symulacji. Profile obejmują trzy syntetyczne o prostej logice modyfikacji (low, med, high) oraz trzy bardziej złożone, uwzględniające mechanizmy takie jak preferencyjne przyłączanie, domykanie triad czy losowe przekształcanie krawędzi (pref\_triadic, pref\_pref, rand\_rewire).
 
-Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieństwami mutacji w każdym kroku symulacji (tabela~\ref{tab:dyn-mutation-levels}). W każdym kroku niezależnie losowane jest to, czy dana operacja zostanie wykonana, a następnie losuje się liczbę elementów do modyfikacji (od 1 do 3 węzłów, od 1 do 5 krawędzi). Usunięcie węzła skutkuje usunięciem wszystkich krawędzi incydentnych z tym węzłem. Prawdopodobieństwa dobrano tak, aby uzyskać trzy wyraźnie różniące się poziomy intensywności zmian: niski (modyfikacje w około 1-6\% kroków), średni (4-18\% kroków) oraz wysoki (8-30\% kroków).
+Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieństwami mutacji w każdym kroku symulacji (tabela~\ref{tab:dyn-mutation-levels}). W każdym kroku niezależnie decyduje się o wykonaniu danej operacji, po czym wyznacza się liczbę elementów do modyfikacji (1-3 węzłów, 1-5 krawędzi). Usunięcie węzła skutkuje usunięciem wszystkich krawędzi incydentnych z tym węzłem. Prawdopodobieństwa dobrano w celu uzyskania trzech odrębnych poziomów intensywności zmian: niskiego (modyfikacje w ~1-6\% kroków), średniego (4-18\%) oraz wysokiego (8-30\%).
 
 \begin{table}[H]
   \centering
@@ -25,11 +25,11 @@ Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieńs
 
 Dodatkowo zbadano trzy bardziej realistyczne profile ewolucji sieci. Wszystkie operują na tych samych limitach liczby dodawanych/usuwanych elementów co warianty syntetyczne, różnią się jednak mechanizmem wyboru sąsiedztwa.
 
-Wariant \emph{pref\_triadic} łączy dwa mechanizmy typowe dla sieci społecznych: preferencyjne przyłączanie i domykanie triad. Nowe węzły dołączają do sieci, preferencyjnie łącząc się z istniejącymi węzłami o wysokim stopniu. Nowe krawędzie powstają natomiast poprzez domykanie trójkątów, tj. wyszukiwanie dwóch niepołączonych węzłów mających wspólnego sąsiada i tworzenie między nimi połączenia. Mechanizm ten wzmacnia lokalną strukturę klastrową sieci, co odzwierciedla tendencję do tworzenia zamkniętych grup w rzeczywistych sieciach~\cite{albert2002statistical,kamola2016dynamika}.
+Wariant \emph{pref\_triadic} łączy dwa mechanizmy typowe dla sieci społecznych: preferencyjne przyłączanie i domykanie triad. Nowe węzły dołączają do sieci, preferencyjnie łącząc się z istniejącymi węzłami o wysokim stopniu. Nowe krawędzie powstają poprzez domykanie trójkątów, tj. łączenie dwóch niepołączonych węzłów mających wspólnego sąsiada. Mechanizm ten wzmacnia lokalną strukturę klastrową sieci, co odzwierciedla tendencję do tworzenia zamkniętych grup w rzeczywistych sieciach~\cite{albert2002statistical,kamola2016dynamika}.
 
-Wariant \emph{pref\_pref} stosuje mechanizm preferencyjnego przyłączania zarówno przy dodawaniu nowych węzłów, jak i tworzeniu krawędzi między już istniejącymi. Oznacza to, że nie tylko nowe węzły chętniej łączą się z popularnymi wierzchołkami, ale również nowe krawędzie z większym prawdopodobieństwem powstaną między dwoma węzłami, które już teraz mają wysoki stopień. Takie podejście sprzyja tworzeniu centralnych węzłów o wysokim stopniu w sieci, co jest kluczową cechą topologii bezskalowych~\cite{albert2002statistical}.
+Wariant \emph{pref\_pref} stosuje mechanizm preferencyjnego przyłączania zarówno przy dodawaniu nowych węzłów, jak i tworzeniu krawędzi między już istniejącymi. Oznacza to, że zarówno nowe węzły, jak i nowe krawędzie preferencyjnie łączą wierzchołki o wysokim stopniu. Takie podejście sprzyja tworzeniu centralnych węzłów o wysokim stopniu w sieci, co jest kluczową cechą topologii bezskalowych~\cite{albert2002statistical}.
 
-Wreszcie wariant \emph{rand\_rewire} wprowadza do sieci element losowości, inspirowany modelem Wattsa i Strogatza. Nowe węzły dołączane są w sposób losowy, bez preferencji dla popularniejszych wierzchołków. Zamiast dodawania nowych krawędzi, model ten modyfikuje istniejącą strukturę poprzez operację przełączania (rewiring): losowa krawędź jest usuwana, a jeden z jej końców jest następnie łączony z innym, losowo wybranym węzłem w sieci. Proces ten prowadzi do powstawania połączeń długozasięgowych i zmniejsza regularność struktury grafu~\cite{watts1998collective}.
+Wreszcie wariant \emph{rand\_rewire} wprowadza do sieci element losowości, inspirowany modelem Wattsa i Strogatza. Nowe węzły dołączane są w sposób losowy, bez preferencji dla popularniejszych wierzchołków. Zamiast dodawać krawędzie, model modyfikuje strukturę poprzez przełączanie: losową krawędź usuwa się, po czym jeden z jej końców łączy się z innym losowo wybranym węzłem. Proces ten prowadzi do powstawania połączeń długozasięgowych i zmniejsza regularność struktury grafu~\cite{watts1998collective}.
 
 
 
@@ -58,16 +58,16 @@ Tabela~\ref{tab:greedy-cold-summary} zestawia średni koszt na węzeł i średni
   \end{tabular}
 \end{table}
 
-Algorytm zachłanny jest bardzo szybki, co potwierdza jego przydatność jako czasowy punkt odniesienia w środowisku dynamicznym. Warianty realistyczne sprzyjają nieco niższym kosztom: \texttt{pref\_pref} osiąga najniższy średni koszt (0.464), a \texttt{pref\_triadic} jest jednocześnie najszybszy (\SI{0.00053}{\s}). Wariant \texttt{rand\_rewire} jest trudniejszy (0.476), ale pozostaje bardzo szybki czasowo.
+Algorytm zachłanny charakteryzuje się krótkim czasem wykonania, co uzasadnia jego użycie jako czasowego punktu odniesienia w środowisku dynamicznym. Warianty realistyczne sprzyjają nieco niższym kosztom: \texttt{pref\_pref} osiąga najniższy średni koszt (0.464), a \texttt{pref\_triadic} jest jednocześnie najszybszy (\SI{0.00053}{\s}). Wariant \texttt{rand\_rewire} jest trudniejszy (0.476), ale pozostaje bardzo szybki czasowo.
 
-Różnice kosztu dla mutacji syntetycznych są niewielkie (0.475--0.480), natomiast czasy są wyższe niż w profilach realistycznych, szczególnie dla \texttt{med/high}. Wskazuje to, że bardziej lokalne, realistyczne przekształcenia struktury grafu są łatwiejsze do obsłużenia. Czasy dla \texttt{pref\_pref} wynoszą średnio \SI{0.00083}{\s}, a dla \texttt{pref\_triadic} \SI{0.00053}{\s}, co potwierdza ich przewagę czasową nad mutacjami syntetycznymi (\SI{0.00159}{\s} dla \texttt{high}).
+Różnice kosztu dla mutacji syntetycznych są niewielkie (0.475--0.480), natomiast czasy są wyższe niż w profilach realistycznych, szczególnie dla \texttt{med/high}. Wskazuje to, że lokalne, realistyczne przekształcenia są mniej kosztowne obliczeniowo do przetwarzania. Czasy dla \texttt{pref\_pref} wynoszą średnio \SI{0.00083}{\s}, a dla \texttt{pref\_triadic} \SI{0.00053}{\s}, co potwierdza ich przewagę czasową nad mutacjami syntetycznymi (\SI{0.00159}{\s} dla \texttt{high}).
 
 \section{Analiza mutacji syntetycznych}
 \subsection{Metaheurystyki}
 
 Tabela~\ref{tab:dyn-synth-warm} przedstawia zbiorcze wyniki dla różnych metod mutacji. Średni koszt na węzeł jest bardzo zbliżony dla wszystkich poziomów intensywności, z jedynie nieznacznym wzrostem dla wariantu \texttt{high}. Sugeruje to, że algorytmy są w stanie skutecznie adaptować się do zmian w topologii sieci.
 
-Średni czas wykonania algorytmu rośnie wraz z intensywnością mutacji. Wariant \texttt{low} jest najszybszy, podczas gdy \texttt{high} wymaga najwięcej czasu na ponowne zbilansowanie. Jest to naturalna konsekwencja faktu, że większa liczba modyfikacji grafu (dodawanie/usuwanie węzłów i krawędzi) stanowi większe wyzwanie obliczeniowe dla algorytmów optymalizacyjnych. Mimo to, różnice w czasach nie są drastyczne, co świadczy o dobrej skalowalności zastosowanych metod.
+Średni czas wykonania rośnie wraz z intensywnością mutacji. Wariant \texttt{low} jest najszybszy, podczas gdy \texttt{high} wymaga najwięcej czasu na ponowne zbilansowanie. Jest to naturalna konsekwencja faktu, że większa liczba modyfikacji grafu (dodawanie/usuwanie węzłów i krawędzi) stanowi większe wyzwanie obliczeniowe dla algorytmów optymalizacyjnych. Różnice czasów pozostają umiarkowane, co wskazuje na korzystną skalowalność zastosowanych metod.
 
 \begin{table}[H]
   \centering
@@ -87,7 +87,7 @@ Tabela~\ref{tab:dyn-synth-warm} przedstawia zbiorcze wyniki dla różnych metod 
 \subsection{Profil kosztu i czasu w czasie}
 Jako przykład ewolucji kosztu i czasu w krokach symulacji wybrano algorytm genetyczny. Rysunki~\ref{fig:dyn-synth-genetic-cost} i~\ref{fig:dyn-synth-genetic-time} przedstawiają odpowiednio przebieg kosztu na węzeł oraz czasu wykonania w zależności od kroku symulacji dla różnych poziomów intensywności mutacji.
 
-Dla wariantu \texttt{high} można zaobserwować niewielkie, lecz zauważalne wahania średniego kosztu na węzeł, które nie są tak widoczne w przypadku wariantów \texttt{low} i \texttt{med}. Jeśli chodzi o czasy wykonania, dla każdego z trzech wariantów widoczne są zbliżone wahania w trakcie trwania symulacji.
+Dla wariantu \texttt{high} można zaobserwować niewielkie, lecz zauważalne wahania średniego kosztu na węzeł, które nie są tak widoczne w przypadku wariantów \texttt{low} i \texttt{med}. W zakresie czasów wykonania dla wszystkich trzech wariantów występują porównywalne wahania w trakcie symulacji.
 
 \begin{figure}[H]
   \centering
@@ -108,7 +108,7 @@ Dla wariantu \texttt{high} można zaobserwować niewielkie, lecz zauważalne wah
 \end{figure}
 
 \section{Analiza mutacji realistycznych}
-Tabela~\ref{tab:dyn-real-warm} przedstawia zbiorcze wyniki dla scenariuszy realistycznych. Wariant \texttt{pref\_triadic} wyróżnia się najkrótszym średnim czasem wykonania (poniżej 1 sekundy), przy zachowaniu kosztu na poziomie zbliżonym do wariantu \texttt{pref\_pref}. Z kolei scenariusz \texttt{rand\_rewire} okazał się najbardziej wymagający dla algorytmów -- charakteryzuje się jednocześnie najwyższym średnim kosztem i najdłuższym czasem przetwarzania. Wynika to z faktu, że losowe przełączanie krawędzi zaburza lokalną strukturę klastrową sieci, zwiększa entropię topologii i utrudnia wykorzystanie poprzedniego rozwiązania jako punktu odniesienia. W efekcie optymalizacja wymaga więcej iteracji, a uzyskana jakość jest gorsza.
+Tabela~\ref{tab:dyn-real-warm} przedstawia zbiorcze wyniki dla scenariuszy realistycznych. Wariant \texttt{pref\_triadic} wyróżnia się najkrótszym średnim czasem wykonania (poniżej 1 sekundy), przy zachowaniu kosztu na poziomie zbliżonym do wariantu \texttt{pref\_pref}. Z kolei scenariusz \texttt{rand\_rewire} okazał się najbardziej wymagający dla algorytmów -- charakteryzuje się jednocześnie najwyższym średnim kosztem i najdłuższym czasem przetwarzania. Przyczyną jest losowe przełączanie krawędzi, które zaburza lokalną klastrowość, zwiększa entropię topologii i utrudnia użycie poprzedniego rozwiązania jako punktu startowego. W efekcie optymalizacja wymaga więcej iteracji, a uzyskana jakość jest gorsza.
 
 
 \begin{table}[H]
@@ -127,7 +127,7 @@ Tabela~\ref{tab:dyn-real-warm} przedstawia zbiorcze wyniki dla scenariuszy reali
 \end{table}
 
 \subsection{Wybrane algorytmy i metody mutacji}
-W celu zilustrowania zachowania różnych algorytmów optymalizacyjnych w środowisku dynamicznym, wybrano reprezentatywne pary algorytmów i metod mutacji. Zestawienie obejmuje algorytmy o różnej złożoności obliczeniowej. Od prostych heurystyk po zaawansowane metaheurystyki. Testowane na wybranych profilach mutacji realistycznych oraz syntetycznych. Dobór przedstawia spektrum możliwych rozwiązań, od szybkich metod przybliżonych po dokładne, ale czasochłonne podejścia optymalizacyjne.
+W celu zilustrowania zachowania różnych algorytmów optymalizacyjnych w środowisku dynamicznym, wybrano reprezentatywne pary algorytmów i metod mutacji. Zestawienie obejmuje algorytmy o różnej złożoności obliczeniowej, od prostych heurystyk po metaheurystyki, testowane na wybranych profilach mutacji realistycznych i syntetycznych. Dobór przedstawia spektrum możliwych rozwiązań, od szybkich metod przybliżonych po dokładne, ale czasochłonne podejścia optymalizacyjne.
 
 \begin{table}[H]
   \centering
@@ -153,11 +153,11 @@ W celu zilustrowania zachowania różnych algorytmów optymalizacyjnych w środo
   \end{tabular}
 \end{table}
 
-Algorytm ILP osiąga najniższe koszty, ale wymaga około 1.5--\SI{2.6}{\second} na krok. Algorytm genetyczny dobrze sprawdza się przy zmianach klastrowych (\texttt{pref\_triadic}), oferując niski koszt i czas około \SI{0.6}{\second}. Przy wariancie \texttt{pref\_pref} jest wolniejszy (\SI{1.1}{\second}), ale zachowuje dobrą jakość. Z kolei wyżarzanie symulowane jest szybkie (około \SI{0.5}{\second}) i stabilne, ale jakościowo ustępuje bardziej zaawansowanym metodom.
+Algorytm ILP osiąga najniższe koszty, lecz wymaga około 1.5-\SI{2.6}{\second} na krok. Algorytm genetyczny dobrze sprawdza się przy zmianach klastrowych (\texttt{pref\_triadic}), oferując niski koszt i czas około \SI{0.6}{\second}. Przy wariancie \texttt{pref\_pref} jest wolniejszy (\SI{1.1}{\second}), ale zachowuje dobrą jakość. Z kolei wyżarzanie symulowane jest szybkie (około \SI{0.5}{\second}) i stabilne, ale jakościowo ustępuje bardziej zaawansowanym metodom.
 
 Przeszukiwanie tabu korzysta z lokalności zmian, osiągając sensowny koszt i czas około \SI{1.5}{\second} przy \texttt{pref\_triadic}. Jednak przy mutacjach losowych (\texttt{rand\_rewire}) czas wzrasta do około \SI{2.6}{\second}, a koszt również rośnie. Algorytm mrówkowy zapewnia bardzo dobrą jakość przy \texttt{pref\_pref}, ale działa najwolniej (prawie \SI{7}{\second}). Przejście na \texttt{pref\_triadic} ponad dwukrotnie przyspiesza jego działanie kosztem niewielkiego pogorszenia jakości.
 
-Heurystyki szybkie, takie jak algorytm zachłanny (około \SI{1}{\milli\second}) i zbiór dominujący (około \SI{5}{\milli\second}), są bardzo efektywne. Zbiór dominujący zwykle osiąga niższy koszt niż zachłanny, co czyni go zasadnym wyborem przy ograniczeniach czasowych. Mutacje klastrowe (\texttt{pref\_triadic}, \texttt{pref\_pref}) pomagają wszystkim algorytmom utrzymać niski średni koszt licencji liczony na jeden węzeł i krótszy czas. Natomiast \texttt{rand\_rewire} zwiększa zarówno koszt, jak i czas.
+Szybkie heurystyki, takie jak algorytm zachłanny (≈\SI{1}{\milli\second}) i zbiór dominujący (≈\SI{5}{\milli\second}), są efektywne czasowo. Zbiór dominujący zwykle osiąga niższy koszt niż zachłanny, co czyni go zasadnym wyborem przy ograniczeniach czasowych. Mutacje klastrowe (\texttt{pref\_triadic}, \texttt{pref\_pref}) pomagają wszystkim algorytmom utrzymać niski średni koszt licencji liczony na jeden węzeł i krótszy czas. Natomiast \texttt{rand\_rewire} zwiększa zarówno koszt, jak i czas.
 
 
 \subsection{Ewolucja kosztów w czasie}
@@ -192,6 +192,6 @@ Algorytmy wykazywały różną odporność na poszczególne typy zmian w zależn
 
 Szybkie heurystyki, takie jak algorytm zachłanny oraz zbiór dominujący, zachowywały swoją użyteczność również w środowisku dynamicznym, oferując czasy wykonania poniżej \SI{5}{\milli\second} przy kosztach porównywalnych z bardziej złożonymi metodami. Algorytm zachłanny osiągał stabilny czas w zakresie od \SI{0.5}{\milli\second} do \SI{1.8}{\milli\second} przy koszcie 0.464--0.480, natomiast zbiór dominujący zapewniał nieco niższy koszt przy czasie około \SI{5}{\milli\second}.
 
-Wyniki badań wskazują na konieczność adaptacyjnego doboru strategii optymalizacyjnej w zależności od obserwowanego profilu zmian. Przy zmianach o charakterze klastrowym zaleca się stosowanie metaheurystyk z mechanizmami naprawy poprzedniego rozwiązania. W przypadku zmian chaotycznych konieczne może być głębsze odświeżenie rozwiązania lub zaakceptowanie wyższego kosztu w zamian za stabilność czasową. W sytuacjach, w których czas stanowi krytyczne ograniczenie, szybkie heurystyki stanowią preferowaną strategię, zapewniając przewidywalną wydajność niezależnie od typu mutacji.
+Wyniki badań wskazują na konieczność adaptacyjnego doboru strategii optymalizacyjnej w zależności od obserwowanego profilu zmian. Przy zmianach o charakterze klastrowym zaleca się stosowanie metaheurystyk z mechanizmami naprawy poprzedniego rozwiązania. W przypadku zmian chaotycznych konieczne może być głębsze odświeżenie rozwiązania lub zaakceptowanie wyższego kosztu w zamian za stabilność czasową. Gdy czas jest krytycznym ograniczeniem, szybkie heurystyki są preferowane ze względu na przewidywalną wydajność niezależnie od typu mutacji.
 
-Najlepszy kompromis globalny oferują metaheurystyki z mechanizmami konstrukcji opartymi na poprzednich wynikach oraz lokalnych naprawach, dostosowywanymi do intensywności zaobserwowanych zmian między krokami symulacji.
+Najlepszy kompromis oferują metaheurystyki łączące konstrukcję z wykorzystaniem poprzedniego rozwiązania i lokalne naprawy, adaptowane do intensywności zmian między krokami.
