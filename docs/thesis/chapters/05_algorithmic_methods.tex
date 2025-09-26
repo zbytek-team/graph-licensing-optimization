@@ -104,9 +104,7 @@ Problemem ILP jest wykładnicza złożoność czasowa w najgorszym przypadku. Al
 
 \paragraph{Implementacja}
 Implementacja w Pythonie (PuLP+CBC) odzwierciedla model. Stosuje się eliminację niemożliwych par \((i,t)\), gdy \(m_t>|N[i]|\) lub \(k_t<1\), oraz dla \(k_t=1\) tworza się wyłącznie zmienne \(x_{i,i,t}\).
-
-Wszystkie zmienne decyzyjne są zdefiniowane jako binarne (\texttt{cat="Binary"}). Jednak ze względu na numeryczne aspekty solverów całkowitoliczbowych, wartości zmiennych w rozwiązaniu mogą nieznacznie odbiegać od dokładnie 0 lub 1 (np. 0.99999 zamiast 1.0). Dlatego przy rekonstrukcji rozwiązania wartości binarne interpretowane są progowo: wartości \(>0.5\) są traktowane jako 1, a wartości \(\leq 0.5\) jako 0.
-
+Wszystkie zmienne decyzyjne są zdefiniowane jako binarne (\texttt{cat="Binary"}).
 W przypadku statusu innego niż \texttt{Optimal} zwracane jest rozwiązanie zapasowe, w którym wszystkim węzłom przypisano najtańsze dostępne licencje indywidualne.
 
 \section{Heurystyki konstrukcyjne}
