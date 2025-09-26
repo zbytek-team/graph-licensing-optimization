@@ -107,6 +107,8 @@ W przypadku statusu innego niż \texttt{Optimal} zwracane jest rozwiązanie zapa
 
 \section{Heurystyki konstrukcyjne}
 
+Heurystyki konstrukcyjne budują rozwiązanie sekwencyjnie, w każdym kroku podejmując decyzje na podstawie lokalnych kryteriów. Metody te charakteryzują się szybkim czasem działania, ale nie gwarantują znalezienia rozwiązania optymalnego. W tej grupie znajdują się algorytm zachłanny, heurystyka oparta na zbiorze dominującym oraz algorytm losowy wykorzystywany jako punkt odniesienia.
+
 \subsection{Algorytm zachłanny}\label{subsec:greedy}
 
 Algorytm zachłanny to szybka heurystyka, która buduje rozwiązanie krok po kroku, w każdym kroku wybierając lokalnie najlepszą opcję. Algorytm nie gwarantuje znalezienia optymalnego rozwiązania, ale jest bardzo szybki i daje zazwyczaj w miarę dobre wyniki.
@@ -416,3 +418,15 @@ Symulowane wyżarzanie rozpoczyna od dowolnego dopuszczalnego przydziału; w imp
 
 \paragraph{Złożoność i zastosowanie}
 Inicjalizacja korzysta z rozwiązania uzyskanego heurystyką zachłanną, co kosztuje $O(|V|T + |E|\log |V|)$, gdzie $T$ oznacza liczbę typów licencji; samo symulowane wyżarzanie może jednak wystartować z dowolnego dopuszczalnego stanu, a heurystyka zapewnia po prostu solidny punkt startowy. W każdej iteracji wykonujemy do kilkunastu prób wygenerowania dopuszczalnego sąsiada z katalogu operacji, a zaakceptowany kandydat przechodzi pełną walidację pokrycia i ograniczeń, co ma złożoność około $O(|V|T + |E|)$. W rezultacie całkowity koszt jednego przebiegu wynosi $O\bigl(I \cdot (|V|T + |E|)\bigr)$ z dodatkowym czynnikiem wynikającym z epizodycznego obniżania temperatury po przekroczeniu limitu stagnacji $S$. Symulowane wyżarzanie ma umiarkowane wymagania obliczeniowe, a możliwość wychodzenia z lokalnych minimów funkcji kosztu czyni je skuteczną metodą poprawy jakości rozwiązań przy rozsądnym czasie działania.
+
+\section{Podsumowanie}
+
+W rozdziale przedstawiono kompletny zestaw algorytmów zastosowanych do rozwiązania problemu optymalizacji kosztów licencji grupowych. Metody podzielono na trzy kategorie: algorytmy dokładne gwarantujące optimum, szybkie heurystyki konstrukcyjne oraz metaheurystyki łączące jakość z efektywnością czasową.
+
+Algorytmy dokładne -- naiwne przeszukiwanie oraz programowanie całkowitoliczbowe -- zapewniają najwyższą jakość rozwiązań, ale ich zastosowanie ogranicza się do mniejszych instancji ze względu na złożoność wykładniczą. Solver ILP stanowi szczególnie wartościowy punkt odniesienia, umożliwiając walidację jakości metod przybliżonych na grafach do około 200 węzłów.
+
+Heurystyki konstrukcyjne charakteryzują się bardzo krótkim czasem działania (rzędu milisekund) i mogą służyć jako metody bazowe lub punkty startowe dla bardziej zaawansowanych algorytmów. Algorytm zachłanny dostarcza rozsądnie dobrej jakości rozwiązań przy minimalnym koszcie obliczeniowym, natomiast heurystyka oparta na zbiorze dominującym wykorzystuje teorię grafów do identyfikacji kandydatów na właścicieli licencji.
+
+Metaheurystyki stanowią kompromis między jakością a czasem wykonania. Algorytm genetyczny skutecznie eksploruje przestrzeń rozwiązań poprzez mechanizmy krzyżowania i mutacji, przeszukiwanie tabu wykorzystuje pamięć krótkoterminową do unikania cykli, algorytm mrówkowy buduje rozwiązania probabilistycznie na podstawie feromonów, a symulowane wyżarzanie umożliwia wychodzenie z lokalnych minimów dzięki kontrolowanej losowości.
+
+Różnorodność przedstawionych metod pozwala na dobór odpowiedniego algorytmu w zależności od rozmiaru instancji, dostępnego budżetu czasowego oraz wymagań jakościowych. W eksperymentach empirycznych metody te zostaną porównane pod kątem efektywności na rzeczywistych i syntetycznych sieciach społecznych.
