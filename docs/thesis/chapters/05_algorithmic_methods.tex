@@ -26,9 +26,9 @@ Na rysunku \ref{fig:all_types_time} przedstawiono czasy obliczeń w funkcji licz
 
 \paragraph{Opis metody}
 \begin{enumerate}
-  \item Wygenerować wszystkie partycje zbioru \(V\) na niepuste bloki (każdy blok odpowiada kandydatowi na grupę licencyjną).
-  \item Dla każdego bloku w danej partycji wyznaczyć wszystkie dopuszczalne pary (właściciel, licencja), czyli takie, które spełniają ograniczenia pojemności oraz sąsiedztwa.
-  \item Złożyć wybory z poszczególnych bloków w pełne przypisania i odrzucić konfiguracje, które nie pokrywają wierzchołków lub łamią ograniczenia.
+  \item Wygenerować wszystkie partycje zbioru \(V\) na niepuste zestawy (każdy zestaw odpowiada kandydatowi na grupę licencyjną).
+  \item Dla każdego zestawu w danej partycji wyznaczyć wszystkie dopuszczalne pary (właściciel, licencja), czyli takie, które spełniają ograniczenia pojemności oraz sąsiedztwa.
+  \item Złożyć wybory z poszczególnych zestawów w pełne przypisania i odrzucić konfiguracje, które nie pokrywają wierzchołków lub łamią ograniczenia.
   \item Obliczyć koszt na podstawie funkcji kosztu $\cost(f)$ (\ref{eq:cost_function}) i zaktualizować najlepsze rozwiązanie.
 \end{enumerate}
 
@@ -40,7 +40,7 @@ Na rysunku \ref{fig:all_types_time} przedstawiono czasy obliczeń w funkcji licz
     \If{\(|V|>12\)} \State \Return zakończenie działania z powodu ograniczenia eksperymentalnego \EndIf
     \State \(best\_cost \gets \infty\), \(best \gets \emptyset\)
     \For{każda partycja \(P=\{P_1,\dots,P_k\}\) zbioru \(V\)}
-    \For{każde przypisanie \(l\in L\) i właściciela w każdym \(P_i\)}
+    \For{każde przypisanie \(l_t\in L\) i właściciela w każdym \(P_i\)}
     \If{spełnione są ograniczenia pojemności, sąsiedztwa i pokrycia}
     \State oblicz koszt; zaktualizuj \(best\), jeśli lepszy
     \EndIf
@@ -51,9 +51,9 @@ Na rysunku \ref{fig:all_types_time} przedstawiono czasy obliczeń w funkcji licz
 \end{algorithm}
 
 \paragraph{Złożoność}
-Algorytm generuje wszystkie partycje zbioru \(V\) na niepuste bloki, czyli wszystkie rozbicia odpowiadające potencjalnym zestawom grup licencyjnych. Takich partycji jest \(B_{|V|}\), gdzie \(B_m\) oznacza liczbę Bella dla \(m\) elementów \cite{stanley1997enumerative}. W implementacji nie ograniczono z góry liczby bloków: niektóre typy licencji mogą pozostać nieużyte, dlatego dopuszczamy zarówno rozbicia na jedną grupę, jak i na \(|V|\) grup jednowierzchołkowych. Gdyby liczba bloków była stała i wynosiła \(k\), odpowiadałyby jej liczby Stirlinga drugiego rodzaju \({|V| \brace k}\); tutaj sumujemy je po wszystkich \(k\), stąd pojawiają się liczby Bella. Samo wygenerowanie partycji ma koszt $\Theta(B_{|V|})$.
+Algorytm generuje wszystkie partycje zbioru \(V\) na niepuste zestawy, czyli wszystkie rozbicia odpowiadające potencjalnym zestawom grup licencyjnych. Takich partycji jest \(B_{|V|}\), gdzie \(B_m\) oznacza liczbę Bella dla \(m\) elementów \cite{stanley1997enumerative}. W implementacji nie ograniczono z góry liczby zestawów: niektóre typy licencji mogą pozostać nieużyte, dlatego dopuszczamy zarówno rozbicia na jedną grupę, jak i na \(|V|\) grup jednowierzchołkowych. Gdyby liczba zestawów była stała i wynosiła \(k\), odpowiadałyby jej liczby Stirlinga drugiego rodzaju \({|V| \brace k}\); tutaj sumujemy je po wszystkich \(k\), stąd pojawiają się liczby Bella. Samo wygenerowanie partycji ma koszt $\Theta(B_{|V|})$.
 
-Dla partycji o \(k\) blokach o rozmiarach \(s_1, s_2, \ldots, s_k\) rozpatrujemy każdą kombinację wyboru właściciela (co najwyżej \(s_i\) opcji na blok \(i\)) i dopuszczalnego typu licencji (co najwyżej \(T\) opcji, gdzie \(T=|L|\)). Prowadzi to do górnego oszacowania
+Dla partycji o \(k\) zestawach o rozmiarach \(s_1, s_2, \ldots, s_k\) rozpatrujemy każdą kombinację wyboru właściciela (co najwyżej \(s_i\) opcji na zestaw \(i\)) i dopuszczalnego typu licencji (co najwyżej \(T\) opcji, gdzie \(T=|L|\)). Prowadzi to do górnego oszacowania
 \[
   \prod_{i=1}^{k} (s_i \cdot T) = T^k \cdot \prod_{i=1}^{k} s_i
 \]
@@ -63,7 +63,7 @@ Liczby Bella można zapisać wzorami
 \[
   B_n = \sum_{k=0}^{n} \left\{\!\!\begin{array}{c} n \\ k \end{array}\!\!\right\}\quad\text{oraz}\quad B_n = \frac{1}{e}\sum_{k=0}^{\infty}\frac{k^{\,n}}{k!},
 \]
-a zliczają one wszystkie rozbiory zbioru na dowolną liczbę niepustych bloków (bloki są nierozróżnialne). Dla porównania liczba wszystkich podzbiorów zbioru \(n\)-elementowego wynosi jedynie \(2^n\), więc nawet tak uproszczone oszacowanie rośnie wolniej niż pełna liczba partycji.
+a zliczają one wszystkie rozbiory zbioru na dowolną liczbę niepustych zestawów (zestawy są nierozróżnialne). Dla porównania liczba wszystkich podzbiorów zbioru \(n\)-elementowego wynosi jedynie \(2^n\), więc nawet tak uproszczone oszacowanie rośnie wolniej niż pełna liczba partycji.
 
 \subsection{Programowanie całkowitoliczbowe (ILP)}\label{subsec:ilp}
 
@@ -419,7 +419,7 @@ Symulowane wyżarzanie rozpoczyna od dowolnego dopuszczalnego przydziału; w imp
 \end{algorithm}
 
 \paragraph{Złożoność i zastosowanie}
-Inicjalizacja korzysta z rozwiązania uzyskanego heurystyką zachłanną, co kosztuje $O(|V|T + |E|\log |V|)$, gdzie $T$ oznacza liczbę typów licencji; samo symulowane wyżarzanie może jednak wystartować z dowolnego dopuszczalnego stanu, a heurystyka zapewnia po prostu solidny punkt startowy. W każdej iteracji wykonujemy do kilkunastu prób wygenerowania dopuszczalnego sąsiada z katalogu operacji, a zaakceptowany kandydat przechodzi pełną walidację pokrycia i ograniczeń, co ma złożoność około $O(|V|T + |E|)$. W rezultacie całkowity koszt jednego przebiegu wynosi $O\bigl(I \cdot (|V|T + |E|)\bigr)$ z dodatkowym czynnikiem wynikającym z epizodycznego obniżania temperatury po przekroczeniu limitu stagnacji $S$. Symulowane wyżarzanie ma umiarkowane wymagania obliczeniowe, a możliwość wychodzenia z lokalnych minimów funkcji kosztu czyni je skuteczną metodą poprawy jakości rozwiązań przy rozsądnym czasie działania.
+Inicjalizacja korzysta z rozwiązania uzyskanego heurystyką zachłanną, co kosztuje $O(|V|T + |E|\log |V|)$. Samo symulowane wyżarzanie może jednak wystartować z dowolnego dopuszczalnego stanu, a heurystyka zapewnia po prostu solidny punkt startowy. W każdej iteracji wykonujemy do kilkunastu prób wygenerowania dopuszczalnego sąsiada z katalogu operacji, a zaakceptowany kandydat przechodzi pełną walidację pokrycia i ograniczeń, co ma złożoność około $O(|V|T + |E|)$. W rezultacie całkowity koszt jednego przebiegu wynosi $O\bigl(I \cdot (|V|T + |E|)\bigr)$ z dodatkowym czynnikiem wynikającym z epizodycznego obniżania temperatury po przekroczeniu limitu stagnacji $S$. Symulowane wyżarzanie ma umiarkowane wymagania obliczeniowe, a możliwość wychodzenia z lokalnych minimów funkcji kosztu czyni je skuteczną metodą poprawy jakości rozwiązań przy rozsądnym czasie działania.
 
 \section{Podsumowanie}
 
