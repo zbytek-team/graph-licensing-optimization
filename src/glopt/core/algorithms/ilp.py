@@ -97,12 +97,12 @@ class ILPSolver(Algorithm):
             for t_idx, lt in enumerate(license_types):
                 a = active.get((i, t_idx))
                 a_val = float(a.varValue) if a is not None and a.varValue is not None else 0.0
-                if a_val > 0.5:
+                if a_val == 1.0:
                     members: set[Any] = set()
                     for j in Nhood[i]:
                         var = assign.get((i, j, t_idx))
                         v_val = float(var.varValue) if var is not None and var.varValue is not None else 0.0
-                        if v_val > 0.5:
+                        if v_val == 1.0:
                             members.add(j)
                     if members:
                         groups.append(
