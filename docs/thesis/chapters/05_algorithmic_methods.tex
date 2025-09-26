@@ -26,9 +26,9 @@ Na rysunku \ref{fig:all_types_time} przedstawiono czasy obliczeń w funkcji licz
 
 \paragraph{Idea metody}
 \begin{enumerate}
-  \item Wygenerować wszystkie partycje zbioru \(V\).
-  \item Dla każdego zestawu partycji rozważyć wszystkich właścicieli oraz licencje spełniające pojemnościowy warunek wykonalności.
-  \item Odrzucić konfiguracje niespełniające warunków sąsiedztwa i pełnego pokrycia.
+  \item Wygenerować wszystkie partycje zbioru \(V\) na niepuste bloki (każdy blok odpowiada kandydatowi na grupę licencyjną).
+  \item Dla każdego bloku w danej partycji wypisać wszystkie dopuszczalne pary (właściciel, licencja), czyli takie, które spełniają ograniczenia pojemności oraz sąsiedztwa.
+  \item Łączyć wybory z poszczególnych bloków w pełne przypisania i odrzucać te, które nie pokrywają wierzchołków lub łamią ograniczenia.
   \item Obliczyć koszt na podstawie funkcji kosztu $\cost(f)$ (\ref{eq:cost_function}) i zapamiętać najlepsze rozwiązanie.
 \end{enumerate}
 
@@ -51,17 +51,15 @@ Na rysunku \ref{fig:all_types_time} przedstawiono czasy obliczeń w funkcji licz
 \end{algorithm}
 
 \paragraph{Złożoność}
-Liczba partycji zbioru \(n\) elementów to liczba Bella \(B_n\). Zatem już sama enumeracja partycji kosztuje \(O(B_n)\). Dla każdej partycji rozważanych jest do \(O(n \cdot | L|)\) wyborów właścicieli i licencji w blokach, z testami poprawności, co daje całkowity koszt rzędu \(O(B_n \cdot n \cdot | L|)\).
+Algorytm generuje wszystkie partycje zbioru \(V\) na niepuste bloki, czyli wszystkie rozbicia odpowiadające potencjalnym zestawom grup licencyjnych. Takich partycji jest \(B_{|V|}\), gdzie \(B_m\) oznacza liczbę Bella dla \(m\) elementów. W implementacji nie ograniczamy z góry liczby bloków: niektóre typy licencji mogą pozostać nieużyte, dlatego dopuszczamy zarówno rozbicia na jedną grupę, jak i na \(|V|\) grup jednowskaźnikowych. Gdyby liczba bloków była stała i wynosiła \(k\), odpowiadałyby jej liczby Stirlinga drugiego rodzaju \({|V| \brace k}\); tutaj sumujemy je po wszystkich \(k\), stąd pojawiają się liczby Bella. Samo wygenerowanie partycji kosztuje więc $\Theta(B_{|V|})$.
 
-Liczba Bella \(B_n\) to liczba wszystkich podziałów zbioru \(n\) elementów na niepuste, nierozróżnialne bloki. Równoważnie
+Dla partycji o \(k\) blokach rozpatrujemy każdą kombinację wyboru właściciela (co najwyżej \(|V|\) opcji na blok) i dopuszczalnego typu licencji (co najwyżej \(T\) opcji, gdzie \(T=|L|\)). W skrajnym przypadku prowadzi to do górnego oszacowania \((|V|\cdot T)^k\) konfiguracji dla pojedynczej partycji. Jeśli ograniczenia pojemnościowe nie redukują przestrzeni, całkowity koszt można oszacować przez \(O\bigl(B_{|V|} \cdot (|V|\cdot T)^{|V|}\bigr)\). Wzrost jest superwykładniczy, ponieważ \(B_m\) przybliżają \({m^{m}}/(e^{m}\sqrt{m})\) dla rosnącego \(m\). W praktyce ograniczenia licencyjne i warunek sąsiedztwa znacząco zmniejszają liczbę rozważanych konfiguracji, lecz nawet wtedy pełny przegląd jest użyteczny wyłącznie dla bardzo małych grafów (rzędu kilku do kilkunastu wierzchołków).
+
+Liczby Bella można zapisać wzorami
 \[
-  B_n = \sum_{k=0}^{n} \left\{\!\!\begin{array}{c} n \\ k \end{array}\!\!\right\},
+  B_n = \sum_{k=0}^{n} \left\{\!\!\begin{array}{c} n \ k \end{array}\!\!\right\}\quad\text{oraz}\quad B_n = \frac{1}{e}\sum_{k=0}^{\infty}\frac{k^{\,n}}{k!},
 \]
-gdzie symbole w nawiasach oznaczają liczby Stirlinga drugiego rodzaju. Liczby Bella spełniają także wzór Dobińskiego
-\[
-  B_n = \frac{1}{e}\sum_{k=0}^{\infty}\frac{k^{\,n}}{k!},
-\]
-oraz występują jako wartości wielomianów Toucharda w punkcie \(x=1\).
+a zliczają one wszystkie rozbiory zbioru na dowolną liczbę niepustych bloków (bloki są nierozróżnialne). Dla porównania liczba wszystkich podzbiorów zbioru \(n\)-elementowego wynosi jedynie \(2^n\), więc nawet tak uproszczone oszacowanie rośnie wolniej niż pełna liczba partycji.
 
 \subsection{Programowanie całkowitoliczbowe (ILP)}\label{subsec:ilp}
 
@@ -384,19 +382,19 @@ Dzięki temu kolejne mrówki chętniej eksplorują obiecujące fragmenty przestr
 \end{algorithm}
 
 \paragraph{Złożoność i zastosowanie}
-Inicjalizacje feromonów i heurystyk charakteryzuje złożoność obliczeniowa $O(|V|T)$. Pojedyncza konstrukcja rozwiązania wymaga odwiedzenia przez mrówkę każdego wierzchołka co najwyżej raz. Przy wyborze właściciela w każdej decyzji oceniani są wszyscy kandydaci i wszystkie licencje. Prowadzi to do złożoności czasowej około $O(|V|^2 T + |E|\log |V|)$ na jedną mrówkę, z uwzględnieniem sortowania sąsiadów. Algorytm wykonujący $I$ iteracji z $A$ mrówkami ma więc złożoność rzędu $O\!\left(I \cdot A \cdot (|V|^2 T + |E|\log |V|)\right)$. Metoda jest bardziej złożona obliczeniowo niż tabu i algorytm zachłanny, ale pozwala eksplorować wiele alternatywnych konfiguracji i stopniowo wzmacniać najlepsze z nich.
+Inicjalizacje feromonów i heurystyk charakteryzuje złożoność obliczeniowa $O(|V|T)$. Pojedyncza konstrukcja rozwiązania wymaga odwiedzenia przez mrówkę każdego wierzchołka co najwyżej raz. W każdym kroku mrówka wybiera wierzchołek, który stanie się właścicielem nowej grupy licencyjnej; w tym celu ocenia wszystkie niepokryte wierzchołki jako potencjalnych właścicieli oraz wszystkie typy licencji dostępne w zbiorze $L$. Po wskazaniu właściciela trzeba posortować jego sąsiadów w grafie $G$ według wag feromonowo-heurystycznych, aby zdecydować, którzy użytkownicy dołączą do grupy. Te operacje prowadzą do złożoności obliczeniowej rzędu $O(|V|^2 T + |E|\log |V|)$ na jedną mrówkę. Algorytm wykonujący $I$ iteracji z $A$ mrówkami ma więc złożoność $O\!\left(I \cdot A \cdot (|V|^2 T + |E|\log |V|)\right)$. Metoda jest bardziej złożona obliczeniowo niż tabu i algorytm zachłanny, ale pozwala eksplorować wiele alternatywnych konfiguracji i stopniowo wzmacniać najlepsze z nich.
 
 
 \subsection{Symulowane wyżarzanie }\label{subsec:sa}
-Symulowane wyżarzanie rozpoczyna od rozwiązania zachłannego i w każdej iteracji losuje ruch sąsiedztwa (zmiana licencji, przeniesienie członka, zamiana, scalenie lub podział grupy). Nowy stan jest akceptowany zawsze, gdy obniża koszt, a czasami także wtedy, gdy go pogarsza - z prawdopodobieństwem zależnym od bieżącej temperatury \(T\) i różnicy kosztów \cite{kirkpatrick1983}. Temperatura maleje według ustalonego współczynnika, a gdy algorytm zbyt długo nie znajduje poprawy, dodatkowo jest obniżana o połowę. Dzięki temu metoda potrafi opuszczać lokalne minima i stopniowo stabilizuje się w pobliżu dobrego rozwiązania.
+Symulowane wyżarzanie rozpoczyna od dowolnego dopuszczalnego przydziału; w implementacji korzystamy z rozwiązania wygenerowanego heurystyką zachłanną. W każdej iteracji losowana jest jedna z operacji modyfikacji opisanych na początku sekcji metaheurystyk. Jeżeli wylosowana operacja prowadzi do stanu naruszającego ograniczenia, losujemy kolejną do chwili znalezienia dopuszczalnego kandydata (maksymalnie kilkanaście prób na iterację). Nowy stan jest akceptowany zawsze, gdy obniża koszt całkowity przydziału licencji, a czasami także wtedy, gdy go pogarsza - z prawdopodobieństwem zależnym od bieżącej temperatury \(T\) i różnicy kosztów całkowitych rozwiązania bieżącego i kandydata \cite{kirkpatrick1983}. Temperatura maleje według ustalonego współczynnika, a gdy liczba kolejnych iteracji bez poprawy najlepszej wartości przekroczy limit stagnacji \(S\), jest dodatkowo dzielona przez dwa. Dzięki temu metoda potrafi opuszczać lokalne minima funkcji kosztu w sąsiedztwie zdefiniowanym przez powyższe operacje i stopniowo stabilizuje się w pobliżu dobrego rozwiązania.
 
 \paragraph{Parametry}
 \begin{itemize}
-  \item \textbf{Temperatura początkowa} $T_0 = 100.0$ - początkowy poziom losowości przy akceptacji gorszych ruchów.
+  \item \textbf{Temperatura początkowa} $T_0 = 100.0$ - stosunkowo wysoka wartość dobrana eksperymentalnie; przy takich temperaturach różnice kosztów rzędu kilku jednostek są często akceptowane, co pozwala na szeroką eksplorację przestrzeni rozwiązań na początku działania algorytmu.
   \item \textbf{Współczynnik chłodzenia} $\alpha = 0.995$ - w każdej iteracji temperatura jest mnożona przez $\alpha$.
   \item \textbf{Temperatura minimalna} $T_{\min} = 0.001$ - po jej osiągnięciu algorytm kończy działanie.
   \item \textbf{Maksymalna liczba iteracji} $I = 20\,000$ - górne ograniczenie liczby kroków.
-  \item \textbf{Limit stagnacji} $S = 2\,000$ - po tylu nieudanych próbach temperatura jest dodatkowo dzielona przez 2.
+  \item \textbf{Limit stagnacji} $S = 2\,000$ - liczba kolejnych iteracji bez poprawy najlepszego dotąd kosztu; parametr dobrany empirycznie (mniejsza wartość szybciej wymusza zawężenie przedziału poszukiwań rozwiązań), po jej przekroczeniu temperatura jest dodatkowo dzielona przez 2.
 \end{itemize}
 
 \begin{algorithm}[H]
@@ -404,7 +402,7 @@ Symulowane wyżarzanie rozpoczyna od rozwiązania zachłannego i w każdej itera
   \label{alg:sa}
   \begin{algorithmic}[1]
     \Require graf $G=(V,E)$, typy licencji $ L$
-    \State $aktualne \gets$ rozwiązanie początkowe (zachłanne)
+    \State $aktualne \gets$ rozwiązanie początkowe (np. zachłanne)
     \State $najlepsze \gets aktualne$
     \State $temperatura \gets T_0$ (początkowa temperatura)
     \For{każdą iterację}
@@ -425,4 +423,4 @@ Symulowane wyżarzanie rozpoczyna od rozwiązania zachłannego i w każdej itera
 \end{algorithm}
 
 \paragraph{Złożoność i zastosowanie}
-Inicjalizacja wymaga jednego wywołania heurystyki zachłannej działającej w czasie $O(nT + m\log n)$. Każda iteracja wykonuje ograniczoną liczbę prób wygenerowania sąsiada (do 12 ruchów), a zaakceptowany kandydat przechodzi pełną walidację pokrycia i ograniczeń, co ma złożoność około $O(nT + m)$. W rezultacie złożoność obliczeniowa całego przebiegu wynosi $O\bigl(I \cdot (nT + m)\bigr)$ z dodatkowym mnożnikiem wynikającym z limitu stagnacji. Symulowane wyżarzanie jest umiarkowanie złożone obliczeniowo, ale często zapewnia lepsze rozwiązania niż czyste metody lokalne, szczególnie gdy potrzebna jest możliwość wychodzenia z lokalnych minimów przy ograniczonym czasie działania.
+Inicjalizacja korzysta z rozwiązania uzyskanego heurystyką zachłanną, co kosztuje $O(|V|T + |E|\log |V|)$, gdzie $T$ oznacza liczbę typów licencji; samo symulowane wyżarzanie może jednak wystartować z dowolnego dopuszczalnego stanu, a heurystyka zapewnia po prostu solidny punkt startowy. W każdej iteracji wykonujemy do kilkunastu prób wygenerowania dopuszczalnego sąsiada z katalogu operacji, a zaakceptowany kandydat przechodzi pełną walidację pokrycia i ograniczeń, co ma złożoność około $O(|V|T + |E|)$. W rezultacie całkowity koszt jednego przebiegu wynosi $O\bigl(I \cdot (|V|T + |E|)\bigr)$ z dodatkowym czynnikiem wynikającym z epizodycznego obniżania temperatury po przekroczeniu limitu stagnacji $S$. Symulowane wyżarzanie pozostaje umiarkowanie wymagające obliczeniowo, a możliwość wychodzenia z lokalnych minimów funkcji kosztu czyni je skuteczną metodą poprawy jakości rozwiązań przy rozsądnym czasie działania.
