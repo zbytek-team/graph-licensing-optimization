@@ -25,14 +25,14 @@ class AntColonyOptimization(Algorithm):
         evaporation: float = 0.5,
         q0: float = 0.9,
         num_ants: int = 20,
-        max_iterations: int = 100,
+        max_iter_aco: int = 100,
     ) -> None:
         self.alpha = alpha
         self.beta = beta
         self.evap = evaporation
         self.q0 = q0
         self.num_ants = num_ants
-        self.max_iter = max_iterations
+        self.max_iter_aco = max_iter_aco
         self.validator = SolutionValidator(debug=False)
 
     def solve(
@@ -45,14 +45,12 @@ class AntColonyOptimization(Algorithm):
         if isinstance(seed, int):
             random.seed(seed)
         deadline = kwargs.get("deadline")
-        max_iter = int(kwargs.get("max_iterations", self.max_iter))
+        max_iter_aco = int(kwargs.get("max_iter_aco", self.max_iter_aco))
         num_ants = int(kwargs.get("num_ants", self.num_ants))
         initial: Solution | None = kwargs.get("initial_solution")
         pher = self._init_pher(graph, license_types)
         heur = self._init_heur(graph, license_types)
-        if initial is not None and self.validator.is_valid_solution(
-            initial, graph
-        ):
+        if initial is not None and self.validator.is_valid_solution(initial, graph):
             best = initial
         else:
             best = GreedyAlgorithm().solve(graph, license_types)
@@ -63,7 +61,7 @@ class AntColonyOptimization(Algorithm):
         self._deposit(pher, best)
         from time import perf_counter as _pc
 
-        for _ in range(max_iter):
+        for _ in range(max_iter_aco):
             if deadline is not None and _pc() >= float(deadline):
                 break
             improved = False
@@ -99,14 +97,10 @@ class AntColonyOptimization(Algorithm):
         while uncovered:
             owner = self._select_owner(uncovered, lts, pher, heur)
             owner = owner if owner is not None else next(iter(uncovered))
-            lt = self._select_license(owner, lts, pher, heur) or min(
-                lts, key=lambda x: x.cost
-            )
+            lt = self._select_license(owner, lts, pher, heur) or min(lts, key=lambda x: x.cost)
             pool = (set(graph.neighbors(owner)) | {owner}) & uncovered
             if len(pool) < lt.min_capacity:
-                singles = [
-                    x for x in lts if x.min_capacity <= 1 <= x.max_capacity
-                ]
+                singles = [x for x in lts if x.min_capacity <= 1 <= x.max_capacity]
                 if singles:
                     lt1 = min(singles, key=lambda x: x.cost)
                     groups.append(LicenseGroup(lt1, owner, frozenset()))
@@ -155,16 +149,10 @@ class AntColonyOptimization(Algorithm):
     ) -> LicenseType | None:
         if not lts:
             return None
-        scores = {
-            lt: pher.get((owner, lt.name), 1.0) ** self.alpha
-            * heur.get((owner, lt.name), 1.0) ** self.beta
-            for lt in lts
-        }
+        scores = {lt: pher.get((owner, lt.name), 1.0) ** self.alpha * heur.get((owner, lt.name), 1.0) ** self.beta for lt in lts}
         return self._roulette_or_best(lts, scores)
 
-    def _roulette_or_best(
-        self, choices: list[Any], scores: dict[Any, float]
-    ) -> Any:
+    def _roulette_or_best(self, choices: list[Any], scores: dict[Any, float]) -> Any:
         if not choices:
             return None
         if random.random() < self.q0:
@@ -180,22 +168,16 @@ class AntColonyOptimization(Algorithm):
                 return c
         return random.choice(choices)
 
-    def _init_pher(
-        self, graph: nx.Graph, lts: Sequence[LicenseType]
-    ) -> dict[PKey, float]:
+    def _init_pher(self, graph: nx.Graph, lts: Sequence[LicenseType]) -> dict[PKey, float]:
         return {(n, lt.name): 1.0 for n in graph.nodes() for lt in lts}
 
-    def _init_heur(
-        self, graph: nx.Graph, lts: Sequence[LicenseType]
-    ) -> dict[PKey, float]:
+    def _init_heur(self, graph: nx.Graph, lts: Sequence[LicenseType]) -> dict[PKey, float]:
         h: dict[PKey, float] = {}
         degv = cast(Any, graph.degree)
         for n in graph.nodes():
             deg = int(degv[n])
             for lt in lts:
-                cap_eff = (
-                    lt.max_capacity / lt.cost if lt.cost > 0 else 1000000000.0
-                )
+                cap_eff = lt.max_capacity / lt.cost if lt.cost > 0 else 1000000000.0
                 h[n, lt.name] = cap_eff * (1.0 + float(deg))
         return h
 
@@ -214,9 +196,7 @@ class AntColonyOptimization(Algorithm):
                 if k in pher:
                     pher[k] += q
 
-    def _fallback_singletons(
-        self, graph: nx.Graph, lts: Sequence[LicenseType]
-    ) -> Solution:
+    def _fallback_singletons(self, graph: nx.Graph, lts: Sequence[LicenseType]) -> Solution:
         lt1 = min(
             [x for x in lts if x.min_capacity <= 1] or lts,
             key=lambda x: x.cost,
