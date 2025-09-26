@@ -11,17 +11,17 @@ Testy przeprowadzono dla sześciu profili mutacji, przy czym każdy profil defin
 Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieństwami mutacji w każdym kroku symulacji (tabela~\ref{tab:dyn-mutation-levels}). W każdym kroku niezależnie decyduje się o wykonaniu danej operacji, po czym wyznacza się liczbę elementów do modyfikacji (1-3 węzłów, 1-5 krawędzi). Usunięcie węzła skutkuje usunięciem wszystkich krawędzi incydentnych z tym węzłem. Prawdopodobieństwa dobrano w celu uzyskania trzech odrębnych poziomów intensywności zmian: niskiego (modyfikacje w ~1-6\% kroków), średniego (4-18\%) oraz wysokiego (8-30\%).
 
 \begin{table}[H]
-  \centering
-  \caption{Parametry intensywności mutacji w symulacji dynamicznej.}
-  \label{tab:dyn-mutation-levels}
-  \begin{tabular}{lcccc}
-    \toprule
-    \textbf{Poziom} & \textbf{Dodawanie węzłów} & \textbf{Usuwanie węzłów} & \textbf{Dodawanie krawędzi} & \textbf{Usuwanie krawędzi} \\
-    \midrule
-    low             & 0.02                      & 0.01                     & 0.06                        & 0.04                       \\
-    med             & 0.06                      & 0.04                     & 0.18                        & 0.12                       \\
-    high            & 0.12                      & 0.08                     & 0.30                        & 0.20                       \\
-  \end{tabular}
+    \centering
+    \caption{Parametry intensywności mutacji w symulacji dynamicznej.}
+    \label{tab:dyn-mutation-levels}
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Poziom} & \textbf{Dodawanie węzłów} & \textbf{Usuwanie węzłów} & \textbf{Dodawanie krawędzi} & \textbf{Usuwanie krawędzi} \\
+        \midrule
+        low             & 0.02                      & 0.01                     & 0.06                        & 0.04                       \\
+        med             & 0.06                      & 0.04                     & 0.18                        & 0.12                       \\
+        high            & 0.12                      & 0.08                     & 0.30                        & 0.20                       \\
+    \end{tabular}
 \end{table}
 
 
@@ -43,21 +43,21 @@ W tym wariancie algorytm zachłanny w każdym kroku symulacji buduje rozwiązani
 Tabela~\ref{tab:greedy-cold-summary} zestawia średni koszt na węzeł i średni czas wykonania algorytmu na krok symulacji dla sześciu badanych profili mutacji: trzech syntetycznych oraz trzech realistycznych. Wszystkie czasy mieszczą się w przedziale od \SI{0.5}{\milli\second} do \SI{1.8}{\milli\second} na krok, a średni koszt na węzeł oscyluje wokół 0.46 do 0.48.
 
 \begin{table}[H]
-  \centering
-  \caption{Algorytm zachłanny: średni koszt na węzeł oraz średni czas na krok dla wszystkich wariantów mutacji.}
-  \label{tab:greedy-cold-summary}
-  \begin{tabular}{lcc}
-    \toprule
-    \textbf{Metoda mutacji} & \textbf{Koszt/węzeł (mean)} & \textbf{Średni czas [s]} \\
-    \midrule
-    high                    & 0.48009                     & 0.00159                  \\
-    low                     & 0.47983                     & 0.00165                  \\
-    med                     & 0.47491                     & 0.00181                  \\
-    pref\_pref              & 0.46371                     & 0.00083                  \\
-    pref\_triadic           & 0.46787                     & 0.00053                  \\
-    rand\_rewire            & 0.47556                     & 0.00083                  \\
-    \bottomrule
-  \end{tabular}
+    \centering
+    \caption{Algorytm zachłanny: średni koszt na węzeł oraz średni czas na krok dla wszystkich wariantów mutacji.}
+    \label{tab:greedy-cold-summary}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Metoda mutacji} & \textbf{Koszt/węzeł (mean)} & \textbf{Średni czas [s]} \\
+        \midrule
+        high                    & 0.48009                     & 0.00159                  \\
+        low                     & 0.47983                     & 0.00165                  \\
+        med                     & 0.47491                     & 0.00181                  \\
+        pref\_pref              & 0.46371                     & 0.00083                  \\
+        pref\_triadic           & 0.46787                     & 0.00053                  \\
+        rand\_rewire            & 0.47556                     & 0.00083                  \\
+        \bottomrule
+    \end{tabular}
 \end{table}
 
 Algorytm zachłanny charakteryzuje się krótkim czasem wykonania, co uzasadnia jego użycie jako czasowego punktu odniesienia w środowisku dynamicznym. Warianty realistyczne sprzyjają nieco niższym kosztom: \texttt{pref\_pref} osiąga najniższy średni koszt (0.464), a \texttt{pref\_triadic} jest jednocześnie najszybszy (\SI{0.00053}{\s}). Wariant \texttt{rand\_rewire} jest trudniejszy (0.476), ale pozostaje bardzo szybki czasowo.
@@ -75,18 +75,18 @@ Tabela~\ref{tab:dyn-synth-warm} przedstawia zbiorcze wyniki dla różnych metod 
 Średni czas wykonania rośnie wraz z intensywnością mutacji. Wariant \texttt{low} jest najszybszy, podczas gdy \texttt{high} wymaga najwięcej czasu na ponowne zbilansowanie. Jest to naturalna konsekwencja faktu, że większa liczba modyfikacji grafu (dodawanie/usuwanie węzłów i krawędzi) stanowi większe wyzwanie obliczeniowe dla algorytmów optymalizacyjnych. Różnice czasów pozostają umiarkowane, co wskazuje na korzystną skalowalność zastosowanych metod.
 
 \begin{table}[H]
-  \centering
-  \caption{Wyniki dla różnych metod mutacji.}
-  \label{tab:dyn-synth-warm}
-  \begin{tabular}{lcc}
-    \toprule
-    \textbf{Metoda mutacji} & \textbf{Średni koszt} & \textbf{Średni czas [s]} \\
-    \midrule
-    high                    & 0.4893                & 3.169                    \\
-    med                     & 0.4850                & 3.075                    \\
-    low                     & 0.4852                & 2.878                    \\
-    \bottomrule
-  \end{tabular}
+    \centering
+    \caption{Wyniki dla różnych metod mutacji.}
+    \label{tab:dyn-synth-warm}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Metoda mutacji} & \textbf{Średni koszt} & \textbf{Średni czas [s]} \\
+        \midrule
+        high                    & 0.4893                & 3.169                    \\
+        med                     & 0.4850                & 3.075                    \\
+        low                     & 0.4852                & 2.878                    \\
+        \bottomrule
+    \end{tabular}
 \end{table}
 
 \subsection{Profil kosztu i czasu w czasie}
@@ -95,21 +95,21 @@ Jako przykład ewolucji kosztu i czasu w krokach symulacji wybrano algorytm gene
 Dla wariantu \texttt{high} można zaobserwować niewielkie, lecz zauważalne wahania średniego kosztu na węzeł, które nie są tak widoczne w przypadku wariantów \texttt{low} i \texttt{med}. W zakresie czasów wykonania dla wszystkich trzech wariantów występują porównywalne wahania w trakcie symulacji.
 
 \begin{figure}[H]
-  \centering
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_low.pdf}
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_med.pdf}
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_high.pdf}
-  \caption{Algorytm genetyczny -- koszt na węzeł w kolejnych krokach symulacji (warianty low/med/high).}
-  \label{fig:dyn-synth-genetic-cost}
+    \centering
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_low.pdf}
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_med.pdf}
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_cost_over_steps_high.pdf}
+    \caption{Algorytm genetyczny -- koszt na węzeł w kolejnych krokach symulacji (warianty low/med/high).}
+    \label{fig:dyn-synth-genetic-cost}
 \end{figure}
 
 \begin{figure}[H]
-  \centering
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_low.pdf}
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_med.pdf}
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_high.pdf}
-  \caption{Algorytm genetyczny -- czas wykonania w kolejnych krokach symulacji (warianty low/med/high).}
-  \label{fig:dyn-synth-genetic-time}
+    \centering
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_low.pdf}
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_med.pdf}
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/synthetic/synthetic_algorytm_genetyczny_time_over_steps_high.pdf}
+    \caption{Algorytm genetyczny -- czas wykonania w kolejnych krokach symulacji (warianty low/med/high).}
+    \label{fig:dyn-synth-genetic-time}
 \end{figure}
 
 \section{Analiza mutacji realistycznych}
@@ -117,45 +117,45 @@ Tabela~\ref{tab:dyn-real-warm} przedstawia zbiorcze wyniki dla scenariuszy reali
 
 
 \begin{table}[H]
-  \centering
-  \caption{Wyniki dla różnych metod mutacji w scenariuszach realistycznych.}
-  \label{tab:dyn-real-warm}
-  \begin{tabular}{lccc}
-    \toprule
-    \textbf{Metoda mutacji} & \textbf{Średni koszt całkowity} & \textbf{Koszt/węzeł (mean)} & \textbf{Średni czas [s]} \\
-    \midrule
-    pref\_pref              & 113.34                          & 0.4764                      & 1.6774                   \\
-    pref\_triadic           & 70.08                           & 0.4764                      & 0.8619                   \\
-    rand\_rewire            & 116.83                          & 0.4917                      & 1.8421                   \\
-    \bottomrule
-  \end{tabular}
+    \centering
+    \caption{Wyniki dla różnych metod mutacji w scenariuszach realistycznych.}
+    \label{tab:dyn-real-warm}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Metoda mutacji} & \textbf{Średni koszt całkowity} & \textbf{Koszt/węzeł (mean)} & \textbf{Średni czas [s]} \\
+        \midrule
+        pref\_pref              & 113.34                          & 0.4764                      & 1.6774                   \\
+        pref\_triadic           & 70.08                           & 0.4764                      & 0.8619                   \\
+        rand\_rewire            & 116.83                          & 0.4917                      & 1.8421                   \\
+        \bottomrule
+    \end{tabular}
 \end{table}
 
 \subsection{Wybrane algorytmy i metody mutacji}
 W celu zilustrowania zachowania różnych algorytmów optymalizacyjnych w środowisku dynamicznym, wybrano reprezentatywne pary algorytmów i metod mutacji. Zestawienie obejmuje algorytmy o różnej złożoności obliczeniowej, od prostych heurystyk po metaheurystyki, testowane na wybranych profilach mutacji realistycznych i syntetycznych. Dobór przedstawia spektrum możliwych rozwiązań, od szybkich metod przybliżonych po dokładne, ale czasochłonne podejścia optymalizacyjne.
 
 \begin{table}[H]
-  \centering
-  \caption{Wybrane pary algorytmów i metod mutacji.}
-  \label{tab:dyn-synth-selected-best}
-  \begin{tabular}{llccc}
-    \toprule
-    \textbf{Algorytm}     & \textbf{Metoda} & \textbf{Liczba kroków} & \textbf{Koszt/węzeł} & \textbf{Śr. czas [s]} \\
-    \midrule
-    Algorytm ILP          & pref\_triadic   & 434                    & 0.362                & 1.525                 \\
-    Algorytm ILP          & rand\_rewire    & 496                    & 0.390                & 2.553                 \\
-    Algorytm genetyczny   & pref\_triadic   & 744                    & 0.409                & 0.615                 \\
-    Algorytm genetyczny   & pref\_pref      & 930                    & 0.414                & 1.134                 \\
-    Przeszukiwanie tabu   & pref\_triadic   & 744                    & 0.413                & 1.470                 \\
-    Przeszukiwanie tabu   & rand\_rewire    & 930                    & 0.445                & 2.581                 \\
-    Algorytm mrówkowy     & pref\_pref      & 899                    & 0.417                & 6.906                 \\
-    Algorytm mrówkowy     & pref\_triadic   & 744                    & 0.424                & 3.002                 \\
-    Wyżarzanie symulowane & pref\_triadic   & 744                    & 0.460                & 0.555                 \\
-    Algorytm zachłanny    & pref\_pref      & 930                    & 0.464                & 0.001                 \\
-    Zbiór dominujący      & pref\_triadic   & 744                    & 0.457                & 0.005                 \\
-    Algorytm losowy       & pref\_pref      & 930                    & 0.754                & 0.001                 \\
-    \bottomrule
-  \end{tabular}
+    \centering
+    \caption{Wybrane pary algorytmów i metod mutacji.}
+    \label{tab:dyn-synth-selected-best}
+    \begin{tabular}{llccc}
+        \toprule
+        \textbf{Algorytm}     & \textbf{Metoda} & \textbf{Liczba kroków} & \textbf{Koszt/węzeł} & \textbf{Śr. czas [s]} \\
+        \midrule
+        Algorytm ILP          & pref\_triadic   & 434                    & 0.362                & 1.525                 \\
+        Algorytm ILP          & rand\_rewire    & 496                    & 0.390                & 2.553                 \\
+        Algorytm genetyczny   & pref\_triadic   & 744                    & 0.409                & 0.615                 \\
+        Algorytm genetyczny   & pref\_pref      & 930                    & 0.414                & 1.134                 \\
+        Przeszukiwanie tabu   & pref\_triadic   & 744                    & 0.413                & 1.470                 \\
+        Przeszukiwanie tabu   & rand\_rewire    & 930                    & 0.445                & 2.581                 \\
+        Algorytm mrówkowy     & pref\_pref      & 899                    & 0.417                & 6.906                 \\
+        Algorytm mrówkowy     & pref\_triadic   & 744                    & 0.424                & 3.002                 \\
+        Wyżarzanie symulowane & pref\_triadic   & 744                    & 0.460                & 0.555                 \\
+        Algorytm zachłanny    & pref\_pref      & 930                    & 0.464                & 0.001                 \\
+        Zbiór dominujący      & pref\_triadic   & 744                    & 0.457                & 0.005                 \\
+        Algorytm losowy       & pref\_pref      & 930                    & 0.754                & 0.001                 \\
+        \bottomrule
+    \end{tabular}
 \end{table}
 
 Algorytm ILP osiąga najniższe koszty, lecz wymaga około 1.5-\SI{2.6}{\second} na krok. Algorytm genetyczny dobrze sprawdza się przy zmianach klastrowych (\texttt{pref\_triadic}), oferując niski koszt i czas około \SI{0.6}{\second}. Przy wariancie \texttt{pref\_pref} jest wolniejszy (\SI{1.1}{\second}), ale zachowuje dobrą jakość. Z kolei wyżarzanie symulowane jest szybkie (około \SI{0.5}{\second}) i stabilne, ale jakościowo ustępuje bardziej zaawansowanym metodom.
@@ -171,21 +171,21 @@ Pełne przebiegi dla algorytmu genetycznego pokazano na rys.~\ref{fig:dyn-real-g
 Z kolei, patrząc na czas wykonania na rys. \ref{fig:dyn-real-genetic-time}, widać, że dla wariantu \texttt{rand\_rewire} występują największe wahania, co sugeruje większą niestabilność procesu optymalizacji. Warianty \texttt{pref\_triadic} i \texttt{pref\_pref} charakteryzują się bardziej stabilnym czasem wykonania.
 
 \begin{figure}[H]
-  \centering
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_pref_triadic.pdf}
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_pref_pref.pdf}
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_rand_rewire.pdf}
-  \caption{Algorytm genetyczny -- koszt na węzeł w wariantach realistycznych.}
-  \label{fig:dyn-real-genetic-cost}
+    \centering
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_pref_triadic.pdf}
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_pref_pref.pdf}
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_cost_over_steps_rand_rewire.pdf}
+    \caption{Algorytm genetyczny -- koszt na węzeł w wariantach realistycznych.}
+    \label{fig:dyn-real-genetic-cost}
 \end{figure}
 
 \begin{figure}[H]
-  \centering
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_pref_triadic.pdf}
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_pref_pref.pdf}
-  \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_rand_rewire.pdf}
-  \caption{Algorytm genetyczny -- czas wykonania w wariantach realistycznych.}
-  \label{fig:dyn-real-genetic-time}
+    \centering
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_pref_triadic.pdf}
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_pref_pref.pdf}
+    \includegraphics[width=0.32\linewidth]{assets/figures/dynamic/real/real_algorytm_genetyczny_time_over_steps_rand_rewire.pdf}
+    \caption{Algorytm genetyczny -- czas wykonania w wariantach realistycznych.}
+    \label{fig:dyn-real-genetic-time}
 \end{figure}
 
 \section{Wnioski}

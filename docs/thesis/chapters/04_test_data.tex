@@ -9,19 +9,19 @@ Niniejszy rozdział koncentruje się na charakterystyce wykorzystanych danych, n
 Do generowania danych syntetycznych wykorzystano trzy standardowe modele grafów: Erd\H{o}s--Rényi (ER), Barabási--Albert (BA) oraz Watts--Strogatz (WS).
 W eksperymentach wykorzystywano kilka odrębnych konfiguracji rozmiaru w zależności od scenariusza eksperymentalnego:
 \begin{itemize}
-  \item \textbf{Benchmark statyczny} obejmował grafy o $n \in \{20, 40, 60, 80, 100, 120, 140, 160, 180,\\200, 300, 600, 1000\}$, generowane po trzy próbki na rozmiar. Rozdział \ref{chap:experiments} zawiera szczegółowe omówienie testów przeprowadzonych na tych grafach.
-  \item \textbf{Symulacje dynamiczne} korzystały z węższego zakresu rozmiarów: dla mutacji syntetycznych $n \in \{20, 40, 80, 160, 320, 640\}$, natomiast warianty realistyczne pref\_triadic i pref\_pref uruchamiano dla $n\in\{40,80,160,320\}$, a rand\_rewire dla $n\in\{40,80,160,320,640\}$. Szczegółowe definicje tych mutacji oraz uzyskane wyniki znajdują się w rozdziale \ref{chap:dynamic}.
-  \item \textbf{Rozszerzenia taryfowe} w wariancie statycznym analizowano na rozmiarach $n \in \{20, 50, 100, 200\}$, natomiast część dynamiczna korzystała z $n \in \{40, 80, 160\}$ przy krótszym horyzoncie czasowym. Szczegóły eksperymentów z rozszerzeniami taryfowymi opisano w rozdziale \ref{chap:tariffs}.
+    \item \textbf{Benchmark statyczny} obejmował grafy o $n \in \{20, 40, 60, 80, 100, 120, 140, 160, 180,\\200, 300, 600, 1000\}$, generowane po trzy próbki na rozmiar. Rozdział \ref{chap:experiments} zawiera szczegółowe omówienie testów przeprowadzonych na tych grafach.
+    \item \textbf{Symulacje dynamiczne} korzystały z węższego zakresu rozmiarów: dla mutacji syntetycznych $n \in \{20, 40, 80, 160, 320, 640\}$, natomiast warianty realistyczne pref\_triadic i pref\_pref uruchamiano dla $n\in\{40,80,160,320\}$, a rand\_rewire dla $n\in\{40,80,160,320,640\}$. Szczegółowe definicje tych mutacji oraz uzyskane wyniki znajdują się w rozdziale \ref{chap:dynamic}.
+    \item \textbf{Rozszerzenia modelu licencjonowania} w wariancie statycznym analizowano na rozmiarach $n \in \{20, 50, 100, 200\}$, natomiast część dynamiczna korzystała z $n \in \{40, 80, 160\}$ przy krótszym horyzoncie czasowym. Szczegóły eksperymentów z rozszerzeniami modelu opisano w rozdziale \ref{chap:extensions}.
 \end{itemize}
 
 \subsection{Model Erdős--Rényi - klasyczne grafy losowe}
 Pierwszym modelem jest klasyczny graf losowy Erdős-Rényi (ER), zaproponowany przez Erdősa i Rényiego w latach 1959-1960 \cite{ErdosRenyi1960}. W modelu tym rozpatruje się zbiór $n$ wierzchołków, a każda z $\binom{n}{2}$ potencjalnych krawędzi pojawia się niezależnie z prawdopodobieństwem $p$. Parametrami modelu są więc $n$ oraz $p$. W używanej implementacji zaadaptowano właśnie ten wariant $G(n,p)$, który prezentuje się w sposób przedstawiony na rys. \ref{fig:ER}.
 
 \begin{figure}[h]
-  \centering
-  \includegraphics[width=0.6\textwidth]{assets/test_data/random.png}
-  \caption{Przykładowa realizacja grafu Erdős--Rényi}
-  \label{fig:ER}
+    \centering
+    \includegraphics[width=0.6\textwidth]{assets/test_data/random.png}
+    \caption{Przykładowa realizacja grafu Erdős--Rényi}
+    \label{fig:ER}
 \end{figure}
 
 Model ER stanowi istotny punkt odniesienia jako najprostszy model sieci pozbawiony struktury społecznościowej. Motywacją uwzględnienia go w testach jest możliwość porównania działania algorytmów na zupełnie przypadkowych sieciach z ich działaniem na bardziej uporządkowanych grafach takich jak grafy skalowane, małego świata oraz rzeczywiste. Choć prawdziwe sieci społecznościowe odbiegają od założeń pełnej losowości, mają zwykle wyższy poziom klasteryzacji węzłów i nierównomierny rozkład stopni wierzchołków, to jednak model $G(n, p)$ stanowi istotną podstawę porównawczą.
@@ -38,10 +38,10 @@ Istnieje znana granica perkolacji, gdy $p>\frac{\ln n}{n}$, graf ER jest z duży
 Drugim generatorem jest model Barabási-Albert (BA), wprowadzony przez Barabásiego i Alberta w 1999 roku \cite{barabasi1999emergence}. Model BA pozwala generować grafy o strukturze bezskalowej, w których rozkład stopni ma charakter potęgowy. Tego typu sieci charakteryzują się istnieniem niewielkiej liczby wierzchołków o bardzo wysokim stopniu (tzw. hubów) oraz wielu wierzchołków o małym stopniu — jest to cecha obserwowana w wielu rzeczywistych sieciach, w tym społecznościowych. Dla ilustracji, na rys.~\ref{fig:BA} przedstawiono przykładową realizację grafu BA, w której wyraźnie widoczne są huby. W sieciach społecznościowych przekłada się to na obecność nielicznych węzłów o bardzo wysokim stopniu oraz wielu węzłów o niskim stopniu.
 
 \begin{figure}[h]
-  \centering
-  \includegraphics[width=0.6\textwidth]{assets/test_data/scalefree.png}
-  \caption{Przykładowa realizacja grafu Barabási--Albert z widocznymi hubami}
-  \label{fig:BA}
+    \centering
+    \includegraphics[width=0.6\textwidth]{assets/test_data/scalefree.png}
+    \caption{Przykładowa realizacja grafu Barabási--Albert z widocznymi hubami}
+    \label{fig:BA}
 \end{figure}
 
 Parametrami wejściowymi modelu Barabási-Albert są $n$ — docelowa liczba wierzchołków — oraz $m$ — liczba krawędzi dodawanych przez każdy nowy wierzchołek. Procedura generowania rozpoczyna się od małego grafu startowego (np. kliki złożonej z $m$ wierzchołków, aby zapewnić początkową spójność). Następnie dodaje się kolejne wierzchołki; każdy nowy wierzchołek łączy się z $m$ już istniejącymi, a prawdopodobieństwo wyboru danego sąsiada jest proporcjonalne do jego bieżącego stopnia (mechanizm preferencyjnego przyłączania). Skutkiem tego reguła generuje rozkład potęgowy stopni wierzchołków.
@@ -57,10 +57,10 @@ Generowanie w modelu WS wymaga trzech parametrów: liczby wierzchołków $n$, st
 Jednocześnie początkowa średnia odległość jest stosunkowo duża, bo graf tuż przed modyfikacją krawędzi ma strukturę cyklu, więc dystans między węzłami oddalonymi na cyklu jest znaczny. Na rys.~\ref{fig:WS} zilustrowano przykładową realizację grafu Watts--Strogatz, w której widoczne są opisane wyżej właściwości.
 
 \begin{figure}[h]
-  \centering
-  \includegraphics[width=0.65\textwidth]{assets/test_data/smallworld.png}
-  \caption{Przykładowa realizacja grafu Watts--Strogatz, w której widoczne są lokalne kliki oraz połączenia dalekiego zasięgu skracające średnie odległości}
-  \label{fig:WS}
+    \centering
+    \includegraphics[width=0.65\textwidth]{assets/test_data/smallworld.png}
+    \caption{Przykładowa realizacja grafu Watts--Strogatz, w której widoczne są lokalne kliki oraz połączenia dalekiego zasięgu skracające średnie odległości}
+    \label{fig:WS}
 \end{figure}
 
 Następnie wprowadza się losowe przepięcia: każdą krawędź do jednego z $\tfrac{k}{2}$ najbliższych sąsiadów przepina się z prawdopodobieństwem $p$ do losowo wybranego wierzchołka. Przepięcie polega na usunięciu oryginalnej krawędzi i dodaniu nowej krawędzi łączącej dany węzeł z innym losowym węzłem. W wyniku tych losowych przepięć, przy zachowaniu większości lokalnych połączeń cyklu, otrzymujemy graf, który dla małych $p$ wciąż charakteryzuje się wysokim współczynnikiem klasteryzacji, ale jednocześnie kilka losowych połączeń długodystansowych znacząco skraca średnie odległości w sieci.
