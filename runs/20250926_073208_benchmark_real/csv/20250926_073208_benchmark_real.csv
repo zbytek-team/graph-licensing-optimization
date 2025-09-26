@@ -1,0 +1,2 @@
+run_id,algorithm,graph,n_nodes,n_edges,graph_params,license_config,rep,seed,ego_id,density,avg_degree,clustering,components,total_cost,cost_per_node,time_ms,license_counts_json,algo_params_json,warm_start,valid,issues,groups,group_size_mean,group_size_median,group_size_p90,image_path,notes
+20250926_073208_benchmark_real,ILPSolver,facebook_ego,334,2852,"{""ego_id"": ""0""}",duolingo_super,0,12345,0,0.05128481775188362,17.077844311377245,0.6820047114277957,1,nan,0.0,60000.0,,,,False,0,0,0.0,0.0,0.0,,timeout

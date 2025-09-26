@@ -51,66 +51,59 @@ Na rysunku \ref{fig:all_types_time} przedstawiono czasy obliczeń w funkcji licz
 \end{algorithm}
 
 \paragraph{Złożoność}
-Algorytm generuje wszystkie partycje zbioru \(V\) na niepuste bloki, czyli wszystkie rozbicia odpowiadające potencjalnym zestawom grup licencyjnych. Takich partycji jest \(B_{|V|}\), gdzie \(B_m\) oznacza liczbę Bella dla \(m\) elementów. W implementacji nie ograniczamy z góry liczby bloków: niektóre typy licencji mogą pozostać nieużyte, dlatego dopuszczamy zarówno rozbicia na jedną grupę, jak i na \(|V|\) grup jednowskaźnikowych. Gdyby liczba bloków była stała i wynosiła \(k\), odpowiadałyby jej liczby Stirlinga drugiego rodzaju \({|V| \brace k}\); tutaj sumujemy je po wszystkich \(k\), stąd pojawiają się liczby Bella. Samo wygenerowanie partycji kosztuje więc $\Theta(B_{|V|})$.
+Algorytm generuje wszystkie partycje zbioru \(V\) na niepuste bloki, czyli wszystkie rozbicia odpowiadające potencjalnym zestawom grup licencyjnych. Takich partycji jest \(B_{|V|}\), gdzie \(B_m\) oznacza liczbę Bella dla \(m\) elementów \cite{stanley1997enumerative}. W implementacji nie ograniczamy z góry liczby bloków: niektóre typy licencji mogą pozostać nieużyte, dlatego dopuszczamy zarówno rozbicia na jedną grupę, jak i na \(|V|\) grup jednowierzchołkowych. Gdyby liczba bloków była stała i wynosiła \(k\), odpowiadałyby jej liczby Stirlinga drugiego rodzaju \({|V| \brace k}\); tutaj sumujemy je po wszystkich \(k\), stąd pojawiają się liczby Bella. Samo wygenerowanie partycji kosztuje więc $\Theta(B_{|V|})$.
 
-Dla partycji o \(k\) blokach rozpatrujemy każdą kombinację wyboru właściciela (co najwyżej \(|V|\) opcji na blok) i dopuszczalnego typu licencji (co najwyżej \(T\) opcji, gdzie \(T=|L|\)). W skrajnym przypadku prowadzi to do górnego oszacowania \((|V|\cdot T)^k\) konfiguracji dla pojedynczej partycji. Jeśli ograniczenia pojemnościowe nie redukują przestrzeni, całkowity koszt można oszacować przez \(O\bigl(B_{|V|} \cdot (|V|\cdot T)^{|V|}\bigr)\). Wzrost jest superwykładniczy, ponieważ \(B_m\) przybliżają \({m^{m}}/(e^{m}\sqrt{m})\) dla rosnącego \(m\). W praktyce ograniczenia licencyjne i warunek sąsiedztwa znacząco zmniejszają liczbę rozważanych konfiguracji, lecz nawet wtedy pełny przegląd jest użyteczny wyłącznie dla bardzo małych grafów (rzędu kilku do kilkunastu wierzchołków).
+Dla partycji o \(k\) blokach o rozmiarach \(s_1, s_2, \ldots, s_k\) rozpatrujemy każdą kombinację wyboru właściciela (co najwyżej \(s_i\) opcji na blok \(i\)) i dopuszczalnego typu licencji (co najwyżej \(T\) opcji, gdzie \(T=|L|\)). Prowadzi to do górnego oszacowania
+\[
+  \prod_{i=1}^{k} (s_i \cdot T) = T^k \cdot \prod_{i=1}^{k} s_i
+\]
+konfiguracji dla pojedynczej partycji. Całkowity koszt można oszacować przez \(O\bigl(B_{|V|} \cdot T^{|V|} \cdot 3^{|V|/3}\bigr)\), ponieważ \(\prod s_i \leq 3^{|V|/3}\). Wzrost jest superwykładniczy, gdzie asymptotycznie \(\log B_n = n\log n - n\log\log n - n + O(n/\log n)\). W praktyce ograniczenia licencyjne i warunek sąsiedztwa znacząco zmniejszają liczbę rozważanych konfiguracji, lecz nawet wtedy pełny przegląd jest użyteczny wyłącznie dla bardzo małych grafów (rzędu kilku do kilkunastu wierzchołków).
 
 Liczby Bella można zapisać wzorami
 \[
-  B_n = \sum_{k=0}^{n} \left\{\!\!\begin{array}{c} n \ k \end{array}\!\!\right\}\quad\text{oraz}\quad B_n = \frac{1}{e}\sum_{k=0}^{\infty}\frac{k^{\,n}}{k!},
+  B_n = \sum_{k=0}^{n} \left\{\!\!\begin{array}{c} n \\ k \end{array}\!\!\right\}\quad\text{oraz}\quad B_n = \frac{1}{e}\sum_{k=0}^{\infty}\frac{k^{\,n}}{k!},
 \]
 a zliczają one wszystkie rozbiory zbioru na dowolną liczbę niepustych bloków (bloki są nierozróżnialne). Dla porównania liczba wszystkich podzbiorów zbioru \(n\)-elementowego wynosi jedynie \(2^n\), więc nawet tak uproszczone oszacowanie rośnie wolniej niż pełna liczba partycji.
 
 \subsection{Programowanie całkowitoliczbowe (ILP)}\label{subsec:ilp}
 
-Programowanie całkowitoliczbowe formułuje problem z rozdziału~\ref{sec:model-formal} jako zadanie 
-minimalizacji kosztu przy ograniczeniach liniowych oraz binarnych zmiennych decyzyjnych. 
-Model ten został opracowany w ramach niniejszej pracy.
-Metoda jest dokładna i zwraca rozwiązanie optymalne, o ile solver zakończy działanie poprawnie.
+Formułujemy problem z rozdziału~\ref{sec:model-formal} jako minimalizację kosztu przy ograniczeniach liniowych z binarnymi zmiennymi. Model jest dokładny; solver zwraca rozwiązanie optymalne, jeśli zakończy działanie poprawnie.
 
 \paragraph{Parametry i zmienne}
-Posługujemy się schematem licencyjnym z wzoru~\eqref{eq:license_family}, omówionym w~rozdziale~\ref{sec:model-formal}, czyli
-\(
-  L = \{ l_t = (c_t, m_t, k_t) \mid t = 1,\dots,T \},
-\)
-gdzie \(c_t\) oznacza koszt, \(m_t\) minimalną, a \(k_t\) maksymalną liczbę użytkowników (razem z właścicielem) obsługiwanych przez licencję typu \(t\). Korzystamy z notacji \(N[i]=N(i)\cup\{i\}\) oznaczającej otoczenie sąsiedztwa wraz z właścicielem. Dla każdego wierzchołka \(i\in V\) i licencji \(t\in\{1,\dots,T\}\) definiujemy zmienne binarne:
+Korzystamy z rodziny licencji z~\eqref{eq:license_family},
+\(\mathcal{L}=\{\ell_t=(c_t,m_t,k_t):t=1,\dots,T\}\).
+Oznaczamy \(N[i]=N(i)\cup\{i\}\). Dla \(i\in V\), \(t\in\{1,\dots,T\}\) definiujemy:
 \begin{itemize}
-  \item \(a_{i,t}\in\{0,1\}\) -- zmienna przyjmuje wartość 1 dokładnie wtedy, gdy węzeł \(i\) kupuje licencję typu \(t\) i tym samym aktywuje dla niej grupę licencyjną. Wartość 0 oznacza, że licencja \(t\) nie jest używana przez \(i\).
-  \item \(x_{i,j,t}\in\{0,1\}\) -- zmienna ma wartość 1, gdy użytkownik \(j\) korzysta z licencji \(t\) nabytej przez właściciela \(i\), czyli jest członkiem jego grupy. Wartość 0 oznacza brak takiego przypisania. Zmienne te definiujemy tylko dla \(j\in N[i]=N(i)\cup\{i\}\), aby wymusić sąsiedztwo członków z właścicielem.
+  \item \(a_{i,t}\in\{0,1\}\): \(a_{i,t}=1\) gdy węzeł \(i\) kupuje licencję typu \(t\) i aktywuje grupę,
+  \item \(x_{i,j,t}\in\{0,1\}\) dla \(j\in N[i]\): \(x_{i,j,t}=1\) gdy \(j\) należy do grupy właściciela \(i\) typu \(t\).
 \end{itemize}
-Zmienna \(x_{i,j,t}=1\) odwzorowuje przypisanie odbiorcy \(j\) do właściciela \(i\), dzięki czemu zbiory \(I\), \(H\) oraz \(R\) z rozdziału~\ref{sec:model-formal} reprezentowane są bezpośrednio przez wartości zmiennych.
+Zmienna \(x_{i,j,t}\) odwzorowuje przypisanie odbiorcy do właściciela; zbiory ról są indukowane przez wartości \((a,x)\).
 
-\paragraph{Model matematyczny}
-Model zapisujemy następująco:
+\paragraph{Model}
 \begin{align}
-  \min\quad & \sum_{i\in V}\sum_{t=1}^{T} c_t\, a_{i,t}                    
-            &  & \text{funkcja celu: całkowity koszt licencji} \\[6pt]
+  \min\quad & \sum_{i\in V}\sum_{t=1}^{T} c_t\, a_{i,t}                                                                        \\
   \text{pod warunkami:}\quad
-            & \sum_{i\in N[j]}\sum_{t=1}^{T} x_{i,j,t} = 1                   
-            &  & \forall j\in V \label{con:cover} \\[6pt]
-            & m_t\, a_{i,t} \le \sum_{j\in N[i]} x_{i,j,t} \le k_t\, a_{i,t} 
-            &  & \forall i\in V,\ t=1,\dots,T \label{con:capacity} \\[6pt]
-            & x_{i,i,t} = a_{i,t}                                              
-            &  & \forall i\in V,\ t=1,\dots,T \label{con:owner} \\[6pt]
-            & \sum_{t=1}^{T} a_{i,t} \le 1                                     
-            &  & \forall i\in V \label{con:one}
+            & \sum_{i\in N[j]}\sum_{t=1}^{T} x_{i,j,t} = 1
+            &                                                                & \forall j\in V \label{con:cover}                \\
+            & m_t\, a_{i,t} \le \sum_{j\in N[i]} x_{i,j,t} \le k_t\, a_{i,t}
+            &                                                                & \forall i\in V,\ \forall t \label{con:capacity} \\
+            & x_{i,i,t} = a_{i,t}
+            &                                                                & \forall i\in V,\ \forall t \label{con:owner}    \\
+            & \sum_{t=1}^{T} a_{i,t} \le 1
+            &                                                                & \forall i\in V \label{con:one}
 \end{align}
 
-\noindent
-Znaczenie ograniczeń:
-\begin{itemize}
-  \item Ograniczenie~\ref{con:cover}: każdy wierzchołek jest przypisany dokładnie do jednej licencji - indywidualnej albo grupowej.
-  \item Ograniczenie~\ref{con:capacity}: liczba uczestników w grupie musi mieścić się między najmniejszą a największą wartością przewidzianą przez dany typ licencji.
-  \item Ograniczenie~\ref{con:owner}: właściciel zawsze uczestniczy we własnej grupie.
-  \item Ograniczenie~\ref{con:one}: jeden wierzchołek może być właścicielem co najwyżej jednej licencji.
-\end{itemize}
-Ograniczenia te pokrywają się z warunkami wykonalności z rozdziału~\ref{sec:model-formal}.
+Znaczenie ograniczeń: \eqref{con:cover} pokrywa każdy węzeł dokładnie raz; \eqref{con:capacity} wymusza przedziały wielkości grup; \eqref{con:owner} zapewnia udział właściciela; \eqref{con:one} ogranicza do jednej licencji na węzeł (dowolnego typu). Ograniczenia pokrywają warunki wykonalności z rozdziału~\ref{sec:model-formal}.
 
-\paragraph{Złożoność i zastosowanie}
-Liczba zmiennych wynosi \(O\bigl(|V|\,T\,(\Delta+1)\bigr)\), gdzie \(\Delta\) to maksymalny stopień grafu, ponieważ dla każdego właściciela i typu licencji rozważane są przypisania do jego sąsiadów oraz do niego samego. W gęstych sieciach rośnie również liczba ograniczeń, co wydłuża czas działania solvera. W pracy model ILP służy jako złoty standard jakości rozwiązań dla małych i średnich instancji oraz jako źródło górnych ograniczeń dla metod przybliżonych.
+\paragraph{Złożoność}
+Liczba zmiennych: \(|V|T\) dla \(a_{i,t}\) oraz \(T\sum_i |N[i]|\) dla \(x_{i,j,t}\), łącznie \(O\!\bigl(T(|E|+|V|)\bigr)\).
+Liczba ograniczeń: \(|V|\) dla \eqref{con:cover}, \(2|V|T\) dla \eqref{con:capacity}, \(|V|T\) dla \eqref{con:owner}, \(|V|\) dla \eqref{con:one}.
+Model służy jako punkt odniesienia dla małych i średnich instancji.
 
 \paragraph{Implementacja}
-Model zaimplementowano w Pythonie z użyciem biblioteki \texttt{PuLP} i solvera \texttt{CBC} (\texttt{pulp.PULP\_CBC\_CMD}). Wartości zmiennych binarnych interpretowane są progowo przy rekonstrukcji rozwiązania \((>0.5\) traktowane jako prawda\().\) Funkcja celu oraz ograniczenia odzwierciedlają dokładnie przedstawiony model, dzięki czemu rozwiązania ILP odpowiadają etykietowaniu \(f\) opisanym w rozdziale~\ref{sec:model-formal}.
+Implementacja w Python (PuLP + CBC) odzwierciedla powyższy model. Stosuje się eliminację niemożliwych par \((i,t)\), gdy \(m_t>|N[i]|\) lub \(k_t<1\), oraz dla \(k_t=1\) tworzy się wyłącznie zmienne \(x_{i,i,t}\).
+Przy rekonstrukcji rozwiązania wartości binarne interpretowane są progowo \(>0{,}5\).
+W razie statusu innego niż rozwiązanie całkowite zastosowano awaryjny wariant „same licencje indywidualne" (procedura poza modelem).
 
 \section{Heurystyki konstrukcyjne}
 
@@ -218,7 +211,7 @@ Algorytm losowy pełni rolę metody odniesienia do oceny jakości rozwiązań ge
 
 \paragraph{Uwagi o losowości}
 Celem było uzyskanie szerokiego spektrum wyników, aby zobaczyć, jak zachowuje się heurystyka w losowych warunkach spełniających ograniczenia problemu.
-Nie stosowano wariantu wyboru licencji według najlepszego kosztu na węzeł, ponieważ prowadziłoby to do wyniku deterministycznego i zawężenia rozkładu rezultatów. 
+Nie stosowano wariantu wyboru licencji według najlepszego kosztu na węzeł, ponieważ prowadziłoby to do wyniku deterministycznego i zawężenia rozkładu rezultatów.
 Rozważano także uruchamianie algorytmu wielokrotnie i wybieranie najlepszego otrzymanego wyniku spośród dużej liczby uruchomień.
 Ze względu na dużą losowość w doborze licencji i składzie grup okazało się jednak, że średnia wartość jakości rozwiązania z wielu uruchomień nie różni się istotnie od wyniku pojedynczego najlepszego przebiegu.
 Z tego powodu algorytm uruchamiany jest tylko raz z możliwością ustawienia ziarna generatora liczb losowych, co pozwala odtwarzać eksperymenty.
@@ -271,10 +264,10 @@ Algorytm genetyczny utrzymuje populację pełnych przydziałów licencyjnych i z
 
 \paragraph{Parametry}
 \begin{itemize}
-  \item \textbf{Wielkość populacji} $P=30$ - liczba rozwiązań utrzymywanych w każdej generacji.
-  \item \textbf{Liczba pokoleń} $G=40$ - maksymalna liczba iteracji ewolucji.
-  \item \textbf{Udział elity} $\alpha=20\%$ - część najlepszych osobników kopiowana bez zmian do kolejnego pokolenia.
-  \item \textbf{Prawdopodobieństwo krzyżowania} $p_c=60\%$ - przy tej szansie dziecko powstaje przez połączenie dwóch rodziców; w przeciwnym razie wykonywana jest mutacja.
+  \item \textbf{GA: Wielkość populacji} $P_{GA}=30$ - liczba rozwiązań utrzymywanych w każdej generacji.
+  \item \textbf{GA: Liczba pokoleń} $G_{GA}=40$ - maksymalna liczba iteracji ewolucji.
+  \item \textbf{GA: Udział elity} $\alpha_{GA}=20\%$ - część najlepszych osobników kopiowana bez zmian do kolejnego pokolenia.
+  \item \textbf{GA: Prawdopodobieństwo krzyżowania} $p_{c,GA}=60\%$ - przy tej szansie dziecko powstaje przez połączenie dwóch rodziców; w przeciwnym razie wykonywana jest mutacja.
 \end{itemize}
 
 \begin{algorithm}[H]
@@ -310,9 +303,9 @@ Algorytm tabu rozpoczyna działanie od rozwiązania uzyskanego heurystyką zach�
 
 \paragraph{Parametry}
 \begin{itemize}
-  \item \textbf{Maksymalna liczba iteracji} \(I=1000\).
-  \item \textbf{Długość listy tabu} \(L=20\) elementów.
-  \item \textbf{Liczba sąsiadów na iterację} \(k=10\).
+  \item \textbf{Tabu: Maksymalna liczba iteracji} $I_{tabu}=1000$.
+  \item \textbf{Tabu: Długość listy tabu} $L_{tabu}=20$ elementów.
+  \item \textbf{Tabu: Liczba sąsiadów na iterację} $k_{tabu}=10$.
 \end{itemize}
 
 \begin{algorithm}[H]
@@ -340,7 +333,7 @@ Algorytm tabu rozpoczyna działanie od rozwiązania uzyskanego heurystyką zach�
 Inicjalizacja początkowego stanu grafu obejmuje jedno uruchomienie heurystyki zachłannej \(O(|V|T + |E|\log |V|)\). W każdej z \(I\) iteracji generowanych jest do \(k\) sąsiadów. Ocena kandydata obejmuje sprawdzenie pojemności, pokrycia i zgodności z sąsiedztwem w grafie, co kosztuje około \(O(|V|T + |E|)\). Łączna złożoność obliczeniowa wynosi w przybliżeniu \(O\!\left(I \cdot k \cdot (|V|T + |E|)\right)\). Przeszukiwanie tabu dobrze sprawdza się jako metoda ulepszająca: poprawia rozwiązania wyjściowe przy umiarkowanym czasie obliczeń i ogranicza powroty do niedawno odwiedzonych stanów dzięki liście tabu.
 
 \subsection{Algorytm mrówkowy}\label{subsec:aco}
-Algorytm mrówkowy buduje wiele rozwiązań równolegle. Każda mrówka konstruuje przydział licencji, kierując się siłą śladów feromonowych (informacja o dotychczas dobrych wyborach) oraz heurystyką preferującą wierzchołki o dużym stopniu i licencje o dobrym stosunku pojemności do ceny \cite{dorigo1997}. Po każdej iteracji, czyli po zakończeniu budowy rozwiązań przez wszystkie mrówki w danym kroku, feromony parują, a najlepsze dotąd rozwiązanie wzmacnia ścieżki feromonowe, czyli w przypadku naszej implementacji prawdopodobieństwo wyboru konkretnych właścicieli i typów licencji. 
+Algorytm mrówkowy buduje wiele rozwiązań równolegle. Każda mrówka konstruuje przydział licencji, kierując się siłą śladów feromonowych (informacja o dotychczas dobrych wyborach) oraz heurystyką preferującą wierzchołki o dużym stopniu i licencje o dobrym stosunku pojemności do ceny \cite{dorigo1997}. Po każdej iteracji, czyli po zakończeniu budowy rozwiązań przez wszystkie mrówki w danym kroku, feromony parują, a najlepsze dotąd rozwiązanie wzmacnia ścieżki feromonowe, czyli w przypadku naszej implementacji prawdopodobieństwo wyboru konkretnych właścicieli i typów licencji.
 Dzięki temu kolejne mrówki chętniej eksplorują obiecujące fragmenty przestrzeni rozwiązań (tj. wierzchołków i typów licencji).
 \paragraph{Parametry}
 \begin{itemize}
