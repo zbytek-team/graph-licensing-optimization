@@ -1,0 +1,2 @@
+run_id,algorithm,graph,n_nodes,n_edges,license_config,total_cost,time_ms,valid,issues,image_path,notes
+20250926_072707_single,ilp,small_world,100,200,duolingo_super,43.61615439599714,4846.859287000143,True,0,runs/20250926_072707_single/graphs/ilp_100n_200e.png,

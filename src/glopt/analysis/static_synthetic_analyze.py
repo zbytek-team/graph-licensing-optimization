@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,6 +10,7 @@ import seaborn as sns
 
 from glopt.analysis.commons import (
     ALGORITHM_CANONICAL_ORDER,
+    SAMPLE_IDENTIFIER_COLUMNS,
     algorithm_display_name,
     algorithm_palette,
     apply_algorithm_labels,
@@ -23,7 +24,6 @@ from glopt.analysis.commons import (
     normalize_cost_columns,
     number_to_polish_words,
     pivot_complete_blocks,
-    SAMPLE_IDENTIFIER_COLUMNS,
     run_friedman_nemenyi,
     save_table,
     write_text,

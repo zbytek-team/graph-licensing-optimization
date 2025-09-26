@@ -24,7 +24,7 @@ from glopt.experiments.common import (
 RUN_ID: str | None = None
 GRAPH_NAME: str = "small_world"
 GRAPH_PARAMS: dict[str, Any] = {"seed": 1}
-N_NODES: int = 30
+N_NODES: int = 100
 LICENSE_CONFIG_NAME: str = "duolingo_super"
 ALGORITHMS: list[str] = ["ILPSolver"]
 
@@ -44,9 +44,7 @@ def main() -> None:
         },
     )
     graph = generate_graph(GRAPH_NAME, N_NODES, GRAPH_PARAMS)
-    license_types = normalize_license_costs(
-        LicenseConfigFactory.get_config(LICENSE_CONFIG_NAME)
-    )
+    license_types = normalize_license_costs(LicenseConfigFactory.get_config(LICENSE_CONFIG_NAME))
     algos = instantiate_algorithms(ALGORITHMS)
     results: list[RunResult] = []
     for algo in algos:
@@ -66,17 +64,12 @@ def main() -> None:
             issues=r.issues,
             image=bool(r.image_path),
         )
-        enriched = replace(
-            r, graph=GRAPH_NAME, license_config=LICENSE_CONFIG_NAME
-        )
+        enriched = replace(r, graph=GRAPH_NAME, license_config=LICENSE_CONFIG_NAME)
         results.append(enriched)
     csv_path = write_csv(csv_dir, run_id, results)
     print_footer({"runs": len(results), "csv": csv_path})
     for r in results:
-        print(
-            f"{r.algorithm}: cost={r.total_cost:.2f} " \
-            f"time_ms={r.time_ms:.2f} valid={r.valid}"
-        )
+        print(f"{r.algorithm}: cost={r.total_cost:.2f} time_ms={r.time_ms:.2f} valid={r.valid}")
         if r.image_path:
             print(f" image: {r.image_path}")
 
