@@ -20,13 +20,13 @@ class GeneticAlgorithm(Algorithm):
     def __init__(
         self,
         population_size: int = 30,
-        generations: int = 40,
+        num_generations: int = 40,
         elite_fraction: float = 0.2,
         crossover_rate: float = 0.6,
         seed: int | None = None,
     ) -> None:
         self.population_size = max(2, population_size)
-        self.generations = max(1, generations)
+        self.num_generations = max(1, num_generations)
         self.elite_fraction = max(0.0, min(1.0, elite_fraction))
         self.crossover_rate = max(0.0, min(1.0, crossover_rate))
         self.seed = seed
@@ -47,26 +47,21 @@ class GeneticAlgorithm(Algorithm):
             random.seed(seed)
         deadline = kwargs.get("deadline")
         initial: Solution | None = kwargs.get("initial_solution")
-        generations = int(kwargs.get("generations", self.generations))
+        num_generations = int(kwargs.get("num_generations", self.num_generations))
         if graph.number_of_nodes() == 0:
             return Solution()
         population = self._init_population(graph, license_types, initial)
         best = min(population, key=lambda s: s.total_cost)
         from time import perf_counter as _pc
 
-        for _ in range(generations):
+        for _ in range(num_generations):
             if deadline is not None and _pc() >= float(deadline):
                 break
             population.sort(key=lambda s: s.total_cost)
-            elite_count = max(
-                1, int(self.elite_fraction * self.population_size)
-            )
+            elite_count = max(1, int(self.elite_fraction * self.population_size))
             new_pop: list[Solution] = population[:elite_count]
             while len(new_pop) < self.population_size:
-                if (
-                    random.random() < self.crossover_rate
-                    and len(population) >= 2
-                ):
+                if random.random() < self.crossover_rate and len(population) >= 2:
                     p1 = self._tournament_selection(population)
                     p2 = self._tournament_selection(population)
                     if p2 is p1 and len(population) > 1:
@@ -92,9 +87,7 @@ class GeneticAlgorithm(Algorithm):
         initial: Solution | None = None,
     ) -> list[Solution]:
         pop: list[Solution] = []
-        if initial is not None and self.validator.is_valid_solution(
-            initial, graph
-        ):
+        if initial is not None and self.validator.is_valid_solution(initial, graph):
             pop.append(initial)
         try:
             greedy = GreedyAlgorithm().solve(graph, list(license_types))
@@ -106,9 +99,7 @@ class GeneticAlgorithm(Algorithm):
             pop.append(rand_algo.solve(graph, list(license_types)))
         return pop
 
-    def _tournament_selection(
-        self, population: list[Solution], k: int = 3
-    ) -> Solution:
+    def _tournament_selection(self, population: list[Solution], k: int = 3) -> Solution:
         k = max(1, min(k, len(population)))
         contenders = random.sample(population, k)
         return min(contenders, key=lambda s: s.total_cost)
@@ -119,19 +110,12 @@ class GeneticAlgorithm(Algorithm):
         graph: nx.Graph,
         license_types: Sequence[LicenseType],
     ) -> Solution:
-        neighbors = MutationOperators.generate_neighbors(
-            solution, graph, license_types, k=5
-        )
-        valid_neighbors = [
-            s for s in neighbors if self.validator.is_valid_solution(s, graph)
-        ]
+        neighbors = MutationOperators.generate_neighbors(solution, graph, license_types, k=5)
+        valid_neighbors = [s for s in neighbors if self.validator.is_valid_solution(s, graph)]
         if not valid_neighbors:
             try:
                 greedy = GreedyAlgorithm().solve(graph, list(license_types))
-                if (
-                    self.validator.is_valid_solution(greedy, graph)
-                    and greedy.total_cost <= solution.total_cost
-                ):
+                if self.validator.is_valid_solution(greedy, graph) and greedy.total_cost <= solution.total_cost:
                     return greedy
             except Exception:
                 pass
