@@ -25,11 +25,9 @@ GRAPH_DEFAULTS: dict[str, dict[str, Any]] = {
     "small_world": {"k": 6, "p": 0.05, "seed": 42},
     "scale_free": {"m": 2, "seed": 42},
 }
-SIZES_SMALL: list[int] = (
-    list(range(10, 101, 10))
-    + list(range(120, 201, 20))
-    + list(range(250, 501, 50))
-)
+# SIZES_SMALL: list[int] = list(range(10, 101, 10)) + list(range(120, 201, 20)) + list(range(250, 501, 50))
+SIZES_SMALL = [200, 300, 400, 500]
+
 SIZES_LARGE: list[int] = []
 SIZES: list[int] = SIZES_SMALL + SIZES_LARGE
 SAMPLES_PER_SIZE: int = 1
@@ -37,25 +35,21 @@ REPEATS_PER_GRAPH: int = 1
 TIMEOUT_SECONDS: float = 600.0
 LICENSE_CONFIG_NAMES: list[str] = [
     "duolingo_super",
-    "roman_domination",
+    # "roman_domination",
 ]
 DYNAMIC_ROMAN_PS: list[float] = [1.5, 2.5, 3.0]
-LICENSE_CONFIG_NAMES.extend(
-    [f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS]
-)
+# LICENSE_CONFIG_NAMES.extend([f"roman_p_{str(p).replace('.', '_')}" for p in DYNAMIC_ROMAN_PS])
 DYNAMIC_DUO_PS: list[float] = [2.0, 3.0]
-LICENSE_CONFIG_NAMES.extend(
-    [f"duolingo_p_{str(p).replace('.', '_')}" for p in DYNAMIC_DUO_PS]
-)
+# LICENSE_CONFIG_NAMES.extend([f"duolingo_p_{str(p).replace('.', '_')}" for p in DYNAMIC_DUO_PS])
 ALGORITHM_CLASSES: list[str] = [
     "ILPSolver",
-    "RandomizedAlgorithm",
-    "GreedyAlgorithm",
-    "DominatingSetAlgorithm",
-    "AntColonyOptimization",
-    "SimulatedAnnealing",
-    "TabuSearch",
-    "GeneticAlgorithm",
+    # "RandomizedAlgorithm",
+    # "GreedyAlgorithm",
+    # "DominatingSetAlgorithm",
+    # "AntColonyOptimization",
+    # "SimulatedAnnealing",
+    # "TabuSearch",
+    # "GeneticAlgorithm",
 ]
 GRAPH_CACHE_DIR: str = "data/graphs_cache"
 
@@ -101,9 +95,7 @@ def _json_dumps(obj: Any) -> str:
         return "{}"
 
 
-def _cache_paths(
-    cache_dir: str, gname: str, n: int, sample: int
-) -> tuple[Path, Path]:
+def _cache_paths(cache_dir: str, gname: str, n: int, sample: int) -> tuple[Path, Path]:
     base = Path(cache_dir) / gname / f"n{n:04d}"
     gpath = base / f"s{sample}.gpickle"
     mpath = gpath.with_suffix(".json")
@@ -138,17 +130,12 @@ def _ensure_cache_for_all() -> None:
                     json.dump(meta, f, ensure_ascii=False)
                 created += 1
     if created:
-        print(
-            f"Graph cache ready: generated {created} graph file(s) in " \
-            f"{GRAPH_CACHE_DIR}"
-        )
+        print(f"Graph cache ready: generated {created} graph file(s) in {GRAPH_CACHE_DIR}")
     else:
         print(f"Graph cache ready: using existing data in {GRAPH_CACHE_DIR}")
 
 
-def _load_cached_graph(
-    gname: str, n: int, sample_idx: int
-) -> tuple[nx.Graph, dict[str, Any]]:
+def _load_cached_graph(gname: str, n: int, sample_idx: int) -> tuple[nx.Graph, dict[str, Any]]:
     gpath, mpath = _cache_paths(GRAPH_CACHE_DIR, gname, n, sample_idx)
     with gpath.open("rb") as f:
         G: nx.Graph = pickle.load(f)
@@ -173,9 +160,7 @@ def _worker_solve(
     try:
         validator = SolutionValidator(debug=False)
         algo = instantiate_algorithms([algo_name])[0]
-        lts = normalize_license_costs(
-            LicenseConfigFactory.get_config(license_config)
-        )
+        lts = normalize_license_costs(LicenseConfigFactory.get_config(license_config))
         kwargs: dict[str, Any] = {"seed": seed}
         warm_names = {
             "GeneticAlgorithm",
@@ -206,13 +191,7 @@ def _worker_solve(
             p90 = 0.0
         lic_counts = Counter(g.license_type.name for g in sol.groups)
         try:
-            params_json = _json_dumps(
-                {
-                    k: v
-                    for k, v in vars(algo).items()
-                    if isinstance(v, (int, float, str, bool))
-                }
-            )
+            params_json = _json_dumps({k: v for k, v in vars(algo).items() if isinstance(v, (int, float, str, bool))})
         except Exception:
             params_json = "{}"
         res = {
@@ -226,8 +205,7 @@ def _worker_solve(
             "group_size_median": float(median_sz),
             "group_size_p90": float(p90),
             "license_counts_json": _json_dumps(lic_counts),
-            "cost_per_node": float(sol.total_cost)
-            / max(1, graph.number_of_nodes()),
+            "cost_per_node": float(sol.total_cost) / max(1, graph.number_of_nodes()),
             "algo_params_json": params_json,
             "warm_start": bool(algo_name in warm_names),
         }
@@ -239,9 +217,7 @@ def _worker_solve(
         conn.close()
 
 
-def _run_one(
-    algo_name: str, graph: nx.Graph, license_config: str, seed: int
-) -> tuple[dict[str, object], bool]:
+def _run_one(algo_name: str, graph: nx.Graph, license_config: str, seed: int) -> tuple[dict[str, object], bool]:
     parent_conn, child_conn = mp.Pipe(duplex=False)
     p = mp.Process(
         target=_worker_solve,
@@ -266,9 +242,7 @@ def _run_one(
                 "group_size_mean": float(msg.get("group_size_mean", 0.0)),
                 "group_size_median": float(msg.get("group_size_median", 0.0)),
                 "group_size_p90": float(msg.get("group_size_p90", 0.0)),
-                "license_counts_json": str(
-                    msg.get("license_counts_json", "{}")
-                ),
+                "license_counts_json": str(msg.get("license_counts_json", "{}")),
                 "algo_params_json": str(msg.get("algo_params_json", "{}")),
                 "warm_start": bool(msg.get("warm_start", False)),
                 "cost_per_node": float(msg.get("cost_per_node", 0.0)),
@@ -324,12 +298,8 @@ def main() -> None:
         sizes_summary = f"{min(SIZES)}..{max(SIZES)} ({len(SIZES)} sizes)"
     else:
         sizes_summary = "no sizes configured"
-    licenses_summary = (
-        ", ".join(LICENSE_CONFIG_NAMES) if LICENSE_CONFIG_NAMES else "none"
-    )
-    algorithms_summary = (
-        ", ".join(ALGORITHM_CLASSES) if ALGORITHM_CLASSES else "none"
-    )
+    licenses_summary = ", ".join(LICENSE_CONFIG_NAMES) if LICENSE_CONFIG_NAMES else "none"
+    algorithms_summary = ", ".join(ALGORITHM_CLASSES) if ALGORITHM_CLASSES else "none"
     print(f"Starting glopt benchmark run {run_id}")
     print(f"Run directory: {base}")
     print(f"Results file: {out_path}")
@@ -363,26 +333,14 @@ def main() -> None:
                         graph_seed = int(params.get("seed", 0) or 0)
                         n_nodes = G.number_of_nodes()
                         n_edges = G.number_of_edges()
-                        density = (
-                            2.0 * n_edges / (n_nodes * (n_nodes - 1))
-                            if n_nodes > 1
-                            else 0.0
-                        )
-                        avg_deg = (
-                            2.0 * n_edges / n_nodes if n_nodes > 0 else 0.0
-                        )
-                        clustering = (
-                            nx.average_clustering(G)
-                            if n_nodes > 1 and n_nodes <= 1500
-                            else float("nan")
-                        )
+                        density = 2.0 * n_edges / (n_nodes * (n_nodes - 1)) if n_nodes > 1 else 0.0
+                        avg_deg = 2.0 * n_edges / n_nodes if n_nodes > 0 else 0.0
+                        clustering = nx.average_clustering(G) if n_nodes > 1 and n_nodes <= 1500 else float("nan")
                         components = nx.number_connected_components(G)
                         over_here = False
                         for rep in range(REPEATS_PER_GRAPH):
                             algo_seed = 12345 + s_idx * 1000 + rep
-                            result, is_over = _run_one(
-                                algo_name, G, lic_name, algo_seed
-                            )
+                            result, is_over = _run_one(algo_name, G, lic_name, algo_seed)
                             row = {
                                 "run_id": run_id,
                                 "algorithm": algo_name,
@@ -423,11 +381,7 @@ def main() -> None:
                                 cost_value = float(cost_raw)
                             except (TypeError, ValueError):
                                 cost_value = float("nan")
-                            cost_display = (
-                                f"{cost_value:.2f}"
-                                if math.isfinite(cost_value)
-                                else "N/A"
-                            )
+                            cost_display = f"{cost_value:.2f}" if math.isfinite(cost_value) else "N/A"
                             time_raw = row.get("time_ms", 0.0)
                             try:
                                 time_value = float(time_raw)
@@ -435,9 +389,7 @@ def main() -> None:
                                 time_value = 0.0
                             time_display = f"{time_value:.2f}"
                             cpn_value = row.get("cost_per_node")
-                            if isinstance(
-                                cpn_value, (int, float)
-                            ) and math.isfinite(float(cpn_value)):
+                            if isinstance(cpn_value, (int, float)) and math.isfinite(float(cpn_value)):
                                 cost_per_node = f"{float(cpn_value):.4f}"
                             else:
                                 cost_per_node = "N/A"
@@ -459,28 +411,14 @@ def main() -> None:
                                 "status": status,
                                 "warm_start": row.get("warm_start", False),
                             }
-                            print(
-                                f"Step n={n:<4} s={s_idx:<3} r={rep:<2} " \
-                                f"lic={lic_name:<10} " \
-                                f"algo={algo_name:<15} " \
-                                f"on {gname:<12} " \
-                                f"cost={cost_display:<8} " \
-                                f"cpn={cost_per_node:<8} " \
-                                f"time={time_display:<8}ms"
-                            )
+                            print(f"Step n={n:<4} s={s_idx:<3} r={rep:<2} lic={lic_name:<10} algo={algo_name:<15} on {gname:<12} cost={cost_display:<8} cpn={cost_per_node:<8} time={time_display:<8}ms")
                             if notes:
                                 step_details["note"] = notes
                             if is_over:
                                 over_here = True
                         if over_here:
                             reason = row.get("notes") or "issue"
-                            print(
-                                f"Stopping larger sizes " \
-                                f"for license {lic_name} " \
-                                f"with algorithm {algo_name} " \
-                                f"on graph {gname} " \
-                                f"after {reason} at n={n}"
-                            )
+                            print(f"Stopping larger sizes for license {lic_name} with algorithm {algo_name} on graph {gname} after {reason} at n={n}")
                             stop_sizes = True
                             break
     if out_path.exists():
