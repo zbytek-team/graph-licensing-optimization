@@ -67,14 +67,14 @@ a zliczają one wszystkie rozbiory zbioru na dowolną liczbę niepustych bloków
 
 \subsection{Programowanie całkowitoliczbowe (ILP)}\label{subsec:ilp}
 
-Problem z rozdziału~\ref{sec:model-formal} formułujemy jako minimalizację kosztu przy ograniczeniach liniowych z binarnymi zmiennymi. Model jest dokładny; solver zwraca rozwiązanie optymalne, jeśli zakończy działanie poprawnie.
+Problem z rozdziału~\ref{sec:model-formal} formułujemy jako minimalizację kosztu przy ograniczeniach liniowych z binarnymi zmiennymi. Model jest dokładny. Algorytm zwraca rozwiązanie optymalne, jeśli solver zakończy działanie ze statusem \texttt{Optimal}. W przypadku statusu \texttt{Infeasible}, \texttt{Unbounded} lub \texttt{Not Solved} zwracane jest rozwiązanie zapasowe z licencjami indywidualnymi.
 
 \paragraph{Parametry i zmienne}
 Korzystamy z rodziny licencji z~\eqref{eq:license_family},
 \(\mathcal{L}=\{\ell_t=(c_t,m_t,k_t):t=1,\dots,T\}\).
 Oznaczamy \(N[i]=N(i)\cup\{i\}\). Dla \(i\in V\), \(t\in\{1,\dots,T\}\) definiujemy:
 \begin{itemize}
-  \item \(a_{i,t}\in\{0,1\}\): \(a_{i,t}=1\) gdy węzeł \(i\) kupuje licencję typu \(t\) i aktywuje grupę,
+  \item \(a_{i,t}\in\{0,1\}\): \(a_{i,t}=1\) gdy węzeł \(i\) staje się właścicielem grupy licencyjnej typu \(t\). Właściciel kupuje licencję i dzieli jej korzyści z wybranymi sąsiadami zgodnie z ograniczeniami pojemności \(m_t \leq |grupa| \leq k_t\). Właściciel zawsze należy do własnej grupy.
   \item \(x_{i,j,t}\in\{0,1\}\) dla \(j\in N[i]\): \(x_{i,j,t}=1\) gdy \(j\) należy do grupy właściciela \(i\) typu \(t\).
 \end{itemize}
 Zmienna \(x_{i,j,t}\) odwzorowuje przypisanie odbiorcy do właściciela; zbiory ról są indukowane przez wartości \((a,x)\).
@@ -100,10 +100,14 @@ Liczba zmiennych: \(|V|T\) dla \(a_{i,t}\) oraz \(T\sum_i |N[i]|\) dla \(x_{i,j,
 Liczba ograniczeń: \(|V|\) dla \eqref{con:cover}, \(2|V|T\) dla \eqref{con:capacity}, \(|V|T\) dla \eqref{con:owner}, \(|V|\) dla \eqref{con:one}.
 Model służy jako punkt odniesienia dla instancji małych i średnich.
 
+Problemem ILP jest wykładnicza złożoność czasowa w najgorszym przypadku. Alternatywnym podejściem jest \emph{relaksacja liniowa}, gdzie zmienne binarne zastąpiono ciągłymi z przedziałem \([0,1]\), co daje wielomianowy czas rozwiązania. Rozwiązanie relaksacji stanowi dolne oszacowanie optimum, ale wymaga zaokrąglenia i może naruszać ograniczenia. W niniejszej pracy zastosowano dokładne rozwiązanie binarne ILP.
+
 \paragraph{Implementacja}
-Implementacja w Pythonie (PuLP+CBC) odzwierciedla model. Stosuje się eliminację niemożliwych par \((i,t)\), gdy \(m_t>|N[i]|\) lub \(k_t<1\), oraz dla \(k_t=1\) tworzy się wyłącznie zmienne \(x_{i,i,t}\).
-Przy rekonstrukcji rozwiązania wartości binarne interpretowane są progowo \(>0.5\).
-W przypadku statusu innego niż \texttt{Optimal} zwracane jest rozwiązanie zapasowe, w którym wszystkim węzłom przypisano licencje indywidualne.
+Implementacja w Pythonie (PuLP+CBC) odzwierciedla model. Stosuje się eliminację niemożliwych par \((i,t)\), gdy \(m_t>|N[i]|\) lub \(k_t<1\), oraz dla \(k_t=1\) tworza się wyłącznie zmienne \(x_{i,i,t}\).
+
+Wszystkie zmienne decyzyjne są zdefiniowane jako binarne (\texttt{cat="Binary"}). Jednak ze względu na numeryczne aspekty solverów całkowitoliczbowych, wartości zmiennych w rozwiązaniu mogą nieznacznie odbiegać od dokładnie 0 lub 1 (np. 0.99999 zamiast 1.0). Dlatego przy rekonstrukcji rozwiązania wartości binarne interpretowane są progowo: wartości \(>0.5\) są traktowane jako 1, a wartości \(\leq 0.5\) jako 0.
+
+W przypadku statusu innego niż \texttt{Optimal} zwracane jest rozwiązanie zapasowe, w którym wszystkim węzłom przypisano najtańsze dostępne licencje indywidualne.
 
 \section{Heurystyki konstrukcyjne}
 
@@ -423,7 +427,7 @@ Inicjalizacja korzysta z rozwiązania uzyskanego heurystyką zachłanną, co kos
 
 W rozdziale przedstawiono kompletny zestaw algorytmów zastosowanych do rozwiązania problemu optymalizacji kosztów licencji grupowych. Metody podzielono na trzy kategorie: algorytmy dokładne gwarantujące optimum, szybkie heurystyki konstrukcyjne oraz metaheurystyki łączące jakość z efektywnością czasową.
 
-Algorytmy dokładne -- naiwne przeszukiwanie oraz programowanie całkowitoliczbowe -- zapewniają najwyższą jakość rozwiązań, ale ich zastosowanie ogranicza się do mniejszych instancji ze względu na złożoność wykładniczą. Solver ILP stanowi szczególnie wartościowy punkt odniesienia, umożliwiając walidację jakości metod przybliżonych na grafach do około 200 węzłów.
+Algorytmy dokładne -- naiwne przeszukiwanie oraz programowanie całkowitoliczbowe -- zapewniają najwyższą jakość rozwiązań, ale ich zastosowanie ogranicza się do mniejszych instancji ze względu na złożoność wykładniczą. Algorytm ILP stanowi szczególnie wartościowy punkt odniesienia, umożliwiając walidację jakości metod przybliżonych na grafach do około 200 węzłów.
 
 Heurystyki konstrukcyjne charakteryzują się bardzo krótkim czasem działania (rzędu milisekund) i mogą służyć jako metody bazowe lub punkty startowe dla bardziej zaawansowanych algorytmów. Algorytm zachłanny dostarcza rozsądnie dobrej jakości rozwiązań przy minimalnym koszcie obliczeniowym, natomiast heurystyka oparta na zbiorze dominującym wykorzystuje teorię grafów do identyfikacji kandydatów na właścicieli licencji.
 
