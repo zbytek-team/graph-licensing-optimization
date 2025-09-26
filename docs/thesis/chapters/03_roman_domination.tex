@@ -1,5 +1,8 @@
 \chapter{Związek z dominowaniem w grafach}
 \label{chap:roman_domination}
+
+W niniejszym rozdziale przedstawiono teoretyczne podstawy problemu licencjonowania oprogramowania poprzez przegląd teorii dominowania w grafach. Rozdział zawiera definicje podstawowych pojęć, wprowadza formalizację problemu licencjonowania jako wariantu dominowania rzymskiego oraz analizuje złożoność obliczeniową zagadnienia. Całość stanowi teoretyczne uzasadnienie dla metod algorytmicznych opisanych w dalszej części pracy.
+
 \section{Dominowanie - podstawowe definicje}
 Problematyka dominowania w grafach jest dobrze zbadana i szeroko opisana w literaturze~\cite{haynes1998domination}.
 W szczególności znane są klasyczne definicje zbioru dominującego oraz liczby dominowania, które stanowią punkt odniesienia dla dalszych analiz.
@@ -111,3 +114,11 @@ Konsekwencją NP-trudności jest także brak prostego schematu aproksymacyjnego 
 Wynika stąd, że ograniczenie maksymalnej liczby sąsiadów nie upraszcza problemu do trywialnego. Nawet w sieciach o małym stopniu optymalny przydział do licencji grupowych może wymagać złożonych obliczeń.
 
 W dalszej części pracy nacisk położono na podejścia algorytmiczne uwzględniające tę złożoność. Przyjęto podejście dwutorowe: (a) zastosowanie metod dokładnych dla umiarkowanych rozmiarów sieci oraz (b) projektowanie i analizę algorytmów heurystycznych dostarczających dobre rozwiązania dla większych sieci. W literaturze można już znaleźć próby wykorzystania technik optymalizacyjnych do problemu dominowania; przykładem jest praca Parra Inza i współautorów \cite{PARRAINZA2024926}, w której zagadnienie sformułowano jako ILP i uzupełniono heurystykami naprawczymi. Tego typu konstrukcję można zaadaptować do omawianego problemu, wprowadzając zmienne decyzyjne wskazujące wybór typu licencji dla każdego użytkownika oraz odpowiednie ograniczenia. Algorytmy zachłanne, metody lokalnego przeszukiwania oraz metaheurystyki, np. algorytmy genetyczne czy symulowane wyżarzanie, pozwalają szybko przeszukiwać przestrzeń możliwych konfiguracji licencji.
+
+\section{Podsumowanie}
+
+W niniejszym rozdziale przedstawiono teoretyczne podstawy problemu licencjonowania oprogramowania w kontekście teorii dominowania w grafach. Kluczowym wnioskiem jest identyfikacja problemu jako wariantu dominowania rzymskiego, gdzie węzły mogą przyjmować różne typy licencji odpowiadające stanowi niezabezpieczonemu, zabezpieczonemu przez sąsiada lub będącemu właścicielem licencji grupowej.
+
+Analiza złożoności obliczeniowej wykazała NP-trudność problemu, co wynika bezpośrednio z redukcji z klasycznego problemu zbioru dominującego. Konsekwencją tej właściwości jest brak wielomianowego algorytmu dokładnego oraz ograniczona jakość aproksymacji -- w najgorszym przypadku nie można uzyskać w czasie wielomianowym przybliżenia lepszego niż $O(\ln n)$. Problem pozostaje trudny nawet dla grafów o ograniczonym stopniu, co oznacza, że ograniczenie maksymalnej liczby sąsiadów nie upraszcza zagadnienia do trywialnego.
+
+Ustalenie związku z dominowaniem rzymskim dostarcza solidnych podstaw teoretycznych dla konstrukcji algorytmów dokładnych i heurystycznych. W szczególności umożliwia to adaptację znanych metod optymalizacyjnych, takich jak programowanie całkowitoliczbowe, oraz projektowanie heurystyk wykorzystujących właściwości strukturalne grafów. Przedstawione rezultaty stanowią fundament dla dalszych analiz algorytmicznych oraz eksperymentów empirycznych opisanych w kolejnych rozdziałach.

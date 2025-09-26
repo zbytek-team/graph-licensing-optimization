@@ -1,5 +1,7 @@
 \chapter{Symulacja dynamiczna}\label{chap:dynamic}
 
+W tym rozdziale przedstawiono wyniki symulacji dynamicznej, która analizuje zachowanie algorytmów optymalizacyjnych w środowisku zmieniającym się w czasie. Badania obejmują sześć różnych profili mutacji grafu oraz ocenę adaptacji algorytmów do ewoluujących struktur sieciowych. Rozdział zawiera analizę zarówno mutacji syntetycznych o różnej intensywności, jak i realistycznych mechanizmów zmian topologii sieci społecznych.
+
 \section{Założenia i konfiguracja}
 
 Eksperymenty dynamiczne wykonano w tym samym środowisku obliczeniowym co testy statyczne. Każda symulacja obejmuje 30 kroków czasowych; w każdym kroku: (1) stosuje się mutację struktury grafu zgodnie z wybranym profilem oraz (2) przeprowadza się ponowną optymalizację dystrybucji licencji z limitem czasu \SI{45}{\second}. Analizowano dwa schematy licencyjne: Duolingo Super oraz wariant odpowiadający dominowaniu rzymskiemu. Do testów wykorzystano grafy losowe, bezskalowe oraz małego świata.
@@ -63,6 +65,9 @@ Algorytm zachłanny charakteryzuje się krótkim czasem wykonania, co uzasadnia 
 Różnice kosztu dla mutacji syntetycznych są niewielkie (0.475--0.480), natomiast czasy są wyższe niż w profilach realistycznych, szczególnie dla \texttt{med/high}. Wskazuje to, że lokalne, realistyczne przekształcenia są mniej kosztowne obliczeniowo do przetwarzania. Czasy dla \texttt{pref\_pref} wynoszą średnio \SI{0.00083}{\s}, a dla \texttt{pref\_triadic} \SI{0.00053}{\s}, co potwierdza ich przewagę czasową nad mutacjami syntetycznymi (\SI{0.00159}{\s} dla \texttt{high}).
 
 \section{Analiza mutacji syntetycznych}
+
+Ta sekcja prezentuje szczegółową analizę zachowania algorytmów przy trzech poziomach intensywności mutacji syntetycznych: low, med oraz high. Badania skupiają się na ocenie adaptacyjności metaheurystyk do zmian o różnej skali oraz analizie kompromisu między jakością rozwiązania a czasem wykonania.
+
 \subsection{Metaheurystyki}
 
 Tabela~\ref{tab:dyn-synth-warm} przedstawia zbiorcze wyniki dla różnych metod mutacji. Średni koszt na węzeł jest bardzo zbliżony dla wszystkich poziomów intensywności, z jedynie nieznacznym wzrostem dla wariantu \texttt{high}. Sugeruje to, że algorytmy są w stanie skutecznie adaptować się do zmian w topologii sieci.
@@ -183,7 +188,8 @@ Z kolei, patrząc na czas wykonania na rys. \ref{fig:dyn-real-genetic-time}, wid
   \label{fig:dyn-real-genetic-time}
 \end{figure}
 
-\subsection{Wnioski}
+\section{Wnioski}
+
 Przeprowadzona analiza dynamiczna wykazała, że dobór algorytmu optymalizacyjnego w środowisku dynamicznym powinien uwzględniać zarówno profil zmian topologii sieci, jak i dostępny budżet czasowy. Badania obejmujące sześć wariantów mutacji (trzy syntetyczne oraz trzy realistyczne) na różnych typach grafów pozwoliły na sformułowanie kluczowych wniosków dotyczących adaptacji algorytmów do ewoluujących struktur sieciowych.
 
 Mutacje realistyczne, takie jak \texttt{pref\_triadic} oraz \texttt{pref\_pref}, były mniej wymagające obliczeniowo do obsłużenia w porównaniu z wariantami syntetycznymi o wysokiej intensywności. Mechanizmy preferencyjnego przyłączania oraz domykania trójkątów sprzyjają wzmacnianiu klastrowości i tworzeniu hubów, co zmniejsza efektywny rozmiar problemu pokrycia. W rezultacie algorytmy osiągały niższe koszty (0.470--0.475 w porównaniu do 0.485--0.489) oraz krótsze czasy wykonania (0.9--1.7 s w porównaniu do 2.9--3.2 s). Z kolei mutacje typu \texttt{rand\_rewire} zwiększały entropię topologii poprzez zrywanie lokalnych połączeń, co prowadziło do najgorszych wyników zarówno pod względem kosztu (0.486), jak i czasu (1.9 s).

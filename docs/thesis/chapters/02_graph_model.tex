@@ -1,5 +1,7 @@
 \chapter{Model grafowy problemu zakupu licencji}
 
+Niniejszy rozdział formalizuje analizowany problem, zaczynając od zdeﬁniowania reprezentacji sieci społecznej, a następnie opisując parametry i ograniczenia wynikające z praktyki licencjonowania. Stanowi to fundament dla późniejszych rozdziałów poświęconych teorii dominowania oraz konstrukcji algorytmów.
+
 \section{Reprezentacja grafowa}
 
 Aby formalnie opisać zjawisko współdzielenia licencji, sieć relacji społecznych modeluje się jako graf nieskierowany \( G = (V, E) \). Każdy wierzchołek \( v \in V \) reprezentuje pojedynczego użytkownika, natomiast krawędź \( \{u, v\} \in E \) oznacza, że użytkownicy \( u \) i \( v \) znajdują się w relacji umożliwiającej współdzielenie licencji grupowej. Graf jest nieskierowany, ponieważ relacja znajomości jest symetryczna.
@@ -93,6 +95,8 @@ Celem problemu jest minimalizacja funkcji kosztu~(\ref{eq:cost_function}) dla da
 
 \section{Koszty i ograniczenia}
 
+W tej części zestawiono parametry, które przekładają się na realną wykonalność i opłacalność grup licencyjnych. Najpierw omówiono ograniczenia pojemności wynikające z regulaminów usług, a następnie struktury cenowe wykorzystywane później w eksperymentach.
+
 \subsection{Ograniczenia techniczne i społeczne współdzielenia licencji}
 
 Kluczowymi parametrami modelu są najmniejsza oraz największa liczba osób, które mogą współdzielić jedną licencję grupową. Największy rozmiar grupy oznaczamy przez $k$ i wliczamy do niego także użytkownika nabywającego licencję. Parametr $k$ jest zwykle narzucany przez dostawcę usługi. Przykładowo, plan rodzinny Spotify Premium pozwala na korzystanie co najwyżej sześciu osobom (właściciel + pięć członków rodziny), co odpowiada wartości $k=6$.
@@ -157,3 +161,7 @@ W najprostszym wariancie zakłada się, że wszystkie decyzje zakupowe zapadają
 Takie sytuacje można modelować jako proces sekwencyjny, w którym w kolejnych krokach przydzielane są nowe licencje przy uwzględnieniu bieżącej struktury grafu. W konsekwencji problem różni się od wariantu jednoczesnego. Rozwiązanie optymalne globalnie może okazać się nieosiągalne, ponieważ wcześniejsze decyzje oraz zmiany w strukturze sieci ograniczają przestrzeń dostępnych opcji w późniejszych etapach.
 
 W pracy przeanalizowano konsekwencje takich zmian, w tym stabilność utworzonych grup, wpływ zmian w grafie na opłacalność wcześniejszych decyzji oraz mechanizmy koordynacji i adaptacji użytkowników. Mimo że główny nacisk położony jest na wariant jednoczesny, wariant sekwencyjny stanowi istotne rozszerzenie modelu i lepiej odzwierciedla rzeczywiste warunki funkcjonowania sieci społecznościowych.
+
+\section{Podsumowanie}
+
+Rozwinięty model opisuje sieć społeczną jako graf, w którym decyzje licencyjne są ograniczone zarówno relacjami sąsiedztwa, jak i parametrami minimalnej oraz maksymalnej pojemności planów. Ujednolicone przedstawienie kosztów i wariantów zakupu pozwala w kolejnych rozdziałach analizować złożoność problemu, zależności z klasycznymi zadaniami dominowania oraz efektywność projektowanych algorytmów.

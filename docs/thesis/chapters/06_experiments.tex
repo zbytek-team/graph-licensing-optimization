@@ -1,5 +1,8 @@
 \chapter{Eksperymenty dla schematu licencyjnego Duolingo Super}
 \label{chap:experiments}
+
+Rozdział prezentuje wyniki badań eksperymentalnych przeprowadzonych dla schematu licencyjnego Duolingo Super. Analizę prowadzono na dwóch zbiorach danych: syntetycznych grafach losowych oraz rzeczywistych grafach ego z serwisu Facebook. W pierwszej części opisano środowisko badawcze i metodologię testów, następnie przedstawiono szczegółowe wyniki porównania algorytmów na obu typach grafów wraz z analizą statystyczną wydajności poszczególnych metod.
+
 \section{Środowisko i metodologia}
 
 Eksperymenty wykonano na komputerze z procesorem Intel Core i5-14600KF (12 rdzeni udostępnionych w WSL2, 3.49~GHz) oraz 16~GB pamięci RAM. System operacyjny: Ubuntu~24.04~LTS uruchomiony w środowisku WSL2. Algorytmy zaimplementowano w Pythonie~3.13 z wykorzystaniem bibliotek NumPy, NetworkX oraz PuLP jako interfejsu do solvera ILP. Każdy pomiar obejmował wyłącznie czas obliczeń; nie uwzględniano czasu generowania instancji ani operacji I/O.
@@ -13,6 +16,8 @@ Dla każdego rozmiaru grafów syntetycznych wygenerowano trzy niezależne instan
 Aby ułatwić porównania, ceny licencji znormalizowano. Cenę licencji indywidualnej ustalono na 1, a ceny licencji grupowych przeskalowano zgodnie z pierwotnymi relacjami cenowymi. Dzięki temu możliwe było bardziej przejrzyste porównanie kosztów między różnymi strategiami licencjonowania, niezależnie od ich bezwzględnych wartości.
 
 \section{Duolingo Super na grafach syntetycznych}
+
+W tej sekcji przedstawiono wyniki eksperymentów na syntetycznych grafach losowych, bezskalowych i małego świata. Analiza obejmuje porównanie jakości rozwiązań oraz efektywności czasowej wszystkich zaimplementowanych algorytmów dla schematu licencyjnego Duolingo Super.
 
 \subsection{Statystyki zbiorcze}
 Tabela~\ref{tab:duo-synth-summary} zestawia średnie wartości kosztu licencji na wierzchołek oraz czasu dla schematu licencyjnego Duolingo Super. Aby zapewnić porównywalność wyników, analizy statystyczne i wizualizacje oparto na podzbiorze instancji, dla których wszystkie algorytmy zakończyły działanie przed upływem limitu czasu; w praktyce oznacza to przycięcie rozmiarów grafów do zakresu wspólnego dla solvera ILP i algorytmu mrówkowego, które najczęściej przekraczały limit. Solver ILP pozostaje najlepszym punktem odniesienia jakościowego (średni koszt licencji na węzeł 0.445), lecz ma zastosowanie jedynie dla mniejszych instancji. Liczba przekroczeń limitu czasu jest taka sama jak w algorytmie mrówkowym. Wśród metaheurystyk najniższy koszt licencji na węzeł osiąga właśnie algorytm mrówkowy (0.506), natomiast przeszukiwanie tabu zapewnia najlepszy kompromis kosztu licencji na węzeł i czasu w grupie metod przybliżonych. Algorytm zachłanny i algorytm losowy charakteryzują się czasem działania rzędu milisekund, ale tylko pierwszy z nich utrzymuje akceptowalny koszt licencji na węzeł (0.548), podczas gdy algorytm losowy generuje rozwiązania o istotnie wyższym koszcie na węzeł.
