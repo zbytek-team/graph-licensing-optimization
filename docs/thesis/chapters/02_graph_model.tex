@@ -64,7 +64,7 @@ gdzie:
   \item $T$ - całkowita liczba dostępnych typów licencji.
 \end{itemize}
 
-Dla potrzeb jednolitego formalnego opisu w pracy stosowane są wymiennie pojęcia \textbf{konfiguracja licencyjna}, \textbf{wariant licencyjny} oraz \textbf{schemat licencjonowania}, które odnoszą się do konkretnego zbioru typów licencji definiowanego przez $L$. Na przykład Duolingo Super stanowi schemat licencjonowania składający się z dwóch typów licencji: indywidualnej oraz rodzinnej. Analogicznie, dla celów teoretycznych, dominowanie rzymskie traktowane jest jako schemat licencjonowania zawierający licencję indywidualną i grupową. Takie podejście umożliwia sprowadzenie różnych modeli licencjonowania do jednej spójnej abstrakcji matematycznej i ułatwia porównanie wyników między wariantami rzeczywistymi a teoretycznymi.
+Dla potrzeb jednolitego formalnego opisu w pracy stosowane są wymiennie pojęcia konfiguracja licencyjna, wariant licencyjny oraz schemat licencjonowania, które odnoszą się do konkretnego zbioru typów licencji definiowanego przez $L$. Na przykład Duolingo Super stanowi schemat licencjonowania składający się z dwóch typów licencji: indywidualnej oraz rodzinnej. Analogicznie, dla celów teoretycznych, dominowanie rzymskie traktowane jest jako schemat licencjonowania zawierający licencję indywidualną i grupową. Takie podejście umożliwia sprowadzenie różnych modeli licencjonowania do jednej spójnej abstrakcji matematycznej i ułatwia porównanie wyników między wariantami rzeczywistymi a teoretycznymi.
 
 W podstawowym wariancie rozważanym w tym rozdziale zakładamy, że zbiór $L$ opisany we wzorze~(\ref{eq:license_family}) obejmuje wyłącznie dwa typy licencji: indywidualną oraz jedną grupową, a zatem przyjęte jest $T = 2$. Model ten nie przewiduje sytuacji z wieloma rodzajami planów grupowych (np. Duo, Family), lecz ogranicza się do najprostszego przypadku odpowiadającego rozwiązaniom takim jak w Duolingo.
 
@@ -121,7 +121,7 @@ Przykłady zestawiono w~tabeli~\ref{tab:license_models_real}.
 
 \begin{table}[h!]
   \centering
-  \caption{Przykładowe modele licencji dla usług rzeczywistych i modelu teoretycznego}
+  \caption{Przykładowe schematy licencji dla usług rzeczywistych i modelu teoretycznego}
   \begin{tabular}{lccc}
     \hline
     \textbf{Typ licencji} & \textbf{Koszt $c_t$} & \textbf{Min $m_t$} & \textbf{Max $k_t$} \\
@@ -154,7 +154,7 @@ Przykłady zestawiono w~tabeli~\ref{tab:license_models_real}.
 
 W przypadku usług rzeczywistych koszty planów grupowych są znacznie niższe niż suma odpowiadających im licencji indywidualnych. Przykładowo plan Spotify Family dopuszcza współdzielenie przez co najwyżej sześć osób przy koszcie $37.99$ PLN, co jest korzystniejsze kosztowo niż plan indywidualny ($23.99$ PLN). Podobna sytuacja występuje w przypadku Duolingo Super Family.
 
-W modelu teoretycznym opartym na dominowaniu rzymskim koszty podano w jednostkach względnych: licencja indywidualna ma koszt $1.0$, a grupowa $2.0$. W eksperymentach rozważa się także warianty, w których koszt odpowiadający etykiecie \(2\) stanowi wielokrotność kosztu licencji indywidualnej.
+W modelu teoretycznym opartym na dominowaniu rzymskim koszty podano w jednostkach względnych: licencja indywidualna ma koszt $1.0$, a grupowa $2.0$. W dalszych rozdziałach będziemy odnosić się do tego wariantu jako do schematu licencjonowania dominowania rzymskiego (lub równoważnie konfiguracji licencyjnej lub wariant licencyjny), traktując go jako sformalizowany odpowiednik rzeczywistych planów subskrypcyjnych. Konstrukcja ta spełnia kryteria wykonalności zgodne z zasadami dominowania rzymskiego, a jedyną różnicą pozostaje brak istotnego ograniczenia pojemności -- w klasycznym ujęciu wierzchołek z etykietą 2 może pokrywać dowolnie wielu sąsiadów, co odpowiada planowi grupowemu z praktycznie nieograniczoną liczbą użytkowników. Zgodnie jednak z tabelą \ref{tab:license_models_real}, w implementacji przyjęto duży, ale skończony limit równy 999999. W ramach przeprowadzanych eksperymentów etykieta 2 będzie zmieniała swoją wartość jako wielokrotność kosztu ceny indywidualnej, co pozwala na analizę różnych wariantów tego zagadnienia. W eksperymentach rozważa się także warianty, w których koszt odpowiadający etykiecie \(2\) stanowi wielokrotność kosztu licencji indywidualnej.
 
 
 \subsection{Zakup jednoczesny i sekwencyjny}
