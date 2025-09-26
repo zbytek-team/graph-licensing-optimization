@@ -264,10 +264,10 @@ Algorytm genetyczny utrzymuje populację pełnych przydziałów licencyjnych i z
 
 \paragraph{Parametry}
 \begin{itemize}
-  \item \textbf{GA: Wielkość populacji} $P_{GA}=30$ - liczba rozwiązań utrzymywanych w każdej generacji.
-  \item \textbf{GA: Liczba pokoleń} $G_{GA}=40$ - maksymalna liczba iteracji ewolucji.
-  \item \textbf{GA: Udział elity} $\alpha_{GA}=20\%$ - część najlepszych osobników kopiowana bez zmian do kolejnego pokolenia.
-  \item \textbf{GA: Prawdopodobieństwo krzyżowania} $p_{c,GA}=60\%$ - przy tej szansie dziecko powstaje przez połączenie dwóch rodziców; w przeciwnym razie wykonywana jest mutacja.
+  \item \textbf{Wielkość populacji} $P_{GA}=30$ - liczba rozwiązań utrzymywanych w każdej generacji.
+  \item \textbf{Liczba pokoleń} $N_{GA}=40$ - maksymalna liczba iteracji ewolucji.
+  \item \textbf{Udział elity} $\alpha_{GA}=20\%$ - część najlepszych osobników kopiowana bez zmian do kolejnego pokolenia.
+  \item \textbf{Prawdopodobieństwo krzyżowania} $p_{c,GA}=60\%$ - przy tej szansie dziecko powstaje przez połączenie dwóch rodziców; w przeciwnym razie wykonywana jest mutacja.
 \end{itemize}
 
 \begin{algorithm}[H]
@@ -303,9 +303,9 @@ Algorytm tabu rozpoczyna działanie od rozwiązania uzyskanego heurystyką zach�
 
 \paragraph{Parametry}
 \begin{itemize}
-  \item \textbf{Tabu: Maksymalna liczba iteracji} $I_{tabu}=1000$.
-  \item \textbf{Tabu: Długość listy tabu} $L_{tabu}=20$ elementów.
-  \item \textbf{Tabu: Liczba sąsiadów na iterację} $k_{tabu}=10$.
+  \item \textbf{Maksymalna liczba iteracji} $I_{tabu}=1000$.
+  \item \textbf{Długość listy tabu} $L_{tabu}=20$ elementów.
+  \item \textbf{Liczba sąsiadów na iterację} $k_{tabu}=10$.
 \end{itemize}
 
 \begin{algorithm}[H]
@@ -342,7 +342,7 @@ Dzięki temu kolejne mrówki chętniej eksplorują obiecujące fragmenty przestr
   \item \textbf{Tempo parowania} $\rho=0.5$ -- część feromonu usuwana po każdej iteracji.
   \item \textbf{Prawdopodobieństwo wyboru zachłannego} $q_0=0.9$ -- z tą szansą mrówka wybiera najlepszą dostępną opcję, w przeciwnym razie losuje wierchołek i licencje proporcjonalnie do wag wyliczonych w trakcie budowy rozwiązania.
   \item \textbf{Liczba mrówek} $A=20$ -- ile rozwiązań konstruujemy równolegle w jednej iteracji.
-  \item \textbf{Maksymalna liczba iteracji} $I=100$ -- ile razy aktualizujemy feromony.
+  \item \textbf{Maksymalna liczba iteracji} $N_{ACO}=100$ -- ile razy aktualizujemy feromony.
   \item \textbf{Losowe ziarno} (opcjonalne) -- pozwala odtworzyć przebieg eksperymentu.
 \end{itemize}
 
@@ -383,10 +383,10 @@ Symulowane wyżarzanie rozpoczyna od dowolnego dopuszczalnego przydziału; w imp
 
 \paragraph{Parametry}
 \begin{itemize}
-  \item \textbf{Temperatura początkowa} $T_0 = 100.0$ - stosunkowo wysoka wartość dobrana eksperymentalnie; przy takich temperaturach różnice kosztów rzędu kilku jednostek są często akceptowane, co pozwala na szeroką eksplorację przestrzeni rozwiązań na początku działania algorytmu.
-  \item \textbf{Współczynnik chłodzenia} $\alpha = 0.995$ - w każdej iteracji temperatura jest mnożona przez $\alpha$.
-  \item \textbf{Temperatura minimalna} $T_{\min} = 0.001$ - po jej osiągnięciu algorytm kończy działanie.
-  \item \textbf{Maksymalna liczba iteracji} $I = 20\,000$ - górne ograniczenie liczby kroków.
+  \item \textbf{Temperatura początkowa} $\tau_0 = 100.0$ - stosunkowo wysoka wartość dobrana eksperymentalnie; przy takich temperaturach różnice kosztów rzędu kilku jednostek są często akceptowane, co pozwala na szeroką eksplorację przestrzeni rozwiązań na początku działania algorytmu.
+  \item \textbf{Współczynnik chłodzenia} $\gamma = 0.995$ - w każdej iteracji temperatura jest mnożona przez $\gamma$.
+  \item \textbf{Temperatura minimalna} $\tau_{\min} = 0.001$ - po jej osiągnięciu algorytm kończy działanie.
+  \item \textbf{Maksymalna liczba iteracji} $N_{SA} = 20\,000$ - górne ograniczenie liczby kroków.
   \item \textbf{Limit stagnacji} $S = 2\,000$ - liczba kolejnych iteracji bez poprawy najlepszego dotąd kosztu; parametr dobrany empirycznie (mniejsza wartość szybciej wymusza zawężenie przedziału poszukiwań rozwiązań), po jej przekroczeniu temperatura jest dodatkowo dzielona przez 2.
 \end{itemize}
 
