@@ -1,5 +1,25 @@
 \chapter{Wybrane fragmenty implementacji}
 
+\section{Przykład uruchomienia aplikacji i interpretacja wyników}
+
+Aby uruchomić eksperymenty, należy skorzystać z polecenia \texttt{make pipeline}, które uruchamia główny potok eksperymentalny:
+\begin{verbatim}
+UV_CACHE_DIR=.cache/uv PYTHONPATH=src uv run python -m glopt.experiments.pipeline
+\end{verbatim}
+
+Na rysunku~\ref{fig:cli-content} przedstawiono przykładowy przebieg uruchomienia aplikacji z poziomu terminala.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{assets/cli-content.png}
+    \caption{Przykładowy przebieg uruchomienia potoku eksperymentalnego z Makefile.}
+    \label{fig:cli-content}
+\end{figure}
+
+Na początku wyświetlane są informacje o wybranych parametrach uruchomienia, takich jak typ potoku, konfiguracje licencji, lista algorytmów oraz limity czasowe. Następnie rozpoczyna się proces przygotowania grafów. Tworzona jest pamięć podręczna grafów (cache), która umożliwia wielokrotne wykorzystanie tych samych instancji grafów między różnymi algorytmami i konfiguracjami licencji. Eliminuje to konieczność ponownego generowania grafów dla każdej próby, co istotnie skraca czas obliczeń, zwłaszcza dla dużych instancji.
+
+Po przygotowaniu grafów wyświetlane są szczegóły dotyczące liczby rozmiarów, próbek i powtórzeń dla każdej instancji. Następnie dla każdej kombinacji licencji i algorytmu prezentowane są postępy obliczeń. Każda iteracja prezentuje podstawowe statystyki, takie jak rozmiar grafu, koszt rozwiązania, koszt na węzeł oraz czas wykonania. Umożliwia to bieżące monitorowanie przebiegu eksperymentu i szybkie wykrywanie ewentualnych anomalii.
+
 \section{Organizacja skryptów eksperymentalnych}
 Środowisko obliczeniowe zorganizowano jako spójny zestaw modułów
 Pythona: pakiety do benchmarków statycznych, osobne moduły do

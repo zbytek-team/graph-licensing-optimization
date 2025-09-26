@@ -3,6 +3,7 @@
 - Idea: najpierw buduje tani zbiór dominujący, potem każdemu dominatorowi przypisuje najtańszą dopuszczalną grupę; resztę domyka podobnie.
 
 ## Pseudocode
+
 ```
 input: G=(V,E), licenses L
 # 1) budowa taniego zbioru dominującego
@@ -33,17 +34,21 @@ return groups
 ```
 
 ## Złożoność
+
 - Czas: ~O(V·(Δ log Δ + |L|·Δ)) -- oceny pokrycia i wybór grup według stopnia.
 - Pamięć: O(V).
 
 ## Wyniki z ostatniego custom.py
+
 - Graph: small_world(n=100), License: spotify
 - cost: 872.75, time_ms: 1.28, valid: True
 
 ## Uwagi
-- Heurystyka “coverage per cost” kieruje wyborem dominatorów; dobór członków grup preferuje węzły o największym stopniu.
+
+- Heurystyka "coverage per cost" kieruje wyborem dominatorów; dobór członków grup preferuje węzły o największym stopniu.
 
 ## Mapowanie pseudokodu na kod
+
 - Plik: `src/glopt/algorithms/dominating_set.py`
 - `solve(...)` - główna pętla: wyznaczenie zbioru dominującego, przypisania grup i domknięcia
 - `_find_cost_effective_dominating_set(...)` - budowa D według pokrycia i kosztu na węzeł
