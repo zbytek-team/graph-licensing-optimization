@@ -18,19 +18,19 @@ Rozdział~\ref{chap:extensions} analizuje osiem wariantów taryf. W planach Duol
 
 \section{Rekomendacje praktyczne}
 
-\textbf{Dobór algorytmu.} Dla instancji do około 200 węzłów algorytm ILP jest najlepszym punktem odniesienia. Dla większych sieci zalecane są algorytm mrówkowy albo przeszukiwanie tabu; w środowisku dynamicznym krótsze czasy rebalansowania daje przeszukiwanie tabu.
+\textbf{Dobór algorytmu}: dla instancji do około 200 węzłów algorytm ILP jest najlepszym punktem odniesienia. Dla większych sieci zalecane są algorytm mrówkowy albo przeszukiwanie tabu; w środowisku dynamicznym krótsze czasy rebalansowania daje przeszukiwanie tabu.
 
-\textbf{Strategia inicjalizacji.} Ciepły start metaheurystyk, czyli start z poprzedniego rozwiązania, obniża koszt o 6--14\% przy niewielkim koszcie czasowym. W systemach aktualizowanych częściowo powinien to być standard.
+\textbf{Strategia inicjalizacji}: ciepły start metaheurystyk, czyli start z poprzedniego rozwiązania, obniża koszt o 6--14\% przy niewielkim koszcie czasowym. W systemach aktualizowanych częściowo powinien to być standard.
 
-\textbf{Polityka licencyjna.} Tańsze plany rodzinne, w szczególności warianty pośrednie (np. Duo), realnie zmniejszają koszt końcowy. Zbyt wysokie $p$ w planach grupowych sprzyja licencjom indywidualnym i ogranicza zyski z optymalizacji.
+\textbf{Polityka licencyjna}: tańsze plany rodzinne, w szczególności warianty pośrednie (np. Duo), realnie zmniejszają koszt końcowy. Zbyt wysokie $p$ w planach grupowych sprzyja licencjom indywidualnym i ogranicza zyski z optymalizacji.
 
 \section{Kierunki dalszych badań}
 
-\textbf{Gwarancje aproksymacji.} Warto poszukać teoretycznych ograniczeń jakości rozwiązań dla wybranych klas grafów lub modeli losowych.
-\textbf{Modele stochastyczne.} Ujęcie niepewności w dostępie użytkowników i ewolucji sieci może zwiększyć odporność rozwiązań (np. podejścia dwuetapowe lub bayesowskie).
-\textbf{Wielokryterialność i koszty operacyjne.} Rozszerzenie funkcji celu o sprawiedliwość, ryzyko czy koszt migracji lepiej odzwierciedli praktykę.
-\textbf{Optymalizacja hiperparametrów.} Automatyczne strojenie parametrów metaheurystyk (np. techniki z rodziny AutoML) może poprawić stosunek kosztu do czasu bez ręcznego dostrajania.
-\textbf{Integracja z praktyką.} Biblioteka daje podstawy do wdrożeń w systemach rekomendacji planów rodzinnych; naturalnym krokiem jest eksperyment online na rzeczywistych danych.
+\textbf{Gwarancje aproksymacji}: warto poszukać teoretycznych ograniczeń jakości rozwiązań dla wybranych klas grafów lub modeli losowych.
+\textbf{Modele stochastyczne}: ujęcie niepewności w dostępie użytkowników i ewolucji sieci może zwiększyć odporność rozwiązań (np. podejścia dwuetapowe lub bayesowskie).
+\textbf{Wielokryterialność i koszty operacyjne}: rozszerzenie funkcji celu o sprawiedliwość, ryzyko czy koszt migracji lepiej odzwierciedli praktykę.
+\textbf{Optymalizacja hiperparametrów}: automatyczne strojenie parametrów metaheurystyk (np. techniki z rodziny AutoML) może poprawić stosunek kosztu do czasu bez ręcznego dostrajania.
+\textbf{Integracja z praktyką}: biblioteka daje podstawy do wdrożeń w systemach rekomendacji planów rodzinnych; naturalnym krokiem jest eksperyment online na rzeczywistych danych.
 
 \section{Zakończenie}
 
