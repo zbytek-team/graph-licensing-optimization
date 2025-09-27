@@ -20,7 +20,7 @@ Na rysunku \ref{fig:all_types_time} przedstawiono czasy obliczeń w funkcji licz
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.66\textwidth]{assets/all_types_plot.png}
-  \caption{Czas obliczeń algorytmu naiwnego w funkcji liczby wierzchołków $n$ dla trzech typów grafów}
+  \caption{Czas obliczeń algorytmu naiwnego w funkcji liczby wierzchołków $n$ dla trzech typów grafów.}
   \label{fig:all_types_time}
 \end{figure}
 
@@ -51,17 +51,17 @@ Na rysunku \ref{fig:all_types_time} przedstawiono czasy obliczeń w funkcji licz
 \end{algorithm}
 
 \paragraph{Złożoność}
-Algorytm generuje wszystkie partycje zbioru \(V\) na niepuste zestawy, czyli wszystkie rozbicia odpowiadające potencjalnym zestawom grup licencyjnych. Takich partycji jest \(B_{|V|}\), gdzie \(B_m\) oznacza liczbę Bella dla \(m\) elementów \cite{stanley1997enumerative}. W implementacji nie ograniczono z góry liczby zestawów: niektóre typy licencji mogą pozostać nieużyte, dlatego dopuszczamy zarówno rozbicia na jedną grupę, jak i na \(|V|\) grup jednowierzchołkowych. Gdyby liczba zestawów była stała i wynosiła \(k\), odpowiadałyby jej liczby Stirlinga drugiego rodzaju \({|V| \brace k}\); tutaj sumujemy je po wszystkich \(k\), stąd pojawiają się liczby Bella. Samo wygenerowanie partycji ma koszt $\Theta(B_{|V|})$.
+Algorytm generuje wszystkie partycje zbioru \(V\) na niepuste zestawy, czyli wszystkie rozbicia odpowiadające potencjalnym zestawom grup licencyjnych. Takich partycji jest \(B_{|V|}\), gdzie \(B_m\) oznacza liczbę Bella dla \(m\) elementów \cite{stanley1997enumerative}. W implementacji nie ograniczono z góry liczby zestawów: niektóre typy licencji mogą pozostać nieużyte, dlatego dopuszczamy zarówno rozbicia na jedną grupę, jak i na \(|V|\) grup jednowierzchołkowych. Gdyby liczba zestawów była stała i wynosiła \(k_{na}\), odpowiadałyby jej liczby Stirlinga drugiego rodzaju \({|V| \brace k_{na}}\); tutaj sumujemy je po wszystkich \(k_{na}\), stąd pojawiają się liczby Bella. Samo wygenerowanie partycji ma koszt $\Theta(B_{|V|})$.
 
-Dla partycji o \(k\) zestawach o rozmiarach \(s_1, s_2, \ldots, s_k\) rozpatrujemy każdą kombinację wyboru właściciela (co najwyżej \(s_i\) opcji na zestaw \(i\)) i dopuszczalnego typu licencji (co najwyżej \(T\) opcji, gdzie \(T=|L|\)). Prowadzi to do górnego oszacowania
+Dla partycji o \(k_{na}\) zestawach o rozmiarach \(s_1, s_2, \ldots, s_{k_{na}}\) rozpatrujemy każdą kombinację wyboru właściciela (co najwyżej \(s_i\) opcji na zestaw \(i\)) i dopuszczalnego typu licencji (co najwyżej \(T\) opcji, gdzie \(T=|L|\)). Prowadzi to do górnego oszacowania
 \[
-  \prod_{i=1}^{k} (s_i \cdot T) = T^k \cdot \prod_{i=1}^{k} s_i
+  \prod_{i=1}^{k_{na}} (s_i \cdot T) = T^{k_{na}} \cdot \prod_{i=1}^{k_{na}} s_i
 \]
-konfiguracji dla pojedynczej partycji. Całkowity koszt można oszacować przez \(O\bigl(B_{|V|} \cdot T^{|V|} \cdot 3^{|V|/3}\bigr)\), ponieważ \(\prod s_i \leq 3^{|V|/3}\). Wzrost jest superwykładniczy, gdzie asymptotycznie \(\log B_n = n\log n - n\log\log n - n + O(n/\log n)\). W praktyce ograniczenia licencyjne i warunek sąsiedztwa znacząco zmniejszają liczbę rozważanych konfiguracji, lecz nawet wtedy pełny przegląd jest użyteczny wyłącznie dla bardzo małych grafów (rzędu kilku do kilkunastu wierzchołków).
+konfiguracji dla pojedynczej partycji. Całkowity koszt można oszacować przez \(O\bigl(B_{|V|} \cdot T^{|V|} \cdot 3^{|V|/3}\bigr)\), ponieważ \(\prod s_i \leq 3^{|V|/3}\). Wzrost jest superwykładniczy, gdzie asymptotycznie \(\log B_n = n\log n -- n\log\log n -- n + O(n/\log n)\). W praktyce ograniczenia licencyjne i warunek sąsiedztwa znacząco zmniejszają liczbę rozważanych konfiguracji, lecz nawet wtedy pełny przegląd jest użyteczny wyłącznie dla bardzo małych grafów (rzędu kilku do kilkunastu wierzchołków).
 
 Liczby Bella można zapisać wzorami
 \[
-  B_n = \sum_{k=0}^{n} \left\{\!\!\begin{array}{c} n \\ k \end{array}\!\!\right\}\quad\text{oraz}\quad B_n = \frac{1}{e}\sum_{k=0}^{\infty}\frac{k^{\,n}}{k!},
+  B_n = \sum_{k_{na}=0}^{n} \left\{\!\!\begin{array}{c} n \\ k_{na} \end{array}\!\!\right\}\quad\text{oraz}\quad B_n = \frac{1}{e}\sum_{k_{na}=0}^{\infty}\frac{k_{na}^{\,n}}{k_{na}!},
 \]
 a zliczają one wszystkie rozbiory zbioru na dowolną liczbę niepustych zestawów (zestawy są nierozróżnialne). Dla porównania liczba wszystkich podzbiorów zbioru \(n\)-elementowego wynosi jedynie \(2^n\), więc nawet tak uproszczone oszacowanie rośnie wolniej niż pełna liczba partycji.
 
@@ -100,7 +100,7 @@ Liczba zmiennych: \(|V|T\) dla \(a_{i,t}\) oraz \(T\sum_i |N[i]|\) dla \(x_{i,j,
 Liczba ograniczeń: \(|V|\) dla \eqref{con:cover}, \(2|V|T\) dla \eqref{con:capacity}, \(|V|T\) dla \eqref{con:owner}, \(|V|\) dla \eqref{con:one}.
 Model służy jako punkt odniesienia dla instancji małych i średnich.
 
-Problemem ILP jest wykładnicza złożoność czasowa w najgorszym przypadku. Alternatywnym podejściem jest \emph{relaksacja liniowa}, gdzie zmienne binarne zastąpiono ciągłymi z przedziałem \([0,1]\), co daje wielomianowy czas rozwiązania. Rozwiązanie relaksacji stanowi dolne oszacowanie optimum, ale wymaga zaokrąglenia i może naruszać ograniczenia. W niniejszej pracy zastosowano dokładne rozwiązanie binarne ILP.
+Problemem ILP jest wykładnicza złożoność czasowa w najgorszym przypadku. Alternatywnym podejściem jest relaksacja liniowa, gdzie zmienne binarne zastąpiono ciągłymi z przedziałem \([0,1]\), co daje wielomianowy czas rozwiązania. Rozwiązanie relaksacji stanowi dolne oszacowanie optimum, ale wymaga zaokrąglenia i może naruszać ograniczenia. W niniejszej pracy zastosowano dokładne rozwiązanie binarne ILP.
 
 \paragraph{Implementacja}
 Implementacja w Pythonie (PuLP+CBC) odzwierciedla model. Stosuje się eliminację niemożliwych par \((i,t)\), gdy \(m_t>|N[i]|\) lub \(k_t<1\), oraz dla \(k_t=1\) tworza się wyłącznie zmienne \(x_{i,i,t}\).
@@ -162,7 +162,7 @@ Algorytm zachłanny jest bardzo szybki i daje stabilne wyniki. Z tego powodu cz�
 Wadą algorytmu jest ryzyko pominięcia rozwiązań globalnie lepszych wskutek lokalnych decyzji.
 \subsection{Heurystyka zbioru dominującego}\label{subsec:ds}
 
-Heurystyka korzysta z \emph{minimalnych względem inkluzji} zbiorów dominujących. Zbiór dominujący jest minimalny, gdy usunięcie dowolnego jego wierzchołka powoduje utratę własności dominowania \cite{haynes1998domination}. W kontekście licencjonowania dominatorem nazywa się wierzchołek wybrany do zbioru dominującego, który stanie się właścicielem grupy licencyjnej i pokryje siebie oraz swoich sąsiadów. Dla przejrzystości wprowadzamy zbiór $F$ oznaczający wierzchołki, które nie zostały jeszcze przypisane ani do zbioru dominującego, ani do żadnej grupy licencyjnej.
+Heurystyka korzysta z minimalnych względem inkluzji zbiorów dominujących. Zbiór dominujący jest minimalny, gdy usunięcie dowolnego jego wierzchołka powoduje utratę własności dominowania \cite{haynes1998domination}. W kontekście licencjonowania dominatorem nazywa się wierzchołek wybrany do zbioru dominującego, który stanie się właścicielem grupy licencyjnej i pokryje siebie oraz swoich sąsiadów. Dla przejrzystości wprowadzamy zbiór $F$ oznaczający wierzchołki, które nie zostały jeszcze przypisane ani do zbioru dominującego, ani do żadnej grupy licencyjnej.
 
 Wskaźnik wyboru kandydata opiera się na \(\mathrm{coverage}(v)\) oraz \(\min\_\mathrm{cpn}(v)\).
 \begin{itemize}
@@ -267,10 +267,10 @@ Algorytm genetyczny utrzymuje populację pełnych przydziałów licencyjnych i z
 
 \paragraph{Parametry}
 \begin{itemize}
-  \item \textbf{Wielkość populacji} $P_{GA}=30$ - liczba rozwiązań utrzymywanych w każdej generacji.
-  \item \textbf{Liczba pokoleń} $N_{GA}=40$ - maksymalna liczba iteracji ewolucji.
-  \item \textbf{Udział elity} $\alpha_{GA}=20\%$ - część najlepszych osobników kopiowana bez zmian do kolejnego pokolenia.
-  \item \textbf{Prawdopodobieństwo krzyżowania} $p_{c,GA}=60\%$ - przy tej szansie dziecko powstaje przez połączenie dwóch rodziców; w przeciwnym razie wykonywana jest mutacja.
+  \item \textbf{Wielkość populacji} $P_{GA}=30$ -- liczba rozwiązań utrzymywanych w każdej generacji.
+  \item \textbf{Liczba pokoleń} $N_{GA}=40$ -- maksymalna liczba iteracji ewolucji.
+  \item \textbf{Udział elity} $\alpha_{GA}=20\%$ -- część najlepszych osobników kopiowana bez zmian do kolejnego pokolenia.
+  \item \textbf{Prawdopodobieństwo krzyżowania} $p_{c,GA}=60\%$ -- przy tej szansie dziecko powstaje przez połączenie dwóch rodziców; w przeciwnym razie wykonywana jest mutacja.
 \end{itemize}
 
 \begin{algorithm}[H]
@@ -386,11 +386,11 @@ Symulowane wyżarzanie rozpoczyna od dowolnego dopuszczalnego przydziału; w imp
 
 \paragraph{Parametry}
 \begin{itemize}
-  \item \textbf{Temperatura początkowa} $\tau_0 = 100.0$ - stosunkowo wysoka wartość dobrana eksperymentalnie; przy takich temperaturach różnice kosztów rzędu kilku jednostek są często akceptowane, co pozwala na szeroką eksplorację przestrzeni rozwiązań na początku działania algorytmu.
-  \item \textbf{Współczynnik chłodzenia} $\gamma = 0.995$ - temperatura maleje geometrycznie z czynnikiem $\gamma$.
-  \item \textbf{Temperatura minimalna} $\tau_{\min} = 0.001$ - po jej osiągnięciu algorytm kończy działanie.
-  \item \textbf{Maksymalna liczba iteracji} $N_{SA} = 20\,000$ - górne ograniczenie liczby kroków.
-  \item \textbf{Limit stagnacji} $S = 2\,000$ - liczba kolejnych iteracji bez poprawy najlepszej wartości; po jego przekroczeniu temperatura jest dodatkowo dzielona przez 2.
+  \item \textbf{Temperatura początkowa} $\tau_0 = 100.0$ -- stosunkowo wysoka wartość dobrana eksperymentalnie; przy takich temperaturach różnice kosztów rzędu kilku jednostek są często akceptowane, co pozwala na szeroką eksplorację przestrzeni rozwiązań na początku działania algorytmu.
+  \item \textbf{Współczynnik chłodzenia} $\gamma = 0.995$ -- temperatura maleje geometrycznie z czynnikiem $\gamma$.
+  \item \textbf{Temperatura minimalna} $\tau_{\min} = 0.001$ -- po jej osiągnięciu algorytm kończy działanie.
+  \item \textbf{Maksymalna liczba iteracji} $N_{SA} = 20\,000$ -- górne ograniczenie liczby kroków.
+  \item \textbf{Limit stagnacji} $S = 2\,000$ -- liczba kolejnych iteracji bez poprawy najlepszej wartości; po jego przekroczeniu temperatura jest dodatkowo dzielona przez 2.
 \end{itemize}
 
 \begin{algorithm}[H]
@@ -405,7 +405,7 @@ Symulowane wyżarzanie rozpoczyna od dowolnego dopuszczalnego przydziału; w imp
     \If{$temperatura < T_{min}$} \textbf{przerwij} \EndIf
     \State wybierz losową operację sąsiedztwa
     \State $kandydat \gets$ wynik operacji sąsiedztwa
-    \State $\Delta \gets koszt(kandydat) - koszt(aktualne)$
+    \State $\Delta \gets koszt(kandydat) -- koszt(aktualne)$
     \If{$\Delta \leq 0$ LUB $random() < \exp(-\Delta / temperatura)$}
     \State $aktualne \gets kandydat$
     \If{$koszt(kandydat) < koszt(najlepsze)$}
