@@ -8,7 +8,7 @@ Eksperymenty dynamiczne wykonano w tym samym środowisku obliczeniowym co testy 
 
 Testy przeprowadzono dla sześciu profili mutacji, przy czym każdy profil definiuje stały zestaw parametrów obowiązujący w całej symulacji. Profile obejmują trzy syntetyczne o prostej logice modyfikacji (low, med, high) oraz trzy bardziej złożone, uwzględniające mechanizmy takie jak preferencyjne przyłączanie, domykanie triad czy losowe przekształcanie krawędzi (pref\_triadic, pref\_pref, rand\_rewire).
 
-Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieństwami mutacji w każdym kroku symulacji (tabela~\ref{tab:dyn-mutation-levels}). W każdym kroku niezależnie decyduje się o wykonaniu danej operacji, po czym wyznacza się liczbę elementów do modyfikacji (1-3 węzłów, 1-5 krawędzi). Usunięcie węzła skutkuje usunięciem wszystkich krawędzi incydentnych z tym węzłem. Prawdopodobieństwa dobrano w celu uzyskania trzech odrębnych poziomów intensywności zmian: niskiego (modyfikacje w ~1-6\% kroków), średniego (4-18\%) oraz wysokiego (8-30\%).
+Warianty \texttt{low}, \texttt{med} oraz \texttt{high} różnią się prawdopodobieństwami mutacji w każdym kroku symulacji (tabela~\ref{tab:dyn-mutation-levels}). W każdym kroku niezależnie decyduje się o wykonaniu danej operacji, po czym wyznacza się liczbę elementów do modyfikacji (1--3 węzłów, 1--5 krawędzi). Usunięcie węzła skutkuje usunięciem wszystkich krawędzi incydentnych z tym węzłem. Prawdopodobieństwa dobrano w celu uzyskania trzech odrębnych poziomów intensywności zmian: niskiego (modyfikacje w ~1--6\% kroków), średniego (4--18\%) oraz wysokiego (8--30\%).
 
 \begin{table}[H]
     \centering
@@ -21,17 +21,18 @@ Warianty \emph{low}, \emph{med} oraz \emph{high} różnią się prawdopodobieńs
         low             & 0.02                      & 0.01                     & 0.06                        & 0.04                       \\
         med             & 0.06                      & 0.04                     & 0.18                        & 0.12                       \\
         high            & 0.12                      & 0.08                     & 0.30                        & 0.20                       \\
+            \bottomrule
     \end{tabular}
 \end{table}
 
 
 Dodatkowo zbadano trzy bardziej realistyczne profile ewolucji sieci. Wszystkie operują na tych samych limitach liczby dodawanych/usuwanych elementów co warianty syntetyczne, różnią się jednak mechanizmem wyboru sąsiedztwa.
 
-Wariant \emph{pref\_triadic} łączy dwa mechanizmy typowe dla sieci społecznych: preferencyjne przyłączanie i domykanie triad. Nowe węzły dołączają do sieci, preferencyjnie łącząc się z istniejącymi węzłami o wysokim stopniu. Nowe krawędzie powstają poprzez domykanie trójkątów, tj. łączenie dwóch niepołączonych węzłów mających wspólnego sąsiada. Mechanizm ten wzmacnia lokalną strukturę klastrową sieci, co odzwierciedla tendencję do tworzenia zamkniętych grup w rzeczywistych sieciach~\cite{albert2002statistical,kamola2016dynamika}.
+Wariant \texttt{pref\_triadic} łączy dwa mechanizmy typowe dla sieci społecznych: preferencyjne przyłączanie i domykanie triad. Nowe węzły dołączają do sieci, preferencyjnie łącząc się z istniejącymi węzłami o wysokim stopniu. Nowe krawędzie powstają poprzez domykanie trójkątów, tj. łączenie dwóch niepołączonych węzłów mających wspólnego sąsiada. Mechanizm ten wzmacnia lokalną strukturę klastrową sieci, co odzwierciedla tendencję do tworzenia zamkniętych grup w rzeczywistych sieciach~\cite{albert2002statistical,kamola2016dynamika}.
 
-Wariant \emph{pref\_pref} stosuje mechanizm preferencyjnego przyłączania zarówno przy dodawaniu nowych węzłów, jak i tworzeniu krawędzi między już istniejącymi. Oznacza to, że zarówno nowe węzły, jak i nowe krawędzie preferencyjnie łączą wierzchołki o wysokim stopniu. Takie podejście sprzyja tworzeniu centralnych węzłów o wysokim stopniu w sieci, co jest kluczową cechą topologii bezskalowych~\cite{albert2002statistical}.
+Wariant \texttt{pref\_pref} stosuje mechanizm preferencyjnego przyłączania zarówno przy dodawaniu nowych węzłów, jak i tworzeniu krawędzi między już istniejącymi. Oznacza to, że zarówno nowe węzły, jak i nowe krawędzie preferencyjnie łączą wierzchołki o wysokim stopniu. Takie podejście sprzyja tworzeniu centralnych węzłów o wysokim stopniu w sieci, co jest kluczową cechą topologii bezskalowych~\cite{albert2002statistical}.
 
-Wreszcie wariant \emph{rand\_rewire} wprowadza do sieci element losowości, inspirowany modelem Wattsa i Strogatza. Nowe węzły dołączane są w sposób losowy, bez preferencji dla popularniejszych wierzchołków. Zamiast dodawać krawędzie, model modyfikuje strukturę poprzez przełączanie: losową krawędź usuwa się, po czym jeden z jej końców łączy się z innym losowo wybranym węzłem. Proces ten prowadzi do powstawania połączeń długozasięgowych i zmniejsza regularność struktury grafu~\cite{watts1998collective}.
+Wreszcie wariant \texttt{rand\_rewire} wprowadza do sieci element losowości, inspirowany modelem Wattsa i Strogatza. Nowe węzły dołączane są w sposób losowy, bez preferencji dla popularniejszych wierzchołków. Zamiast dodawać krawędzie, model modyfikuje strukturę poprzez przełączanie: losową krawędź usuwa się, po czym jeden z jej końców łączy się z innym losowo wybranym węzłem. Proces ten prowadzi do powstawania połączeń długozasięgowych i zmniejsza regularność struktury grafu~\cite{watts1998collective}.
 
 
 
@@ -113,7 +114,7 @@ Dla wariantu \texttt{high} można zaobserwować niewielkie, lecz zauważalne wah
 \end{figure}
 
 \section{Analiza mutacji realistycznych}
-Tabela~\ref{tab:dyn-real-warm} przedstawia zbiorcze wyniki dla scenariuszy realistycznych. Wariant \texttt{pref\_triadic} wyróżnia się najkrótszym średnim czasem wykonania (poniżej 1 sekundy), przy zachowaniu kosztu na poziomie zbliżonym do wariantu \texttt{pref\_pref}. Z kolei scenariusz \texttt{rand\_rewire} okazał się najbardziej wymagający dla algorytmów -- charakteryzuje się jednocześnie najwyższym średnim kosztem i najdłuższym czasem przetwarzania. Przyczyną jest losowe przełączanie krawędzi, które zaburza lokalną klastrowość, zwiększa entropię topologii i utrudnia użycie poprzedniego rozwiązania jako punktu startowego. W efekcie optymalizacja wymaga więcej iteracji, a uzyskana jakość jest gorsza.
+Tabela~\ref{tab:dyn-real-warm} przedstawia zbiorcze wyniki dla opracowanych scenariuszy realistycznych. Wariant \texttt{pref\_triadic} wyróżnia się najkrótszym średnim czasem wykonania (poniżej \SI{1}{\second}), przy zachowaniu kosztu na poziomie zbliżonym do wariantu \texttt{pref\_pref}. Z kolei scenariusz \texttt{rand\_rewire} okazał się najbardziej wymagający dla algorytmów -- charakteryzuje się jednocześnie najwyższym średnim kosztem i najdłuższym czasem przetwarzania. Przyczyną jest losowe przełączanie krawędzi, które zaburza lokalną klastrowość, zwiększa entropię topologii i utrudnia użycie poprzedniego rozwiązania jako punktu startowego. W efekcie optymalizacja wymaga więcej iteracji, a uzyskana jakość jest gorsza.
 
 
 \begin{table}[H]
@@ -158,7 +159,7 @@ W celu zilustrowania zachowania różnych algorytmów optymalizacyjnych w środo
     \end{tabular}
 \end{table}
 
-Algorytm ILP osiąga najniższe koszty, lecz wymaga około 1.5-\SI{2.6}{\second} na krok. Algorytm genetyczny dobrze sprawdza się przy zmianach klastrowych (\texttt{pref\_triadic}), oferując niski koszt i czas około \SI{0.6}{\second}. Przy wariancie \texttt{pref\_pref} jest wolniejszy (\SI{1.1}{\second}), ale zachowuje dobrą jakość. Z kolei wyżarzanie symulowane jest szybkie (około \SI{0.5}{\second}) i stabilne, ale jakościowo ustępuje bardziej zaawansowanym metodom.
+Algorytm ILP osiąga najniższe koszty, lecz wymaga około \SI{1.5}-\SI{2.6}{\second} na krok. Algorytm genetyczny dobrze sprawdza się przy zmianach klastrowych (\texttt{pref\_triadic}), oferując niski koszt i czas około \SI{0.6}{\second}. Przy wariancie \texttt{pref\_pref} jest wolniejszy (\SI{1.1}{\second}), ale zachowuje dobrą jakość. Z kolei wyżarzanie symulowane jest szybkie (około \SI{0.5}{\second}) i stabilne, ale jakościowo ustępuje bardziej zaawansowanym metodom.
 
 Przeszukiwanie tabu korzysta z lokalności zmian, osiągając sensowny koszt i czas około \SI{1.5}{\second} przy \texttt{pref\_triadic}. Jednak przy mutacjach losowych (\texttt{rand\_rewire}) czas wzrasta do około \SI{2.6}{\second}, a koszt również rośnie. Algorytm mrówkowy zapewnia bardzo dobrą jakość przy \texttt{pref\_pref}, ale działa najwolniej (prawie \SI{7}{\second}). Przejście na \texttt{pref\_triadic} ponad dwukrotnie przyspiesza jego działanie kosztem niewielkiego pogorszenia jakości.
 
