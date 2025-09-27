@@ -3,7 +3,7 @@
 
 W niniejszym rozdziale przedstawiono teoretyczne podstawy problemu licencjonowania oprogramowania poprzez przegląd teorii dominowania w grafach. Rozdział zawiera definicje podstawowych pojęć, wprowadza formalizację problemu licencjonowania jako wariantu dominowania rzymskiego oraz analizuje złożoność obliczeniową zagadnienia. Całość stanowi teoretyczne uzasadnienie dla metod algorytmicznych opisanych w dalszej części pracy.
 
-\section{Dominowanie - podstawowe definicje}
+\section{Dominowanie -- podstawowe definicje}
 Problematyka dominowania w grafach jest dobrze zbadana i szeroko opisana w literaturze~\cite{haynes1998domination}.
 W szczególności znane są klasyczne definicje zbioru dominującego oraz liczby dominowania, które stanowią punkt odniesienia dla dalszych analiz.
 Niech $G=(V,E)$ będzie grafem nieskierowanym.
@@ -80,7 +80,7 @@ Terminologia i metafora związana z dominowaniem rzymskim wywodzą się z legend
 W kontekście problemu optymalnego zakupu licencji w grafach reprezentujących sieci społecznościowe interpretacja jest bezpośrednia. Wartość $f(v)=2$ odpowiada użytkownikowi $v$, który nabywa licencję grupową i zapewnia dostęp zarówno sobie, jak i co najmniej jednemu ze swoich sąsiadów. Wartość $f(v)=1$ oznacza użytkownika posiadającego licencję indywidualną, pokrywającą wyłącznie jego samego. Natomiast $f(v)=0$ reprezentuje użytkownika bez własnej licencji, który musi polegać na pokryciu przez sąsiada z wartością 2. Warunek dominowania rzymskiego, zgodnie z którym każdy wierzchołek z etykietą 0 ma sąsiada z etykietą 2, gwarantuje dokładnie to, co w naszym modelu jest wymagane: każdy użytkownik bez licencji ma znajomego z licencją grupową, który może podzielić się z nim dostępem. W ten sposób każda funkcja $f:V \to \{0,1,2\}$ spełniająca warunki dominowania rzymskiego wyznacza dopuszczalną strategię licencyjną w rozważanej sieci.
 
 
-Waga funkcji dominowania rzymskiego definiowana jest jako $w(f) = \sum_{v \in V} f(v)$, czyli suma przypisanych wartości. Liczba dominowania rzymskiego $\gamma_R(G)$ to najmniejsza możliwa waga funkcji dominowania rzymskiego dla grafu $G$. Jeśli przyjmiemy, że koszt licencji indywidualnej wynosi 1, a grupowej 2, to minimalizacja kosztu w naszym problemie pokrywa się z zagadnieniem znalezienia funkcji dominowania rzymskiego o najmniejszej wadze. Cel minimalizacji całkowitego kosztu $C = |I| + 2|H|$ jest równoważny minimalizacji $w(f)$, gdy $|I|$ utożsamimy z liczbą wierzchołków o etykiecie 1, a $|H|$ z liczbą wierzchołków o etykiecie 2. Należy jednak podkreślić, że pełna równoważność z dominowaniem rzymskim zachodzi tylko wtedy, gdy liczba sąsiadów dowolnego wierzchołka nie przekracza maksymalnej liczby użytkowników dopuszczonych w planie grupowym. Jak wspomniano wcześniej przy omawianiu parametrów $m$ i $k$, nasze ujęcie wprowadza dodatkowe ograniczenie pojemności - wierzchołek dla którego funkcja $f$ przyjmuje wartość 2 może pokrywać jedynie ograniczoną liczbę sąsiadów. Problem optymalnego zakupu licencji jest więc uogólnieniem dominowania rzymskiego, dostosowanym do praktycznych limitów występujących w planach subskrypcyjnych.
+Waga funkcji dominowania rzymskiego definiowana jest jako $w(f) = \sum_{v \in V} f(v)$, czyli suma przypisanych wartości. Liczba dominowania rzymskiego $\gamma_R(G)$ to najmniejsza możliwa waga funkcji dominowania rzymskiego dla grafu $G$. Jeśli przyjmiemy, że koszt licencji indywidualnej wynosi 1, a grupowej 2, to minimalizacja kosztu w naszym problemie pokrywa się z zagadnieniem znalezienia funkcji dominowania rzymskiego o najmniejszej wadze. Cel minimalizacji całkowitego kosztu $C = |I| + 2|H|$ jest równoważny minimalizacji $w(f)$, gdy $|I|$ utożsamimy z liczbą wierzchołków o etykiecie 1, a $|H|$ z liczbą wierzchołków o etykiecie 2. Należy jednak podkreślić, że pełna równoważność z dominowaniem rzymskim zachodzi tylko wtedy, gdy liczba sąsiadów dowolnego wierzchołka nie przekracza maksymalnej liczby użytkowników dopuszczonych w planie grupowym. Jak wspomniano wcześniej przy omawianiu parametrów $m$ i $k$, nasze ujęcie wprowadza dodatkowe ograniczenie pojemności -- wierzchołek dla którego funkcja $f$ przyjmuje wartość 2 może pokrywać jedynie ograniczoną liczbę sąsiadów. Problem optymalnego zakupu licencji jest więc uogólnieniem dominowania rzymskiego, dostosowanym do praktycznych limitów występujących w planach subskrypcyjnych.
 
 W przypadku innych modeli cenowych, dominowanie rzymskie stanowi nadal użyteczną metaforę, choć nie oddaje w sposób wystarczający struktury kosztów. Gdy $p \neq 2$, możemy rozważyć ogólniejsze przypisania wag, w których etykieta odpowiada rzeczywistemu kosztowi planu. Przykładowo, gdy $p=3$, to licencja grupowa ma koszt równy trzem jednostkom, co nie mieści się w klasycznym schemacie $\{0,1,2\}$. W literaturze zaproponowano rozszerzenia pozwalające modelować takie sytuacje, m.in. $k$-dominowanie rzymskie, gdzie dopuszcza się wartości $\{0,1,\dots,k\}$ \cite{CHAUDHARY2024301}, czy też dominowanie rzymskie z wagami \cite{Ghaffari2020}. Warianty te pozwalają odwzorować przypadki, w których dostępne są plany o różnych kosztach i różnej pojemności, np. licencja droższa, ale umożliwiająca współdzielenie w większej grupie. W tym sensie uogólnienia dominowania rzymskiego są bliższe rzeczywistemu problemowi optymalizacji kosztów licencji niż klasyczna wersja ograniczona do wartości 0, 1 i 2.
 
@@ -97,10 +97,11 @@ Rysunek~\ref{fig:romandomatinonstarexamepl} ilustruje przykład i pokazuje, jak 
   \centering
   \includegraphics[width=1\textwidth]{assets/stars.png}
   \caption{
-    Kolory: biały = $0$, pomarańczowy = $1$, czerwony = $2$.
-    \textbf{(a)}~Przypisanie optymalne (koszt 2).
-    \textbf{(b)}~Wszyscy z $f=1$ (koszt 5).
-    \textbf{(c)}~$A=1$, liście $f=0$ (niespełniony warunek).
+  Przykład dominowania rzymskiego na grafie typu gwiazda.  
+  Kolory: biały = $f(v)=0$, pomarańczowy = $f(v)=1$, czerwony = $f(v)=2$.
+    \textbf{(a)}~Przypisanie optymalne ($w(f)=2$).
+    \textbf{(b)}~$f(A)=f(B)=f(C)=f(D)=f(E)=1$ ($w(f)=5$).
+    \textbf{(c)}~$f(A)=1$, liście $f(B)=f(C)=f(D)=f(E)=0$ (niespełniony warunek).
   }
   \label{fig:romandomatinonstarexamepl}
 \end{figure}
