@@ -1,8 +1,8 @@
-\chapter{Model grafowy problemu zakupu licencji}
+\chapter{Model grafowy problemu zakupu licencji} \label{ch:graph_model}
 
 Niniejszy rozdział formalizuje analizowany problem, zaczynając od zdeﬁniowania reprezentacji sieci społecznej, a następnie opisując parametry i ograniczenia wynikające z praktyki licencjonowania. Stanowi to fundament dla późniejszych rozdziałów poświęconych teorii dominowania oraz konstrukcji algorytmów.
 
-\section{Reprezentacja grafowa}
+\section{Reprezentacja grafowa} 
 
 Aby formalnie opisać zjawisko współdzielenia licencji, sieć relacji społecznych modeluje się jako graf nieskierowany \( G = (V, E) \). Każdy wierzchołek \( v \in V \) reprezentuje pojedynczego użytkownika, natomiast krawędź \( \{u, v\} \in E \) oznacza, że użytkownicy \( u \) i \( v \) znajdują się w relacji umożliwiającej współdzielenie licencji grupowej. Graf jest nieskierowany, ponieważ relacja znajomości jest symetryczna.
 
@@ -95,7 +95,7 @@ gdzie:
 Celem problemu jest minimalizacja funkcji kosztu~(\ref{eq:cost_function}) dla danego grafu $G=(V,E)$, przy spełnieniu wszystkich istotnych warunków wykonalności.
 
 
-\section{Koszty i ograniczenia}
+\section{Koszty i ograniczenia} \label{sec:costs_constraints}
 
 W tej części zestawiono parametry, które przekładają się na realną wykonalność i opłacalność grup licencyjnych. Najpierw omówiono ograniczenia pojemności wynikające z regulaminów usług, a następnie struktury cenowe wykorzystywane później w eksperymentach.
 
