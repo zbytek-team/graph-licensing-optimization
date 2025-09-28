@@ -67,49 +67,47 @@ a zliczają one wszystkie rozbiory zbioru na dowolną liczbę niepustych zestaw�
 
 \subsection{Programowanie całkowitoliczbowe (ILP)}\label{subsec:ilp}
 
-Problem z rozdziału~\ref{sec:model-formal} formułujemy jako minimalizację kosztu przy ograniczeniach liniowych z binarnymi zmiennymi. Model jest dokładny. Algorytm zwraca rozwiązanie optymalne, jeśli solver zakończy działanie ze statusem \texttt{Optimal}. W przypadku statusu \texttt{Infeasible}, \texttt{Unbounded} lub \texttt{Not Solved} zwracane jest rozwiązanie zapasowe z licencjami indywidualnymi.
+Problem wyznaczania optymalnej strategii zakupu licencji, który został sformalizowany w rozdziale~\ref{sec:model-formal}, zostaje rozwiązany metodą dokładną poprzez utworzenie modelu programowania liniowego z zmiennymi binarnymi (ILP).
+Programowanie całkowitoliczbowe gwarantuje znalezienie rozwiązania optymalnego dla danej instancji problemu optymalizacyjnego, o ile algorytm zakończy obliczenia ze statusem \texttt{Optimal}.
+W przypadku braku rozwiązania optymalnego (status \texttt{Infeasible}, \texttt{Unbounded} lub \texttt{Not Solved}), stosowana jest strategia awaryjna polegająca na przydzieleniu każdemu użytkownikowi licencji indywidualnej. Zapewnia to zawsze rozwiązanie wykonalne, choć potencjalnie nieoptymalne.
+Podejście ILP wykorzystuje zaawansowane techniki przeszukiwania przestrzeni rozwiązań, dzięki czemu znacznie ogranicza eksplorację w porównaniu z naiwnym przeglądem zupełnym.
+Model ILP uwzględnia wszystkie ograniczenia praktyczne problemu oraz minimalizuje całkowity koszt zgodnie z funkcją kosztu (\ref{eq:cost_function}).
+Metoda ta jest jednak obliczeniowo złożona, a jej zastosowanie ogranicza się do grafów małej i średniej skali, stanowiąc głównie punkt odniesienia do oceny jakości rozwiązań innych algorytmów.
 
-\paragraph{Parametry i zmienne}
-Korzystamy z rodziny licencji z~\eqref{eq:license_family},
-\(L=\{l_t=(c_t,m_t,k_t):t=1,\dots,T\}\).
-Oznaczamy \(N[i]=N(i)\cup\{i\}\). Dla \(i\in V\), \(t\in\{1,\dots,T\}\) definiujemy:
-\begin{itemize}
-  \item \(a_{i,t}\in\{0,1\}\): \(a_{i,t}=1\) gdy węzeł \(i\) staje się właścicielem grupy licencyjnej typu \(t\). Właściciel kupuje licencję i dzieli jej korzyści z wybranymi sąsiadami zgodnie z ograniczeniami pojemności \(m_t \leq |grupa| \leq k_t\). Właściciel zawsze należy do własnej grupy.
-  \item \(x_{i,j,t}\in\{0,1\}\) dla \(j\in N[i]\): \(x_{i,j,t}=1\) gdy \(j\) należy do grupy właściciela \(i\) typu \(t\).
+\paragraph{Opis algorytmu}
+Korzystamy z rodziny typów licencji zdefiniowanej w rozdziale \ref{sec:model-formal}, oznaczonej jako $L = \{{l_t = (c_t,m_t,k_t) \mid t = 1,\dots,T}\}$, gdzie $c_t$ to koszt licencji typu $t$, zaś $m_t$ i $k_t$ to minimalna i maksymalna liczebność grupy dla tego typu. Sieć społeczna reprezentowana jest grafem nieskierowanym $G = (V,E)$. Dla każdego wierzchołka $i \in V$ oznaczamy przez $N[i] = N(i) \cup \{i\}$ zbiór $i$ oraz wszystkich jego sąsiadów, czyli otoczenie wraz z wierzchołkiem. Wprowadzamy następujące binarne zmienne decyzyjne dla każdego $i \in V$ i każdego typu licencji $t \in \{1,\dots,T\}$:
+\begin{itemize}\setlength{\itemsep}{1ex}
+\item $a_{i,t} \in {0,1}$ -- zmienna przyjmująca wartość 1, jeżeli węzeł $i$ staje się właścicielem grupy licencyjnej typu $t$. Właściciel kupuje licencję typu $t$ i dzieli jej korzyści z wybranymi sąsiadami, respektując ograniczenia pojemności grupy ($m_t \leq |\text{grupa}| \leq k_t$). Każdy właściciel zawsze należy do swojej grupy i korzysta z własnej licencji.
+\item $x_{i,j,t} \in {0,1}$ -- zmienna przyjmuje wartość 1, jeżeli użytkownik $j$ należy do grupy utworzonej przez użytkownika $i$ na licencji typu $t$. Oznacza to, że $j$ jest członkiem grupy, której właścicielem jest $i$. Zmienna $x_{i,j,t}$ odwzorowuje przypisanie odbiorcy $j$ do właściciela $i$ dla licencji typu $t$. Zależności między zmiennymi $a$ i $x$ wyznaczają podział ról w rozwiązaniu, czyli określają zbiór właścicieli oraz przypisanych im członków.
 \end{itemize}
-Zmienna \(x_{i,j,t}\) odwzorowuje przypisanie odbiorcy do właściciela; zbiory ról są indukowane przez wartości \((a,x)\).
 
-\paragraph{Model}
+Na podstawie powyższych zmiennych formułujemy model optymalizacyjny. Celem jest minimalizacja łącznego kosztu zakupu licencji:
+\begin{equation}\label{eq:ilp_obj}
+\min \sum_{i \in V}\sum_{t=1}^{T} c_t,a_{i,t}~,
+\end{equation}
+przy następujących ograniczeniach:
 \begin{align}
-  \min\quad & \sum_{i\in V}\sum_{t=1}^{T} c_t\, a_{i,t}                                                                        \\
-  \text{pod warunkami:}\quad
-            & \sum_{i\in N[j]}\sum_{t=1}^{T} x_{i,j,t} = 1
-            &                                                                & \forall j\in V \label{con:cover}                \\
-            & m_t\, a_{i,t} \le \sum_{j\in N[i]} x_{i,j,t} \le k_t\, a_{i,t}
-            &                                                                & \forall i\in V,\ \forall t \label{con:capacity} \\
-            & x_{i,i,t} = a_{i,t}
-            &                                                                & \forall i\in V,\ \forall t \label{con:owner}    \\
-            & \sum_{t=1}^{T} a_{i,t} \le 1
-            &                                                                & \forall i\in V \label{con:one}
+  \sum_{i \in N[j]} \sum_{t=1}^{T} x_{i,j,t} &= 1 
+    && \forall\, j \in V~, \label{eq:ilp_cover}\\[1ex]
+  m_t\,a_{i,t} \;\le\; \sum_{j \in N[i]} x_{i,j,t} &\le\; k_t\,a_{i,t} 
+    && \forall\, i \in V,\;\forall\, t~, \label{eq:ilp_cap}\\[1ex]
+  x_{i,i,t} &= a_{i,t} 
+    && \forall\, i \in V,\;\forall\, t~, \label{eq:ilp_owner}\\[1ex]
+  \sum_{t=1}^{T} a_{i,t} &\le 1 
+    && \forall\, i \in V~. \label{eq:ilp_one}
 \end{align}
 
-Znaczenie ograniczeń: \eqref{con:cover} wymusza jednokrotne pokrycie każdego węzła; \eqref{con:capacity} wymusza przedziały wielkości grup; \eqref{con:owner} zapewnia udział właściciela; \eqref{con:one} ogranicza do jednej licencji na węzeł (dowolnego typu). Ograniczenia pokrywają warunki wykonalności z rozdziału~\ref{sec:model-formal}.
 
-\paragraph{Złożoność}
-Liczba zmiennych: \(|V|T\) dla \(a_{i,t}\) oraz \(T\sum_i |N[i]|\) dla \(x_{i,j,t}\), łącznie \(O\!\bigl(T(|E|+|V|)\bigr)\).
-Liczba ograniczeń: \(|V|\) dla \eqref{con:cover}, \(2|V|T\) dla \eqref{con:capacity}, \(|V|T\) dla \eqref{con:owner}, \(|V|\) dla \eqref{con:one}.
-Model służy jako punkt odniesienia dla instancji małych i średnich.
-
-Problemem ILP jest wykładnicza złożoność czasowa w najgorszym przypadku. Alternatywnym podejściem jest relaksacja liniowa, gdzie zmienne binarne zastąpiono ciągłymi z przedziałem \([0,1]\), co daje wielomianowy czas rozwiązania. Rozwiązanie relaksacji stanowi dolne oszacowanie optimum, ale wymaga zaokrąglenia i może naruszać ograniczenia. W niniejszej pracy zastosowano dokładne rozwiązanie binarne ILP.
+Ograniczenie (\ref{eq:ilp_cover}) gwarantuje, że każdy użytkownik $j \in V$ jest pokryty dokładnie jedną licencją grupową, czyli pełni rolę właściciela lub członka dokładnie jednej grupy. Warunki (\ref{eq:ilp_cap}) wiążą wybór licencji z licznością tworzonych grup. Jeżeli $a_{i,t}=1$, to liczba członków przypisanych do właściciela $i$ musi mieścić się w przedziale $[m_t,k_t]$ określonym przez parametry licencji $l_t$. Jeżeli natomiast $a_{i,t}=0$, to nierówności wymuszają $\sum_{j \in N[i]} x_{i,j,t} = 0$, co oznacza brak członków w nieaktywnej grupie. Ograniczenie (\ref{eq:ilp_owner}) zapewnia, że każdy właściciel licencji ($a_{i,t}=1$) sam siebie uwzględnia w korzystaniu z tej licencji ($x_{i,i,t}=1$), co odzwierciedla założenie, iż posiadacz zawsze wykorzystuje kupioną licencję na własny użytek. Z kolei (\ref{eq:ilp_one}) stanowi, że każdy wierzchołek może pełnić rolę właściciela co najwyżej jednej grupy i nie może zakupić więcej niż jednej licencji, niezależnie od jej typu. Powyższe ograniczenia pokrywają wszystkie warunki wykonalności zdefiniowane w rozdziale \ref{sec:model-formal} i tym samym poprawnie modelują dopuszczalne rozwiązania problemu.
 
 \paragraph{Implementacja}
-Implementacja w Pythonie (PuLP+CBC) odzwierciedla model. Stosuje się eliminację niemożliwych par \((i,t)\), gdy \(m_t>|N[i]|\) lub \(k_t<1\), oraz dla \(k_t=1\) tworza się wyłącznie zmienne \(x_{i,i,t}\).
-Wszystkie zmienne decyzyjne są zdefiniowane jako binarne (\texttt{cat="Binary"}).
-W przypadku statusu innego niż \texttt{Optimal} zwracane jest rozwiązanie zapasowe, w którym wszystkim węzłom przypisano najtańsze dostępne licencje indywidualne.
+Model ILP został zaimplementowany w języku Python z użyciem biblioteki PuLP (interfejs algorytmu CBC). Przy konstrukcji modelu wprowadzono kilka optymalizacji redukujących jego rozmiar. Eliminacja par $(i,t)$: zmienne $a_{i,t}$ odpowiadające oczywiście niemożliwym konfiguracjom nie są dodawane do modelu. Dotyczy to sytuacji, gdy licencja grupowa typu $t$ nie może zostać utworzona przez węzeł $i$ ze względu na ograniczenia pojemności. Jeżeli $m_t > |N[i]|$, to węzeł $i$ nie ma wystarczającej liczby sąsiadów, aby spełnić minimalny rozmiar grupy. Jeżeli natomiast $k_t < 1$, to oznacza brak możliwości wykorzystania licencji $t$ nawet przez samego właściciela. Licencje indywidualne: dla licencji o pojemności $k_t = 1$ (plany indywidualne) nie tworzymy zmiennych $x_{i,j,t}$ dla $j \neq i$, ponieważ takie licencje nie przewidują dodatkowych członków -- do modelu dodawane są wyłącznie zmienne $x_{i,i,t}$ reprezentujące korzystanie właściciela $i$ z własnej licencji. Wszystkie zmienne decyzyjne $a_{i,t}$ oraz $x_{i,j,t}$ deklarowane są jako binarne (\verb|cat="Binary"|). Do rozwiązania utworzonego modelu wykorzystuje się algorytmu CBC; w przypadku uzyskania statusu innego niż \texttt{Optimal} (np. \texttt{Infeasible} lub przekroczenie limitu czasu), algorytm generuje rozwiązanie zapasowe, przydzielając każdemu węzłowi najtańszą dostępną licencję indywidualną. Takie rozwiązanie zapasowe gwarantuje otrzymanie poprawnego, choć niekoniecznie optymalnego, wyniku nawet wtedy, gdy procedura dokładna nie zdoła wyznaczyć optimum.
 
-\section{Heurystyki konstrukcyjne}
+\paragraph{Złożoność i~zastosowanie}
+Prezentowany model ILP zawiera $O!\big(T \cdot (|V| + |E|)\big)$ zmiennych decyzyjnych -- do $|V|\cdot T$ zmiennych typu $a_{i,t}$ (dla każdego wierzchołka i typu licencji) oraz maksymalnie $T \sum_{i}|N[i]|$ zmiennych typu $x_{i,j,t}$ (dla każdego potencjalnego przypisania członka do aktywnej grupy). Liczba ograniczeń liniowych również rośnie wielomianowo wraz z rozmiarem grafu. Model zawiera $|V|$ ograniczeń pokrycia węzłów (\ref{eq:ilp_cover}), $2|V|T$ ograniczeń pojemności (\ref{eq:ilp_cap}), czyli dwa dla każdej pary $(i,t)$ -- jedno dolne i jedno górne. Ponadto dodawane jest $|V|T$ ograniczeń udziału właściciela (\ref{eq:ilp_owner}) oraz $|V|$ ograniczeń pojedynczej licencji na węzeł (\ref{eq:ilp_one}). Mimo liniowego wzrostu rozmiaru modelu, należy podkreślić, że problem optymalizacji jest NP-trudny, a złożoność obliczeniowa rozwiązania ILP w najgorszym przypadku rośnie wykładniczo wraz z liczebnością $V$. W praktyce jednak zastosowanie algorytmu ILP pozwala rozwiązać instancje znacznie większe niż algorytm naiwny -- nowoczesne metody optymalizacji całkowitoliczbowej efektywnie przeszukują przestrzeń rozwiązań, wykorzystując cięcia i ograniczenia wynikające z relaksacji liniowej. Alternatywnym podejściem jest relaksacja liniowa modelu, w której znosi się wymóg całkowitoliczbowości zmiennych i dopuszcza wartości ciągłe z przedziału $[0,1]$. Rozwiązanie takiego problemu można znaleźć w czasie wielomianowym, a otrzymane minimum stanowi dolne oszacowanie kosztu. Wymaga to jednak dalszego zaokrąglenia zmiennych i może prowadzić do naruszenia ograniczeń, na przykład poprzez przypisanie jednego użytkownika do dwóch grup jednocześnie. Z tego względu w niniejszej pracy zastosowano pełny model binarny ILP, uzyskując rozwiązania dokładne kosztem większego zapotrzebowania na czas obliczeń.
 
-Heurystyki konstrukcyjne budują rozwiązanie sekwencyjnie, w każdym kroku podejmując decyzje na podstawie lokalnych kryteriów. Metody te charakteryzują się szybkim czasem działania, ale nie gwarantują znalezienia rozwiązania optymalnego. W tej grupie znajdują się algorytm zachłanny, heurystyka oparta na zbiorze dominującym oraz algorytm losowy wykorzystywany jako punkt odniesienia.
+Algorytm ILP stanowi szczególnie wartościowy punkt odniesienia przy analizie wyników, ponieważ gwarancja optymalności pozwala weryfikować jakość rozwiązań uzyskiwanych metodami przybliżonymi. W badaniach eksperymentalnych wykorzystywano go do rozwiązywania instancji o niewielkich rozmiarach oraz jako metodę wyznaczającą optimum dla podgrafów. W tym drugim przypadku służył do oceny rozwiązań heurystycznych. Dla większych sieci społecznych czas działania ILP szybko rośnie i osiągnięcie optimum może okazać się nieosiągalne w rozsądnym czasie (konieczne jest wówczas ograniczenie czasu pracy algorytmu lub użycie rozwiązania przybliżonego). Niemniej jednak, wszędzie tam, gdzie uzyskano rozwiązanie optymalne, stanowiło ono bazę do obliczenia luki optymalizacyjnej (ang.~optimality gap) i oceny efektywności algorytmów heurystycznych. ILP dostarcza zatem najlepsze możliwe rozwiązanie dla danej instancji, co czyni go niezbędnym narzędziem walidacyjnym pomimo ograniczeń skalowalności.
+
 
 \subsection{Algorytm zachłanny}\label{subsec:greedy}
 
