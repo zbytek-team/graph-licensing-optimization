@@ -51,19 +51,11 @@ Na rysunku \ref{fig:all_types_time} przedstawiono czasy obliczeń w funkcji licz
 \end{algorithm}
 
 \paragraph{Złożoność}
-Algorytm generuje wszystkie partycje zbioru \(V\) na niepuste zestawy, czyli wszystkie rozbicia odpowiadające potencjalnym zestawom grup licencyjnych. Takich partycji jest \(B_{|V|}\), gdzie \(B_m\) oznacza liczbę Bella dla \(m\) elementów \cite{stanley1997enumerative}. W implementacji nie ograniczono z góry liczby zestawów: niektóre typy licencji mogą pozostać nieużyte, dlatego dopuszczamy zarówno rozbicia na jedną grupę, jak i na \(|V|\) grup jednowierzchołkowych. Gdyby liczba zestawów była stała i wynosiła \(k_{na}\), odpowiadałyby jej liczby Stirlinga drugiego rodzaju \({|V| \brace k_{na}}\); tutaj sumujemy je po wszystkich \(k_{na}\), stąd pojawiają się liczby Bella. Samo wygenerowanie partycji ma koszt $\Theta(B_{|V|})$.
-
-Dla partycji o \(k_{na}\) zestawach o rozmiarach \(s_1, s_2, \ldots, s_{k_{na}}\) rozpatrujemy każdą kombinację wyboru właściciela (co najwyżej \(s_i\) opcji na zestaw \(i\)) i dopuszczalnego typu licencji (co najwyżej \(T\) opcji, gdzie \(T=|L|\)). Prowadzi to do górnego oszacowania
+Algorytm enumeruje wszystkie partycje zbioru \(V\) na niepuste podzbiory. Każdy wierzchołek należy dokładnie do jednego z podzbiorów danej partycji. Liczbę wszystkich partycji zbioru \(n\)-elementowego oznacza się \(B_n\). Wartości te spełniają rekurencję
 \[
-  \prod_{i=1}^{k_{na}} (s_i \cdot T) = T^{k_{na}} \cdot \prod_{i=1}^{k_{na}} s_i
+B_{n+1}=\sum_{j=0}^{n} \binom{n}{j}\,B_j \quad \text{przy warunku początkowym } B_0=1.
 \]
-konfiguracji dla pojedynczej partycji. Całkowity koszt można oszacować przez \(O\bigl(B_{|V|} \cdot T^{|V|} \cdot 3^{|V|/3}\bigr)\), ponieważ \(\prod s_i \leq 3^{|V|/3}\). Wzrost jest superwykładniczy, gdzie asymptotycznie \(\log B_n = n\log n -- n\log\log n -- n + O(n/\log n)\). W praktyce ograniczenia licencyjne i warunek sąsiedztwa znacząco zmniejszają liczbę rozważanych konfiguracji, lecz nawet wtedy pełny przegląd jest użyteczny wyłącznie dla bardzo małych grafów (rzędu kilku do kilkunastu wierzchołków).
-
-Liczby Bella można zapisać wzorami
-\[
-  B_n = \sum_{k_{na}=0}^{n} \left\{\!\!\begin{array}{c} n \\ k_{na} \end{array}\!\!\right\}\quad\text{oraz}\quad B_n = \frac{1}{e}\sum_{k_{na}=0}^{\infty}\frac{k_{na}^{\,n}}{k_{na}!},
-\]
-a zliczają one wszystkie rozbiory zbioru na dowolną liczbę niepustych zestawów (zestawy są nierozróżnialne). Dla porównania liczba wszystkich podzbiorów zbioru \(n\)-elementowego wynosi jedynie \(2^n\), więc nawet tak uproszczone oszacowanie rośnie wolniej niż pełna liczba partycji.
+Złożoność obliczeniowa algorytmu jest co najmniej rzędu \(\Theta(B_{|V|})\). Każda partycja jest generowana i sprawdzana niezależnie od tego czy później zostanie odrzucona przez ograniczenia pojemności lub sąsiedztwa. Dodatkowe sprawdzanie właścicieli i przypisywanie typów licencji zwiększa koszt obliczeń, lecz nie zmienia faktu że głównym czynnikiem wzrostu pozostaje liczba \(B_{|V|}\). Warunek eksperymentalny \(|V|\le 12\) ogranicza jedynie zakres instancji użytych w testach. Dla wszystkich takich przypadków algorytm nadal przegląda pełną przestrzeń partycji dlatego czas działania rośnie wraz z wartościami \(B_{|V|}\).
 
 \subsection{Programowanie całkowitoliczbowe (ILP)}\label{subsec:ilp}
 
